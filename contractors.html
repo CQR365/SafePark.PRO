@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<!-- saved from url=(0070)file:///C:/Users/omnib/Downloads/contractor_control_updated%20(4).html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CQR365 - Contractor Control &amp; Compliance</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            color: #E8E8E8;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px 10px;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .container {
+            background: #2d2d2d;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        /* NEW DESIGN STANDARD HEADER */
+        .header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            border-bottom: 3px solid #CC5500;
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #CC5500;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #999;
+            font-weight: 400;
+            margin-bottom: 8px;
+        }
+
+        .description {
+            font-size: 14px;
+            color: #888;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        .form-content {
+            padding: 0;
+        }
+
+        .section {
+            margin-bottom: 0;
+            border-bottom: 1px solid #444;
+            transition: all 0.3s ease;
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #3a3a3a 0%, #323232 100%);
+            padding: 25px 30px;
+            border-left: 6px solid #CC5500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .section-header:hover {
+            background: linear-gradient(135deg, #424242 0%, #3a3a3a 100%);
+            transform: translateX(2px);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #E8E8E8;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-number {
+            background: #CC5500;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .collapse-icon {
+            font-size: 20px;
+            color: #CC5500;
+            transition: transform 0.3s ease;
+        }
+
+        .section-content {
+            padding: 30px;
+            background: #2d2d2d;
+            display: block;
+        }
+
+        .section.collapsed .section-content {
+            display: none;
+        }
+
+        .section.collapsed .collapse-icon {
+            transform: rotate(-90deg);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .form-row-three {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #E8E8E8;
+            font-size: 14px;
+        }
+
+        .required {
+            color: #CC5500;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="date"],
+        input[type="number"],
+        input[type="file"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #444;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: #3a3a3a;
+            color: #E8E8E8;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="tel"]:focus,
+        input[type="date"]:focus,
+        input[type="number"]:focus,
+        input[type="file"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #CC5500;
+            box-shadow: 0 0 0 3px rgba(204, 85, 0, 0.1);
+            transform: translateY(-1px);
+            background: #424242;
+        }
+
+        input[type="file"] {
+            padding: 12px 16px;
+            background: #323232;
+            border-style: dashed;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 20px;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            background: #3a3a3a;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .checkbox-item:hover {
+            background: #424242;
+            transform: translateY(-1px);
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #CC5500;
+            cursor: pointer;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 18px;
+            background: #3a3a3a;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .radio-item:hover {
+            background: #424242;
+            border-color: #CC5500;
+        }
+
+        input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #CC5500;
+            cursor: pointer;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #4a3a20 0%, #3a2e18 100%);
+            border: 1px solid #CC5500;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            font-size: 14px;
+            position: relative;
+            overflow: hidden;
+            color: #E8E8E8;
+        }
+
+        .info-box::before {
+            content: 'ℹ';
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 24px;
+            height: 24px;
+            background: #CC5500;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        small {
+            font-size: 13px;
+            color: #999;
+            margin-top: 6px;
+            display: block;
+        }
+
+        .submit-section {
+            text-align: center;
+            padding: 40px 30px;
+            background: linear-gradient(135deg, #3a3a3a 0%, #323232 100%);
+        }
+
+        /* NEW 3D ORANGE BUTTON DESIGN */
+        .submit-btn, .print-btn {
+            background: linear-gradient(145deg, #CC5500, #B8460C);
+            color: white;
+            padding: 16px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.4), inset 2px 2px 4px rgba(255,255,255,0.2);
+            min-width: 180px;
+        }
+
+        .submit-btn:hover, .print-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 7px 7px 20px rgba(0,0,0,0.5), inset 2px 2px 4px rgba(255,255,255,0.2);
+        }
+
+        .submit-btn:active, .print-btn:active {
+            transform: translateY(1px);
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.3), inset 2px 2px 4px rgba(255,255,255,0.1);
+        }
+
+        /* Summary Page Styles */
+        .summary-page {
+            display: none;
+        }
+
+        .summary-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .summary-section {
+            background: #2d2d2d;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border-top: 4px solid #CC5500;
+            transition: transform 0.3s ease;
+        }
+
+        .summary-section:hover {
+            transform: translateY(-3px);
+        }
+
+        .summary-section h3 {
+            color: #CC5500;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .summary-item {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #444;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .summary-label {
+            font-weight: 600;
+            color: #E8E8E8;
+            flex: 1;
+        }
+
+        .summary-value {
+            color: #999;
+            text-align: right;
+            flex: 1;
+            font-weight: 500;
+        }
+
+        /* Footer Branding */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: #323232;
+            color: #999;
+            font-size: 14px;
+            border-top: 1px solid #444;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px 5px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .title {
+                font-size: 24px;
+            }
+
+            .subtitle {
+                font-size: 16px;
+            }
+
+            .description {
+                font-size: 13px;
+            }
+
+            .section-header {
+                padding: 20px 20px;
+            }
+
+            .section-content {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 18px;
+            }
+
+            .form-row,
+            .form-row-three {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
+
+            .radio-group {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .summary-content {
+                grid-template-columns: 1fr;
+                padding: 20px;
+                gap: 20px;
+            }
+
+            .submit-btn, .print-btn {
+                width: 100%;
+                margin: 5px 0;
+            }
+        }
+
+        /* Tablet Responsive */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .form-row-three {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .checkbox-group {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: #2d2d2d;
+                padding: 0;
+            }
+
+            .submit-btn, .print-btn {
+                display: none;
+            }
+
+            .container {
+                box-shadow: none;
+                border: 1px solid #444;
+            }
+
+            .section-header {
+                background: #3a3a3a !important;
+            }
+
+            .summary-section {
+                break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #444;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background: linear-gradient(90deg, #CC5500, #B8460C);
+            transition: width 0.3s ease;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progress-bar" style="width: 2.77778%;"></div>
+    
+    <div class="main-container">
+        <!-- Main Form -->
+        <div class="container" id="main-form">
+            <div class="header">
+                <h1 class="title">Contractor Control &amp; Compliance Module</h1>
+                <p class="subtitle">Highland Holidays</p>
+                <p class="description">Comprehensive contractor assessment aligned with UK legislative requirements including IR35, CDM 2015, Health &amp; Safety, and other statutory obligations</p>
+            </div>
+
+            <form id="contractor-form" action="https://formspree.io/f/xldpjazb" method="POST" enctype="multipart/form-data">
+                <div class="form-content">
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div style="display: flex; align-items: center;">
+                                <div class="section-number">1</div>
+                                <h2 class="section-title">Contractor Information</h2>
+                            </div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="contractor-name">Company/Individual Name <span class="required">*</span></label>
+                                    <input type="text" id="contractor-name" name="contractor-name" required="">
+                                </div>
+                                <div class="form-group">
+                                    <label for="trading-name">Trading Name (if different)</label>
+                                    <input type="text" id="trading-name" name="trading-name">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="company-reg">Company Registration Number</label>
+                                    <input type="text" id="company-reg" name="company-reg">
+                                </div>
+                                <div class="form-group">
+                                    <label for="vat-number">VAT Registration Number</label>
+                                    <input type="text" id="vat-number" name="vat-number">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="registered-address">Registered Address <span class="required">*</span></label>
+                                <textarea id="registered-address" name="registered-address" required=""></textarea>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="contact-email">Primary Contact Email <span class="required">*</span></label>
+                                    <input type="email" id="contact-email" name="contact-email" required="">
+                                </div>
+                                <div class="form-group">
+                                    <label for="contact-phone">Primary Contact Phone <span class="required">*</span></label>
+                                    <input type="tel" id="contact-phone" name="contact-phone" required="">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div style="display: flex; align-items: center;">
+                                <div class="section-number">2</div>
+                                <h2 class="section-title">Employment Status &amp; IR35 Assessment</h2>
+                            </div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-group">
+                                <label>Contractor Type <span class="required">*</span></label>
+                                <div class="radio-group">
+                                    <div class="radio-item">
+                                        <input type="radio" id="limited-company" name="contractor-type" value="limited-company" required="">
+                                        <label for="limited-company">Limited Company</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" id="sole-trader" name="contractor-type" value="sole-trader" required="">
+                                        <label for="sole-trader">Sole Trader</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" id="partnership" name="contractor-type" value="partnership" required="">
+                                        <label for="partnership">Partnership</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" id="umbrella" name="contractor-type" value="umbrella" required="">
+                                        <label for="umbrella">Umbrella Company</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <strong>IR35 Assessment:</strong> For off-payroll working rules compliance, we need to assess the working relationship against control, substitution, and mutuality of obligation factors.
+                            </div>
+
+                            <div class="form-group">
+                                <label for="control-level">Level of Control Over Work Methods <span class="required">*</span></label>
+                                <select id="control-level" name="control-level" required="">
+                                    <option value="">Select control level</option>
+                                    <option value="high-autonomy">High autonomy - Contractor determines how work is performed</option>
+                                    <option value="moderate-direction">Moderate direction - Some guidance on methods provided</option>
+                                    <option value="detailed-control">Detailed control - Specific instructions on how to work</option>
+                                    <option value="direct-supervision">Direct supervision - Constant oversight of work methods</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="substitution">Right of Substitution <span class="required">*</span></label>
+                                <select id="substitution" name="substitution" required="">
+                                    <option value="">Select substitution rights</option>
+                                    <option value="unrestricted">Unrestricted right to send substitute without client approval</option>
+                                    <option value="with-approval">Right to substitute with client approval</option>
+                                    <option value="limited">Limited substitution rights in specific circumstances</option>
+                                    <option value="none">No right of substitution - personal service required</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="financial-risk">Financial Risk <span class="required">*</span></label>
+                                <select id="financial-risk" name="financial-risk" required="">
+                                    <option value="">Select financial risk level</option>
+                                    <option value="high">High - Significant financial investment/liability</option>
+                                    <option value="moderate">Moderate - Some financial risk beyond materials</option>
+                                    <option value="low">Low - Limited financial risk</option>
+                                    <option value="none">None - No financial risk, guaranteed payment</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Equipment and Tools Provision <span class="required">*</span></label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="own-equipment" name="equipment" value="own-equipment">
+                                        <label for="own-equipment">Uses own major equipment/tools</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="client-equipment" name="equipment" value="client-equipment">
+                                        <label for="client-equipment">Uses client-provided equipment</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="specialist-tools" name="equipment" value="specialist-tools">
+                                        <label for="specialist-tools">Provides specialist tools</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="office-facilities" name="equipment" value="office-facilities">
+                                        <label for="office-facilities">Has separate office/premises</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div style="display: flex; align-items: center;">
+                                <div class="section-number">3</div>
+                                <h2 class="section-title">Construction Industry Scheme (CIS)</h2>
+                            </div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-group">
+                                <label>Does this contract involve construction work? <span class="required">*</span></label>
+                                <div class="radio-group">
+                                    <div class="radio-item">
+                                        <input type="radio" id="construction-yes" name="construction-work" value="yes" required="">
+                                        <label for="construction-yes">Yes</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" id="construction-no" name="construction-work" value="no" required="">
+                                        <label for="construction-no">No</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="cis-status">CIS Registration Status</label>
+                                <select id="cis-status" name="cis-status">
+                                    <option value="">Select CIS status</option>
+                                    <option value="registered">CIS Registered</option>
+                                    <option value="gross-payment">Gross Payment Status</option>
+                                    <option value="not-registered">Not CIS Registered</option>
+                                    <option value="not-applicable">Not Applicable - Non-construction work</option>
+                                </select>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="cis-number">CIS Registration Number</label>
+                                    <input type="text" id="cis-number" name="cis-number">
+                                </div>
+                                <div class="form-group">
+                                    <label for="utr-number">Unique Taxpayer Reference (UTR)</label>
+                                    <input type="text" id="utr-number" name="utr-number">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div style="display: flex; align-items: center;">
+                                <div class="section-number">4</div>
+                                <h2 class="section-title">Health &amp; Safety Compliance</h2>
+                            </div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-group">
+                                <label for="hs-policy">Health &amp; Safety Policy Status <span class="required">*</span></label>
+                                <select id="hs-policy" name="hs-policy" required="">
+                                    <option value="">Select policy status</option>
+                                    <option value="current">Current written policy in place</option>
+                                    <option value="needs-update">Policy exists but needs updating</option>
+                                    <option value="none">No formal policy in place</option>
+                                    <option value="not-required">Not required (fewer than 5 employees)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="hs-policy-date">Health &amp; Safety Policy Date</label>
+                                    <input type="date" id="hs-policy-date" name="hs-policy-date">
+                                </div>
+                                <div class="form-group">
+                                    <label for="risk-assessment-date">Last Risk Assessment Date</label>
+                                    <input type="date" id="risk-assessment-date" name="risk-assessment-date">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Health &amp; Safety Competencies <span class="required">*</span></label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="iosh" name="hs-competencies" value="iosh">
+                                        <label for="iosh">IOSH Managing Safely</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="nebosh" name="hs-competencies" value="nebosh">
+                                        <label for="nebosh">NEBOSH Qualifications</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="citb" name="hs-competencies" value="citb">
+                                        <label for="citb">CITB Health &amp; Safety Test</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="cscs" name="hs-competencies" value="cscs">
+                                        <label for="cscs">CSCS Card</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="first-aid" name="hs-competencies" value="first-aid">
+                                        <label for="first-aid">First Aid Training</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="manual-handling" name="hs-competencies" value="manual-handling">
+                                        <label for="manual-handling">Manual Handling Training</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="hs-certificates">Health &amp; Safety Certificates</label>
+                                <input type="file" id="hs-certificates" name="hs-certificates" multiple="" accept=".pdf,.jpg,.jpeg,.png">
+                                <small>Upload health &amp; safety training certificates (PDF, JPG, PNG - Max 5MB each)</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="accident-record">Accident/Incident Record (Last 3 Years)</label>
+                                <textarea id="accident-record" name="accident-record" placeholder="Describe any workplace accidents, incidents, or near misses in the last 3 years"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div style="display: flex; align-items: center;">
+                                <div class="section-number">5</div>
+                                <h2 class="section-title">CDM 2015 Compliance</h2>
+                            </div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="info-box">
+                                <strong>CDM 2015:</strong> Construction (Design and Management) Regulations apply to all construction projects. Contractors must demonstrate competence and adequate resources.
+                            </div>
+
+                            <div class="form-group">
+                                <label>CDM Dutyholder Role <span class="required">*</span></label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="contractor" name="cdm-role" value="contractor">
+                                        <label for="contractor">Contractor</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="principal-contractor" name="cdm-role" value="principal-contractor">
+                                        <label for="principal-contractor">Principal Contractor</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="designer" name="cdm-role" value="designer">
+                                        <label for="designer">Designer</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="principal-designer" name="cdm-role" value="principal-designer">
+                                        <label for="principal-designer">Principal Designer</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="cpp-status">Construction Phase Plan Status</label>
+                                <select id="cpp-status" name="cpp-status">
+                                    <option value="">Select plan status</option>
+                                    <option value="developed">Construction Phase Plan developed</option>
+                                    <option value="contributed">Contributed to existing plan</option>
+                                    <option value="will-develop">Will develop before work starts</option>
+                                    <option value="not-required">Not required for this project</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>F10 Notification Requirements</label>
+                                <div class="radio-group">
+                                    <div class="radio-item">
+                                        <input type="radio" id="f10-submitted" name="f10-status" value="submitted">
+                                        <label for="f10-submitted">F10 submitted to HSE</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" id="f10-required" name="f10-status" value="required">
+                                        <label for="f10-required">F10 required but not yet submitted</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" id="f10-not-required" name="f10-status" value="not-required">
+                                        <label for="f10-not-required">F10 not required for this project</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div style="display: flex; align-items: center;">
+                                <div class="section-number">6</div>
+                                <h2 class="section-title">Insurance Requirements</h2>
+                            </div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="public-liability">Public Liability Insurance Limit <span class="required">*</span></label>
+                                    <select id="public-liability" name="public-liability" required="">
+                                        <option value="">Select coverage amount</option>
+                                        <option value="1m">£1 Million</option>
+                                        <option value="2m">£2 Million</option>
+                                        <option value="5m">£5 Million</option>
+                                        <option value="10m">£10 Million</option>
+                                        <option value="other">Other Amount</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="pl-expiry">Public Liability Expiry Date <span class="required">*</span></label>
+                                    <input type="date" id="pl-expiry" name="pl-expiry" required="">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="employers-liability">Employers' Liability Insurance Limit</label>
+                                    <select id="employers-liability" name="employers-liability">
+                                        <option value="">Select coverage amount</option>
+                                        <option value="5m">£5 Million (Minimum Required)</option>
+                                        <option value="10m">£10 Million</option>
+                                        <option value="not-required">Not Required (No Employees)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="el-expiry">Employers' Liability Expiry Date</label>
+                                    <input type="date" id="el-expiry" name="el-expiry">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="professional-indemnity">Professional Indemnity Insurance</label>
+                                    <select id="professional-indemnity" name="professional-indemnity">
+                                        <option value="">Select coverage amount</option>
+                                        <option value="250k">£250,000</option>
+                                        <option value="500k">£500,000</option>
+                                        <option value="1m">£1 Million</option>
+                                        <option value="2m">£2 Million</option>
+                                        <option value="5m">£5 Million</option>
+                                        <option value="not-applicable">Not Applicable</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="pi-expiry">Professional Indemnity Expiry Date</label>
+                                    <input type="date" id="pi-expiry" name="pi-expiry">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="insurer-name">Insurance Provider Name <span class="required">*</span></label>
+                                <input type="text" id="insurer-name" name="insurer-name" required="">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="insurance-certificates">Insurance Certificates</label>
+                                <input type="file" id="insurance-certificates" name="insurance-certificates" multiple="" accept=".pdf,.jpg,.jpeg,.png">
+                                <small>Upload current insurance certificates (PDF, JPG, PNG - Max 5MB each)</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div style="display: flex; align-items: center;">
+                                <div class="section-number">7</div>
+                                <h2 class="section-title">Document Provision by Contracting Organization</h2>
+                            </div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="info-box">
+                                <strong>Required Documents:</strong> The contracting organization must provide the following documents to the contractor before work commences to ensure full compliance and safe working practices.
+                            </div>
+
+                            <div class="form-group">
+                                <label>Documents Received from Contracting Organization <span class="required">*</span></label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="client-insurance" name="client-docs" value="client-insurance" required="">
+                                        <label for="client-insurance">Client's Public Liability Insurance Details</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="client-hs-policy" name="client-docs" value="client-hs-policy" required="">
+                                        <label for="client-hs-policy">Client's Health &amp; Safety Policy</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="site-risk-assessment" name="client-docs" value="site-risk-assessment" required="">
+                                        <label for="site-risk-assessment">Site-Specific Risk Assessments</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="site-rules" name="client-docs" value="site-rules">
+                                        <label for="site-rules">Site Rules and Procedures</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="emergency-procedures" name="client-docs" value="emergency-procedures">
+                                        <label for="emergency-procedures">Emergency Procedures</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="permit-to-work" name="client-docs" value="permit-to-work">
+                                        <label for="permit-to-work">Permit to Work System (if applicable)</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="method-statements" name="client-docs" value="method-statements">
+                                        <label for="method-statements">Required Method Statements</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="client-contact-name">Client H&amp;S Contact Name <span class="required">*</span></label>
+                                    <input type="text" id="client-contact-name" name="client-contact-name" required="">
+                                </div>
+                                <div class="form-group">
+                                    <label for="client-contact-phone">Client H&amp;S Contact Phone <span class="required">*</span></label>
+                                    <input type="tel" id="client-contact-phone" name="client-contact-phone" required="">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="client-documents">Client Provided Documents</label>
+                                <input type="file" id="client-documents" name="client-documents" multiple="" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                                <small>Upload documents provided by the contracting organization (Max 5MB each)</small>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="induction-completed">Site Induction Status</label>
+                                    <select id="induction-completed" name="induction-completed">
+                                        <option value="">Select induction status</option>
+                                        <option value="completed">Site induction completed</option>
+                                        <option value="scheduled">Site induction scheduled</option>
+                                        <option value="not-required">Site induction not required</option>
+                                        <option value="pending">Awaiting induction arrangements</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="induction-date">Induction Date</label>
+                                    <input type="date" id="induction-date" name="induction-date">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div style="display: flex; align-items: center;">
+                                <div class="section-number">8</div>
+                                <h2 class="section-title">Professional Qualifications &amp; Accreditations</h2>
+                            </div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-group">
+                                <label>Professional Memberships</label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="chas" name="memberships" value="chas">
+                                        <label for="chas">CHAS (Contractors Health &amp; Safety Assessment)</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="safecontractor" name="memberships" value="safecontractor">
+                                        <label for="safecontractor">SafeContractor</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="constructionline" name="memberships" value="constructionline">
+                                        <label for="constructionline">ConstructionLine</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="fmb" name="memberships" value="fmb">
+                                        <label for="fmb">Federation of Master Builders (FMB)</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="niceic" name="memberships" value="niceic">
+                                        <label for="niceic">NICEIC</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="gas-safe" name="memberships" value="gas-safe">
+                                        <label for="gas-safe">Gas Safe Register</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="membership-certificates">Professional Membership Certificates</label>
+                                <input type="file" id="membership-certificates" name="membership-certificates" multiple="" accept=".pdf,.jpg,.jpeg,.png">
+                                <small>Upload certificates for professional memberships (PDF, JPG, PNG - Max 5MB each)</small>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="trade-skills">Primary Trade/Skills <span class="required">*</span></label>
+                                    <select id="trade-skills" name="trade-skills" required="">
+                                        <option value="">Select primary trade</option>
+                                        <option value="building">General Building/Construction</option>
+                                        <option value="electrical">Electrical</option>
+                                        <option value="plumbing">Plumbing/Heating</option>
+                                        <option value="roofing">Roofing</option>
+                                        <option value="carpentry">Carpentry/Joinery</option>
+                                        <option value="painting">Painting/Decorating</option>
+                                        <option value="landscaping">Landscaping/Groundworks</option>
+                                        <option value="it-services">IT Services</option>
+                                        <option value="consultancy">Professional Consultancy</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="years-experience">Years of Experience <span class="required">*</span></label>
+                                    <select id="years-experience" name="years-experience" required="">
+                                        <option value="">Select experience level</option>
+                                        <option value="0-2">0-2 years</option>
+                                        <option value="3-5">3-5 years</option>
+                                        <option value="6-10">6-10 years</option>
+                                        <option value="11-20">11-20 years</option>
+                                        <option value="20+">20+ years</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="trade-certificates">Trade/Skills Certificates</label>
+                                <input type="file" id="trade-certificates" name="trade-certificates" multiple="" accept=".pdf,.jpg,.jpeg,.png">
+                                <small>Upload relevant trade qualifications and certificates (PDF, JPG, PNG - Max 5MB each)</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div style="display: flex; align-items: center;">
+                                <div class="section-number">9</div>
+                                <h2 class="section-title">Environmental &amp; Waste Management</h2>
+                            </div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-group">
+                                <label for="waste-license">Waste Carrier License Status</label>
+                                <select id="waste-license" name="waste-license">
+                                    <option value="">Select license status</option>
+                                    <option value="registered">Registered Waste Carrier</option>
+                                    <option value="exempt">Exempt from registration</option>
+                                    <option value="not-applicable">Not applicable to work</option>
+                                </select>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="waste-license-number">Waste Carrier License Number</label>
+                                    <input type="text" id="waste-license-number" name="waste-license-number">
+                                </div>
+                                <div class="form-group">
+                                    <label for="waste-license-expiry">Waste License Expiry Date</label>
+                                    <input type="date" id="waste-license-expiry" name="waste-license-expiry">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Environmental Management</label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="iso14001" name="environmental" value="iso14001">
+                                        <label for="iso14001">ISO 14001 Environmental Management</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="waste-policy" name="environmental" value="waste-policy">
+                                        <label for="waste-policy">Waste Management Policy</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="recycling" name="environmental" value="recycling">
+                                        <label for="recycling">Recycling Procedures</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="environmental-certificates">Environmental Certificates</label>
+                                <input type="file" id="environmental-certificates" name="environmental-certificates" multiple="" accept=".pdf,.jpg,.jpeg,.png">
+                                <small>Upload environmental management certificates (PDF, JPG, PNG - Max 5MB each)</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div style="display: flex; align-items: center;">
+                                <div class="section-number">10</div>
+                                <h2 class="section-title">Data Protection &amp; Security</h2>
+                            </div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-group">
+                                <label for="gdpr-status">GDPR Compliance Status <span class="required">*</span></label>
+                                <select id="gdpr-status" name="gdpr-status" required="">
+                                    <option value="">Select GDPR status</option>
+                                    <option value="compliant">Fully GDPR compliant</option>
+                                    <option value="partial">Partially compliant</option>
+                                    <option value="non-compliant">Not currently compliant</option>
+                                    <option value="not-applicable">Not applicable (no data processing)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="dpo-contact">Data Protection Officer Contact</label>
+                                    <input type="text" id="dpo-contact" name="dpo-contact">
+                                </div>
+                                <div class="form-group">
+                                    <label for="gdpr-policy-date">GDPR Policy Date</label>
+                                    <input type="date" id="gdpr-policy-date" name="gdpr-policy-date">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Cyber Security Measures</label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="cyber-essentials" name="cyber-security" value="cyber-essentials">
+                                        <label for="cyber-essentials">Cyber Essentials Certification</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="data-encryption" name="cyber-security" value="data-encryption">
+                                        <label for="data-encryption">Data Encryption Procedures</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="backup-procedures" name="cyber-security" value="backup-procedures">
+                                        <label for="backup-procedures">Regular Data Backup</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div style="display: flex; align-items: center;">
+                                <div class="section-number">11</div>
+                                <h2 class="section-title">Project Specific Information</h2>
+                            </div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-group">
+                                <label for="project-description">Project Description <span class="required">*</span></label>
+                                <textarea id="project-description" name="project-description" required="" placeholder="Describe the specific work to be undertaken"></textarea>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="project-value">Estimated Project Value <span class="required">*</span></label>
+                                    <select id="project-value" name="project-value" required="">
+                                        <option value="">Select value range</option>
+                                        <option value="under-5k">Under £5,000</option>
+                                        <option value="5k-25k">£5,000 - £25,000</option>
+                                        <option value="25k-100k">£25,000 - £100,000</option>
+                                        <option value="100k-500k">£100,000 - £500,000</option>
+                                        <option value="over-500k">Over £500,000</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="project-duration">Expected Duration <span class="required">*</span></label>
+                                    <select id="project-duration" name="project-duration" required="">
+                                        <option value="">Select duration</option>
+                                        <option value="under-1-week">Under 1 week</option>
+                                        <option value="1-4-weeks">1-4 weeks</option>
+                                        <option value="1-3-months">1-3 months</option>
+                                        <option value="3-12-months">3-12 months</option>
+                                        <option value="over-12-months">Over 12 months</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="start-date">Proposed Start Date <span class="required">*</span></label>
+                                    <input type="date" id="start-date" name="start-date" required="">
+                                </div>
+                                <div class="form-group">
+                                    <label for="end-date">Proposed End Date</label>
+                                    <input type="date" id="end-date" name="end-date">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div style="display: flex; align-items: center;">
+                                <div class="section-number">12</div>
+                                <h2 class="section-title">References &amp; Previous Work</h2>
+                            </div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-group">
+                                <label for="reference1">Reference 1 - Contact Details</label>
+                                <textarea id="reference1" name="reference1" placeholder="Company name, contact person, phone, email, and brief description of work completed"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="reference2">Reference 2 - Contact Details</label>
+                                <textarea id="reference2" name="reference2" placeholder="Company name, contact person, phone, email, and brief description of work completed"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="previous-work">Examples of Similar Previous Work</label>
+                                <textarea id="previous-work" name="previous-work" placeholder="Describe relevant experience and similar projects completed"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div style="display: flex; align-items: center;">
+                                <div class="section-number">13</div>
+                                <h2 class="section-title">Declaration &amp; Compliance Confirmation</h2>
+                            </div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="info-box">
+                                <strong>Important:</strong> By submitting this form, you confirm that all information provided is accurate and complete. False information may result in contract termination and potential legal action.
+                            </div>
+
+                            <div class="form-group">
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="info-accurate" name="declarations" value="info-accurate" required="">
+                                        <label for="info-accurate">I confirm all information provided is accurate and complete <span class="required">*</span></label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="legal-compliance" name="declarations" value="legal-compliance" required="">
+                                        <label for="legal-compliance">I confirm compliance with all applicable UK legislation <span class="required">*</span></label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="insurance-valid" name="declarations" value="insurance-valid" required="">
+                                        <label for="insurance-valid">I confirm all insurance policies are current and valid <span class="required">*</span></label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="hs-commitment" name="declarations" value="hs-commitment" required="">
+                                        <label for="hs-commitment">I commit to maintaining health and safety standards throughout the project <span class="required">*</span></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="signatory-name">Signatory Name <span class="required">*</span></label>
+                                    <input type="text" id="signatory-name" name="signatory-name" required="">
+                                </div>
+                                <div class="form-group">
+                                    <label for="signatory-position">Position/Title <span class="required">*</span></label>
+                                    <input type="text" id="signatory-position" name="signatory-position" required="">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="signature-date">Date <span class="required">*</span></label>
+                                    <input type="date" id="signature-date" name="signature-date" required="">
+                                </div>
+                                <div class="form-group">
+                                    <label for="review-date">Next Review Date</label>
+                                    <input type="date" id="review-date" name="review-date">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="submit-section">
+                        <button type="submit" class="submit-btn">Complete Contractor Onboarding</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Summary Page -->
+        <div class="container summary-page" id="summary-page">
+            <div class="header">
+                <h1 class="title">Contractor Onboarding Complete</h1>
+                <p class="subtitle">Highland Holidays</p>
+                <p class="description">Contractor successfully onboarded and approved for work</p>
+            </div>
+
+            <div class="summary-content">
+                <div class="summary-section">
+                    <h3>Contractor Details</h3>
+                    <div class="summary-item">
+                        <span class="summary-label">Company Name:</span>
+                        <span class="summary-value" id="summary-company-name">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Trading Name:</span>
+                        <span class="summary-value" id="summary-trading-name">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Primary Contact:</span>
+                        <span class="summary-value" id="summary-contact-email">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Phone:</span>
+                        <span class="summary-value" id="summary-contact-phone">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Primary Trade:</span>
+                        <span class="summary-value" id="summary-trade-skills">-</span>
+                    </div>
+                </div>
+
+                <div class="summary-section">
+                    <h3>Onboarding Information</h3>
+                    <div class="summary-item">
+                        <span class="summary-label">Onboarding Date:</span>
+                        <span class="summary-value" id="summary-onboarding-date">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Next Review Date:</span>
+                        <span class="summary-value" id="summary-review-date">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Project Start:</span>
+                        <span class="summary-value" id="summary-start-date">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Project Value:</span>
+                        <span class="summary-value" id="summary-project-value">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Duration:</span>
+                        <span class="summary-value" id="summary-project-duration">-</span>
+                    </div>
+                </div>
+
+                <div class="summary-section">
+                    <h3>Insurance Status</h3>
+                    <div class="summary-item">
+                        <span class="summary-label">Public Liability:</span>
+                        <span class="summary-value" id="summary-public-liability">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">PL Expiry:</span>
+                        <span class="summary-value" id="summary-pl-expiry">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Employers' Liability:</span>
+                        <span class="summary-value" id="summary-employers-liability">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Insurance Provider:</span>
+                        <span class="summary-value" id="summary-insurer-name">-</span>
+                    </div>
+                </div>
+
+                <div class="summary-section">
+                    <h3>Compliance Status</h3>
+                    <div class="summary-item">
+                        <span class="summary-label">IR35 Assessment:</span>
+                        <span class="summary-value" id="summary-ir35-status">Completed</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">H&amp;S Policy:</span>
+                        <span class="summary-value" id="summary-hs-policy">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">CIS Status:</span>
+                        <span class="summary-value" id="summary-cis-status">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">GDPR Compliant:</span>
+                        <span class="summary-value" id="summary-gdpr-status">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="submit-section">
+                <button type="button" class="print-btn" onclick="window.print()">Print Summary</button>
+                <button type="button" class="submit-btn" onclick="showForm()">Edit Details</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Owned by Omnibosh CQR 365
+    </div>
+
+    <script>
+        // Initialize form
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const todayString = today.toISOString().split('T')[0];
+            
+            // Set default dates
+            document.getElementById('signature-date').value = todayString;
+            
+            const reviewDate = new Date(today);
+            reviewDate.setFullYear(reviewDate.getFullYear() + 1);
+            document.getElementById('review-date').value = reviewDate.toISOString().split('T')[0];
+
+            // Initialize progress tracking
+            updateProgress();
+        });
+
+        // Section toggle functionality
+        function toggleSection(header) {
+            const section = header.parentElement;
+            section.classList.toggle('collapsed');
+            
+            // Update progress
+            setTimeout(updateProgress, 100);
+        }
+
+        // Progress tracking
+        function updateProgress() {
+            const totalFields = document.querySelectorAll('input[required], select[required], textarea[required]').length;
+            const completedFields = Array.from(document.querySelectorAll('input[required], select[required], textarea[required]')).filter(field => {
+                if (field.type === 'checkbox' || field.type === 'radio') {
+                    const groupName = field.name;
+                    return document.querySelector(`input[name="${groupName}"]:checked`) !== null;
+                }
+                return field.value.trim() !== '';
+            }).length;
+            
+            const progress = (completedFields / totalFields) * 100;
+            document.getElementById('progress-bar').style.width = progress + '%';
+        }
+
+        // Add progress tracking to form inputs
+        document.addEventListener('input', updateProgress);
+        document.addEventListener('change', updateProgress);
+
+        // Form submission - intercept before Formspree
+        document.getElementById('contractor-form').addEventListener('submit', function(e) {
+            // Show loading state
+            const submitBtn = document.querySelector('.submit-btn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Processing...';
+            submitBtn.disabled = true;
+            document.body.classList.add('loading');
+
+            // Validate form
+            const requiredFields = document.querySelectorAll('[required]');
+            let allValid = true;
+            let firstInvalidField = null;
+
+            requiredFields.forEach(field => {
+                let isValid = false;
+                
+                if (field.type === 'checkbox') {
+                    const checkboxGroup = document.querySelectorAll(`[name="${field.name}"]`);
+                    isValid = Array.from(checkboxGroup).some(cb => cb.checked);
+                } else if (field.type === 'radio') {
+                    isValid = document.querySelector(`[name="${field.name}"]:checked`) !== null;
+                } else {
+                    isValid = field.value.trim() !== '';
+                }
+                
+                if (!isValid) {
+                    field.style.borderColor = '#CC5500';
+                    field.style.boxShadow = '0 0 0 3px rgba(204, 85, 0, 0.3)';
+                    allValid = false;
+                    if (!firstInvalidField) firstInvalidField = field;
+                } else {
+                    field.style.borderColor = '#e1e5e9';
+                    field.style.boxShadow = 'none';
+                }
+            });
+
+            if (!allValid) {
+                e.preventDefault();
+                alert('Please complete all required fields marked with *');
+                firstInvalidField.focus();
+                firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Reset button
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                document.body.classList.remove('loading');
+                return;
+            }
+
+            // If valid, show summary after slight delay (form will still submit to Formspree)
+            setTimeout(() => {
+                showSummary();
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                document.body.classList.remove('loading');
+            }, 800);
+        });
+
+        // Show summary page
+        function showSummary() {
+            // Populate summary data
+            const data = {
+                contractorName: document.getElementById('contractor-name').value || 'N/A',
+                tradingName: document.getElementById('trading-name').value || 'Same as company name',
+                contactEmail: document.getElementById('contact-email').value || 'N/A',
+                contactPhone: document.getElementById('contact-phone').value || 'N/A',
+                tradeSkills: document.getElementById('trade-skills').value || 'N/A',
+                onboardingDate: document.getElementById('signature-date').value || 'N/A',
+                reviewDate: document.getElementById('review-date').value || 'N/A',
+                startDate: document.getElementById('start-date').value || 'N/A',
+                projectValue: document.getElementById('project-value').value || 'N/A',
+                projectDuration: document.getElementById('project-duration').value || 'N/A',
+                publicLiability: document.getElementById('public-liability').value || 'N/A',
+                plExpiry: document.getElementById('pl-expiry').value || 'N/A',
+                employersLiability: document.getElementById('employers-liability').value || 'N/A',
+                insurerName: document.getElementById('insurer-name').value || 'N/A',
+                hsPolicy: document.getElementById('hs-policy').value || 'N/A',
+                cisStatus: document.getElementById('cis-status').value || 'N/A',
+                gdprStatus: document.getElementById('gdpr-status').value || 'N/A'
+            };
+
+            // Format display values
+            const formatValue = (val) => {
+                if (!val || val === '' || val === 'N/A') return 'N/A';
+                
+                return val.replace(/-/g, ' ')
+                         .replace(/\b\w/g, l => l.toUpperCase())
+                         .replace('k', ',000')
+                         .replace('m', ' Million')
+                         .replace(/(\d+),000/g, '£$1,000');
+            };
+
+            // Populate summary elements
+            Object.keys(data).forEach(key => {
+                const element = document.getElementById(`summary-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`);
+                if (element) {
+                    element.textContent = key === 'contractorName' || key === 'tradingName' || 
+                                        key === 'contactEmail' || key === 'contactPhone' || 
+                                        key === 'insurerName' ? data[key] : formatValue(data[key]);
+                }
+            });
+
+            // Smooth transition to summary
+            document.getElementById('main-form').style.display = 'none';
+            document.getElementById('summary-page').style.display = 'block';
+            document.getElementById('progress-bar').style.width = '100%';
+            
+            // Scroll to top smoothly
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Hide progress bar after animation
+            setTimeout(() => {
+                document.getElementById('progress-bar').style.width = '0%';
+            }, 2000);
+        }
+
+        // Return to form
+        function showForm() {
+            document.getElementById('summary-page').style.display = 'none';
+            document.getElementById('main-form').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            updateProgress();
+        }
+
+        // File upload validation
+        document.addEventListener('change', function(e) {
+            if (e.target.type === 'file') {
+                const files = Array.from(e.target.files);
+                const maxSize = 5 * 1024 * 1024; // 5MB
+                const invalidFiles = files.filter(file => file.size > maxSize);
+                
+                if (invalidFiles.length > 0) {
+                    alert(`The following files exceed the 5MB limit:\n${invalidFiles.map(f => f.name).join('\n')}`);
+                    e.target.value = '';
+                    return;
+                }
+                
+                if (files.length > 0) {
+                    console.log(`Files uploaded for ${e.target.name}:`, files.map(f => f.name));
+                }
+            }
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.target.type !== 'textarea' && e.target.type !== 'submit') {
+                e.preventDefault();
+                const form = e.target.closest('.section-content');
+                if (form) {
+                    const inputs = Array.from(form.querySelectorAll('input, select, textarea'));
+                    const currentIndex = inputs.indexOf(e.target);
+                    const nextInput = inputs[currentIndex + 1];
+                    if (nextInput) nextInput.focus();
+                }
+            }
+        });
+    </script>
+
+</body></html>
