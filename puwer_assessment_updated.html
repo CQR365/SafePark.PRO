@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>SafePark.PRO - PUWER Assessment</title>
+    <style>
+        :root {
+            --primary-orange: #CC5500;
+            --dark-orange: #B8460C;
+            --light-orange: #E6672E;
+            --black: #000000;
+            --white: #FFFFFF;
+            --smart-dark-grey: #2A2A2A;
+            --content-background: #2F2F2F;
+            --light-gray: #F8F9FA;
+            --medium-gray: #6C757D;
+            --dark-gray: #343A40;
+            --border-color: #DEE2E6;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --shadow-light: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-medium: 0 4px 20px rgba(0,0,0,0.15);
+            --shadow-heavy: 0 8px 40px rgba(0,0,0,0.2);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+            color: #E8E8E8;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--content-background) 0%, #1F1F1F 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-heavy);
+            position: relative;
+        }
+        
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: var(--primary-orange);
+            color: var(--white);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-medium);
+        }
+        
+        .back-btn:hover {
+            background: var(--dark-orange);
+            transform: translateY(-2px);
+        }
+        
+        .header h1 {
+            font-size: 3.2rem;
+            font-weight: 800;
+            color: var(--primary-orange);
+            text-align: center;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .brand-line {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--light-orange);
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .subtitle {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #E8E8E8;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .header p {
+            text-align: center;
+            color: #B8B8B8;
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+        
+        .serial-number {
+            background: var(--primary-orange);
+            color: var(--white);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .form-content {
+            background: var(--content-background);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: var(--shadow-heavy);
+            flex: 1;
+            margin-bottom: 20px;
+        }
+        
+        .step {
+            display: none;
+        }
+        
+        .step.active {
+            display: block;
+        }
+        
+        .step-header {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .step-header h2 {
+            color: var(--primary-orange);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .step-header p {
+            color: #B8B8B8;
+            font-size: 1.1rem;
+        }
+        
+        .alert {
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid;
+        }
+        
+        .alert-info {
+            background: #1a3a5c;
+            border-color: #3498db;
+            color: #E8E8E8;
+        }
+        
+        .alert-warning {
+            background: #5c4a1a;
+            border-color: var(--warning);
+            color: #E8E8E8;
+        }
+        
+        .alert h4 {
+            margin-bottom: 10px;
+            color: var(--primary-orange);
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        
+        .form-row-three {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .form-row-four {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary-orange);
+        }
+        
+        .required {
+            color: var(--danger);
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="date"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 15px;
+            background: #3a3a3a;
+            border: 2px solid #444;
+            border-radius: 6px;
+            color: #E8E8E8;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            background: #424242;
+        }
+        
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: var(--content-background);
+            border-radius: 8px;
+            border: 2px solid #444;
+            transition: all 0.3s ease;
+        }
+        
+        .checkbox-item:hover {
+            background: #424242;
+            border-color: var(--primary-orange);
+            transform: translateY(-1px);
+        }
+        
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            transform: scale(1.2);
+            accent-color: var(--primary-orange);
+        }
+        
+        .checkbox-item label {
+            margin: 0;
+            font-weight: 500;
+            cursor: pointer;
+            color: #E8E8E8;
+        }
+        
+        .file-upload {
+            border: 2px dashed var(--primary-orange);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--content-background);
+        }
+        
+        .file-upload:hover {
+            background: #424242;
+            border-color: var(--light-orange);
+        }
+        
+        .file-upload input[type="file"] {
+            display: none;
+        }
+        
+        .file-upload-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary-orange);
+            margin-bottom: 5px;
+        }
+        
+        .file-upload-desc {
+            color: #B8B8B8;
+            font-size: 14px;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 2px solid #444;
+        }
+        
+        .btn {
+            background: var(--primary-orange);
+            color: var(--white);
+            padding: 14px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: var(--shadow-medium);
+        }
+        
+        .btn:hover {
+            background: var(--dark-orange);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-heavy);
+        }
+        
+        .btn-secondary {
+            background: var(--medium-gray);
+            box-shadow: var(--shadow-light);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--dark-gray);
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: var(--white);
+            font-size: 18px;
+            padding: 15px 40px;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+        
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+        
+        .progress-bar {
+            background: var(--content-background);
+            height: 8px;
+            border-radius: 4px;
+            margin-bottom: 32px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, var(--primary-orange) 0%, var(--light-orange) 100%);
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+        
+        .equipment-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #3a3a3a;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .equipment-table th {
+            background: var(--primary-orange);
+            color: var(--white);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .equipment-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #444;
+        }
+        
+        .equipment-table tr:hover {
+            background: #424242;
+        }
+        
+        .equipment-table input,
+        .equipment-table select {
+            width: 100%;
+            padding: 6px 8px;
+            background: #2a2a2a;
+            border: 1px solid #555;
+            border-radius: 4px;
+            color: #E8E8E8;
+            font-size: 14px;
+        }
+        
+        .add-item-btn {
+            background: var(--success);
+            color: var(--white);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .add-item-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .remove-btn {
+            background: var(--danger);
+            color: var(--white);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .remove-btn:hover {
+            background: #c82333;
+        }
+        
+        .status-pass {
+            background: var(--success);
+            color: var(--white);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-fail {
+            background: var(--danger);
+            color: var(--white);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-fixable {
+            background: var(--warning);
+            color: var(--black);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-replace {
+            background: #6f42c1;
+            color: var(--white);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .results-summary {
+            display: none;
+            background: var(--content-background);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: var(--shadow-heavy);
+            margin-top: 20px;
+        }
+        
+        .summary-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .summary-header h2 {
+            color: var(--primary-orange);
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: #3a3a3a;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid;
+        }
+        
+        .stat-card h3 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card p {
+            color: #B8B8B8;
+            font-size: 0.9rem;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #3a3a3a;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .results-table th {
+            background: var(--primary-orange);
+            color: var(--white);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .results-table td {
+            padding: 12px;
+            border-bottom: 1px solid #444;
+        }
+        
+        .detail-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+        }
+        
+        .detail-content {
+            background: var(--content-background);
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 600px;
+            position: relative;
+            box-shadow: var(--shadow-heavy);
+        }
+        
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+        }
+        
+        .close-modal:hover {
+            color: var(--primary-orange);
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #B8B8B8;
+            border-top: 1px solid #444;
+            margin-top: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .back-btn {
+                position: static;
+                transform: none;
+                margin-bottom: 15px;
+                align-self: flex-start;
+            }
+            
+            .back-btn:hover {
+                transform: translateY(-2px);
+            }
+            
+            .header {
+                padding: 20px 15px;
+            }
+            
+            .form-row,
+            .form-row-three,
+            .form-row-four {
+                grid-template-columns: 1fr;
+            }
+            
+            .equipment-table {
+                font-size: 14px;
+            }
+            
+            .equipment-table th,
+            .equipment-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="back-btn" onclick="window.location.href='index.html'">← Back to SafePark.PRO</button>
+            <h1>CQR365</h1>
+            <div class="brand-line">SafePark.PRO</div>
+            <div class="subtitle">PUWER Assessment</div>
+            <p>Provision and Use of Work Equipment Regulations - Comprehensive compliance assessment for Highland Holidays properties</p>
+            <div class="serial-number" id="serialNumber">
+                Form Serial: PUWER-<span id="serialCode">20250906-2051-738</span>
+            </div>
+        </div>
+        
+        <div class="form-content">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 16%;"></div>
+            </div>
+            
+            <form id="puwerAssessment" action="https://formspree.io/f/xldprzkr" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="module" value="PUWER Assessment">
+                <input type="hidden" name="_subject" value="SafePark.PRO - PUWER Assessment">
+                <input type="hidden" name="form_serial" id="formSerial">
+                
+                <!-- Highland Holidays Integration -->
+                <div class="form-group" style="margin-bottom: 30px;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="holidayPark">Holiday Park <span class="required">*</span></label>
+                            <select id="holidayPark" name="holiday_park" data-populate="holiday-parks" required onchange="updateParkDetails()">
+                                <option value="">Select holiday park...</option>
+                                <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                                <option value="Oban Holiday Park">Oban Holiday Park</option>
+                                <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                                <option value="Overburns Farm">Overburns Farm</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="businessArea">Business Area</label>
+                            <select id="businessArea" name="business_area">
+                                <option value="">Select business area...</option>
+                                <option value="Reception & Administration">Reception & Administration</option>
+                                <option value="Accommodation Services">Accommodation Services</option>
+                                <option value="Play Areas & Recreation">Play Areas & Recreation</option>
+                                <option value="Maintenance & Grounds">Maintenance & Grounds</option>
+                                <option value="Food & Beverage">Food & Beverage</option>
+                                <option value="Security & Safety">Security & Safety</option>
+                                <option value="Water Activities">Water Activities</option>
+                                <option value="Entertainment">Entertainment</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 1: Assessor Qualification -->
+                <div class="step active" id="step1">
+                    <div class="step-header">
+                        <h2>Assessor Qualification</h2>
+                        <p>Who is conducting this PUWER assessment?</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="assessorType">Assessor Type <span class="required">*</span></label>
+                        <select id="assessorType" name="assessorType" required onchange="handleAssessorType()">
+                            <option value="">Select assessor type...</option>
+                            <option value="competent-team">Competent Team Member (Detailed Assessment)</option>
+                            <option value="professional">Professional/Qualified Inspector (Quick Assessment)</option>
+                        </select>
+                    </div>
+                    
+                    <div id="assessorDetails" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="assessorNameInit">Assessor Name <span class="required">*</span></label>
+                                <select id="assessorNameInit" name="assessor_name" data-populate="team-members" data-business-area="Security & Safety" required>
+                                    <option value="">Select team member...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="assessorRole">Role/Position <span class="required">*</span></label>
+                                <input type="text" id="assessorRole" name="assessorRole" required>
+                            </div>
+                        </div>
+                        
+                        <div id="professionalDetails" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="qualifications">Professional Qualifications</label>
+                                    <textarea id="qualifications" name="qualifications" rows="2" placeholder="List relevant qualifications, certifications, memberships..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="licenseNumber">License/Registration Number</label>
+                                    <input type="text" id="licenseNumber" name="licenseNumber">
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <h4>Professional Quick Assessment</h4>
+                                <p>As a qualified professional, you can quickly assess multiple equipment items with pass/fail status and auto-generated inspection codes. Perfect for routine inspections and compliance audits.</p>
+                            </div>
+                        </div>
+                        
+                        <div id="competentDetails" style="display: none;">
+                            <div class="alert alert-info">
+                                <h4>Detailed Assessment</h4>
+                                <p>As a competent team member, you'll complete a comprehensive PUWER assessment with detailed risk evaluation, training requirements, and maintenance schedules.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="navigation">
+                        <div></div>
+                        <button type="button" class="btn" onclick="nextStep()" id="continueBtn" disabled>Continue Assessment</button>
+                    </div>
+                </div>
+                
+                <!-- Professional Quick Assessment -->
+                <div class="step" id="professionalStep">
+                    <div class="step-header">
+                        <h2>Professional Quick Assessment</h2>
+                        <p>Quick multi-item PUWER assessment with auto-generated inspection codes</p>
+                    </div>
+                    
+                    <div class="quick-assessment-container">
+                        <button type="button" class="add-item-btn" onclick="addQuickAssessmentItem()">+ Add Equipment Item</button>
+                        
+                        <table class="equipment-table" id="quickAssessmentTable">
+                            <thead>
+                                <tr>
+                                    <th>Inspection Code</th>
+                                    <th>Equipment Name</th>
+                                    <th>Type</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Notes</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="quickAssessmentBody">
+                                <!-- Items will be added dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="navigation">
+                        <button type="button" class="btn btn-secondary" onclick="previousStep()">← Previous</button>
+                        <button type="button" class="btn btn-success" onclick="submitQuickAssessment()">Complete Assessment</button>
+                    </div>
+                </div>
+                
+                <!-- Detailed Assessment Steps -->
+                <div class="step" id="step2">
+                    <div class="step-header">
+                        <h2>Equipment Details</h2>
+                        <p>Provide comprehensive information about the equipment being assessed</p>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="equipmentName">Equipment Name <span class="required">*</span></label>
+                            <input type="text" id="equipmentName" name="equipment_name" required placeholder="e.g., Pressure Washer Model XYZ">
+                        </div>
+                        <div class="form-group">
+                            <label for="equipmentType">Equipment Type <span class="required">*</span></label>
+                            <select id="equipmentType" name="equipment_type" required>
+                                <option value="">Select equipment type...</option>
+                                <option value="power-tools">Power Tools</option>
+                                <option value="lifting-equipment">Lifting Equipment</option>
+                                <option value="pressure-equipment">Pressure Equipment</option>
+                                <option value="electrical-equipment">Electrical Equipment</option>
+                                <option value="machinery">Machinery</option>
+                                <option value="hand-tools">Hand Tools</option>
+                                <option value="mobile-equipment">Mobile Equipment</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="manufacturer">Manufacturer/Brand</label>
+                            <input type="text" id="manufacturer" name="manufacturer" placeholder="e.g., Karcher, DeWalt, etc.">
+                        </div>
+                        <div class="form-group">
+                            <label for="modelNumber">Model Number</label>
+                            <input type="text" id="modelNumber" name="model_number" placeholder="Model/Serial number">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="location">Equipment Location <span class="required">*</span></label>
+                            <input type="text" id="location" name="location" required placeholder="Specific location within the property">
+                        </div>
+                        <div class="form-group">
+                            <label for="dateOfPurchase">Date of Purchase/Installation</label>
+                            <input type="date" id="dateOfPurchase" name="date_of_purchase">
+                        </div>
+                    </div>
+                    
+                    <div class="navigation">
+                        <button type="button" class="btn btn-secondary" onclick="previousStep()">← Previous</button>
+                        <button type="button" class="btn" onclick="nextStep()">Next →</button>
+                    </div>
+                </div>
+                
+                <div class="step" id="step3">
+                    <div class="step-header">
+                        <h2>Risk Assessment</h2>
+                        <p>Evaluate the potential risks associated with this equipment</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hazardIdentification">Hazard Identification <span class="required">*</span></label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="hazard1" name="hazards" value="mechanical">
+                                <label for="hazard1">Mechanical hazards (cutting, crushing, entanglement)</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="hazard2" name="hazards" value="electrical">
+                                <label for="hazard2">Electrical hazards (shock, electrocution)</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="hazard3" name="hazards" value="noise">
+                                <label for="hazard3">Noise and vibration</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="hazard4" name="hazards" value="chemical">
+                                <label for="hazard4">Chemical exposure</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="hazard5" name="hazards" value="fire">
+                                <label for="hazard5">Fire and explosion risks</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="hazard6" name="hazards" value="ergonomic">
+                                <label for="hazard6">Ergonomic risks (manual handling)</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="riskLevel">Overall Risk Level <span class="required">*</span></label>
+                            <select id="riskLevel" name="risk_level" required>
+                                <option value="">Select risk level...</option>
+                                <option value="low">Low Risk</option>
+                                <option value="medium">Medium Risk</option>
+                                <option value="high">High Risk</option>
+                                <option value="very-high">Very High Risk</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="usageFrequency">Usage Frequency</label>
+                            <select id="usageFrequency" name="usage_frequency">
+                                <option value="">Select frequency...</option>
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="seasonal">Seasonal</option>
+                                <option value="rarely">Rarely</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="riskMitigation">Risk Mitigation Measures</label>
+                        <textarea id="riskMitigation" name="risk_mitigation" rows="4" placeholder="Describe existing safety measures and additional controls needed..."></textarea>
+                    </div>
+                    
+                    <div class="navigation">
+                        <button type="button" class="btn btn-secondary" onclick="previousStep()">← Previous</button>
+                        <button type="button" class="btn" onclick="nextStep()">Next →</button>
+                    </div>
+                </div>
+                
+                <div class="step" id="step4">
+                    <div class="step-header">
+                        <h2>Training Requirements</h2>
+                        <p>Assess training needs and competency requirements</p>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="trainingRequired">Training Required <span class="required">*</span></label>
+                            <select id="trainingRequired" name="training_required" required>
+                                <option value="">Select training requirement...</option>
+                                <option value="none">No special training required</option>
+                                <option value="basic">Basic equipment training</option>
+                                <option value="intermediate">Intermediate training</option>
+                                <option value="advanced">Advanced/Professional training</option>
+                                <option value="certification">Certification required</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="competencyLevel">Required Competency Level</label>
+                            <select id="competencyLevel" name="competency_level">
+                                <option value="">Select competency level...</option>
+                                <option value="basic">Basic user</option>
+                                <option value="experienced">Experienced operator</option>
+                                <option value="specialist">Specialist/Expert</option>
+                                <option value="supervisor">Supervisor level</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="trainingDetails">Training Details and Requirements</label>
+                        <textarea id="trainingDetails" name="training_details" rows="4" placeholder="Describe specific training needs, certification requirements, refresher training schedules..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="authorizedUsers">Authorized Users</label>
+                        <select id="authorizedUsers" name="authorized_users" data-populate="team-members" multiple>
+                            <option value="">Select team members...</option>
+                        </select>
+                        <p style="color: #888; font-size: 0.9rem; margin-top: 5px;">Hold Ctrl/Cmd to select multiple users</p>
+                    </div>
+                    
+                    <div class="navigation">
+                        <button type="button" class="btn btn-secondary" onclick="previousStep()">← Previous</button>
+                        <button type="button" class="btn" onclick="nextStep()">Next →</button>
+                    </div>
+                </div>
+                
+                <div class="step" id="step5">
+                    <div class="step-header">
+                        <h2>Maintenance & Inspection</h2>
+                        <p>Define maintenance requirements and inspection schedules</p>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inspectionFrequency">Inspection Frequency <span class="required">*</span></label>
+                            <select id="inspectionFrequency" name="inspection_frequency" required>
+                                <option value="">Select frequency...</option>
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="quarterly">Quarterly</option>
+                                <option value="annually">Annually</option>
+                                <option value="as-needed">As needed</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="nextInspectionDate">Next Inspection Date</label>
+                            <input type="date" id="nextInspectionDate" name="next_inspection_date">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="maintenanceSchedule">Maintenance Schedule</label>
+                            <select id="maintenanceSchedule" name="maintenance_schedule">
+                                <option value="">Select schedule...</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="quarterly">Quarterly</option>
+                                <option value="bi-annually">Bi-annually</option>
+                                <option value="annually">Annually</option>
+                                <option value="condition-based">Condition-based</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="responsiblePerson">Responsible Person</label>
+                            <select id="responsiblePerson" name="responsible_person" data-populate="team-members" data-business-area="Maintenance & Grounds">
+                                <option value="">Select team member...</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="maintenanceRequirements">Specific Maintenance Requirements</label>
+                        <textarea id="maintenanceRequirements" name="maintenance_requirements" rows="4" placeholder="Detail specific maintenance tasks, replacement schedules, service requirements..."></textarea>
+                    </div>
+                    
+                    <div class="navigation">
+                        <button type="button" class="btn btn-secondary" onclick="previousStep()">← Previous</button>
+                        <button type="button" class="btn" onclick="nextStep()">Next →</button>
+                    </div>
+                </div>
+                
+                <div class="step" id="step6">
+                    <div class="step-header">
+                        <h2>Compliance Assessment</h2>
+                        <p>Final compliance evaluation and action items</p>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="complianceStatus">PUWER Compliance Status <span class="required">*</span></label>
+                            <select id="complianceStatus" name="compliance_status" required>
+                                <option value="">Select compliance status...</option>
+                                <option value="fully-compliant">Fully Compliant</option>
+                                <option value="minor-issues">Minor Issues - Action Required</option>
+                                <option value="major-issues">Major Issues - Urgent Action Required</option>
+                                <option value="non-compliant">Non-Compliant - Immediate Action Required</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="assessmentDate">Assessment Date <span class="required">*</span></label>
+                            <input type="date" id="assessmentDate" name="assessment_date" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="actionItems">Action Items and Recommendations <span class="required">*</span></label>
+                        <textarea id="actionItems" name="action_items" rows="5" required placeholder="List specific actions required, recommendations, timescales for completion..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="additionalNotes">Additional Notes and Comments</label>
+                        <textarea id="additionalNotes" name="additional_notes" rows="3" placeholder="Any additional observations, recommendations, or notes..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="supportingDocuments">Supporting Documents</label>
+                        <div class="file-upload" onclick="document.getElementById('supportingDocs').click()">
+                            <input type="file" id="supportingDocs" name="supporting_documents" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                            <div class="file-upload-text">Click to upload supporting documents</div>
+                            <div class="file-upload-desc">Manuals, certificates, photos, etc. (Max 10MB per file)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="navigation">
+                        <button type="button" class="btn btn-secondary" onclick="previousStep()">← Previous</button>
+                        <button type="button" class="btn btn-success" onclick="submitDetailedAssessment()">Complete Assessment</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Results Summary -->
+        <div class="results-summary" id="resultsSummary">
+            <div class="summary-header">
+                <h2>PUWER Assessment Results</h2>
+                <p>Assessment completed on <span id="resultDate"></span> by <span id="resultAssessor"></span></p>
+            </div>
+            
+            <div class="summary-stats" id="summaryStats">
+                <!-- Stats will be populated dynamically -->
+            </div>
+            
+            <table class="results-table" id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>Inspection Code</th>
+                        <th>Equipment</th>
+                        <th>Type</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsTableBody">
+                    <!-- Results will be populated dynamically -->
+                </tbody>
+            </table>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <button type="button" class="btn" onclick="downloadReport()">Download PDF Report</button>
+                <button type="button" class="btn btn-secondary" onclick="startNewAssessment()">Start New Assessment</button>
+            </div>
+        </div>
+        
+        <!-- Detail Modal -->
+        <div class="detail-modal" id="detailModal">
+            <div class="detail-content">
+                <span class="close-modal" onclick="closeDetailModal()">&times;</span>
+                <div id="detailModalContent">
+                    <!-- Detail content will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        CQR365 SafePark.PRO
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let assessorType = '';
+        let quickAssessmentItems = [];
+        let detailedAssessmentData = {};
+        
+        // Generate serial number on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            generateSerialNumber();
+            
+            // Auto-populate dropdowns with SafePark data
+            if (window.syncSafeParkData) {
+                window.syncSafeParkData();
+            }
+        });
+        
+        function generateSerialNumber() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hour = String(now.getHours()).padStart(2, '0');
+            const minute = String(now.getMinutes()).padStart(2, '0');
+            const random = Math.floor(Math.random() * 1000);
+            
+            const serialCode = `${year}${month}${day}-${hour}${minute}-${random}`;
+            document.getElementById('serialCode').textContent = serialCode;
+            document.getElementById('formSerial').value = `PUWER-${serialCode}`;
+        }
+        
+        function handleAssessorType() {
+            const assessorTypeSelect = document.getElementById('assessorType');
+            const assessorDetails = document.getElementById('assessorDetails');
+            const professionalDetails = document.getElementById('professionalDetails');
+            const competentDetails = document.getElementById('competentDetails');
+            const continueBtn = document.getElementById('continueBtn');
+            
+            assessorType = assessorTypeSelect.value;
+            
+            if (assessorType) {
+                assessorDetails.style.display = 'block';
+                continueBtn.disabled = false;
+                
+                if (assessorType === 'professional') {
+                    professionalDetails.style.display = 'block';
+                    competentDetails.style.display = 'none';
+                } else {
+                    professionalDetails.style.display = 'none';
+                    competentDetails.style.display = 'block';
+                }
+            } else {
+                assessorDetails.style.display = 'none';
+                continueBtn.disabled = true;
+            }
+        }
+        
+        function nextStep() {
+            if (!validateStep(currentStep)) return;
+            
+            // Handle different paths based on assessor type
+            if (currentStep === 1 && assessorType === 'professional') {
+                showStep('professionalStep');
+                return;
+            }
+            
+            currentStep++;
+            showStep(`step${currentStep}`);
+            updateProgress();
+        }
+        
+        function previousStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                showStep(`step${currentStep}`);
+                updateProgress();
+            } else {
+                // Going back from professional step
+                showStep('step1');
+                currentStep = 1;
+                updateProgress();
+            }
+        }
+        
+        function showStep(stepId) {
+            // Hide all steps
+            document.querySelectorAll('.step').forEach(step => {
+                step.classList.remove('active');
+            });
+            
+            // Show current step
+            document.getElementById(stepId).classList.add('active');
+        }
+        
+        function updateProgress() {
+            const totalSteps = 6;
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+        
+        function validateStep(step) {
+            let isValid = true;
+            const currentStepElement = document.getElementById(`step${step}`) || document.getElementById('professionalStep');
+            
+            // Check required fields in current step
+            const requiredFields = currentStepElement.querySelectorAll('[required]');
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.style.borderColor = '#DC3545';
+                    isValid = false;
+                } else {
+                    field.style.borderColor = '#CC5500';
+                }
+            });
+            
+            if (!isValid) {
+                alert('Please fill in all required fields before continuing.');
+            }
+            
+            return isValid;
+        }
+        
+        function addQuickAssessmentItem() {
+            const tbody = document.getElementById('quickAssessmentBody');
+            const rowIndex = quickAssessmentItems.length;
+            const inspectionCode = generateInspectionCode();
+            
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td><strong>${inspectionCode}</strong></td>
+                <td><input type="text" name="quick_equipment_name_${rowIndex}" placeholder="Equipment name" required></td>
+                <td>
+                    <select name="quick_equipment_type_${rowIndex}" required>
+                        <option value="">Select type...</option>
+                        <option value="power-tools">Power Tools</option>
+                        <option value="lifting-equipment">Lifting Equipment</option>
+                        <option value="pressure-equipment">Pressure Equipment</option>
+                        <option value="electrical-equipment">Electrical Equipment</option>
+                        <option value="machinery">Machinery</option>
+                        <option value="hand-tools">Hand Tools</option>
+                        <option value="mobile-equipment">Mobile Equipment</option>
+                        <option value="other">Other</option>
+                    </select>
+                </td>
+                <td><input type="text" name="quick_location_${rowIndex}" placeholder="Location" required></td>
+                <td>
+                    <select name="quick_status_${rowIndex}" required onchange="updateStatusDisplay(this, ${rowIndex})">
+                        <option value="">Select status...</option>
+                        <option value="pass">Pass</option>
+                        <option value="fail">Fail</option>
+                        <option value="fixable">Fixable Issues</option>
+                        <option value="replace">Requires Replacement</option>
+                    </select>
+                </td>
+                <td><input type="text" name="quick_notes_${rowIndex}" placeholder="Notes/Comments"></td>
+                <td><button type="button" class="remove-btn" onclick="removeQuickAssessmentItem(this, ${rowIndex})">Remove</button></td>
+            `;
+            
+            // Add to items array
+            quickAssessmentItems.push({
+                inspectionCode: inspectionCode,
+                rowIndex: rowIndex
+            });
+        }
+        
+        function removeQuickAssessmentItem(button, index) {
+            // Remove from array
+            quickAssessmentItems = quickAssessmentItems.filter(item => item.rowIndex !== index);
+            
+            // Remove row
+            button.closest('tr').remove();
+        }
+        
+        function updateStatusDisplay(selectElement, index) {
+            const status = selectElement.value;
+            const statusClasses = {
+                'pass': 'status-pass',
+                'fail': 'status-fail',
+                'fixable': 'status-fixable',
+                'replace': 'status-replace'
+            };
+            
+            // Reset classes
+            selectElement.className = '';
+            if (statusClasses[status]) {
+                selectElement.className = statusClasses[status];
+            }
+        }
+        
+        function generateInspectionCode() {
+            const prefix = 'PWR';
+            const timestamp = Date.now().toString().slice(-6);
+            const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+            return `${prefix}-${timestamp}-${random}`;
+        }
+        
+        function updateParkDetails() {
+            // This function can be expanded to show park-specific information
+            const selectedPark = document.getElementById('holidayPark').value;
+            if (selectedPark) {
+                console.log('Selected park:', selectedPark);
+            }
+        }
+        
+        function submitQuickAssessment() {
+            if (quickAssessmentItems.length === 0) {
+                alert('Please add at least one equipment item to assess.');
+                return;
+            }
+            
+            // Collect all assessment data
+            const quickForm = document.getElementById('puwerAssessment');
+            const quickFormData = new FormData(quickForm);
+            
+            // Process quick assessment items
+            quickAssessmentItems.forEach((item, index) => {
+                const equipmentName = quickForm.querySelector(`[name="quick_equipment_name_${item.rowIndex}"]`).value;
+                const equipmentType = quickForm.querySelector(`[name="quick_equipment_type_${item.rowIndex}"]`).value;
+                const location = quickForm.querySelector(`[name="quick_location_${item.rowIndex}"]`).value;
+                const status = quickForm.querySelector(`[name="quick_status_${item.rowIndex}"]`).value;
+                const notes = quickForm.querySelector(`[name="quick_notes_${item.rowIndex}"]`).value;
+                
+                if (!equipmentName || !equipmentType || !location || !status) {
+                    alert(`Please complete all required fields for equipment item ${index + 1}.`);
+                    return false;
+                }
+                
+                quickAssessmentItems[index] = {
+                    ...item,
+                    equipmentName,
+                    equipmentType,
+                    location,
+                    status,
+                    notes
+                };
+            });
+            
+            // Log activity to SafePark system
+            if (window.SafeParkUtils && window.SafeParkUtils.addRecentActivity) {
+                const selectedPark = document.getElementById('holidayPark').value;
+                const assessorName = document.getElementById('assessorNameInit').value;
+                
+                window.SafeParkUtils.addRecentActivity(
+                    'PUWER Assessment',
+                    `Professional quick PUWER assessment completed for ${quickAssessmentItems.length} equipment items at ${selectedPark} by ${assessorName}`,
+                    'success'
+                );
+            }
+            
+            // Create maintenance records for failed items
+            createMaintenanceRecordsForFailedItems();
+            
+            // Submit form to Formspree
+            const assessmentForm = document.getElementById('puwerAssessment');
+            const formData = new FormData(assessmentForm);
+            
+            // Add quick assessment data
+            formData.append('assessment_type', 'professional_quick');
+            formData.append('quick_assessment_data', JSON.stringify(quickAssessmentItems));
+            
+            // Submit the form
+            fetch(assessmentForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    showResults('professional');
+                } else {
+                    alert('There was an error submitting the assessment. Please try again.');
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+                alert('There was an error submitting the assessment. Please try again.');
+            });
+        }
+        
+        function submitDetailedAssessment() {
+            if (!validateStep(6)) return;
+            
+            // Collect detailed assessment data
+            detailedAssessmentData = {
+                inspectionCode: generateInspectionCode(),
+                equipmentName: document.getElementById('equipmentName').value,
+                equipmentType: document.getElementById('equipmentType').value,
+                manufacturer: document.getElementById('manufacturer').value,
+                location: document.getElementById('location').value,
+                complianceStatus: document.getElementById('complianceStatus').value,
+                riskLevel: document.getElementById('riskLevel').value,
+                actionItems: document.getElementById('actionItems').value,
+                additionalNotes: document.getElementById('additionalNotes').value
+            };
+            
+            // Log activity to SafePark system
+            if (window.SafeParkUtils && window.SafeParkUtils.addRecentActivity) {
+                const selectedPark = document.getElementById('holidayPark').value;
+                const assessorName = document.getElementById('assessorNameInit').value;
+                
+                window.SafeParkUtils.addRecentActivity(
+                    'PUWER Assessment',
+                    `Detailed PUWER assessment completed for ${detailedAssessmentData.equipmentName} at ${selectedPark} - Risk Level: ${detailedAssessmentData.riskLevel}`,
+                    'success'
+                );
+            }
+            
+            // Create maintenance records for non-compliant equipment
+            createMaintenanceRecordsForNonCompliance();
+            
+            // Submit form to Formspree
+            const detailedForm = document.getElementById('puwerAssessment');
+            const detailedFormData = new FormData(detailedForm);
+            
+            // Add detailed assessment data
+            detailedFormData.append('assessment_type', 'detailed');
+            detailedFormData.append('detailed_assessment_data', JSON.stringify(detailedAssessmentData));
+            
+            // Submit the form
+            fetch(detailedForm.action, {
+                method: 'POST',
+                body: detailedFormData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    showResults('detailed');
+                } else {
+                    alert('There was an error submitting the assessment. Please try again.');
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+                alert('There was an error submitting the assessment. Please try again.');
+            });
+        }
+        
+        // Create maintenance records for failed equipment
+        function createMaintenanceRecordsForFailedItems() {
+            const selectedPark = document.getElementById('holidayPark').value;
+            const businessArea = document.getElementById('businessArea').value || 'Maintenance & Grounds';
+            
+            if (window.SafeParkUtils && window.SafeParkUtils.addMaintenanceRecord) {
+                quickAssessmentItems.forEach(item => {
+                    if (item.status === 'fail' || item.status === 'replace') {
+                        const priority = item.status === 'fail' ? 'high' : 'medium';
+                        const title = `URGENT PUWER: ${item.equipmentName} - ${item.status === 'fail' ? 'Failed Assessment' : 'Requires Replacement'}`;
+                        
+                        window.SafeParkUtils.addMaintenanceRecord({
+                            title: title,
+                            description: `PUWER assessment has identified critical equipment issue. Equipment: ${item.equipmentName} (${item.equipmentType}) at ${item.location}. Status: ${item.status}. Notes: ${item.notes || 'See PUWER assessment for details'}. Inspection Code: ${item.inspectionCode}`,
+                            businessArea: businessArea,
+                            holidayPark: selectedPark,
+                            priority: priority,
+                            module: 'PUWER Assessment',
+                            location: item.location,
+                            equipmentId: item.inspectionCode
+                        });
+                    } else if (item.status === 'fixable') {
+                        window.SafeParkUtils.addMaintenanceRecord({
+                            title: `PUWER Maintenance: ${item.equipmentName} - Fixable Issues`,
+                            description: `PUWER assessment identified maintenance required for ${item.equipmentName} (${item.equipmentType}) at ${item.location}. Notes: ${item.notes || 'See PUWER assessment for details'}. Inspection Code: ${item.inspectionCode}`,
+                            businessArea: businessArea,
+                            holidayPark: selectedPark,
+                            priority: 'medium',
+                            module: 'PUWER Assessment',
+                            location: item.location,
+                            equipmentId: item.inspectionCode
+                        });
+                    }
+                });
+            }
+        }
+        
+        // Create maintenance records for non-compliant equipment (detailed assessment)
+        function createMaintenanceRecordsForNonCompliance() {
+            const selectedPark = document.getElementById('holidayPark').value;
+            const businessArea = document.getElementById('businessArea').value || 'Maintenance & Grounds';
+            const actionItems = document.getElementById('actionItems').value;
+            const complianceStatus = document.getElementById('complianceStatus').value;
+            
+            if (window.SafeParkUtils && window.SafeParkUtils.addMaintenanceRecord && actionItems) {
+                const priority = complianceStatus === 'non-compliant' || complianceStatus === 'major-issues' ? 'high' : 'medium';
+                const urgency = complianceStatus === 'non-compliant' ? 'URGENT PUWER: ' : 'PUWER Action: ';
+                
+                window.SafeParkUtils.addMaintenanceRecord({
+                    title: `${urgency}${detailedAssessmentData.equipmentName} - ${complianceStatus}`,
+                    description: `PUWER assessment requires action for ${detailedAssessmentData.equipmentName} (${detailedAssessmentData.equipmentType}) at ${detailedAssessmentData.location}. Compliance Status: ${complianceStatus}. Risk Level: ${detailedAssessmentData.riskLevel}. Action Items: ${actionItems}. Inspection Code: ${detailedAssessmentData.inspectionCode}`,
+                    businessArea: businessArea,
+                    holidayPark: selectedPark,
+                    priority: priority,
+                    module: 'PUWER Assessment',
+                    location: detailedAssessmentData.location,
+                    equipmentId: detailedAssessmentData.inspectionCode
+                });
+            }
+        }
+        
+        function showResults(assessmentType) {
+            // Hide form content and show results
+            document.querySelector('.form-content').style.display = 'none';
+            document.getElementById('resultsSummary').style.display = 'block';
+            
+            // Populate results based on assessment type
+            const resultDate = new Date().toLocaleDateString();
+            const resultAssessor = document.getElementById('assessorNameInit').value;
+            
+            document.getElementById('resultDate').textContent = resultDate;
+            document.getElementById('resultAssessor').textContent = resultAssessor;
+            
+            if (assessmentType === 'professional') {
+                populateQuickResults();
+            } else {
+                populateDetailedResults();
+            }
+        }
+        
+        function populateQuickResults() {
+            const summaryStats = document.getElementById('summaryStats');
+            const tableBody = document.getElementById('resultsTableBody');
+            
+            // Calculate stats
+            const totalItems = quickAssessmentItems.length;
+            const passItems = quickAssessmentItems.filter(item => item.status === 'pass').length;
+            const failItems = quickAssessmentItems.filter(item => item.status === 'fail').length;
+            const fixableItems = quickAssessmentItems.filter(item => item.status === 'fixable').length;
+            const replaceItems = quickAssessmentItems.filter(item => item.status === 'replace').length;
+            
+            // Populate stats
+            summaryStats.innerHTML = `
+                <div class="stat-card" style="border-left-color: var(--success);">
+                    <h3>${totalItems}</h3>
+                    <p>Total Equipment Assessed</p>
+                </div>
+                <div class="stat-card" style="border-left-color: var(--success);">
+                    <h3>${passItems}</h3>
+                    <p>Passed Assessment</p>
+                </div>
+                <div class="stat-card" style="border-left-color: var(--danger);">
+                    <h3>${failItems}</h3>
+                    <p>Failed Assessment</p>
+                </div>
+                <div class="stat-card" style="border-left-color: var(--warning);">
+                    <h3>${fixableItems + replaceItems}</h3>
+                    <p>Require Action</p>
+                </div>
+            `;
+            
+            // Populate results table
+            tableBody.innerHTML = '';
+            quickAssessmentItems.forEach(item => {
+                const row = tableBody.insertRow();
+                const statusClass = item.status === 'pass' ? 'status-pass' : 
+                                  item.status === 'fail' ? 'status-fail' :
+                                  item.status === 'fixable' ? 'status-fixable' : 'status-replace';
+                
+                row.innerHTML = `
+                    <td><strong>${item.inspectionCode}</strong></td>
+                    <td>${item.equipmentName}</td>
+                    <td>${item.equipmentType}</td>
+                    <td>${item.location}</td>
+                    <td><span class="${statusClass}">${item.status.toUpperCase()}</span></td>
+                    <td>${item.notes || '-'}</td>
+                `;
+            });
+        }
+        
+        function populateDetailedResults() {
+            const summaryStats = document.getElementById('summaryStats');
+            const tableBody = document.getElementById('resultsTableBody');
+            
+            // Populate stats for detailed assessment
+            summaryStats.innerHTML = `
+                <div class="stat-card" style="border-left-color: var(--primary-orange);">
+                    <h3>1</h3>
+                    <p>Equipment Assessed</p>
+                </div>
+                <div class="stat-card" style="border-left-color: var(--warning);">
+                    <h3>${detailedAssessmentData.riskLevel}</h3>
+                    <p>Risk Level</p>
+                </div>
+                <div class="stat-card" style="border-left-color: var(--danger);">
+                    <h3>${detailedAssessmentData.complianceStatus}</h3>
+                    <p>Compliance Status</p>
+                </div>
+            `;
+            
+            // Populate results table
+            const statusClass = detailedAssessmentData.complianceStatus === 'fully-compliant' ? 'status-pass' : 'status-fail';
+            tableBody.innerHTML = `
+                <tr>
+                    <td><strong>${detailedAssessmentData.inspectionCode}</strong></td>
+                    <td>${detailedAssessmentData.equipmentName}</td>
+                    <td>${detailedAssessmentData.equipmentType}</td>
+                    <td>${detailedAssessmentData.location}</td>
+                    <td><span class="${statusClass}">${detailedAssessmentData.complianceStatus.toUpperCase()}</span></td>
+                    <td>${detailedAssessmentData.additionalNotes || '-'}</td>
+                </tr>
+            `;
+        }
+        
+        function downloadReport() {
+            alert('PDF report generation feature coming soon. Your assessment data has been submitted successfully.');
+        }
+        
+        function startNewAssessment() {
+            location.reload();
+        }
+        
+        function closeDetailModal() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
+        
+        // Set default assessment date to today
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            const assessmentDateField = document.getElementById('assessmentDate');
+            if (assessmentDateField) {
+                assessmentDateField.value = today;
+            }
+        });
+    </script>
+</body>
+</html>
