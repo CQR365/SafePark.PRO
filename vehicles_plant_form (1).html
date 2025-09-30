@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Vehicle & Plant Machinery Management - SafePark.PRO</title>
+    <style>
+        :root {
+            --primary-orange: #CC5500;
+            --dark-orange: #B8460C;
+            --light-orange: #E6672E;
+            --black: #000000;
+            --white: #FFFFFF;
+            --smart-dark-grey: #2A2A2A;
+            --content-background: #2F2F2F;
+            --light-gray: #F8F9FA;
+            --medium-gray: #6C757D;
+            --dark-gray: #343A40;
+            --border-color: #DEE2E6;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --shadow-light: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-medium: 0 4px 20px rgba(0,0,0,0.15);
+            --shadow-heavy: 0 8px 40px rgba(0,0,0,0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+            color: var(--white);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            background: var(--content-background);
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow-medium);
+            border: 2px solid rgba(204, 85, 0, 0.3);
+            position: relative;
+        }
+
+        .header h1 {
+            color: var(--primary-orange);
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .header .brand-line {
+            color: var(--light-orange);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .header .subtitle {
+            color: #AAA;
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+        }
+
+        .header .description {
+            color: var(--light-gray);
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+
+        .reference-number {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            background: linear-gradient(135deg, var(--smart-dark-grey), #1a1a1a);
+            color: var(--white);
+            border: 2px solid var(--primary-orange);
+            padding: 10px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .back-btn:hover {
+            background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange));
+            transform: translateY(-2px);
+        }
+
+        /* Form Container */
+        .form-container {
+            background: var(--content-background);
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: var(--shadow-medium);
+            border: 1px solid rgba(204, 85, 0, 0.2);
+            margin-bottom: 30px;
+        }
+
+        /* Authority Check Section */
+        .authority-section {
+            background: linear-gradient(135deg, var(--warning) 0%, #e0a800 100%);
+            color: var(--black);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .authority-section h3 {
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .authority-check {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        /* Policy Documents Section */
+        .policy-section {
+            background: rgba(204, 85, 0, 0.1);
+            border: 2px solid rgba(204, 85, 0, 0.3);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .policy-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .policy-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .document-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+        }
+
+        .modal-content {
+            background-color: var(--content-background);
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            border: 2px solid var(--primary-orange);
+        }
+
+        .close {
+            color: var(--light-gray);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            right: 20px;
+            top: 15px;
+        }
+
+        .close:hover {
+            color: var(--primary-orange);
+        }
+
+        /* Form Sections */
+        .form-section {
+            margin-bottom: 35px;
+            padding: 25px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-orange);
+        }
+
+        .form-section h3 {
+            color: var(--primary-orange);
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            color: var(--light-gray);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 15px;
+            background: var(--smart-dark-grey);
+            border: 2px solid #444;
+            border-radius: 8px;
+            color: var(--white);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 3px rgba(204, 85, 0, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-input[type="file"] {
+            padding: 8px;
+            background: var(--smart-dark-grey);
+            border: 2px dashed #444;
+            border-radius: 8px;
+        }
+
+        .form-input[type="file"]:hover {
+            border-color: var(--primary-orange);
+        }
+
+        /* Insurance Management */
+        .insurance-container {
+            background: rgba(40, 167, 69, 0.1);
+            border: 2px solid rgba(40, 167, 69, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .insurance-list {
+            margin-top: 20px;
+        }
+
+        .insurance-item {
+            background: var(--smart-dark-grey);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .insurance-info {
+            flex: 1;
+        }
+
+        .insurance-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Buttons */
+        .btn {
+            background: var(--primary-orange);
+            color: var(--white);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 1rem;
+        }
+
+        .btn:hover {
+            background: var(--dark-orange);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--primary-orange);
+            color: var(--primary-orange);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-orange);
+            color: var(--white);
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: var(--black);
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        /* Submit Section */
+        .submit-section {
+            text-align: center;
+            padding: 30px;
+            background: rgba(204, 85, 0, 0.1);
+            border-radius: 12px;
+            margin-top: 30px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, var(--success), #218838);
+            color: var(--white);
+            border: none;
+            padding: 18px 40px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-heavy);
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 10px;
+            }
+
+            .header {
+                padding: 25px 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .form-container {
+                padding: 25px 20px;
+            }
+
+            .reference-number,
+            .back-btn {
+                position: static;
+                margin-bottom: 15px;
+                display: inline-block;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .policy-buttons {
+                justify-content: center;
+            }
+
+            .authority-check {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+                padding: 20px;
+            }
+
+            .insurance-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .insurance-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <button class="back-btn" onclick="window.location.href='index.html'">← Back to SafePark.PRO</button>
+            <div class="reference-number" id="reference-number">REF: VPM-20250930-0001</div>
+            <h1>CQR365</h1>
+            <div class="brand-line">SafePark.PRO</div>
+            <div class="subtitle">Vehicle & Plant Machinery Management</div>
+            <p class="description">Highland Holidays Ltd & Overburns Farm - Comprehensive fleet management and compliance system</p>
+        </div>
+
+        <!-- Authority Check Section -->
+        <div class="authority-section">
+            <h3>Authorized Personnel Only</h3>
+            <p>This module requires specific authorization. Please verify your identity to proceed.</p>
+            <div class="authority-check">
+                <select id="authorizedUser" class="form-select" style="max-width: 300px; background: white; color: black;" required>
+                    <option value="">Select your name...</option>
+                </select>
+                <button type="button" class="btn btn-warning" onclick="verifyAuthority()">Verify Access</button>
+            </div>
+        </div>
+
+        <!-- Policy Documents Section -->
+        <div class="policy-section">
+            <div class="policy-header">
+                <div>
+                    <h3 style="color: var(--primary-orange); margin-bottom: 10px;">Policy & Procedure Documents</h3>
+                    <p style="color: var(--light-gray);">Access essential vehicle management policies and incident procedures</p>
+                </div>
+                <div class="policy-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="openPolicyModal()">Vehicle Policy Document</button>
+                    <button type="button" class="btn btn-secondary" onclick="openIncidentModal()">Incident Action Procedures</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Form -->
+        <form id="vehicleForm" action="https://formspree.io/f/xldprzkr" method="POST" enctype="multipart/form-data" style="display: none;">
+            <!-- Hidden fields for SafePark.PRO integration -->
+            <input type="hidden" name="module" value="Vehicle & Plant Machinery Management">
+            <input type="hidden" name="_subject" value="SafePark.PRO - Vehicle & Plant Machinery Registration">
+            <input type="hidden" name="authorized_user" id="authorizedUserHidden">
+
+            <div class="form-container">
+                <!-- Vehicle/Plant Identification -->
+                <div class="form-section">
+                    <h3>Vehicle/Plant Identification</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Vehicle/Plant Type *</label>
+                            <select name="vehicle_type" class="form-select" required onchange="updateSubCategories()">
+                                <option value="">Select type...</option>
+                                <option value="Motor Vehicle">Motor Vehicle</option>
+                                <option value="Agricultural Machinery">Agricultural Machinery</option>
+                                <option value="Construction Plant">Construction Plant</option>
+                                <option value="Grounds Maintenance">Grounds Maintenance Equipment</option>
+                                <option value="Specialized Equipment">Specialized Equipment</option>
+                                <option value="Trailer/Attachment">Trailer/Attachment</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Sub-Category *</label>
+                            <select name="sub_category" id="subCategory" class="form-select" required>
+                                <option value="">Select vehicle type first...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Make *</label>
+                            <input type="text" name="make" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Model *</label>
+                            <input type="text" name="model" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Year</label>
+                            <input type="number" name="year" class="form-input" min="1950" max="2030">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Registration/Serial Number *</label>
+                            <input type="text" name="registration" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Engine/Motor Size</label>
+                            <input type="text" name="engine_size" class="form-input" placeholder="e.g., 2.0L, Electric, etc.">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Fuel Type</label>
+                            <select name="fuel_type" class="form-select">
+                                <option value="">Select fuel type...</option>
+                                <option value="Petrol">Petrol</option>
+                                <option value="Diesel">Diesel</option>
+                                <option value="Electric">Electric</option>
+                                <option value="Hybrid">Hybrid</option>
+                                <option value="LPG">LPG</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location & Assignment -->
+                <div class="form-section">
+                    <h3>Location & Assignment</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Primary Location *</label>
+                            <select name="location" class="form-select" data-populate="locations" required>
+                                <option value="">Select location...</option>
+                                <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                                <option value="Oban Holiday Park">Oban Holiday Park</option>
+                                <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                                <option value="Overburns Farm">Overburns Farm</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Business Area *</label>
+                            <select name="business_area" class="form-select" required>
+                                <option value="">Select business area...</option>
+                                <option value="Reception & Administration">Reception & Administration</option>
+                                <option value="Accommodation Services">Accommodation Services</option>
+                                <option value="Play Areas & Recreation">Play Areas & Recreation</option>
+                                <option value="Maintenance & Grounds">Maintenance & Grounds</option>
+                                <option value="Food & Beverage">Food & Beverage</option>
+                                <option value="Security & Safety">Security & Safety</option>
+                                <option value="Water Activities">Water Activities</option>
+                                <option value="Entertainment">Entertainment</option>
+                                <option value="Agricultural Operations">Agricultural Operations</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Primary Operator/Driver</label>
+                            <select name="primary_operator" class="form-select" data-populate="team-members">
+                                <option value="">Select primary operator...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Vehicle Status</label>
+                            <select name="status" class="form-select">
+                                <option value="Active">Active - In Service</option>
+                                <option value="Maintenance">Under Maintenance</option>
+                                <option value="Out of Service">Out of Service</option>
+                                <option value="Seasonal">Seasonal Use Only</option>
+                                <option value="Decommissioned">Decommissioned</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Insurance Management -->
+                <div class="form-section">
+                    <h3>Insurance & Documentation Management</h3>
+                    
+                    <div class="insurance-container">
+                        <h4 style="color: var(--success); margin-bottom: 15px;">Upload New Insurance Document</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Insurance Type *</label>
+                                <select id="insuranceType" class="form-select" required>
+                                    <option value="">Select insurance type...</option>
+                                    <option value="Comprehensive Motor Insurance">Comprehensive Motor Insurance</option>
+                                    <option value="Third Party Motor Insurance">Third Party Motor Insurance</option>
+                                    <option value="Plant & Machinery Insurance">Plant & Machinery Insurance</option>
+                                    <option value="Agricultural Equipment Insurance">Agricultural Equipment Insurance</option>
+                                    <option value="Public Liability Insurance">Public Liability Insurance</option>
+                                    <option value="Employers Liability Insurance">Employers Liability Insurance</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Policy Number</label>
+                                <input type="text" id="insurancePolicyNumber" class="form-input" placeholder="Enter policy number">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Expiry Date</label>
+                                <input type="date" id="insuranceExpiry" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Insurance Provider</label>
+                                <input type="text" id="insuranceProvider" class="form-input" placeholder="e.g., Zurich, Aviva, etc.">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Upload Insurance Document *</label>
+                            <input type="file" id="insuranceFile" class="form-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
+                            <small style="color: var(--medium-gray); margin-top: 5px; display: block;">Accepted formats: PDF, DOC, DOCX, JPG, PNG (Max 10MB)</small>
+                        </div>
+                        <button type="button" class="btn btn-success" onclick="addInsuranceDocument()">Add Insurance Document</button>
+                    </div>
+
+                    <!-- Current Insurance Documents -->
+                    <div id="insuranceList" class="insurance-list">
+                        <h4 style="color: var(--primary-orange); margin-bottom: 15px;">Current Insurance Documents</h4>
+                        <div id="insuranceDocuments">
+                            <!-- Insurance documents will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Technical Specifications -->
+                <div class="form-section">
+                    <h3>Technical Specifications & Compliance</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">MOT Expiry (if applicable)</label>
+                            <input type="date" name="mot_expiry" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Service Due Date</label>
+                            <input type="date" name="service_due" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Last Inspection Date</label>
+                            <input type="date" name="last_inspection" class="form-input">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">LOLER Inspection (if applicable)</label>
+                            <input type="date" name="loler_expiry" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Operating Hours/Mileage</label>
+                            <input type="number" name="operating_hours" class="form-input" placeholder="Current hours/miles">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Maximum Load/Capacity</label>
+                            <input type="text" name="max_capacity" class="form-input" placeholder="e.g., 3 tonnes, 5 passengers">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Safety & Training Requirements -->
+                <div class="form-section">
+                    <h3>Safety & Training Requirements</h3>
+                    <div class="form-group">
+                        <label class="form-label">Required Licenses/Certifications</label>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px;">
+                            <label style="display: flex; align-items: center; gap: 8px; color: var(--light-gray);">
+                                <input type="checkbox" name="required_licenses" value="Driving License"> Driving License
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; color: var(--light-gray);">
+                                <input type="checkbox" name="required_licenses" value="CPCS Card"> CPCS Card
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; color: var(--light-gray);">
+                                <input type="checkbox" name="required_licenses" value="CSCS Card"> CSCS Card
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; color: var(--light-gray);">
+                                <input type="checkbox" name="required_licenses" value="Tractor License"> Tractor License
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; color: var(--light-gray);">
+                                <input type="checkbox" name="required_licenses" value="Forklift License"> Forklift License
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; color: var(--light-gray);">
+                                <input type="checkbox" name="required_licenses" value="Plant Operator License"> Plant Operator License
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Special Safety Requirements</label>
+                        <textarea name="safety_requirements" class="form-textarea" rows="3" placeholder="List any special safety requirements, PPE, or operational restrictions..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Additional Information -->
+                <div class="form-section">
+                    <h3>Additional Information & Notes</h3>
+                    <div class="form-group">
+                        <label class="form-label">Vehicle/Plant Description & Features</label>
+                        <textarea name="description" class="form-textarea" rows="3" placeholder="Describe the vehicle/plant, its primary use, special features, attachments, etc..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Maintenance Notes & History</label>
+                        <textarea name="maintenance_notes" class="form-textarea" rows="3" placeholder="Any important maintenance history, known issues, or special requirements..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Additional Documentation</label>
+                        <input type="file" name="additional_docs" class="form-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" multiple>
+                        <small style="color: var(--medium-gray); margin-top: 5px; display: block;">Upload manuals, certificates, inspection reports, etc. (Multiple files allowed)</small>
+                    </div>
+                </div>
+
+                <!-- Submit Section -->
+                <div class="submit-section">
+                    <h3 style="color: var(--primary-orange); margin-bottom: 20px;">Complete Vehicle Registration</h3>
+                    <p style="margin-bottom: 25px; color: var(--light-gray);">
+                        By submitting this form, you confirm that all information provided is accurate and that the vehicle/plant meets all safety and compliance requirements.
+                    </p>
+                    <button type="submit" class="submit-btn">Register Vehicle/Plant</button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Policy Documents Modals -->
+        <div id="policyModal" class="document-modal">
+            <div class="modal-content">
+                <span class="close" onclick="closePolicyModal()">&times;</span>
+                <h2 style="color: var(--primary-orange); margin-bottom: 20px;">Highland Holidays Vehicle & Plant Policy</h2>
+                <div style="line-height: 1.8; color: var(--light-gray);">
+                    <h3 style="color: var(--light-orange); margin: 20px 0 10px 0;">1. General Policy</h3>
+                    <p>All vehicles and plant machinery operated within Highland Holidays Ltd and Overburns Farm must comply with this policy. This includes motor vehicles, agricultural machinery, construction plant, and all specialized equipment.</p>
+                    
+                    <h3 style="color: var(--light-orange); margin: 20px 0 10px 0;">2. Authorization & Training</h3>
+                    <ul style="margin-left: 20px;">
+                        <li>Only authorized personnel may operate vehicles and plant machinery</li>
+                        <li>All operators must hold valid licenses and certifications for their assigned equipment</li>
+                        <li>Regular training updates and competency assessments are mandatory</li>
+                        <li>New equipment requires specific training before operation</li>
+                    </ul>
+                    
+                    <h3 style="color: var(--light-orange); margin: 20px 0 10px 0;">3. Safety Requirements</h3>
+                    <ul style="margin-left: 20px;">
+                        <li>Pre-use inspections must be completed for all equipment</li>
+                        <li>Appropriate PPE must be worn at all times</li>
+                        <li>Equipment must only be used for its intended purpose</li>
+                        <li>All safety devices and guards must remain in place and functional</li>
+                    </ul>
+                    
+                    <h3 style="color: var(--light-orange); margin: 20px 0 10px 0;">4. Maintenance & Inspection</h3>
+                    <ul style="margin-left: 20px;">
+                        <li>Regular maintenance schedules must be followed</li>
+                        <li>All statutory inspections (MOT, LOLER, etc.) must be current</li>
+                        <li>Defects must be reported immediately</li>
+                        <li>Equipment with defects must be taken out of service until repaired</li>
+                    </ul>
+                    
+                    <h3 style="color: var(--light-orange); margin: 20px 0 10px 0;">5. Insurance & Documentation</h3>
+                    <ul style="margin-left: 20px;">
+                        <li>All vehicles and plant must have current insurance cover</li>
+                        <li>Documentation must be kept up to date in the SafePark.PRO system</li>
+                        <li>Insurance claims must be reported within 24 hours</li>
+                        <li>Regular reviews of insurance coverage are required</li>
+                    </ul>
+                    
+                    <h3 style="color: var(--light-orange); margin: 20px 0 10px 0;">6. Environmental Compliance</h3>
+                    <p>All operations must comply with environmental regulations including emissions standards, fuel storage requirements, and waste disposal procedures.</p>
+                    
+                    <h3 style="color: var(--light-orange); margin: 20px 0 10px 0;">7. Incident Reporting</h3>
+                    <p>All incidents, near misses, and accidents involving vehicles or plant must be reported immediately through the SafePark.PRO system.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="incidentModal" class="document-modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeIncidentModal()">&times;</span>
+                <h2 style="color: var(--danger); margin-bottom: 20px;">Vehicle & Plant Incident Action Procedures</h2>
+                <div style="line-height: 1.8; color: var(--light-gray);">
+                    <h3 style="color: var(--danger); margin: 20px 0 10px 0;">IMMEDIATE ACTIONS</h3>
+                    <ol style="margin-left: 20px;">
+                        <li><strong>Ensure Safety</strong> - Secure the scene and ensure no further danger</li>
+                        <li><strong>Emergency Services</strong> - Call 999 if there are injuries or immediate danger</li>
+                        <li><strong>First Aid</strong> - Provide first aid if qualified and safe to do so</li>
+                        <li><strong>Isolate Equipment</strong> - Switch off and isolate any involved machinery</li>
+                    </ol>
+                    
+                    <h3 style="color: var(--warning); margin: 20px 0 10px 0;">SECONDARY ACTIONS</h3>
+                    <ol style="margin-left: 20px;">
+                        <li><strong>Notify Management</strong> - Contact site manager immediately</li>
+                        <li><strong>Preserve Evidence</strong> - Do not move equipment unless essential for safety</li>
+                        <li><strong>Document Scene</strong> - Take photographs if safe to do so</li>
+                        <li><strong>Witness Statements</strong> - Identify and speak to any witnesses</li>
+                    </ol>
+                    
+                    <h3 style="color: var(--primary-orange); margin: 20px 0 10px 0;">REPORTING REQUIREMENTS</h3>
+                    <ul style="margin-left: 20px;">
+                        <li>Report via SafePark.PRO incident system within 2 hours</li>
+                        <li>Contact insurance provider within 24 hours</li>
+                        <li>Notify HSE if reportable under RIDDOR</li>
+                        <li>Complete detailed incident investigation report</li>
+                    </ul>
+                    
+                    <h3 style="color: var(--success); margin: 20px 0 10px 0;">KEY CONTACTS</h3>
+                    <ul style="margin-left: 20px;">
+                        <li><strong>Emergency Services:</strong> 999</li>
+                        <li><strong>Site Manager:</strong> [To be updated with local contact]</li>
+                        <li><strong>CQR365 Safety Team:</strong> [To be updated]</li>
+                        <li><strong>Insurance Hotline:</strong> [To be updated with provider details]</li>
+                    </ul>
+                    
+                    <div style="background: rgba(220, 53, 69, 0.1); padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid var(--danger);">
+                        <h4 style="color: var(--danger);">CRITICAL REMINDER</h4>
+                        <p>Never attempt to restart or move damaged equipment. Always wait for qualified personnel to assess the situation.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Vehicle subcategories data
+        const vehicleSubCategories = {
+            "Motor Vehicle": [
+                "Car", "Van", "Minibus", "Truck", "4x4/SUV", "Motorcycle", "Electric Vehicle"
+            ],
+            "Agricultural Machinery": [
+                "Tractor", "Combine Harvester", "Plough", "Cultivator", "Seed Drill", "Sprayer", 
+                "Mower", "Hedge Trimmer", "Loader", "Telehandler", "ATV/Quad Bike"
+            ],
+            "Construction Plant": [
+                "Excavator", "Dumper", "Roller", "Compactor", "Crane", "Forklift", 
+                "Skid Steer", "Mini Digger", "JCB/Backhoe", "Cherry Picker"
+            ],
+            "Grounds Maintenance": [
+                "Ride-on Mower", "Zero-turn Mower", "Strimmer", "Leaf Blower", "Hedge Cutter", 
+                "Chainsaw", "Wood Chipper", "Pressure Washer", "Scarifier", "Aerator"
+            ],
+            "Specialized Equipment": [
+                "Generator", "Compressor", "Welding Equipment", "Water Pump", "Lighting Tower", 
+                "Road Sweeper", "Snow Plough", "Salt Spreader", "Cleaning Equipment"
+            ],
+            "Trailer/Attachment": [
+                "Equipment Trailer", "Livestock Trailer", "Plant Trailer", "Car Trailer", 
+                "Tipper Trailer", "Low Loader", "Bowser", "Attachment/Implement"
+            ]
+        };
+
+        // Insurance documents storage
+        let insuranceDocuments = [];
+
+        // Initialize form
+        document.addEventListener('DOMContentLoaded', function() {
+            generateReferenceNumber();
+            
+            // Initialize SafePark.PRO integration
+            if (window.syncSafeParkData) {
+                window.syncSafeParkData();
+            }
+            
+            // Populate authorized users (team members with vehicle management authority)
+            populateAuthorizedUsers();
+        });
+
+        function generateReferenceNumber() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const time = String(today.getHours()).padStart(2, '0') + String(today.getMinutes()).padStart(2, '0');
+            
+            document.getElementById('reference-number').textContent = `REF: VPM-${year}${month}${day}-${time}`;
+        }
+
+        function populateAuthorizedUsers() {
+            const select = document.getElementById('authorizedUser');
+            
+            // Get team members who have vehicle management authority
+            if (window.SafeParkUtils && window.SafeParkUtils.getTeamMembers) {
+                const allTeamMembers = window.SafeParkUtils.getTeamMembers();
+                const authorizedAreas = ['Maintenance & Grounds', 'Security & Safety', 'Agricultural Operations'];
+                
+                const authorizedUsers = allTeamMembers.filter(member => 
+                    authorizedAreas.includes(member.businessArea) || 
+                    member.role && (
+                        member.role.toLowerCase().includes('manager') ||
+                        member.role.toLowerCase().includes('supervisor') ||
+                        member.role.toLowerCase().includes('operator')
+                    )
+                );
+                
+                authorizedUsers.forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user.id;
+                    option.textContent = `${user.name} - ${user.businessArea}`;
+                    select.appendChild(option);
+                });
+            }
+            
+            // Add default authorized roles if no team members found
+            if (select.children.length === 1) {
+                const defaultUsers = [
+                    'Fleet Manager', 'Maintenance Supervisor', 'Operations Manager', 
+                    'Farm Manager', 'Safety Officer', 'Site Manager'
+                ];
+                
+                defaultUsers.forEach(role => {
+                    const option = document.createElement('option');
+                    option.value = role.toLowerCase().replace(' ', '_');
+                    option.textContent = role;
+                    select.appendChild(option);
+                });
+            }
+        }
+
+        function verifyAuthority() {
+            const authorizedUser = document.getElementById('authorizedUser').value;
+            
+            if (!authorizedUser) {
+                alert('Please select your name from the authorized personnel list.');
+                return;
+            }
+            
+            // Set authorized user in hidden field
+            document.getElementById('authorizedUserHidden').value = authorizedUser;
+            
+            // Show the main form
+            document.getElementById('vehicleForm').style.display = 'block';
+            document.querySelector('.authority-section').style.display = 'none';
+            
+            // Log activity
+            if (window.SafeParkUtils && window.SafeParkUtils.addRecentActivity) {
+                window.SafeParkUtils.addRecentActivity(
+                    'Vehicle Management', 
+                    `Authorized access granted to: ${authorizedUser}`, 
+                    'info'
+                );
+            }
+        }
+
+        function updateSubCategories() {
+            const vehicleType = document.querySelector('select[name="vehicle_type"]').value;
+            const subCategorySelect = document.getElementById('subCategory');
+            
+            // Clear existing options
+            subCategorySelect.innerHTML = '<option value="">Select sub-category...</option>';
+            
+            if (vehicleType && vehicleSubCategories[vehicleType]) {
+                vehicleSubCategories[vehicleType].forEach(subCategory => {
+                    const option = document.createElement('option');
+                    option.value = subCategory;
+                    option.textContent = subCategory;
+                    subCategorySelect.appendChild(option);
+                });
+            }
+        }
+
+        function addInsuranceDocument() {
+            const type = document.getElementById('insuranceType').value;
+            const policyNumber = document.getElementById('insurancePolicyNumber').value;
+            const expiry = document.getElementById('insuranceExpiry').value;
+            const provider = document.getElementById('insuranceProvider').value;
+            const file = document.getElementById('insuranceFile').files[0];
+            
+            if (!type || !file) {
+                alert('Please select insurance type and upload a document.');
+                return;
+            }
+            
+            const insuranceDoc = {
+                id: Date.now(),
+                type: type,
+                policyNumber: policyNumber || 'Not specified',
+                expiry: expiry || 'Not specified',
+                provider: provider || 'Not specified',
+                fileName: file.name,
+                fileSize: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+                uploadDate: new Date().toLocaleDateString()
+            };
+            
+            insuranceDocuments.push(insuranceDoc);
+            updateInsuranceDisplay();
+            clearInsuranceForm();
+            
+            alert('Insurance document added successfully!');
+        }
+
+        function removeInsuranceDocument(id) {
+            if (confirm('Are you sure you want to remove this insurance document?')) {
+                insuranceDocuments = insuranceDocuments.filter(doc => doc.id !== id);
+                updateInsuranceDisplay();
+            }
+        }
+
+        function updateInsuranceDisplay() {
+            const container = document.getElementById('insuranceDocuments');
+            
+            if (insuranceDocuments.length === 0) {
+                container.innerHTML = '<p style="color: var(--medium-gray); font-style: italic;">No insurance documents uploaded yet.</p>';
+                return;
+            }
+            
+            container.innerHTML = insuranceDocuments.map(doc => `
+                <div class="insurance-item">
+                    <div class="insurance-info">
+                        <h5 style="color: var(--success); margin-bottom: 5px;">${doc.type}</h5>
+                        <p style="color: var(--light-gray); margin-bottom: 2px;"><strong>Policy:</strong> ${doc.policyNumber}</p>
+                        <p style="color: var(--light-gray); margin-bottom: 2px;"><strong>Provider:</strong> ${doc.provider}</p>
+                        <p style="color: var(--light-gray); margin-bottom: 2px;"><strong>Expires:</strong> ${doc.expiry}</p>
+                        <p style="color: var(--medium-gray); font-size: 0.9rem;">${doc.fileName} (${doc.fileSize}) - Uploaded: ${doc.uploadDate}</p>
+                    </div>
+                    <div class="insurance-actions">
+                        <button type="button" class="btn btn-danger btn-small" onclick="removeInsuranceDocument(${doc.id})">Remove</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function clearInsuranceForm() {
+            document.getElementById('insuranceType').value = '';
+            document.getElementById('insurancePolicyNumber').value = '';
+            document.getElementById('insuranceExpiry').value = '';
+            document.getElementById('insuranceProvider').value = '';
+            document.getElementById('insuranceFile').value = '';
+        }
+
+        function openPolicyModal() {
+            document.getElementById('policyModal').style.display = 'block';
+        }
+
+        function closePolicyModal() {
+            document.getElementById('policyModal').style.display = 'none';
+        }
+
+        function openIncidentModal() {
+            document.getElementById('incidentModal').style.display = 'block';
+        }
+
+        function closeIncidentModal() {
+            document.getElementById('incidentModal').style.display = 'none';
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const policyModal = document.getElementById('policyModal');
+            const incidentModal = document.getElementById('incidentModal');
+            
+            if (event.target === policyModal) {
+                policyModal.style.display = 'none';
+            }
+            if (event.target === incidentModal) {
+                incidentModal.style.display = 'none';
+            }
+        }
+
+        // Form submission handler
+        document.getElementById('vehicleForm').addEventListener('submit', function(e) {
+            // Add insurance documents to form data
+            if (insuranceDocuments.length > 0) {
+                const insuranceData = document.createElement('input');
+                insuranceData.type = 'hidden';
+                insuranceData.name = 'insurance_documents';
+                insuranceData.value = JSON.stringify(insuranceDocuments);
+                this.appendChild(insuranceData);
+            }
+            
+            // Log activity
+            if (window.SafeParkUtils && window.SafeParkUtils.addRecentActivity) {
+                const vehicleType = document.querySelector('select[name="vehicle_type"]').value;
+                const make = document.querySelector('input[name="make"]').value;
+                const model = document.querySelector('input[name="model"]').value;
+                
+                window.SafeParkUtils.addRecentActivity(
+                    'Vehicle Management', 
+                    `New vehicle registered: ${make} ${model} (${vehicleType})`, 
+                    'success'
+                );
+                
+                // Create maintenance record for new vehicle
+                if (window.SafeParkUtils.addMaintenanceRecord) {
+                    window.SafeParkUtils.addMaintenanceRecord({
+                        title: `Initial setup - ${make} ${model}`,
+                        description: 'Vehicle registration completed, initial inspection due',
+                        businessArea: document.querySelector('select[name="business_area"]').value,
+                        holidayPark: document.querySelector('select[name="location"]').value,
+                        priority: 'medium',
+                        module: 'Vehicle Management'
+                    });
+                }
+            }
+            
+            alert('Vehicle registration submitted successfully!');
+        });
+    </script>
+</body>
+</html>
