@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Management Compliance System - CQR365 SafePark.PRO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-orange: #CC5500;
+            --dark-orange: #B8460C;
+            --light-orange: #E6672E;
+            --black: #000000;
+            --white: #FFFFFF;
+            --smart-dark-grey: #2A2A2A;
+            --content-background: #2F2F2F;
+            --light-gray: #F8F9FA;
+            --medium-gray: #6C757D;
+            --dark-gray: #343A40;
+            --border-color: #DEE2E6;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --shadow-light: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-medium: 0 4px 20px rgba(0,0,0,0.15);
+            --shadow-heavy: 0 8px 40px rgba(0,0,0,0.2);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+            color: var(--white);
+            line-height: 1.6;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+            background: var(--content-background);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-medium);
+            border: 1px solid rgba(204, 85, 0, 0.2);
+            position: relative;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-btn:hover {
+            background: var(--dark-orange);
+            transform: translateY(-2px);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary-orange);
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+
+        .header .brand-line {
+            color: var(--light-orange);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .header .subtitle {
+            color: #999;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .header .description {
+            color: var(--light-gray);
+            font-size: 1.125rem;
+            margin-top: 8px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-medium);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 18px 24px;
+            background: var(--content-background);
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #B8C5D6;
+            transition: all 0.3s ease;
+            border-right: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+        }
+
+        .tab:last-child {
+            border-right: none;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
+            color: var(--white);
+        }
+
+        .tab:hover:not(.active) {
+            background: rgba(204, 85, 0, 0.1);
+            color: var(--white);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: var(--danger);
+            color: var(--white);
+            border-radius: 12px;
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: 700;
+            min-width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        .tab.active .notification-badge {
+            background: var(--white);
+            color: var(--primary-orange);
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3);
+            }
+            50% {
+                box-shadow: 0 2px 12px rgba(220, 53, 69, 0.6);
+            }
+            100% {
+                box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3);
+            }
+        }
+
+        .form-section {
+            background: var(--content-background);
+            padding: 32px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow-medium);
+            border: 1px solid rgba(204, 85, 0, 0.2);
+        }
+
+        .section-title {
+            color: var(--primary-orange);
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            border-bottom: 3px solid var(--primary-orange);
+            padding-bottom: 12px;
+            letter-spacing: -0.3px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--white);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .required {
+            color: var(--primary-orange);
+        }
+
+        .form-input, .form-group select, .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: var(--white);
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .form-input:focus, .form-group select:focus, .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 3px rgba(204, 85, 0, 0.1);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .form-input::placeholder, .form-group input::placeholder, .form-group textarea::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        select.form-input, .form-group select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 12px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        select.form-input option, .form-group select option {
+            background: var(--content-background);
+            color: var(--white);
+        }
+
+        textarea.form-input, .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .comment-field {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+
+        .comment-field:focus {
+            border-color: var(--warning);
+            box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+        }
+
+        .status-complete {
+            background-color: rgba(40, 167, 69, 0.2);
+            border-color: var(--success);
+        }
+
+        .status-incomplete {
+            background-color: rgba(220, 53, 69, 0.2);
+            border-color: var(--danger);
+        }
+
+        .status-pending {
+            background-color: rgba(255, 193, 7, 0.2);
+            border-color: var(--warning);
+        }
+
+        .action-plan {
+            background: rgba(204, 85, 0, 0.1);
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border: 2px solid rgba(204, 85, 0, 0.3);
+        }
+
+        .action-plan h4 {
+            color: var(--primary-orange);
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .gm-review-section {
+            background: rgba(14, 165, 233, 0.1);
+            border: 2px solid rgba(14, 165, 233, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .gm-review-section h3 {
+            color: #0EA5E9;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .review-item {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--medium-gray);
+        }
+
+        .review-item.needs-attention {
+            border-left-color: var(--warning);
+            background: rgba(255, 193, 7, 0.1);
+        }
+
+        .review-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 15px 0;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+
+        .review-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary-orange);
+        }
+
+        .review-checkbox label {
+            color: var(--white);
+            font-weight: 500;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .btn {
+            background: var(--primary-orange);
+            color: var(--white);
+            border: none;
+            padding: 14px 28px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 2px solid transparent;
+            font-family: inherit;
+            text-decoration: none;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: var(--dark-orange);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(204, 85, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--white);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--primary-orange);
+            color: var(--primary-orange);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange));
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn-submit:hover {
+            background: linear-gradient(135deg, var(--dark-orange), var(--primary-orange));
+        }
+
+        .btn-approve {
+            background: var(--success);
+        }
+
+        .btn-approve:hover {
+            background: #1e7e34;
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-reject {
+            background: var(--danger);
+        }
+
+        .btn-reject:hover {
+            background: #c82333;
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: var(--content-background);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-medium);
+        }
+
+        .report-table th {
+            background: var(--primary-orange);
+            color: var(--white);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .report-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            color: var(--white);
+        }
+
+        .report-table tr:hover {
+            background: rgba(204, 85, 0, 0.1);
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .badge-complete {
+            background: var(--success);
+            color: var(--white);
+        }
+
+        .badge-incomplete {
+            background: var(--danger);
+            color: var(--white);
+        }
+
+        .badge-pending {
+            background: var(--warning);
+            color: var(--black);
+        }
+
+        .badge-gm-review {
+            background: #0EA5E9;
+            color: var(--white);
+        }
+
+        .badge-director-review {
+            background: #8B5CF6;
+            color: var(--white);
+        }
+
+        .director-section {
+            background: rgba(139, 92, 246, 0.1);
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .director-section h4 {
+            color: #8B5CF6;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .outstanding-actions {
+            background: rgba(255, 193, 7, 0.2);
+            border: 2px solid var(--warning);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .outstanding-actions h3 {
+            color: var(--warning);
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .month-selector {
+            background: var(--content-background);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow-medium);
+            border: 1px solid rgba(204, 85, 0, 0.2);
+        }
+
+        .alert {
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 28px;
+            border-left: 4px solid;
+            box-shadow: var(--shadow-medium);
+        }
+
+        .alert-success {
+            background: rgba(40, 167, 69, 0.2);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .alert-info {
+            background: rgba(14, 165, 233, 0.1);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            color: #B8C5D6;
+        }
+
+        .alert-warning {
+            background: rgba(255, 193, 7, 0.2);
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .workflow-indicator {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary-orange);
+        }
+
+        .workflow-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 8px 0;
+        }
+
+        .workflow-step.active {
+            color: var(--primary-orange);
+            font-weight: 600;
+        }
+
+        .workflow-step.complete {
+            color: var(--success);
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .footer {
+            background: #1a1a1a;
+            text-align: center;
+            padding: 15px;
+            color: #888;
+            font-size: 0.9rem;
+            border-top: 2px solid #444;
+            margin-top: 40px;
+        }
+
+        /* Mobile Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 16px;
+            }
+            
+            .header {
+                padding: 24px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .form-section {
+                padding: 20px;
+                margin-bottom: 15px;
+            }
+
+            .report-table {
+                font-size: 14px;
+                overflow-x: auto;
+                display: block;
+                white-space: nowrap;
+            }
+
+            .report-table thead, .report-table tbody, .report-table th, .report-table td, .report-table tr {
+                display: block;
+            }
+
+            .report-table thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+
+            .report-table tr {
+                border: 1px solid rgba(255,255,255,0.1);
+                margin-bottom: 10px;
+                padding: 10px;
+                border-radius: 8px;
+                background: rgba(255,255,255,0.05);
+            }
+
+            .report-table td {
+                border: none;
+                position: relative;
+                padding-left: 50%;
+                white-space: normal;
+                text-align: left;
+            }
+
+            .report-table td:before {
+                content: attr(data-label) ": ";
+                position: absolute;
+                left: 6px;
+                width: 45%;
+                padding-right: 10px;
+                white-space: nowrap;
+                font-weight: bold;
+                color: var(--primary-orange);
+            }
+
+            .btn {
+                width: 100%;
+                margin: 5px 0;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+
+            .back-btn {
+                position: static;
+                margin-bottom: 15px;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab {
+                border-right: none;
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+            }
+
+            .tab:last-child {
+                border-bottom: none;
+            }
+        }
+
+        /* Prevent horizontal scroll */
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <a href="index.html" class="back-btn">← Back to SafePark.PRO</a>
+            <h1>CQR365</h1>
+            <div class="brand-line">SafePark.PRO</div>
+            <div class="subtitle">Management Compliance System</div>
+            <p class="description">Highland Holidays - Safety & Compliance Management Review</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('monthly-form')">Department Submission</button>
+            <button class="tab" onclick="showTab('gm-review')">
+                GM Review & Approval
+                <span class="notification-badge" id="gm-pending-count">3</span>
+            </button>
+            <button class="tab" onclick="showTab('annual-report')">Annual Report</button>
+            <button class="tab" onclick="showTab('director-review')">
+                Director Review
+                <span class="notification-badge" id="director-pending-count">2</span>
+            </button>
+        </div>
+
+        <!-- Department Monthly Form -->
+        <div id="monthly-form" class="content-section active">
+            <div class="workflow-indicator">
+                <h3 style="color: var(--primary-orange); margin-bottom: 10px;">Workflow Status</h3>
+                <div class="workflow-step active">
+                    <span>1. Department Submission</span> ← Current Step
+                </div>
+                <div class="workflow-step">
+                    <span>2. General Manager Review</span>
+                </div>
+                <div class="workflow-step">
+                    <span>3. Director Approval</span>
+                </div>
+            </div>
+
+            <form id="complianceForm" action="https://formspree.io/f/xldprzkr" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="module" value="Management Compliance System">
+                <input type="hidden" name="_subject" value="SafePark.PRO - Management Compliance Submission">
+                
+                <div class="month-selector">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="submission-month">Select Month <span class="required">*</span>:</label>
+                            <select id="submission-month" name="submission_month" class="form-input" onchange="loadOutstandingActions()" required>
+                                <option value="">Select Month</option>
+                                <option value="2025-08">August 2025</option>
+                                <option value="2025-09">September 2025</option>
+                                <option value="2025-10">October 2025</option>
+                                <option value="2025-11">November 2025</option>
+                                <option value="2025-12">December 2025</option>
+                                <option value="2026-01">January 2026</option>
+                                <option value="2026-02">February 2026</option>
+                                <option value="2026-03">March 2026</option>
+                                <option value="2026-04">April 2026</option>
+                                <option value="2026-05">May 2026</option>
+                                <option value="2026-06">June 2026</option>
+                                <option value="2026-07">July 2026</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="manager-name">Department Manager Name <span class="required">*</span>:</label>
+                            <select id="manager-name" name="manager_name" class="form-input" data-populate="team-members" required>
+                                <option value="">Select team member...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="department">Highland Holidays Business Area <span class="required">*</span>:</label>
+                            <select id="department" name="business_area" class="form-input" required>
+                                <option value="">Select Business Area</option>
+                                <option value="Reception & Administration">Reception & Administration</option>
+                                <option value="Accommodation Services">Accommodation Services</option>
+                                <option value="Play Areas & Recreation">Play Areas & Recreation</option>
+                                <option value="Maintenance & Grounds">Maintenance & Grounds</option>
+                                <option value="Food & Beverage">Food & Beverage</option>
+                                <option value="Security & Safety">Security & Safety</option>
+                                <option value="Water Activities">Water Activities</option>
+                                <option value="Entertainment">Entertainment</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="holiday-park">Highland Holidays Location <span class="required">*</span>:</label>
+                            <select id="holiday-park" name="holiday_park" class="form-input" data-populate="holiday-parks" required>
+                                <option value="">Select Highland Holidays location...</option>
+                                <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                                <option value="Oban Holiday Park">Oban Holiday Park</option>
+                                <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="outstanding-actions-section" class="outstanding-actions hidden">
+                    <h3>Outstanding Actions from Previous Month</h3>
+                    <div id="outstanding-actions-list"></div>
+                </div>
+
+                <!-- Safety & Compliance Section -->
+                <div class="form-section">
+                    <h2 class="section-title">Safety & Compliance</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="safety-meetings">Monthly Safety Meetings Conducted:</label>
+                            <select id="safety-meetings" name="safety_meetings" class="form-input" onchange="toggleActionPlan('safety-meetings')">
+                                <option value="">Select Status</option>
+                                <option value="complete">Complete</option>
+                                <option value="incomplete">Incomplete</option>
+                                <option value="partial">Partially Complete</option>
+                            </select>
+                            <div class="form-group" style="margin-top: 10px;">
+                                <label for="safety-meetings-comments">Additional Comments/Justification:</label>
+                                <textarea id="safety-meetings-comments" name="safety_meetings_comments" class="form-input comment-field" rows="3" placeholder="Provide additional context or justification for your answer..."></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="incident-reports">Incident Reports Reviewed:</label>
+                            <select id="incident-reports" name="incident_reports" class="form-input" onchange="toggleActionPlan('incident-reports')">
+                                <option value="">Select Status</option>
+                                <option value="complete">All Reports Reviewed</option>
+                                <option value="incomplete">Outstanding Reports</option>
+                                <option value="no-incidents">No Incidents to Review</option>
+                            </select>
+                            <div class="form-group" style="margin-top: 10px;">
+                                <label for="incident-reports-comments">Additional Comments/Justification:</label>
+                                <textarea id="incident-reports-comments" name="incident_reports_comments" class="form-input comment-field" rows="3" placeholder="Provide additional context or justification for your answer..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ppe-audit">PPE Compliance Audit:</label>
+                            <select id="ppe-audit" name="ppe_audit" class="form-input" onchange="toggleActionPlan('ppe-audit')">
+                                <option value="">Select Status</option>
+                                <option value="complete">Audit Complete - Compliant</option>
+                                <option value="incomplete">Audit Complete - Non-Compliant</option>
+                                <option value="not-conducted">Audit Not Conducted</option>
+                            </select>
+                            <div class="form-group" style="margin-top: 10px;">
+                                <label for="ppe-audit-comments">Additional Comments/Justification:</label>
+                                <textarea id="ppe-audit-comments" name="ppe_audit_comments" class="form-input comment-field" rows="3" placeholder="Provide additional context or justification for your answer..."></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="emergency-drill">Emergency Drill Participation:</label>
+                            <select id="emergency-drill" name="emergency_drill" class="form-input" onchange="toggleActionPlan('emergency-drill')">
+                                <option value="">Select Status</option>
+                                <option value="complete">Drill Completed Successfully</option>
+                                <option value="incomplete">Drill Incomplete/Failed</option>
+                                <option value="not-scheduled">No Drill Scheduled</option>
+                            </select>
+                            <div class="form-group" style="margin-top: 10px;">
+                                <label for="emergency-drill-comments">Additional Comments/Justification:</label>
+                                <textarea id="emergency-drill-comments" name="emergency_drill_comments" class="form-input comment-field" rows="3" placeholder="Provide additional context or justification for your answer..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="safety-meetings-action" class="action-plan hidden">
+                        <h4>Action Plan - Safety Meetings:</h4>
+                        <div class="form-group">
+                            <label>Target Completion Date:</label>
+                            <input type="date" id="safety-meetings-date" name="safety_meetings_target_date" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Action Required:</label>
+                            <textarea id="safety-meetings-action-text" name="safety_meetings_action" class="form-input" placeholder="Describe the actions needed to complete safety meetings..."></textarea>
+                        </div>
+                    </div>
+
+                    <div id="incident-reports-action" class="action-plan hidden">
+                        <h4>Action Plan - Incident Reports:</h4>
+                        <div class="form-group">
+                            <label>Target Completion Date:</label>
+                            <input type="date" id="incident-reports-date" name="incident_reports_target_date" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Action Required:</label>
+                            <textarea id="incident-reports-action-text" name="incident_reports_action" class="form-input" placeholder="Describe the actions needed to review outstanding incident reports..."></textarea>
+                        </div>
+                    </div>
+
+                    <div id="ppe-audit-action" class="action-plan hidden">
+                        <h4>Action Plan - PPE Compliance:</h4>
+                        <div class="form-group">
+                            <label>Target Completion Date:</label>
+                            <input type="date" id="ppe-audit-date" name="ppe_audit_target_date" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Action Required:</label>
+                            <textarea id="ppe-audit-action-text" name="ppe_audit_action" class="form-input" placeholder="Describe the actions needed to achieve PPE compliance..."></textarea>
+                        </div>
+                    </div>
+
+                    <div id="emergency-drill-action" class="action-plan hidden">
+                        <h4>Action Plan - Emergency Drill:</h4>
+                        <div class="form-group">
+                            <label>Target Completion Date:</label>
+                            <input type="date" id="emergency-drill-date" name="emergency_drill_target_date" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Action Required:</label>
+                            <textarea id="emergency-drill-action-text" name="emergency_drill_action" class="form-input" placeholder="Describe the actions needed for emergency drill compliance..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Environmental Compliance Section -->
+                <div class="form-section">
+                    <h2 class="section-title">Environmental Compliance</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="waste-management">Waste Management Procedures:</label>
+                            <select id="waste-management" name="waste_management" class="form-input" onchange="toggleActionPlan('waste-management')">
+                                <option value="">Select Status</option>
+                                <option value="complete">Fully Compliant</option>
+                                <option value="incomplete">Non-Compliant Issues</option>
+                                <option value="pending">Pending Review</option>
+                            </select>
+                            <div class="form-group" style="margin-top: 10px;">
+                                <label for="waste-management-comments">Additional Comments/Justification:</label>
+                                <textarea id="waste-management-comments" name="waste_management_comments" class="form-input comment-field" rows="3" placeholder="Provide additional context or justification for your answer..."></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="environmental-monitoring">Environmental Monitoring:</label>
+                            <select id="environmental-monitoring" name="environmental_monitoring" class="form-input" onchange="toggleActionPlan('environmental-monitoring')">
+                                <option value="">Select Status</option>
+                                <option value="complete">All Monitoring Complete</option>
+                                <option value="incomplete">Monitoring Overdue</option>
+                                <option value="not-applicable">Not Applicable</option>
+                            </select>
+                            <div class="form-group" style="margin-top: 10px;">
+                                <label for="environmental-monitoring-comments">Additional Comments/Justification:</label>
+                                <textarea id="environmental-monitoring-comments" name="environmental_monitoring_comments" class="form-input comment-field" rows="3" placeholder="Provide additional context or justification for your answer..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="waste-management-action" class="action-plan hidden">
+                        <h4>Action Plan - Waste Management:</h4>
+                        <div class="form-group">
+                            <label>Target Completion Date:</label>
+                            <input type="date" id="waste-management-date" name="waste_management_target_date" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Action Required:</label>
+                            <textarea id="waste-management-action-text" name="waste_management_action" class="form-input" placeholder="Describe the actions needed for waste management compliance..."></textarea>
+                        </div>
+                    </div>
+
+                    <div id="environmental-monitoring-action" class="action-plan hidden">
+                        <h4>Action Plan - Environmental Monitoring:</h4>
+                        <div class="form-group">
+                            <label>Target Completion Date:</label>
+                            <input type="date" id="environmental-monitoring-date" name="environmental_monitoring_target_date" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Action Required:</label>
+                            <textarea id="environmental-monitoring-action-text" name="environmental_monitoring_action" class="form-input" placeholder="Describe the actions needed for environmental monitoring..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quality & Training Section -->
+                <div class="form-section">
+                    <h2 class="section-title">Quality & Training Compliance</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="staff-training">Staff Training Requirements:</label>
+                            <select id="staff-training" name="staff_training" class="form-input" onchange="toggleActionPlan('staff-training')">
+                                <option value="">Select Status</option>
+                                <option value="complete">All Training Up to Date</option>
+                                <option value="incomplete">Training Overdue</option>
+                                <option value="in-progress">Training In Progress</option>
+                            </select>
+                            <div class="form-group" style="margin-top: 10px;">
+                                <label for="staff-training-comments">Additional Comments/Justification:</label>
+                                <textarea id="staff-training-comments" name="staff_training_comments" class="form-input comment-field" rows="3" placeholder="Provide additional context or justification for your answer..."></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="quality-audits">Quality Audit Compliance:</label>
+                            <select id="quality-audits" name="quality_audits" class="form-input" onchange="toggleActionPlan('quality-audits')">
+                                <option value="">Select Status</option>
+                                <option value="complete">Audit Passed</option>
+                                <option value="incomplete">Audit Failed/Corrective Actions Required</option>
+                                <option value="not-due">Audit Not Due</option>
+                            </select>
+                            <div class="form-group" style="margin-top: 10px;">
+                                <label for="quality-audits-comments">Additional Comments/Justification:</label>
+                                <textarea id="quality-audits-comments" name="quality_audits_comments" class="form-input comment-field" rows="3" placeholder="Provide additional context or justification for your answer..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="documentation">Documentation Updates:</label>
+                            <select id="documentation" name="documentation" class="form-input" onchange="toggleActionPlan('documentation')">
+                                <option value="">Select Status</option>
+                                <option value="complete">All Documentation Current</option>
+                                <option value="incomplete">Documentation Updates Required</option>
+                                <option value="in-review">Documentation Under Review</option>
+                            </select>
+                            <div class="form-group" style="margin-top: 10px;">
+                                <label for="documentation-comments">Additional Comments/Justification:</label>
+                                <textarea id="documentation-comments" name="documentation_comments" class="form-input comment-field" rows="3" placeholder="Provide additional context or justification for your answer..."></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="certifications">Certification Renewals:</label>
+                            <select id="certifications" name="certifications" class="form-input" onchange="toggleActionPlan('certifications')">
+                                <option value="">Select Status</option>
+                                <option value="complete">All Certifications Current</option>
+                                <option value="incomplete">Certifications Expiring/Expired</option>
+                                <option value="not-applicable">No Certifications Due</option>
+                            </select>
+                            <div class="form-group" style="margin-top: 10px;">
+                                <label for="certifications-comments">Additional Comments/Justification:</label>
+                                <textarea id="certifications-comments" name="certifications_comments" class="form-input comment-field" rows="3" placeholder="Provide additional context or justification for your answer..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="staff-training-action" class="action-plan hidden">
+                        <h4>Action Plan - Staff Training:</h4>
+                        <div class="form-group">
+                            <label>Target Completion Date:</label>
+                            <input type="date" id="staff-training-date" name="staff_training_target_date" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Action Required:</label>
+                            <textarea id="staff-training-action-text" name="staff_training_action" class="form-input" placeholder="Describe the training actions required..."></textarea>
+                        </div>
+                    </div>
+
+                    <div id="quality-audits-action" class="action-plan hidden">
+                        <h4>Action Plan - Quality Audits:</h4>
+                        <div class="form-group">
+                            <label>Target Completion Date:</label>
+                            <input type="date" id="quality-audits-date" name="quality_audits_target_date" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Action Required:</label>
+                            <textarea id="quality-audits-action-text" name="quality_audits_action" class="form-input" placeholder="Describe the corrective actions required..."></textarea>
+                        </div>
+                    </div>
+
+                    <div id="documentation-action" class="action-plan hidden">
+                        <h4>Action Plan - Documentation:</h4>
+                        <div class="form-group">
+                            <label>Target Completion Date:</label>
+                            <input type="date" id="documentation-date" name="documentation_target_date" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Action Required:</label>
+                            <textarea id="documentation-action-text" name="documentation_action" class="form-input" placeholder="Describe the documentation updates required..."></textarea>
+                        </div>
+                    </div>
+
+                    <div id="certifications-action" class="action-plan hidden">
+                        <h4>Action Plan - Certifications:</h4>
+                        <div class="form-group">
+                            <label>Target Completion Date:</label>
+                            <input type="date" id="certifications-date" name="certifications_target_date" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Action Required:</label>
+                            <textarea id="certifications-action-text" name="certifications_action" class="form-input" placeholder="Describe the certification renewal actions required..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <button type="submit" class="btn btn-submit">Submit to General Manager for Review</button>
+                    <button type="button" class="btn btn-secondary" onclick="saveDraft()">Save as Draft</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- GM Review Section -->
+        <div id="gm-review" class="content-section">
+            <div class="workflow-indicator">
+                <h3 style="color: var(--primary-orange); margin-bottom: 10px;">Workflow Status</h3>
+                <div class="workflow-step complete">
+                    <span>1. Department Submission</span> ✓ Complete
+                </div>
+                <div class="workflow-step active">
+                    <span>2. General Manager Review</span> ← Current Step
+                </div>
+                <div class="workflow-step">
+                    <span>3. Director Approval</span>
+                </div>
+            </div>
+
+            <div class="gm-review-section">
+                <h3>General Manager Review & Approval</h3>
+                
+                <div class="form-group">
+                    <label for="gm-review-month">Select Month for Review:</label>
+                    <select id="gm-review-month" class="form-input" onchange="loadDepartmentSubmission()">
+                        <option value="">Select Month</option>
+                        <option value="2025-09">September 2025 - Accommodation Services (Pending Review)</option>
+                        <option value="2025-08">August 2025 - Food & Beverage (Pending Review)</option>
+                        <option value="2025-07">July 2025 - Maintenance & Grounds (Pending Review)</option>
+                    </select>
+                </div>
+
+                <div id="department-submission-review" class="hidden">
+                    <div class="alert alert-info">
+                        <h4>Department Submission Summary</h4>
+                        <div id="submission-summary-gm"></div>
+                    </div>
+
+                    <div class="review-item">
+                        <h4>Safety & Compliance Review</h4>
+                        
+                        <div class="review-checkbox">
+                            <input type="checkbox" id="gm-safety-meetings" checked>
+                            <label for="gm-safety-meetings">Safety Meetings: Complete</label>
+                        </div>
+                        <div style="margin-left: 32px; margin-bottom: 15px;">
+                            <small style="color: var(--medium-gray);">Department Comment: "All safety meetings conducted as scheduled"</small>
+                        </div>
+                        
+                        <div class="review-checkbox">
+                            <input type="checkbox" id="gm-incident-reports">
+                            <label for="gm-incident-reports">Incident Reports: Outstanding Reports</label>
+                        </div>
+                        <div style="margin-left: 32px; margin-bottom: 15px;">
+                            <small style="color: var(--medium-gray);">Department Comment: "Two incidents from last week still under investigation"</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="gm-safety-comments">GM Comments on Safety & Compliance:</label>
+                            <textarea id="gm-safety-comments" class="form-input" rows="3" placeholder="Add your management comments and observations..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="review-item">
+                        <h4>Environmental Compliance Review</h4>
+                        
+                        <div class="review-checkbox">
+                            <input type="checkbox" id="gm-waste-management" checked>
+                            <label for="gm-waste-management">Waste Management: Fully Compliant</label>
+                        </div>
+                        <div style="margin-left: 32px; margin-bottom: 15px;">
+                            <small style="color: var(--medium-gray);">Department Comment: "All waste procedures followed correctly"</small>
+                        </div>
+                        
+                        <div class="review-checkbox">
+                            <input type="checkbox" id="gm-environmental-monitoring" checked>
+                            <label for="gm-environmental-monitoring">Environmental Monitoring: Complete</label>
+                        </div>
+                        <div style="margin-left: 32px; margin-bottom: 15px;">
+                            <small style="color: var(--medium-gray);">Department Comment: "Monthly monitoring completed on schedule"</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="gm-environmental-comments">GM Comments on Environmental Compliance:</label>
+                            <textarea id="gm-environmental-comments" class="form-input" rows="3" placeholder="Add your management comments and observations..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="review-item">
+                        <h4>Quality & Training Review</h4>
+                        
+                        <div class="review-checkbox">
+                            <input type="checkbox" id="gm-staff-training">
+                            <label for="gm-staff-training">Staff Training: Training Overdue</label>
+                        </div>
+                        <div style="margin-left: 32px; margin-bottom: 15px;">
+                            <small style="color: var(--medium-gray);">Department Comment: "Three staff members need refresher training by month end"</small>
+                        </div>
+                        
+                        <div class="review-checkbox">
+                            <input type="checkbox" id="gm-quality-audits" checked>
+                            <label for="gm-quality-audits">Quality Audits: Audit Passed</label>
+                        </div>
+                        <div style="margin-left: 32px; margin-bottom: 15px;">
+                            <small style="color: var(--medium-gray);">Department Comment: "Annual audit completed successfully"</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="gm-quality-comments">GM Comments on Quality & Training:</label>
+                            <textarea id="gm-quality-comments" class="form-input" rows="3" placeholder="Add your management comments and observations..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h4>General Manager Final Decision</h4>
+                        <div class="form-group">
+                            <label for="gm-decision">Approval Decision:</label>
+                            <select id="gm-decision" class="form-input">
+                                <option value="">Select Decision</option>
+                                <option value="approve">Approve - Forward to Director</option>
+                                <option value="approve-with-conditions">Approve with Conditions</option>
+                                <option value="return-to-department">Return to Department for Revision</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="gm-overall-comments">Overall GM Comments:</label>
+                            <textarea id="gm-overall-comments" class="form-input" rows="4" placeholder="Provide your overall assessment and any additional instructions..."></textarea>
+                        </div>
+                        
+                        <div class="form-row">
+                            <button class="btn btn-approve" onclick="submitGMReview('approve')">Approve & Forward to Director</button>
+                            <button class="btn btn-reject" onclick="submitGMReview('return')">Return to Department</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Annual Report Tab -->
+        <div id="annual-report" class="content-section">
+            <div class="form-section">
+                <h2 class="section-title">Annual Compliance Report</h2>
+                <div class="form-group">
+                    <label for="report-year">Select Year:</label>
+                    <select id="report-year" class="form-input" onchange="generateAnnualReport()">
+                        <option value="">Select Year</option>
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                    </select>
+                </div>
+                
+                <div id="annual-report-content">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Month</th>
+                                <th>Manager</th>
+                                <th>Business Area</th>
+                                <th>Holiday Park</th>
+                                <th>Status</th>
+                                <th>GM Approved</th>
+                                <th>Director Approved</th>
+                            </tr>
+                        </thead>
+                        <tbody id="annual-report-body">
+                            <tr>
+                                <td data-label="Month">September 2025</td>
+                                <td data-label="Manager">John Smith</td>
+                                <td data-label="Business Area">Accommodation Services</td>
+                                <td data-label="Holiday Park">Ben Nevis Holiday Park</td>
+                                <td data-label="Status"><span class="status-badge badge-gm-review">GM Review</span></td>
+                                <td data-label="GM Approved">Pending</td>
+                                <td data-label="Director Approved">No</td>
+                            </tr>
+                            <tr>
+                                <td data-label="Month">August 2025</td>
+                                <td data-label="Manager">Sarah Johnson</td>
+                                <td data-label="Business Area">Food & Beverage</td>
+                                <td data-label="Holiday Park">Oban Holiday Park</td>
+                                <td data-label="Status"><span class="status-badge badge-director-review">Director Review</span></td>
+                                <td data-label="GM Approved">Yes</td>
+                                <td data-label="Director Approved">Pending</td>
+                            </tr>
+                            <tr>
+                                <td data-label="Month">July 2025</td>
+                                <td data-label="Manager">Mike Wilson</td>
+                                <td data-label="Business Area">Entertainment</td>
+                                <td data-label="Holiday Park">Tyndrum Holiday Park</td>
+                                <td data-label="Status"><span class="status-badge badge-complete">Complete</span></td>
+                                <td data-label="GM Approved">Yes</td>
+                                <td data-label="Director Approved">Yes</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Director Review Tab -->
+        <div id="director-review" class="content-section">
+            <div class="workflow-indicator">
+                <h3 style="color: var(--primary-orange); margin-bottom: 10px;">Workflow Status</h3>
+                <div class="workflow-step complete">
+                    <span>1. Department Submission</span> ✓ Complete
+                </div>
+                <div class="workflow-step complete">
+                    <span>2. General Manager Review</span> ✓ Complete
+                </div>
+                <div class="workflow-step active">
+                    <span>3. Director Approval</span> ← Current Step
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2 class="section-title">Director Review & Final Approval</h2>
+                
+                <div class="form-group">
+                    <label for="director-review-month">Select Month for Review:</label>
+                    <select id="director-review-month" class="form-input" onchange="loadGMApprovedSubmission()">
+                        <option value="">Select Month</option>
+                        <option value="2025-08">August 2025 - Food & Beverage (GM Approved)</option>
+                        <option value="2025-07">July 2025 - Entertainment (GM Approved)</option>
+                    </select>
+                </div>
+
+                <div id="gm-approved-review" class="hidden">
+                    <div class="alert alert-info">
+                        <h3>GM Approved Submission Review</h3>
+                        <div id="gm-submission-summary"></div>
+                    </div>
+                    
+                    <div class="director-section">
+                        <h4>Director Final Review</h4>
+                        <div class="form-group">
+                            <label for="director-status">Final Approval Status <span class="required">*</span>:</label>
+                            <select id="director-status" class="form-input">
+                                <option value="">Select Status</option>
+                                <option value="approved">Approved - Add to Annual Report</option>
+                                <option value="approved-with-conditions">Approved with Director Conditions</option>
+                                <option value="rejected">Rejected - Return to GM</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="director-comments">Director Comments:</label>
+                            <textarea id="director-comments" class="form-input" rows="4" placeholder="Enter your executive review comments..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="director-name">Director Name <span class="required">*</span>:</label>
+                            <select id="director-name" class="form-input" data-populate="team-members" data-business-area="Reception & Administration">
+                                <option value="">Select director...</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-submit" onclick="submitDirectorReview()">Submit Final Director Approval</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        CQR365 SafePark.PRO
+    </div>
+
+    <script>
+        // Sample data storage
+        let monthlySubmissions = {};
+        let gmReviews = {};
+        let directorApprovals = {};
+        let outstandingActions = {};
+
+        // Auto-populate current month on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth(); // 0-11
+            const currentYear = currentDate.getFullYear();
+            
+            // Set to current month
+            const monthValue = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+            const monthSelect = document.getElementById('submission-month');
+            
+            // Find and select the current month option
+            for (let option of monthSelect.options) {
+                if (option.value === monthValue) {
+                    option.selected = true;
+                    break;
+                }
+            }
+
+            setInitialDates();
+            
+            // Initialize SafePark.PRO integration
+            if (window.syncSafeParkData) {
+                window.syncSafeParkData();
+            }
+        });
+
+        // Set initial dates for forms
+        function setInitialDates() {
+            const today = new Date().toISOString().split('T')[0];
+            const dateFields = document.querySelectorAll('input[type="date"]');
+            dateFields.forEach(field => {
+                if (!field.value) {
+                    field.value = today;
+                }
+            });
+        }
+
+        // Navigation functions
+        function showTab(tabId) {
+            // Hide all content sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected content section
+            document.getElementById(tabId).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        function toggleActionPlan(fieldId) {
+            const select = document.getElementById(fieldId);
+            const actionPlan = document.getElementById(fieldId + '-action');
+            
+            // Reset classes
+            select.classList.remove('status-complete', 'status-incomplete', 'status-pending');
+            
+            if (select.value === 'incomplete' || select.value === 'partial' || select.value === 'not-conducted' || select.value === 'pending' || select.value === 'in-progress' || select.value === 'in-review') {
+                actionPlan.classList.remove('hidden');
+                select.classList.add('status-incomplete');
+            } else if (select.value === 'complete' || select.value === 'no-incidents' || select.value === 'not-applicable' || select.value === 'not-due') {
+                actionPlan.classList.add('hidden');
+                select.classList.add('status-complete');
+            } else {
+                actionPlan.classList.add('hidden');
+            }
+        }
+
+        function loadOutstandingActions() {
+            const selectedMonth = document.getElementById('submission-month').value;
+            const outstandingSection = document.getElementById('outstanding-actions-section');
+            const outstandingList = document.getElementById('outstanding-actions-list');
+            
+            if (selectedMonth && outstandingActions[selectedMonth]) {
+                outstandingSection.classList.remove('hidden');
+                outstandingList.innerHTML = '';
+                
+                outstandingActions[selectedMonth].forEach(action => {
+                    const actionDiv = document.createElement('div');
+                    actionDiv.style.cssText = 'padding: 10px; margin: 10px 0; background: rgba(255,255,255,0.1); border-radius: 8px; border-left: 4px solid var(--warning);';
+                    actionDiv.innerHTML = `
+                        <strong style="color: var(--primary-orange);">${action.category}:</strong> 
+                        <span style="color: var(--white);">${action.action}</span><br>
+                        <em style="color: var(--medium-gray); font-size: 0.9rem;">(Due: ${action.dueDate})</em>
+                    `;
+                    outstandingList.appendChild(actionDiv);
+                });
+            } else {
+                outstandingSection.classList.add('hidden');
+            }
+        }
+
+        // Form submission handler
+        document.getElementById('complianceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const month = document.getElementById('submission-month').value;
+            const manager = document.getElementById('manager-name').value;
+            const businessArea = document.getElementById('department').value;
+            const holidayPark = document.getElementById('holiday-park').value;
+            
+            if (!month || !manager || !businessArea || !holidayPark) {
+                alert('Please fill in all required fields (Month, Manager Name, Business Area, Holiday Park)');
+                return;
+            }
+            
+            // Collect form data for SafePark integration
+            const formData = new FormData(this);
+            
+            // Store submission data
+            monthlySubmissions[month] = {
+                month: month,
+                manager: manager,
+                businessArea: businessArea,
+                holidayPark: holidayPark,
+                status: 'submitted-to-gm',
+                submitted: new Date().toISOString()
+            };
+
+            // Save to SafePark system
+            localStorage.setItem('safePark_complianceSubmissions', JSON.stringify(monthlySubmissions));
+            
+            // Log activity to main SafePark system
+            if (window.SafeParkUtils && window.SafeParkUtils.addRecentActivity) {
+                window.SafeParkUtils.addRecentActivity(
+                    'Management Compliance', 
+                    `Compliance report submitted: ${businessArea} at ${holidayPark} for ${month}`, 
+                    'success'
+                );
+            }
+            
+            // Submit to Formspree
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    showSuccessMessage('Department compliance report submitted successfully!');
+                } else {
+                    showSuccessMessage('Report saved locally. Email notification may have failed.');
+                }
+            }).catch(error => {
+                showSuccessMessage('Report saved locally. Email notification may have failed.');
+            });
+        });
+
+        function loadDepartmentSubmission() {
+            const selectedMonth = document.getElementById('gm-review-month').value;
+            const reviewSection = document.getElementById('department-submission-review');
+            const summaryDiv = document.getElementById('submission-summary-gm');
+            
+            if (selectedMonth) {
+                reviewSection.classList.remove('hidden');
+                summaryDiv.innerHTML = `
+                    <p><strong>Month:</strong> ${selectedMonth}</p>
+                    <p><strong>Department Manager:</strong> John Smith</p>
+                    <p><strong>Business Area:</strong> Accommodation Services</p>
+                    <p><strong>Holiday Park:</strong> Ben Nevis Holiday Park</p>
+                    <p><strong>Submitted:</strong> ${new Date().toLocaleDateString()}</p>
+                    <p><strong>Status:</strong> Awaiting GM Review</p>
+                `;
+            } else {
+                reviewSection.classList.add('hidden');
+            }
+        }
+
+        function submitGMReview(action) {
+            const month = document.getElementById('gm-review-month').value;
+            const decision = document.getElementById('gm-decision').value;
+            
+            if (!month || !decision) {
+                alert('Please select a month and make a decision');
+                return;
+            }
+            
+            let message = '';
+            if (action === 'approve') {
+                message = 'GM approval completed! Submission forwarded to Director for final review.';
+            } else {
+                message = 'Submission returned to department for revision.';
+            }
+            
+            showSuccessMessage(`GM Review Complete! ${message}`);
+
+            // Store GM review data
+            gmReviews[month] = {
+                decision: decision,
+                reviewed: new Date().toISOString(),
+                status: action === 'approve' ? 'approved-by-gm' : 'returned-to-department'
+            };
+            
+            // Log activity to main SafePark system
+            if (window.SafeParkUtils && window.SafeParkUtils.addRecentActivity) {
+                window.SafeParkUtils.addRecentActivity(
+                    'Management Compliance', 
+                    `GM review completed: ${decision} for ${month}`, 
+                    action === 'approve' ? 'success' : 'warning'
+                );
+            }
+        }
+
+        function loadGMApprovedSubmission() {
+            const selectedMonth = document.getElementById('director-review-month').value;
+            const reviewSection = document.getElementById('gm-approved-review');
+            const summaryDiv = document.getElementById('gm-submission-summary');
+            
+            if (selectedMonth) {
+                reviewSection.classList.remove('hidden');
+                summaryDiv.innerHTML = `
+                    <p><strong>Month:</strong> ${selectedMonth}</p>
+                    <p><strong>Department Manager:</strong> Sarah Johnson</p>
+                    <p><strong>Business Area:</strong> Food & Beverage</p>
+                    <p><strong>Holiday Park:</strong> Oban Holiday Park</p>
+                    <p><strong>GM Approved:</strong> ${new Date().toLocaleDateString()}</p>
+                    <p><strong>Status:</strong> Awaiting Director Final Approval</p>
+                    <p><strong>GM Comments:</strong> "Business area compliance is satisfactory. Recommend approval with continued monitoring."</p>
+                `;
+            } else {
+                reviewSection.classList.add('hidden');
+            }
+        }
+
+        function submitDirectorReview() {
+            const month = document.getElementById('director-review-month').value;
+            const status = document.getElementById('director-status').value;
+            const comments = document.getElementById('director-comments').value;
+            const directorName = document.getElementById('director-name').value;
+            
+            if (!month || !status || !directorName) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            showSuccessMessage('Director Review Complete! Final approval submitted. Report will be added to annual compliance records.');
+
+            // Store director approval data
+            directorApprovals[month] = {
+                status: status,
+                comments: comments,
+                directorName: directorName,
+                approved: new Date().toISOString()
+            };
+            
+            // Log activity to main SafePark system
+            if (window.SafeParkUtils && window.SafeParkUtils.addRecentActivity) {
+                window.SafeParkUtils.addRecentActivity(
+                    'Management Compliance', 
+                    `Director review completed: ${status} for ${month} by ${directorName}`, 
+                    'success'
+                );
+            }
+
+            // Reset form
+            document.getElementById('director-status').value = '';
+            document.getElementById('director-comments').value = '';
+            document.getElementById('director-name').value = '';
+        }
+
+        function saveDraft() {
+            const month = document.getElementById('submission-month').value;
+            
+            if (!month) {
+                alert('Please select a month before saving draft');
+                return;
+            }
+            
+            showSuccessMessage(`Draft Saved! Your progress for ${month} has been saved.`);
+        }
+
+        function generateAnnualReport() {
+            const year = document.getElementById('report-year').value;
+            console.log('Generating annual report for:', year);
+        }
+
+        function showSuccessMessage(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success';
+            alertDiv.innerHTML = `<strong>Success!</strong> ${message}`;
+            
+            const firstSection = document.querySelector('.form-section');
+            firstSection.parentNode.insertBefore(alertDiv, firstSection);
+            
+            alertDiv.scrollIntoView({ behavior: 'smooth' });
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Initialize sample outstanding actions
+        outstandingActions['2025-09'] = [
+            {
+                category: 'Safety Meetings',
+                action: 'Complete safety meeting for housekeeping night shift team',
+                dueDate: '2025-09-15'
+            },
+            {
+                category: 'PPE Audit',
+                action: 'Replace damaged safety equipment for maintenance team',
+                dueDate: '2025-09-10'
+            }
+        ];
+
+        // Initialize SafePark.PRO integration on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.syncSafeParkData) {
+                window.syncSafeParkData();
+            }
+        });
+
+        console.log('Highland Holidays Management Compliance System loaded successfully');
+    </script>
+</body>
+</html>
