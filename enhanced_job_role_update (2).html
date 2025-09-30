@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Highland Holidays Job Role Update - CQR365 SafePark.PRO</title>
+    <style>
+        :root {
+            --primary-orange: #CC5500;
+            --dark-orange: #B8460C;
+            --light-orange: #E6672E;
+            --black: #000000;
+            --white: #FFFFFF;
+            --smart-dark-grey: #2A2A2A;
+            --content-background: #2F2F2F;
+            --light-gray: #F8F9FA;
+            --medium-gray: #6C757D;
+            --dark-gray: #343A40;
+            --border-color: #DEE2E6;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --shadow-light: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-medium: 0 4px 20px rgba(0,0,0,0.15);
+            --shadow-heavy: 0 8px 40px rgba(0,0,0,0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+            color: var(--white);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+            background: var(--content-background);
+            padding: 48px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-heavy);
+            border: 1px solid rgba(204, 85, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-orange), var(--light-orange), var(--primary-orange));
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange));
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-medium);
+        }
+
+        .back-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-heavy);
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--primary-orange);
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header .brand-line {
+            color: var(--light-orange);
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .header .subtitle {
+            color: #999;
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+        }
+
+        .header .description {
+            color: var(--light-gray);
+            font-size: 1.2rem;
+            margin-top: 12px;
+        }
+
+        .reference-number {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: rgba(204, 85, 0, 0.2);
+            color: var(--light-orange);
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            border: 2px solid rgba(204, 85, 0, 0.4);
+            backdrop-filter: blur(10px);
+        }
+
+        .form-container {
+            background: var(--content-background);
+            border-radius: 20px;
+            padding: 0;
+            box-shadow: var(--shadow-heavy);
+            border: 1px solid rgba(204, 85, 0, 0.2);
+            overflow: hidden;
+        }
+
+        /* ENHANCED DIRECTORS SECTION */
+        .directors-section {
+            background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+            color: var(--white);
+            padding: 0;
+            margin: 0;
+            position: relative;
+            overflow: hidden;
+            border-top: 4px solid var(--primary-orange);
+        }
+
+        .directors-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.3), 
+                transparent
+            );
+            animation: scanline 4s ease-in-out infinite;
+        }
+
+        @keyframes scanline {
+            0%, 100% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
+        }
+
+        .directors-hero {
+            text-align: center;
+            padding: 60px 48px 40px;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.1) 0%, 
+                rgba(255, 255, 255, 0.05) 100%
+            );
+        }
+
+        .directors-section h2 {
+            color: var(--white);
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .directors-note {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 1.1rem;
+            line-height: 1.7;
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 24px 32px;
+            border-radius: 12px;
+            border-left: 4px solid var(--white);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+            font-weight: 400;
+        }
+
+        .objectives-management-container {
+            background: rgba(255, 255, 255, 0.1);
+            margin: 48px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 0;
+            backdrop-filter: blur(15px);
+            box-shadow: inset 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .objectives-header {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.15), 
+                rgba(255, 255, 255, 0.1)
+            );
+            padding: 32px 40px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .objectives-title-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .objectives-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--white);
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .objectives-count {
+            background: linear-gradient(135deg, var(--white), #f0f0f0);
+            color: var(--primary-orange);
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 800;
+            min-width: 60px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .objectives-stats {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .stat-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .current-objectives-list {
+            padding: 40px;
+            min-height: 160px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .objective-item {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.15), 
+                rgba(255, 255, 255, 0.1)
+            );
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 20px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .objective-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            background: var(--white);
+            opacity: 0.8;
+        }
+
+        .objective-item:hover {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.25), 
+                rgba(255, 255, 255, 0.15)
+            );
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            border-color: var(--white);
+        }
+
+        .objective-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 24px;
+        }
+
+        .objective-main {
+            flex: 1;
+        }
+
+        .objective-text {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: var(--white);
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+
+        .objective-meta {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .objective-priority {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            border: 2px solid transparent;
+        }
+
+        .priority-high {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: var(--white);
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .priority-medium {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            color: var(--black);
+            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
+            border-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .priority-low {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: var(--white);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .objective-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .remove-objective-btn {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: var(--white);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .remove-objective-btn:hover {
+            background: linear-gradient(135deg, #c82333, #a71e2a);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.5);
+        }
+
+        .management-controls {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        .control-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 32px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .control-section:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .section-title::before {
+            content: '';
+            width: 6px;
+            height: 24px;
+            background: var(--white);
+            border-radius: 3px;
+        }
+
+        .add-objective-section label {
+            color: var(--white);
+            margin-bottom: 10px;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .add-objective-section textarea,
+        .add-objective-section select {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: var(--white);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .add-objective-section textarea:focus,
+        .add-objective-section select:focus {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: var(--white);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+        }
+
+        .add-objective-main-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: var(--white);
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            width: 100%;
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .add-objective-main-btn:hover {
+            background: linear-gradient(135deg, #20c997, #17a2b8);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.6);
+        }
+
+        .preset-objectives-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .preset-btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--white);
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            padding: 16px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            text-align: left;
+            transition: all 0.3s ease;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+
+        .preset-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: var(--white);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .directors-actions {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 32px 40px;
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            flex-wrap: wrap;
+            border-top: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .save-objectives-btn,
+        .reset-objectives-btn {
+            padding: 14px 32px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            letter-spacing: 0.3px;
+        }
+
+        .save-objectives-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: var(--white);
+        }
+
+        .save-objectives-btn:hover {
+            background: linear-gradient(135deg, #20c997, #17a2b8);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.5);
+        }
+
+        .reset-objectives-btn {
+            background: linear-gradient(135deg, #6c757d, #5a6268);
+            color: var(--white);
+        }
+
+        .reset-objectives-btn:hover {
+            background: linear-gradient(135deg, #5a6268, #495057);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(108, 117, 125, 0.5);
+        }
+
+        .no-objectives-message {
+            color: rgba(255, 255, 255, 0.8);
+            font-style: italic;
+            text-align: center;
+            padding: 60px;
+            font-size: 1.2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+        }
+
+        /* ENHANCED FORM SECTIONS */
+        .form-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 6px solid var(--primary-orange);
+            padding: 48px;
+            margin: 0;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .form-section:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(4px);
+        }
+
+        .form-section h2 {
+            color: var(--primary-orange);
+            font-size: 1.6rem;
+            margin-bottom: 32px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid rgba(204, 85, 0, 0.3);
+            padding-bottom: 16px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        input, select, textarea {
+            padding: 18px 22px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            font-family: inherit;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 4px rgba(204, 85, 0, 0.15);
+            background: rgba(255, 255, 255, 0.18);
+            transform: translateY(-2px);
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 18px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 55px;
+        }
+
+        select option {
+            background: var(--content-background);
+            color: var(--white);
+            padding: 12px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            line-height: 1.6;
+        }
+
+        .date-display {
+            background: rgba(255, 255, 255, 0.18);
+            color: var(--white);
+            font-weight: 600;
+        }
+
+        .submit-section {
+            text-align: center;
+            padding: 80px 60px;
+            background: linear-gradient(135deg, 
+                rgba(42, 42, 42, 0.4), 
+                rgba(26, 26, 26, 0.3)
+            );
+            margin: 0;
+            border-top: 2px solid rgba(204, 85, 0, 0.3);
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
+            color: var(--white);
+            padding: 22px 80px;
+            border: none;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: var(--shadow-heavy);
+            letter-spacing: 0.5px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 60px rgba(204, 85, 0, 0.5);
+        }
+
+        .required {
+            color: var(--danger);
+            font-weight: bold;
+        }
+
+        .footer {
+            background: #1a1a1a;
+            text-align: center;
+            padding: 24px;
+            color: #888;
+            font-size: 1rem;
+            border-top: 2px solid #444;
+            margin-top: 0;
+        }
+
+        /* Enhanced responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 16px;
+            }
+            
+            .header {
+                padding: 32px 24px;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .objectives-management-container {
+                margin: 24px;
+            }
+            
+            .management-controls {
+                grid-template-columns: 1fr;
+                gap: 24px;
+                padding: 24px;
+            }
+            
+            .form-section {
+                padding: 32px 24px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            
+            .reference-number {
+                position: static;
+                margin-bottom: 20px;
+                display: inline-block;
+            }
+
+            .preset-objectives-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .directors-actions {
+                flex-direction: column;
+                align-items: center;
+                padding: 24px;
+            }
+
+            .back-btn {
+                position: static;
+                margin-bottom: 20px;
+            }
+
+            .directors-section h2 {
+                font-size: 2rem;
+            }
+
+            .directors-hero {
+                padding: 40px 24px 32px;
+            }
+
+            .objectives-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 16px;
+                padding: 24px;
+            }
+
+            .objectives-title-container {
+                justify-content: center;
+            }
+
+            .objectives-stats {
+                justify-content: center;
+            }
+
+            .objective-content {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .objective-actions {
+                align-self: flex-end;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .directors-note {
+                padding: 20px 24px;
+                font-size: 1.1rem;
+            }
+
+            .current-objectives-list {
+                padding: 20px;
+            }
+
+            .objective-item {
+                padding: 20px;
+            }
+
+            .submit-btn {
+                padding: 24px 60px;
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Enhanced Header -->
+        <div class="header">
+            <button class="back-btn" onclick="window.location.href='index.html'">← Back to SafePark.PRO</button>
+            <div class="reference-number" id="reference-number">REF: HL-20250930-0001</div>
+            <h1>CQR365</h1>
+            <div class="brand-line">SafePark.PRO</div>
+            <div class="subtitle">Job Role Update & Business Continuity Assessment</div>
+            <p class="description">Highland Holidays Ltd - Quarterly Performance Management System</p>
+        </div>
+
+        <form id="jobRoleUpdateForm" action="https://formspree.io/f/xldprzkr" method="POST" enctype="multipart/form-data">
+            <!-- Hidden fields for SafePark.PRO integration -->
+            <input type="hidden" name="module" value="Job Role Update">
+            <input type="hidden" name="_subject" value="SafePark.PRO - Highland Holidays Job Role Update">
+
+            <div class="form-container">
+                <!-- DRAMATICALLY ENHANCED DIRECTORS SECTION -->
+                <div class="directors-section">
+                    <div class="directors-hero">
+                        <h2>Directors' Business Objectives Management</h2>
+                        <div class="directors-note">
+                            <strong>Directors Control Panel:</strong> Use this centralized management system to set and control business-wide objectives for Highland Holidays Ltd. These objectives will automatically synchronize across all employee performance forms throughout the entire SafePark.PRO ecosystem.
+                        </div>
+                    </div>
+                    
+                    <div class="objectives-management-container">
+                        <div class="objectives-header">
+                            <div class="objectives-title-container">
+                                <div class="objectives-title">Current Business Objectives</div>
+                                <div class="objectives-count" id="objectives-count">7</div>
+                            </div>
+                            <div class="objectives-stats">
+                                <div class="stat-badge">Active Goals</div>
+                                <div class="stat-badge">System-Wide</div>
+                            </div>
+                        </div>
+
+                        <div id="objectives-list" class="current-objectives-list">
+                            <div class="objective-item">
+                                <div class="objective-content">
+                                    <div class="objective-main">
+                                        <div class="objective-text">Implement sustainable practices to reduce carbon footprint by 20%</div>
+                                        <div class="objective-meta">
+                                            <div class="objective-priority priority-high">HIGH PRIORITY</div>
+                                        </div>
+                                    </div>
+                                    <div class="objective-actions">
+                                        <button type="button" class="remove-objective-btn" onclick="removeBusinessObjective(0)">Remove</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="objective-item">
+                                <div class="objective-content">
+                                    <div class="objective-main">
+                                        <div class="objective-text">Expand digital booking and guest services platform</div>
+                                        <div class="objective-meta">
+                                            <div class="objective-priority priority-medium">MEDIUM PRIORITY</div>
+                                        </div>
+                                    </div>
+                                    <div class="objective-actions">
+                                        <button type="button" class="remove-objective-btn" onclick="removeBusinessObjective(1)">Remove</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="objective-item">
+                                <div class="objective-content">
+                                    <div class="objective-main">
+                                        <div class="objective-text">Enhance staff training and development programs</div>
+                                        <div class="objective-meta">
+                                            <div class="objective-priority priority-medium">MEDIUM PRIORITY</div>
+                                        </div>
+                                    </div>
+                                    <div class="objective-actions">
+                                        <button type="button" class="remove-objective-btn" onclick="removeBusinessObjective(2)">Remove</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="objective-item">
+                                <div class="objective-content">
+                                    <div class="objective-main">
+                                        <div class="objective-text">Increase operational efficiency and cost management</div>
+                                        <div class="objective-meta">
+                                            <div class="objective-priority priority-high">HIGH PRIORITY</div>
+                                        </div>
+                                    </div>
+                                    <div class="objective-actions">
+                                        <button type="button" class="remove-objective-btn" onclick="removeBusinessObjective(3)">Remove</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="objective-item">
+                                <div class="objective-content">
+                                    <div class="objective-main">
+                                        <div class="objective-text">Strengthen health and safety compliance across all sites</div>
+                                        <div class="objective-meta">
+                                            <div class="objective-priority priority-high">HIGH PRIORITY</div>
+                                        </div>
+                                    </div>
+                                    <div class="objective-actions">
+                                        <button type="button" class="remove-objective-btn" onclick="removeBusinessObjective(4)">Remove</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="objective-item">
+                                <div class="objective-content">
+                                    <div class="objective-main">
+                                        <div class="objective-text">Achieve 95% guest satisfaction rating across all parks</div>
+                                        <div class="objective-meta">
+                                            <div class="objective-priority priority-medium">MEDIUM PRIORITY</div>
+                                        </div>
+                                    </div>
+                                    <div class="objective-actions">
+                                        <button type="button" class="remove-objective-btn" onclick="removeBusinessObjective(5)">Remove</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="objective-item">
+                                <div class="objective-content">
+                                    <div class="objective-main">
+                                        <div class="objective-text">Develop premium accommodation options and facilities</div>
+                                        <div class="objective-meta">
+                                            <div class="objective-priority priority-medium">MEDIUM PRIORITY</div>
+                                        </div>
+                                    </div>
+                                    <div class="objective-actions">
+                                        <button type="button" class="remove-objective-btn" onclick="removeBusinessObjective(6)">Remove</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="management-controls">
+                            <div class="control-section add-objective-section">
+                                <div class="section-title">Add New Objective</div>
+                                <div class="form-group">
+                                    <label for="new-objective-input">Business Objective</label>
+                                    <textarea id="new-objective-input" placeholder="Enter new business objective (e.g., Achieve 98% guest satisfaction across all parks by Q4 2025)..." rows="3"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="objective-priority">Priority Level</label>
+                                    <select id="objective-priority">
+                                        <option value="high">High Priority</option>
+                                        <option value="medium" selected>Medium Priority</option>
+                                        <option value="low">Low Priority</option>
+                                    </select>
+                                </div>
+                                <button type="button" class="add-objective-main-btn" onclick="addBusinessObjective()">Add Business Objective</button>
+                            </div>
+
+                            <div class="control-section preset-objectives-section">
+                                <div class="section-title">Industry Standards</div>
+                                <div class="preset-objectives-grid">
+                                    <button type="button" class="preset-btn" onclick="addPresetObjective('Achieve 95% guest satisfaction rating across all parks')">Guest Satisfaction Target</button>
+                                    <button type="button" class="preset-btn" onclick="addPresetObjective('Implement sustainable tourism practices and reduce environmental impact by 25%')">Sustainability Initiative</button>
+                                    <button type="button" class="preset-btn" onclick="addPresetObjective('Expand digital booking platform and enhance online guest services')">Digital Transformation</button>
+                                    <button type="button" class="preset-btn" onclick="addPresetObjective('Enhance staff training and career development programs')">Staff Development</button>
+                                    <button type="button" class="preset-btn" onclick="addPresetObjective('Increase operational efficiency and optimize cost management')">Operational Excellence</button>
+                                    <button type="button" class="preset-btn" onclick="addPresetObjective('Strengthen health and safety compliance across all sites')">Safety Compliance</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="directors-actions">
+                            <button type="button" class="save-objectives-btn" onclick="saveBusinessObjectives()">Save & Apply Objectives</button>
+                            <button type="button" class="reset-objectives-btn" onclick="resetToDefaults()">Reset to Defaults</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enhanced Employee Information Section -->
+                <div class="form-section">
+                    <h2>Employee Information</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="employee-name">Full Name <span class="required">*</span></label>
+                            <input type="text" id="employee-name" name="employee-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="employee-id">Employee ID</label>
+                            <input type="text" id="employee-id" name="employee-id">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="holiday-park">Highland Holidays Location <span class="required">*</span></label>
+                            <select id="holiday-park" name="holiday-park" data-populate="holiday-parks" required onchange="updateTeamMemberDropdowns()">
+                                <option value="">Select Highland Holidays Location</option>
+                                <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                                <option value="Oban Holiday Park">Oban Holiday Park</option>
+                                <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="department">Department <span class="required">*</span></label>
+                            <select id="department" name="department" required onchange="updateJobTitles()">
+                                <option value="">Select Department</option>
+                                <option value="Reception & Administration">Reception & Administration</option>
+                                <option value="Accommodation Services">Accommodation Services</option>
+                                <option value="Play Areas & Recreation">Play Areas & Recreation</option>
+                                <option value="Maintenance & Grounds">Maintenance & Grounds</option>
+                                <option value="Food & Beverage">Food & Beverage</option>
+                                <option value="Security & Safety">Security & Safety</option>
+                                <option value="Water Activities">Water Activities</option>
+                                <option value="Entertainment">Entertainment</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="job-title">Job Title <span class="required">*</span></label>
+                            <select id="job-title" name="job-title" required>
+                                <option value="">Select Job Title</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="line-manager">Line Manager</label>
+                            <select id="line-manager" name="line-manager" data-populate="team-members">
+                                <option value="">Select line manager...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="last-report-date">Last Report Date</label>
+                            <input type="date" id="last-report-date" name="last-report-date" class="date-display" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="report-date">Current Report Date</label>
+                            <input type="date" id="report-date" name="report-date" class="date-display" readonly>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="reporting-period">Reporting Period</label>
+                            <input type="text" id="reporting-period" name="reporting-period" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="submit-section">
+                    <button type="submit" class="submit-btn" onclick="handleSubmit()">
+                        Submit Complete Quarterly Update
+                    </button>
+                    <p style="margin-top: 32px; color: rgba(255, 255, 255, 0.7); font-size: 1.1rem; font-weight: 500;">
+                        This report will be securely stored in the Highland Holidays Ltd SafePark.PRO Management System
+                    </p>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="footer">
+        CQR365 SafePark.PRO - Highland Holidays Performance Management System
+    </div>
+
+    <script>
+        // Highland Holidays specific business areas and departments
+        const highlandHolidaysJobTitles = {
+            'Reception & Administration': [
+                { value: 'reception-manager', text: 'Reception Manager' },
+                { value: 'senior-receptionist', text: 'Senior Receptionist' },
+                { value: 'receptionist', text: 'Receptionist' },
+                { value: 'guest-services-coordinator', text: 'Guest Services Coordinator' },
+                { value: 'information-assistant', text: 'Information Assistant' },
+                { value: 'check-in-specialist', text: 'Check-in Specialist' }
+            ],
+            'Accommodation Services': [
+                { value: 'accommodation-manager', text: 'Accommodation Manager' },
+                { value: 'booking-coordinator', text: 'Booking Coordinator' },
+                { value: 'site-coordinator', text: 'Site Coordinator' },
+                { value: 'pitch-supervisor', text: 'Pitch Supervisor' },
+                { value: 'accommodation-assistant', text: 'Accommodation Assistant' },
+                { value: 'caravan-technician', text: 'Caravan Technician' }
+            ],
+            'Play Areas & Recreation': [
+                { value: 'recreation-manager', text: 'Recreation Manager' },
+                { value: 'activities-coordinator', text: 'Activities Coordinator' },
+                { value: 'sports-instructor', text: 'Sports Instructor' },
+                { value: 'kids-club-leader', text: 'Kids Club Leader' },
+                { value: 'playground-supervisor', text: 'Playground Supervisor' },
+                { value: 'recreation-assistant', text: 'Recreation Assistant' }
+            ],
+            'Maintenance & Grounds': [
+                { value: 'facilities-manager', text: 'Facilities Manager' },
+                { value: 'maintenance-supervisor', text: 'Maintenance Supervisor' },
+                { value: 'maintenance-technician', text: 'Maintenance Technician' },
+                { value: 'electrical-technician', text: 'Electrical Technician' },
+                { value: 'plumbing-technician', text: 'Plumbing Technician' },
+                { value: 'general-handyman', text: 'General Handyman' },
+                { value: 'groundskeeper', text: 'Groundskeeper' },
+                { value: 'gardener', text: 'Gardener' }
+            ],
+            'Food & Beverage': [
+                { value: 'restaurant-manager', text: 'Restaurant Manager' },
+                { value: 'head-chef', text: 'Head Chef' },
+                { value: 'sous-chef', text: 'Sous Chef' },
+                { value: 'kitchen-assistant', text: 'Kitchen Assistant' },
+                { value: 'bar-manager', text: 'Bar Manager' },
+                { value: 'bar-staff', text: 'Bar Staff' },
+                { value: 'waiting-staff', text: 'Waiting Staff' },
+                { value: 'catering-assistant', text: 'Catering Assistant' }
+            ],
+            'Security & Safety': [
+                { value: 'security-manager', text: 'Security Manager' },
+                { value: 'security-supervisor', text: 'Security Supervisor' },
+                { value: 'security-officer', text: 'Security Officer' },
+                { value: 'night-security', text: 'Night Security Officer' },
+                { value: 'gate-attendant', text: 'Gate Attendant' },
+                { value: 'patrol-officer', text: 'Patrol Officer' }
+            ],
+            'Water Activities': [
+                { value: 'water-activities-manager', text: 'Water Activities Manager' },
+                { value: 'lifeguard-supervisor', text: 'Lifeguard Supervisor' },
+                { value: 'lifeguard', text: 'Lifeguard' },
+                { value: 'swimming-instructor', text: 'Swimming Instructor' },
+                { value: 'water-sports-instructor', text: 'Water Sports Instructor' },
+                { value: 'pool-attendant', text: 'Pool Attendant' }
+            ],
+            'Entertainment': [
+                { value: 'entertainment-manager', text: 'Entertainment Manager' },
+                { value: 'entertainment-coordinator', text: 'Entertainment Coordinator' },
+                { value: 'performer', text: 'Performer' },
+                { value: 'entertainment-host', text: 'Entertainment Host' },
+                { value: 'technical-support', text: 'Technical Support' },
+                { value: 'event-coordinator', text: 'Event Coordinator' }
+            ]
+        };
+
+        // Business objectives management
+        let businessObjectivesList = [
+            { text: 'Implement sustainable practices to reduce carbon footprint by 20%', priority: 'high' },
+            { text: 'Expand digital booking and guest services platform', priority: 'medium' },
+            { text: 'Enhance staff training and development programs', priority: 'medium' },
+            { text: 'Increase operational efficiency and cost management', priority: 'high' },
+            { text: 'Strengthen health and safety compliance across all sites', priority: 'high' },
+            { text: 'Achieve 95% guest satisfaction rating across all parks', priority: 'medium' },
+            { text: 'Develop premium accommodation options and facilities', priority: 'medium' }
+        ];
+
+        let referenceCounter = 1;
+
+        // Initialize form
+        document.addEventListener('DOMContentLoaded', function() {
+            generateReferenceNumber();
+            setDates();
+            updateObjectivesCount();
+            
+            // Initialize SafePark.PRO integration
+            if (window.syncSafeParkData) {
+                window.syncSafeParkData();
+            }
+            
+            // Set up department change handler
+            document.getElementById('department').addEventListener('change', updateJobTitles);
+            
+            // Set up line manager auto-population for manager name
+            document.getElementById('line-manager').addEventListener('change', function() {
+                const managerNameField = document.getElementById('manager-name');
+                if (managerNameField) {
+                    managerNameField.value = this.options[this.selectedIndex].text;
+                }
+            });
+        });
+
+        function updateJobTitles() {
+            const department = document.getElementById('department').value;
+            const jobTitleSelect = document.getElementById('job-title');
+            
+            jobTitleSelect.innerHTML = '<option value="">Select Job Title</option>';
+            
+            if (department && highlandHolidaysJobTitles[department]) {
+                highlandHolidaysJobTitles[department].forEach(job => {
+                    const option = document.createElement('option');
+                    option.value = job.value;
+                    option.textContent = job.text;
+                    jobTitleSelect.appendChild(option);
+                });
+            }
+        }
+
+        function updateTeamMemberDropdowns() {
+            const selectedPark = document.getElementById('holiday-park').value;
+            const lineManagerSelect = document.getElementById('line-manager');
+            
+            if (selectedPark && window.SafeParkUtils) {
+                const teamMembers = window.SafeParkUtils.getTeamMembers(null, selectedPark);
+                lineManagerSelect.innerHTML = '<option value="">Select line manager...</option>';
+                teamMembers.forEach(member => {
+                    lineManagerSelect.innerHTML += `<option value="${member.name}">${member.name} (${member.role || 'Team Member'})</option>`;
+                });
+            }
+        }
+
+        function generateReferenceNumber() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const counter = String(referenceCounter).padStart(4, '0');
+            
+            const referenceNumber = `HL-${year}${month}${day}-${counter}`;
+            document.getElementById('reference-number').textContent = `REF: ${referenceNumber}`;
+            referenceCounter++;
+        }
+
+        function setDates() {
+            const today = new Date();
+            const lastQuarter = new Date();
+            lastQuarter.setMonth(lastQuarter.getMonth() - 3);
+            
+            const todayFormatted = today.toISOString().split('T')[0];
+            const lastQuarterFormatted = lastQuarter.toISOString().split('T')[0];
+            
+            document.getElementById('report-date').value = todayFormatted;
+            document.getElementById('last-report-date').value = lastQuarterFormatted;
+            
+            const currentQuarter = Math.floor((today.getMonth()) / 3) + 1;
+            const currentYear = today.getFullYear();
+            const prevQuarter = currentQuarter === 1 ? 4 : currentQuarter - 1;
+            const prevYear = currentQuarter === 1 ? currentYear - 1 : currentYear;
+            
+            const periodText = `Q${prevQuarter} ${prevYear} - Q${currentQuarter} ${currentYear}`;
+            document.getElementById('reporting-period').value = periodText;
+        }
+
+        function updateObjectivesCount() {
+            const count = businessObjectivesList.length;
+            document.getElementById('objectives-count').textContent = count;
+        }
+
+        // Business objectives management functions
+        function addBusinessObjective() {
+            const input = document.getElementById('new-objective-input');
+            const priority = document.getElementById('objective-priority').value;
+            const text = input.value.trim();
+            
+            if (!text) {
+                showNotification('Please enter a business objective.', 'warning');
+                return;
+            }
+            
+            const isDuplicate = businessObjectivesList.some(obj => 
+                obj.text.toLowerCase() === text.toLowerCase()
+            );
+            
+            if (isDuplicate) {
+                showNotification('This objective already exists.', 'warning');
+                return;
+            }
+            
+            businessObjectivesList.push({ text, priority });
+            input.value = '';
+            populateBusinessObjectivesList();
+            updateObjectivesCount();
+            showNotification('Business objective added successfully!', 'success');
+        }
+
+        function removeBusinessObjective(index) {
+            if (confirm('Are you sure you want to remove this business objective?')) {
+                businessObjectivesList.splice(index, 1);
+                populateBusinessObjectivesList();
+                updateObjectivesCount();
+                showNotification('Business objective removed.', 'info');
+            }
+        }
+
+        function addPresetObjective(objectiveText) {
+            const exists = businessObjectivesList.some(obj => 
+                obj.text.toLowerCase() === objectiveText.toLowerCase()
+            );
+            
+            if (exists) {
+                showNotification('This objective already exists in your list.', 'warning');
+                return;
+            }
+            
+            businessObjectivesList.push({ text: objectiveText, priority: 'medium' });
+            populateBusinessObjectivesList();
+            updateObjectivesCount();
+            showNotification('Preset objective added successfully!', 'success');
+        }
+
+        function populateBusinessObjectivesList() {
+            const container = document.getElementById('objectives-list');
+            
+            if (businessObjectivesList.length === 0) {
+                container.innerHTML = '<div class="no-objectives-message">No business objectives currently set. Add objectives using the controls below.</div>';
+                return;
+            }
+            
+            let html = '';
+            businessObjectivesList.forEach((objective, index) => {
+                html += `
+                    <div class="objective-item">
+                        <div class="objective-content">
+                            <div class="objective-main">
+                                <div class="objective-text">${objective.text}</div>
+                                <div class="objective-meta">
+                                    <div class="objective-priority priority-${objective.priority}">${objective.priority.toUpperCase()} PRIORITY</div>
+                                </div>
+                            </div>
+                            <div class="objective-actions">
+                                <button type="button" class="remove-objective-btn" onclick="removeBusinessObjective(${index})">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function saveBusinessObjectives() {
+            // Save to localStorage with safePark_ prefix
+            localStorage.setItem('safePark_businessObjectives', JSON.stringify(businessObjectivesList));
+            showNotification('Business objectives saved and applied to form!', 'success');
+        }
+
+        function resetToDefaults() {
+            if (confirm('Reset to default holiday park business objectives? This will remove all custom objectives.')) {
+                businessObjectivesList = [
+                    { text: 'Achieve 95% customer satisfaction rating across all parks', priority: 'high' },
+                    { text: 'Implement sustainable practices to reduce carbon footprint by 20%', priority: 'high' },
+                    { text: 'Expand digital booking and guest services platform', priority: 'medium' },
+                    { text: 'Enhance staff training and development programs', priority: 'medium' },
+                    { text: 'Increase operational efficiency and cost management', priority: 'high' },
+                    { text: 'Strengthen health and safety compliance across all sites', priority: 'high' }
+                ];
+                
+                populateBusinessObjectivesList();
+                updateObjectivesCount();
+                showNotification('Reset to default objectives complete!', 'info');
+            }
+        }
+
+        function handleSubmit() {
+            const selectedPark = document.getElementById('holiday-park').value;
+            const department = document.getElementById('department').value;
+            const employeeName = document.getElementById('employee-name').value;
+            
+            // Log activity to SafePark system
+            if (window.SafeParkUtils && window.SafeParkUtils.addRecentActivity) {
+                window.SafeParkUtils.addRecentActivity(
+                    'Job Role Update', 
+                    `Quarterly performance review completed: ${employeeName} (${department}) at ${selectedPark}`, 
+                    'success'
+                );
+            }
+            
+            // Save to localStorage with safePark_ prefix
+            const formData = new FormData(document.getElementById('jobRoleUpdateForm'));
+            const dataObj = {};
+            for (let [key, value] of formData.entries()) {
+                dataObj[key] = value;
+            }
+            dataObj.businessObjectives = businessObjectivesList;
+            
+            localStorage.setItem('safePark_jobRoleUpdate', JSON.stringify(dataObj));
+            
+            showNotification('Complete form submitted successfully!', 'success');
+            
+            setTimeout(() => {
+                alert('Quarterly Update Submitted Successfully!' + 
+                      '\n\nReference: ' + document.getElementById('reference-number').textContent + 
+                      '\n\nYour information has been securely stored in the Highland Holidays Ltd SafePark.PRO Management System.');
+            }, 1000);
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 30px;
+                right: 30px;
+                padding: 16px 24px;
+                border-radius: 12px;
+                color: white;
+                font-weight: 600;
+                z-index: 1000;
+                max-width: 400px;
+                box-shadow: var(--shadow-heavy);
+                transition: all 0.3s ease;
+                transform: translateX(450px);
+                font-size: 0.95rem;
+            `;
+            
+            switch(type) {
+                case 'success':
+                    notification.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
+                    break;
+                case 'info':
+                    notification.style.background = 'linear-gradient(135deg, var(--primary-orange), var(--dark-orange))';
+                    break;
+                case 'warning':
+                    notification.style.background = 'linear-gradient(135deg, #ffc107, #e0a800)';
+                    notification.style.color = 'var(--black)';
+                    break;
+                case 'error':
+                    notification.style.background = 'linear-gradient(135deg, #dc3545, #c82333)';
+                    break;
+            }
+            
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(450px)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 4000);
+        }
+
+        // Initialize SafePark.PRO integration on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.syncSafeParkData) {
+                window.syncSafeParkData();
+            }
+        });
+    </script>
+</body>
+</html>
