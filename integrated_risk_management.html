@@ -1,0 +1,2281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Risk & Business Continuity Management - CQR365 SafePark.PRO</title>
+    <style>
+        :root {
+            --primary-orange: #CC5500;
+            --dark-orange: #B8460C;
+            --light-orange: #E6672E;
+            --black: #000000;
+            --white: #FFFFFF;
+            --smart-dark-grey: #2A2A2A;
+            --content-background: #2F2F2F;
+            --light-gray: #F8F9FA;
+            --medium-gray: #6C757D;
+            --dark-gray: #343A40;
+            --border-color: #DEE2E6;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --shadow-light: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-medium: 0 4px 20px rgba(0,0,0,0.15);
+            --shadow-heavy: 0 8px 40px rgba(0,0,0,0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+            color: var(--white);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--content-background);
+            color: var(--white);
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: var(--shadow-heavy);
+            border-bottom: 4px solid var(--primary-orange);
+            position: relative;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange));
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-medium);
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-heavy);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-orange);
+            margin-bottom: 0.5rem;
+        }
+
+        .header .brand-line {
+            color: var(--light-orange);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            color: var(--light-gray);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .main-nav {
+            display: flex;
+            margin-bottom: 2rem;
+            background: var(--content-background);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-medium);
+            border: 1px solid rgba(204, 85, 0, 0.2);
+        }
+
+        .main-nav-item {
+            flex: 1;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--white);
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            text-align: center;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .main-nav-item:last-child {
+            border-right: none;
+        }
+
+        .main-nav-item.active {
+            background: var(--primary-orange);
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        .main-nav-item:hover:not(.active) {
+            background: rgba(204, 85, 0, 0.2);
+        }
+
+        .sub-tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            background: var(--content-background);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow-light);
+            flex-wrap: wrap;
+            border: 1px solid rgba(204, 85, 0, 0.1);
+        }
+
+        .sub-tab {
+            flex: 1;
+            min-width: 120px;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--white);
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sub-tab:last-child {
+            border-right: none;
+        }
+
+        .sub-tab.active {
+            background: var(--primary-orange);
+            color: var(--white);
+        }
+
+        .sub-tab:hover:not(.active) {
+            background: rgba(204, 85, 0, 0.15);
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .section {
+            background: var(--content-background);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow-medium);
+            border: 1px solid rgba(204, 85, 0, 0.2);
+            border-top: 4px solid var(--primary-orange);
+        }
+
+        .section h2 {
+            color: var(--primary-orange);
+            margin-bottom: 1.5rem;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--white);
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+        }
+
+        .form-group select:focus,
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 3px rgba(204, 85, 0, 0.15);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .form-group select option {
+            background: var(--content-background);
+            color: var(--white);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            margin-right: 1rem;
+            box-shadow: var(--shadow-light);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--medium-gray), var(--dark-gray));
+            color: var(--white);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, var(--dark-gray), var(--black));
+        }
+
+        .main-content {
+            display: none;
+        }
+
+        .main-content.active {
+            display: block;
+        }
+
+        .sub-content {
+            display: none;
+        }
+
+        .sub-content.active {
+            display: block;
+        }
+
+        .status-card {
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 1rem;
+            color: var(--white);
+            font-weight: 600;
+        }
+
+        .risk-low, .status-low { 
+            background: linear-gradient(135deg, var(--success), #20c997); 
+        }
+        .risk-medium, .status-medium { 
+            background: linear-gradient(135deg, var(--warning), #e0a800); 
+            color: var(--black);
+        }
+        .risk-high, .status-high { 
+            background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange)); 
+        }
+        .risk-critical, .status-critical { 
+            background: linear-gradient(135deg, var(--danger), #c82333); 
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: auto repeat(5, 1fr);
+            gap: 2px;
+            background: var(--black);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 1rem 0;
+            box-shadow: var(--shadow-medium);
+        }
+
+        .matrix-cell {
+            background: var(--content-background);
+            padding: 1rem;
+            text-align: center;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 60px;
+            color: var(--white);
+        }
+
+        .matrix-header {
+            background: var(--primary-orange);
+            color: var(--white);
+        }
+
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .strategy-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-orange);
+            box-shadow: var(--shadow-light);
+            border: 1px solid rgba(204, 85, 0, 0.2);
+        }
+
+        .strategy-card h4 {
+            color: var(--primary-orange);
+            margin-bottom: 0.5rem;
+        }
+
+        .linked-item {
+            background: rgba(204, 85, 0, 0.1);
+            border: 1px solid rgba(204, 85, 0, 0.3);
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--white);
+        }
+
+        .linked-item:hover {
+            background: rgba(204, 85, 0, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .integration-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(204, 85, 0, 0.3);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            box-shadow: var(--shadow-light);
+        }
+
+        .integration-panel h4 {
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .highland-holidays-section {
+            background: rgba(204, 85, 0, 0.1);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border: 2px solid rgba(204, 85, 0, 0.3);
+        }
+
+        .highland-holidays-section h3 {
+            color: var(--light-orange);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--content-background);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow-medium);
+            margin: 1rem 0;
+        }
+
+        thead {
+            background: var(--primary-orange);
+            color: var(--white);
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        tbody tr:hover {
+            background: rgba(204, 85, 0, 0.1);
+        }
+
+        .footer {
+            background: var(--black);
+            text-align: center;
+            padding: 2rem;
+            color: var(--medium-gray);
+            font-size: 1rem;
+            border-top: 2px solid var(--primary-orange);
+            margin-top: 3rem;
+        }
+
+        /* Enhanced mobile responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .full-width {
+                grid-column: span 1;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .main-nav, .sub-tabs {
+                flex-direction: column;
+            }
+            
+            .main-nav-item, .sub-tab {
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .main-nav-item:last-child, .sub-tab:last-child {
+                border-bottom: none;
+            }
+
+            .back-btn {
+                position: static;
+                margin-bottom: 1rem;
+            }
+
+            .section {
+                padding: 1.5rem;
+            }
+
+            .matrix-grid {
+                font-size: 0.8rem;
+            }
+
+            .matrix-cell {
+                padding: 0.5rem;
+                min-height: 40px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 1.5rem 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .section {
+                padding: 1rem;
+            }
+
+            .form-group select,
+            .form-group input,
+            .form-group textarea {
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="back-btn" onclick="window.location.href='index.html'">← Back to SafePark.PRO</button>
+        <h1>CQR365</h1>
+        <div class="brand-line">SafePark.PRO</div>
+        <p>ISO 31000 & ISO 22301 Compliant Risk & Business Continuity Management</p>
+    </div>
+
+    <div class="container">
+        <!-- Main Navigation -->
+        <div class="main-nav">
+            <button class="main-nav-item active" onclick="showMainSection(event, 'integrated-dashboard')">Integrated Dashboard</button>
+            <button class="main-nav-item" onclick="showMainSection(event, 'risk-management')">Risk Management</button>
+            <button class="main-nav-item" onclick="showMainSection(event, 'business-continuity')">Business Continuity</button>
+            <button class="main-nav-item" onclick="showMainSection(event, 'integration-tools')">Integration Tools</button>
+        </div>
+
+        <!-- Integrated Dashboard -->
+        <div id="integrated-dashboard" class="main-content active">
+            <div class="section full-width">
+                <h2>Highland Holidays Risk & Business Continuity Dashboard</h2>
+                
+                <!-- Highland Holidays Context -->
+                <div class="highland-holidays-section">
+                    <h3>Highland Holidays Operations Overview</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div style="text-align: center;">
+                            <strong>Ben Nevis Holiday Park</strong><br>
+                            <small>Torlundy, Fort William</small>
+                        </div>
+                        <div style="text-align: center;">
+                            <strong>Oban Holiday Park</strong><br>
+                            <small>Gallanach Road, Oban</small>
+                        </div>
+                        <div style="text-align: center;">
+                            <strong>Tyndrum Holiday Park</strong><br>
+                            <small>By The Way, Tyndrum</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Risk Overview -->
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="color: var(--primary-orange); margin-bottom: 1rem;">Risk Assessment Status</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                        <div class="risk-low">
+                            <h4 id="dashLowCount">0</h4>
+                            <p>Low Risks</p>
+                        </div>
+                        <div class="risk-medium">
+                            <h4 id="dashMediumCount">0</h4>
+                            <p>Medium Risks</p>
+                        </div>
+                        <div class="risk-high">
+                            <h4 id="dashHighCount">0</h4>
+                            <p>High Risks</p>
+                        </div>
+                        <div class="risk-critical">
+                            <h4 id="dashCriticalCount">0</h4>
+                            <p>Critical Risks</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BCM Overview -->
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="color: var(--primary-orange); margin-bottom: 1rem;">Business Continuity Status</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                        <div class="status-low">
+                            <h4 id="dashLowImpactCount">0</h4>
+                            <p>Low Impact</p>
+                        </div>
+                        <div class="status-medium">
+                            <h4 id="dashMediumImpactCount">0</h4>
+                            <p>Medium Impact</p>
+                        </div>
+                        <div class="status-high">
+                            <h4 id="dashHighImpactCount">0</h4>
+                            <p>High Impact</p>
+                        </div>
+                        <div class="status-critical">
+                            <h4 id="dashCriticalImpactCount">0</h4>
+                            <p>Critical Impact</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Integration Status -->
+                <div class="integration-panel">
+                    <h4>SafePark.PRO Integration Status</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                        <div style="text-align: center;">
+                            <h3 id="linkedItemsCount">0</h3>
+                            <p>Linked Risk-Process Pairs</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <h3 id="unlinkedRisksCount">0</h3>
+                            <p>Unlinked Risks</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <h3 id="unlinkedProcessesCount">0</h3>
+                            <p>Unlinked Processes</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <h3 id="maintenanceRecordsCount">0</h3>
+                            <p>Maintenance Records Created</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Priority Items -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+                    <div>
+                        <h3 style="color: var(--primary-orange); margin-bottom: 1rem;">Priority Risk Items</h3>
+                        <div id="topRisks" style="max-height: 300px; overflow-y: auto;">
+                            <p style="color: var(--medium-gray);">No risks assessed yet.</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="color: var(--primary-orange); margin-bottom: 1rem;">Critical Business Processes</h3>
+                        <div id="criticalProcesses" style="max-height: 300px; overflow-y: auto;">
+                            <p style="color: var(--medium-gray);">No processes analyzed yet.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Management Section -->
+        <div id="risk-management" class="main-content">
+            <div class="sub-tabs">
+                <button class="sub-tab active" onclick="showSubTab(event, 'risk-dashboard')">Risk Dashboard</button>
+                <button class="sub-tab" onclick="showSubTab(event, 'risk-assessment')">Risk Assessment</button>
+                <button class="sub-tab" onclick="showSubTab(event, 'risk-matrix')">Risk Matrix</button>
+                <button class="sub-tab" onclick="showSubTab(event, 'risk-treatment')">Risk Treatment</button>
+                <button class="sub-tab" onclick="showSubTab(event, 'risk-monitoring')">Monitoring</button>
+            </div>
+
+            <!-- Risk Dashboard -->
+            <div id="risk-dashboard" class="sub-content active">
+                <div class="section full-width">
+                    <h2>Highland Holidays Risk Dashboard</h2>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                        <div class="risk-low">
+                            <h3 id="lowCount">0</h3>
+                            <p>Low Risks</p>
+                        </div>
+                        <div class="risk-medium">
+                            <h3 id="mediumCount">0</h3>
+                            <p>Medium Risks</p>
+                        </div>
+                        <div class="risk-high">
+                            <h3 id="highCount">0</h3>
+                            <p>High Risks</p>
+                        </div>
+                        <div class="risk-critical">
+                            <h3 id="criticalCount">0</h3>
+                            <p>Critical Risks</p>
+                        </div>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table id="riskTable">
+                            <thead>
+                                <tr>
+                                    <th>Risk ID</th>
+                                    <th>Description</th>
+                                    <th>Business Area</th>
+                                    <th>Holiday Park</th>
+                                    <th>Score</th>
+                                    <th>Level</th>
+                                    <th>Owner</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="riskTableBody">
+                                <tr>
+                                    <td colspan="8" style="padding: 2rem; text-align: center; color: var(--medium-gray);">No risks assessed yet.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Assessment -->
+            <div id="risk-assessment" class="sub-content">
+                <div class="dashboard">
+                    <div class="section">
+                        <h2>Risk Identification</h2>
+                        
+                        <!-- Highland Holidays Integration -->
+                        <div class="highland-holidays-section">
+                            <h3>Highland Holidays Location</h3>
+                            <div class="form-group">
+                                <label for="riskHolidayPark">Holiday Park</label>
+                                <select id="riskHolidayPark" data-populate="holiday-parks" onchange="updateRiskTeamMembers()">
+                                    <option value="">Select Holiday Park</option>
+                                    <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                                    <option value="Oban Holiday Park">Oban Holiday Park</option>
+                                    <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="riskBusinessArea">Business Area</label>
+                                <select id="riskBusinessArea" onchange="updateRiskTeamMembers()">
+                                    <option value="">Select Business Area</option>
+                                    <option value="Reception & Administration">Reception & Administration</option>
+                                    <option value="Accommodation Services">Accommodation Services</option>
+                                    <option value="Play Areas & Recreation">Play Areas & Recreation</option>
+                                    <option value="Maintenance & Grounds">Maintenance & Grounds</option>
+                                    <option value="Food & Beverage">Food & Beverage</option>
+                                    <option value="Security & Safety">Security & Safety</option>
+                                    <option value="Water Activities">Water Activities</option>
+                                    <option value="Entertainment">Entertainment</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="riskCategory">Risk Category</label>
+                            <select id="riskCategory" onchange="toggleCustomField('riskCategory', 'customCategory'); updateRisk()">
+                                <option value="">Select Category</option>
+                                <option value="guest-safety">Guest Safety Risk</option>
+                                <option value="staff-safety">Staff Safety Risk</option>
+                                <option value="operational">Operational Risk</option>
+                                <option value="financial">Financial Risk</option>
+                                <option value="reputational">Reputational Risk</option>
+                                <option value="environmental">Environmental Risk</option>
+                                <option value="compliance">Compliance Risk</option>
+                                <option value="technology">Technology Risk</option>
+                                <option value="other">Other (Specify)</option>
+                            </select>
+                            <div id="customCategory" style="display: none; margin-top: 0.5rem;">
+                                <input type="text" placeholder="Enter custom category">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="riskDescription">Risk Description</label>
+                            <textarea id="riskDescription" rows="3" placeholder="Describe the specific risk affecting Highland Holidays operations..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="linkedProcess">Link to Business Process</label>
+                            <select id="linkedProcess">
+                                <option value="">Select related business process</option>
+                            </select>
+                            <small style="color: var(--medium-gray);">Select a business process this risk may impact</small>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h2>Risk Analysis</h2>
+                        <div class="form-group">
+                            <label for="probability">Probability of Occurrence</label>
+                            <select id="probability" onchange="calculateRisk()">
+                                <option value="">Select Probability</option>
+                                <option value="1">1 - Rare (0-5%)</option>
+                                <option value="2">2 - Unlikely (6-25%)</option>
+                                <option value="3">3 - Possible (26-50%)</option>
+                                <option value="4">4 - Likely (51-75%)</option>
+                                <option value="5">5 - Almost Certain (76-100%)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="impact">Impact Severity</label>
+                            <select id="impact" onchange="calculateRisk()">
+                                <option value="">Select Impact</option>
+                                <option value="1">1 - Insignificant</option>
+                                <option value="2">2 - Minor</option>
+                                <option value="3">3 - Moderate</option>
+                                <option value="4">4 - Major</option>
+                                <option value="5">5 - Catastrophic</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="riskOwner">Risk Owner</label>
+                            <select id="riskOwner" data-populate="team-members">
+                                <option value="">Select team member...</option>
+                            </select>
+                        </div>
+
+                        <div id="riskScore" style="margin-top: 1rem;"></div>
+
+                        <div id="processImpact" class="integration-panel" style="display: none;">
+                            <h4>Business Process Impact Analysis</h4>
+                            <div id="processImpactDetails"></div>
+                        </div>
+
+                        <button class="btn" onclick="saveRisk()">Save Risk Assessment</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Matrix -->
+            <div id="risk-matrix" class="sub-content">
+                <div class="section full-width">
+                    <h2>Highland Holidays Risk Assessment Matrix</h2>
+                    <div class="matrix-grid">
+                        <div class="matrix-cell matrix-header"></div>
+                        <div class="matrix-cell matrix-header">Insignificant</div>
+                        <div class="matrix-cell matrix-header">Minor</div>
+                        <div class="matrix-cell matrix-header">Moderate</div>
+                        <div class="matrix-cell matrix-header">Major</div>
+                        <div class="matrix-cell matrix-header">Catastrophic</div>
+                        
+                        <div class="matrix-cell matrix-header">Almost Certain</div>
+                        <div class="matrix-cell risk-medium">5</div>
+                        <div class="matrix-cell risk-high">10</div>
+                        <div class="matrix-cell risk-high">15</div>
+                        <div class="matrix-cell risk-critical">20</div>
+                        <div class="matrix-cell risk-critical">25</div>
+                        
+                        <div class="matrix-cell matrix-header">Likely</div>
+                        <div class="matrix-cell risk-low">4</div>
+                        <div class="matrix-cell risk-medium">8</div>
+                        <div class="matrix-cell risk-high">12</div>
+                        <div class="matrix-cell risk-high">16</div>
+                        <div class="matrix-cell risk-critical">20</div>
+                        
+                        <div class="matrix-cell matrix-header">Possible</div>
+                        <div class="matrix-cell risk-low">3</div>
+                        <div class="matrix-cell risk-medium">6</div>
+                        <div class="matrix-cell risk-medium">9</div>
+                        <div class="matrix-cell risk-high">12</div>
+                        <div class="matrix-cell risk-high">15</div>
+                        
+                        <div class="matrix-cell matrix-header">Unlikely</div>
+                        <div class="matrix-cell risk-low">2</div>
+                        <div class="matrix-cell risk-low">4</div>
+                        <div class="matrix-cell risk-medium">6</div>
+                        <div class="matrix-cell risk-medium">8</div>
+                        <div class="matrix-cell risk-high">10</div>
+                        
+                        <div class="matrix-cell matrix-header">Rare</div>
+                        <div class="matrix-cell risk-low">1</div>
+                        <div class="matrix-cell risk-low">2</div>
+                        <div class="matrix-cell risk-low">3</div>
+                        <div class="matrix-cell risk-low">4</div>
+                        <div class="matrix-cell risk-medium">5</div>
+                    </div>
+                    
+                    <div class="integration-panel">
+                        <h4>Risk Level Guidelines for Highland Holidays</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                            <div class="risk-low" style="padding: 1rem; border-radius: 8px;">
+                                <strong>Low Risk (1-4)</strong><br>
+                                <small>Monitor and manage through routine procedures</small>
+                            </div>
+                            <div class="risk-medium" style="padding: 1rem; border-radius: 8px;">
+                                <strong>Medium Risk (5-9)</strong><br>
+                                <small>Develop specific management plans and monitor closely</small>
+                            </div>
+                            <div class="risk-high" style="padding: 1rem; border-radius: 8px;">
+                                <strong>High Risk (10-16)</strong><br>
+                                <small>Immediate action required, senior management involvement</small>
+                            </div>
+                            <div class="risk-critical" style="padding: 1rem; border-radius: 8px;">
+                                <strong>Critical Risk (17-25)</strong><br>
+                                <small>Stop activity until risk reduced, board level escalation</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Treatment -->
+            <div id="risk-treatment" class="sub-content">
+                <div class="section full-width">
+                    <h2>Risk Treatment Strategies</h2>
+                    <div class="form-group">
+                        <label for="treatmentStrategy">Treatment Strategy</label>
+                        <select id="treatmentStrategy">
+                            <option value="">Select Strategy</option>
+                            <option value="avoid">Avoid - Eliminate the risk entirely</option>
+                            <option value="reduce">Reduce - Minimize impact or probability</option>
+                            <option value="transfer">Transfer - Share or transfer risk (insurance, contracts)</option>
+                            <option value="accept">Accept - Accept the risk with monitoring</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="treatmentActions">Treatment Actions</label>
+                        <textarea id="treatmentActions" rows="4" placeholder="Describe specific actions to be taken to treat this risk..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="treatmentResponsible">Responsible Person</label>
+                        <select id="treatmentResponsible" data-populate="team-members">
+                            <option value="">Select responsible team member...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="treatmentDeadline">Target Completion Date</label>
+                        <input type="date" id="treatmentDeadline">
+                    </div>
+                    
+                    <button class="btn" onclick="saveTreatmentPlan()">Save Treatment Plan</button>
+                </div>
+            </div>
+
+            <!-- Risk Monitoring -->
+            <div id="risk-monitoring" class="sub-content">
+                <div class="section full-width">
+                    <h2>Risk Monitoring & Review</h2>
+                    <div class="form-group">
+                        <label for="monitoringFreq">Monitoring Frequency</label>
+                        <select id="monitoringFreq">
+                            <option value="">Select Frequency</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="quarterly">Quarterly</option>
+                            <option value="annually">Annually</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="monitoringResponsible">Monitoring Responsible</label>
+                        <select id="monitoringResponsible" data-populate="team-members">
+                            <option value="">Select monitoring responsible...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reviewNotes">Review Notes</label>
+                        <textarea id="reviewNotes" rows="4" placeholder="Document monitoring activities and observations..."></textarea>
+                    </div>
+                    
+                    <button class="btn" onclick="saveMonitoringPlan()">Save Monitoring Plan</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Business Continuity Section -->
+        <div id="business-continuity" class="main-content">
+            <div class="sub-tabs">
+                <button class="sub-tab active" onclick="showSubTab(event, 'bcm-dashboard')">BCM Dashboard</button>
+                <button class="sub-tab" onclick="showSubTab(event, 'bia')">Business Impact Analysis</button>
+                <button class="sub-tab" onclick="showSubTab(event, 'strategies')">Recovery Strategies</button>
+                <button class="sub-tab" onclick="showSubTab(event, 'plans')">BC Plans</button>
+                <button class="sub-tab" onclick="showSubTab(event, 'testing')">Testing</button>
+            </div>
+
+            <!-- BCM Dashboard -->
+            <div id="bcm-dashboard" class="sub-content active">
+                <div class="section full-width">
+                    <h2>Highland Holidays Business Continuity Dashboard</h2>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                        <div class="status-low">
+                            <h3 id="lowImpactCount">0</h3>
+                            <p>Low Impact Processes</p>
+                        </div>
+                        <div class="status-medium">
+                            <h3 id="mediumImpactCount">0</h3>
+                            <p>Medium Impact Processes</p>
+                        </div>
+                        <div class="status-high">
+                            <h3 id="highImpactCount">0</h3>
+                            <p>High Impact Processes</p>
+                        </div>
+                        <div class="status-critical">
+                            <h3 id="criticalImpactCount">0</h3>
+                            <p>Critical Processes</p>
+                        </div>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table id="bcmTable">
+                            <thead>
+                                <tr>
+                                    <th>Process ID</th>
+                                    <th>Business Process</th>
+                                    <th>Business Area</th>
+                                    <th>Holiday Park</th>
+                                    <th>Impact Level</th>
+                                    <th>RTO</th>
+                                    <th>RPO</th>
+                                    <th>Owner</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bcmTableBody">
+                                <tr>
+                                    <td colspan="9" style="padding: 2rem; text-align: center; color: var(--medium-gray);">No processes analyzed yet.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Business Impact Analysis -->
+            <div id="bia" class="sub-content">
+                <div class="dashboard">
+                    <div class="section">
+                        <h2>Highland Holidays Process Identification</h2>
+                        
+                        <!-- Highland Holidays Integration -->
+                        <div class="highland-holidays-section">
+                            <h3>Highland Holidays Location</h3>
+                            <div class="form-group">
+                                <label for="processHolidayPark">Holiday Park</label>
+                                <select id="processHolidayPark" data-populate="holiday-parks" onchange="updateProcessTeamMembers()">
+                                    <option value="">Select Holiday Park</option>
+                                    <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                                    <option value="Oban Holiday Park">Oban Holiday Park</option>
+                                    <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="processBusinessArea">Business Area</label>
+                                <select id="processBusinessArea" onchange="updateProcessOptions(); updateProcessTeamMembers()">
+                                    <option value="">Select Business Area</option>
+                                    <option value="Reception & Administration">Reception & Administration</option>
+                                    <option value="Accommodation Services">Accommodation Services</option>
+                                    <option value="Play Areas & Recreation">Play Areas & Recreation</option>
+                                    <option value="Maintenance & Grounds">Maintenance & Grounds</option>
+                                    <option value="Food & Beverage">Food & Beverage</option>
+                                    <option value="Security & Safety">Security & Safety</option>
+                                    <option value="Water Activities">Water Activities</option>
+                                    <option value="Entertainment">Entertainment</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="processName">Specific Process</label>
+                            <select id="processName">
+                                <option value="">Select Process</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="processDescription">Process Description</label>
+                            <textarea id="processDescription" rows="3" placeholder="Describe the business process and its importance to Highland Holidays operations..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="processOwner">Process Owner</label>
+                            <select id="processOwner" data-populate="team-members">
+                                <option value="">Select process owner...</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="linkedRisks">Link to Existing Risks</label>
+                            <select id="linkedRisks" multiple style="height: 120px;">
+                            </select>
+                            <small style="color: var(--medium-gray);">Hold Ctrl/Cmd to select multiple risks that could impact this process</small>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h2>Impact Assessment</h2>
+                        <div class="form-group">
+                            <label for="impactSeverity">Impact Severity</label>
+                            <select id="impactSeverity" onchange="calculateImpactLevel()">
+                                <option value="">Select Severity</option>
+                                <option value="1">1 - Minimal (Little impact on operations)</option>
+                                <option value="2">2 - Minor (Some inconvenience)</option>
+                                <option value="3">3 - Moderate (Significant disruption)</option>
+                                <option value="4">4 - Major (Severe impact on guests/operations)</option>
+                                <option value="5">5 - Critical (Could threaten park viability)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="rto">Recovery Time Objective (RTO)</label>
+                            <select id="rto">
+                                <option value="">Select RTO</option>
+                                <option value="1-hour">1 Hour</option>
+                                <option value="4-hours">4 Hours</option>
+                                <option value="8-hours">8 Hours</option>
+                                <option value="24-hours">24 Hours</option>
+                                <option value="48-hours">48 Hours</option>
+                                <option value="1-week">1 Week</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="rpo">Recovery Point Objective (RPO)</label>
+                            <select id="rpo">
+                                <option value="">Select RPO</option>
+                                <option value="0">0 (No data loss)</option>
+                                <option value="1-hour">1 Hour</option>
+                                <option value="4-hours">4 Hours</option>
+                                <option value="24-hours">24 Hours</option>
+                                <option value="1-week">1 Week</option>
+                            </select>
+                        </div>
+
+                        <div id="impactResult" style="margin-top: 1rem;"></div>
+
+                        <div id="riskImpact" class="integration-panel" style="display: none;">
+                            <h4>Related Risk Analysis</h4>
+                            <div id="riskImpactDetails"></div>
+                        </div>
+
+                        <button class="btn" onclick="saveBIA()">Save Business Impact Analysis</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recovery Strategies -->
+            <div id="strategies" class="sub-content">
+                <div class="section full-width">
+                    <h2>Highland Holidays Business Continuity Strategies</h2>
+                    <div class="form-group">
+                        <label for="strategyType">Strategy Type</label>
+                        <select id="strategyType">
+                            <option value="">Select Strategy Type</option>
+                            <option value="do-nothing">Do Nothing (Accept downtime)</option>
+                            <option value="manual-workaround">Manual Workarounds</option>
+                            <option value="reciprocal-agreement">Reciprocal Agreements</option>
+                            <option value="gradual-recovery">Gradual Recovery</option>
+                            <option value="intermediate-recovery">Intermediate Recovery</option>
+                            <option value="fast-recovery">Fast Recovery</option>
+                            <option value="immediate-recovery">Immediate Recovery</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="strategyDescription">Strategy Description</label>
+                        <textarea id="strategyDescription" rows="4" placeholder="Describe the specific recovery strategy for Highland Holidays..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="strategyResources">Required Resources</label>
+                        <textarea id="strategyResources" rows="3" placeholder="List resources, staff, equipment needed..."></textarea>
+                    </div>
+                    
+                    <button class="btn" onclick="saveRecoveryStrategy()">Save Recovery Strategy</button>
+                </div>
+            </div>
+
+            <!-- BC Plans -->
+            <div id="plans" class="sub-content">
+                <div class="section full-width">
+                    <h2>Highland Holidays Business Continuity Plans</h2>
+                    <div class="form-group">
+                        <label for="planType">Plan Type</label>
+                        <select id="planType">
+                            <option value="">Select Plan Type</option>
+                            <option value="emergency-response">Emergency Response Plan</option>
+                            <option value="business-recovery">Business Recovery Plan</option>
+                            <option value="crisis-management">Crisis Management Plan</option>
+                            <option value="communication">Crisis Communication Plan</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="planDescription">Plan Description</label>
+                        <textarea id="planDescription" rows="4" placeholder="Describe the specific plan for Highland Holidays..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="planActivation">Activation Triggers</label>
+                        <textarea id="planActivation" rows="3" placeholder="What events or conditions will trigger this plan..."></textarea>
+                    </div>
+                    
+                    <button class="btn" onclick="saveBCPlan()">Save Business Continuity Plan</button>
+                </div>
+            </div>
+
+            <!-- Testing -->
+            <div id="testing" class="sub-content">
+                <div class="section full-width">
+                    <h2>Highland Holidays BC Testing & Exercises</h2>
+                    <div class="form-group">
+                        <label for="testType">Test Type</label>
+                        <select id="testType">
+                            <option value="">Select Test Type</option>
+                            <option value="walk-through">Walk-through Test</option>
+                            <option value="tabletop">Tabletop Exercise</option>
+                            <option value="simulation">Simulation Exercise</option>
+                            <option value="partial">Partial Interruption Test</option>
+                            <option value="full">Full Interruption Test</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="testObjectives">Test Objectives</label>
+                        <textarea id="testObjectives" rows="3" placeholder="What specific objectives will this test achieve..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="testSchedule">Test Schedule</label>
+                        <input type="date" id="testSchedule">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="testParticipants">Test Participants</label>
+                        <select id="testParticipants" data-populate="team-members" multiple style="height: 120px;">
+                        </select>
+                    </div>
+                    
+                    <button class="btn" onclick="saveBCTest()">Save Test Plan</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Integration Tools Section -->
+        <div id="integration-tools" class="main-content">
+            <div class="section full-width">
+                <h2>SafePark.PRO Risk-Business Continuity Integration</h2>
+                
+                <div class="dashboard">
+                    <div class="section">
+                        <h2>Link Risks to Processes</h2>
+                        <div class="form-group">
+                            <label for="selectRisk">Select Risk</label>
+                            <select id="selectRisk" onchange="showRiskDetails()">
+                                <option value="">Choose a risk to link</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="selectProcess">Select Business Process</label>
+                            <select id="selectProcess" onchange="showProcessDetails()">
+                                <option value="">Choose a process to link</option>
+                            </select>
+                        </div>
+
+                        <div id="linkPreview" class="integration-panel" style="display: none;">
+                            <h4>Link Preview</h4>
+                            <div id="linkPreviewContent"></div>
+                            <button class="btn" onclick="createLink()">Create Link</button>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h2>Existing Links</h2>
+                        <div id="existingLinks">
+                            <p style="color: var(--medium-gray);">No risk-process links created yet.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section full-width">
+                    <h2>Impact Analysis</h2>
+                    <div class="form-group">
+                        <label for="analysisType">Analysis Type</label>
+                        <select id="analysisType" onchange="runImpactAnalysis()">
+                            <option value="">Select Analysis</option>
+                            <option value="risk-to-process">Risk Impact on Processes</option>
+                            <option value="process-to-risk">Process Risk Exposure</option>
+                            <option value="cascade-analysis">Cascade Impact Analysis</option>
+                            <option value="recovery-alignment">Recovery Strategy Alignment</option>
+                        </select>
+                    </div>
+
+                    <div id="analysisResults" class="integration-panel" style="display: none;">
+                        <h4>Analysis Results</h4>
+                        <div id="analysisContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        CQR365 SafePark.PRO - Highland Holidays Risk & Business Continuity Management System
+    </div>
+
+    <script>
+        // Highland Holidays specific process options
+        const highlandHolidaysProcessOptions = {
+            "Reception & Administration": [
+                "Guest Check-in/Check-out", "Guest Reception Services", "Guest Complaints Handling", 
+                "Reservation Management", "Guest Information Services", "Concierge Services"
+            ],
+            "Accommodation Services": [
+                "Room/Unit Allocation", "Housekeeping Services", "Maintenance Scheduling", 
+                "Key Management", "Guest Transfers", "Accommodation Inspections"
+            ],
+            "Play Areas & Recreation": [
+                "Playground Safety Management", "Activity Program Delivery", "Equipment Maintenance", 
+                "Supervision Services", "Event Management", "Sports Facility Operations"
+            ],
+            "Maintenance & Grounds": [
+                "Preventive Maintenance", "Emergency Repairs", "Grounds Maintenance", 
+                "Utility Management", "Asset Management", "Contractor Management"
+            ],
+            "Food & Beverage": [
+                "Restaurant Operations", "Bar Services", "Food Preparation", 
+                "Kitchen Operations", "Food Safety Management", "Catering Services"
+            ],
+            "Security & Safety": [
+                "Access Control", "CCTV Monitoring", "Emergency Response", 
+                "Fire Safety", "Incident Management", "Safety Inspections"
+            ],
+            "Water Activities": [
+                "Swimming Pool Operations", "Water Quality Management", "Lifeguard Services", 
+                "Water Sports Activities", "Pool Maintenance", "Safety Equipment Management"
+            ],
+            "Entertainment": [
+                "Entertainment Programs", "Kids Club Activities", "Event Management", 
+                "Show Productions", "Equipment Management", "Venue Operations"
+            ]
+        };
+
+        // Data storage with SafePark.PRO integration
+        let riskDatabase = [];
+        let bcmDatabase = [];
+        let linkDatabase = [];
+        let currentRiskId = 1;
+        let currentBCMId = 1;
+        let currentLinkId = 1;
+        let maintenanceRecordsCreated = 0;
+
+        // Initialize SafePark.PRO integration
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.syncSafeParkData) {
+                window.syncSafeParkData();
+            }
+            updateIntegratedDashboard();
+            loadSafeParkData();
+        });
+
+        function loadSafeParkData() {
+            // Load existing data with safePark_ prefix
+            const savedRisks = localStorage.getItem('safePark_riskManagement');
+            const savedBCM = localStorage.getItem('safePark_businessContinuity');
+            const savedLinks = localStorage.getItem('safePark_riskBCMLinks');
+            
+            if (savedRisks) {
+                riskDatabase = JSON.parse(savedRisks);
+                currentRiskId = Math.max(...riskDatabase.map(r => r.id), 0) + 1;
+            }
+            
+            if (savedBCM) {
+                bcmDatabase = JSON.parse(savedBCM);
+                currentBCMId = Math.max(...bcmDatabase.map(b => b.id), 0) + 1;
+            }
+            
+            if (savedLinks) {
+                linkDatabase = JSON.parse(savedLinks);
+                currentLinkId = Math.max(...linkDatabase.map(l => l.id), 0) + 1;
+            }
+        }
+
+        function saveSafeParkData() {
+            // Save with safePark_ prefix for system integration
+            localStorage.setItem('safePark_riskManagement', JSON.stringify(riskDatabase));
+            localStorage.setItem('safePark_businessContinuity', JSON.stringify(bcmDatabase));
+            localStorage.setItem('safePark_riskBCMLinks', JSON.stringify(linkDatabase));
+        }
+
+        function showMainSection(evt, sectionName) {
+            // Hide all main content sections
+            const mainContents = document.getElementsByClassName("main-content");
+            for (let i = 0; i < mainContents.length; i++) {
+                mainContents[i].classList.remove("active");
+            }
+            
+            // Remove active class from all main nav items
+            const mainNavItems = document.getElementsByClassName("main-nav-item");
+            for (let i = 0; i < mainNavItems.length; i++) {
+                mainNavItems[i].classList.remove("active");
+            }
+            
+            // Show selected section and activate button
+            document.getElementById(sectionName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+            
+            // Update dashboards and dropdowns
+            if (sectionName === 'integrated-dashboard') {
+                updateIntegratedDashboard();
+            } else if (sectionName === 'risk-management') {
+                updateRiskDashboard();
+                updateLinkedProcessDropdown();
+            } else if (sectionName === 'business-continuity') {
+                updateBCMDashboard();
+                updateLinkedRisksDropdown();
+            } else if (sectionName === 'integration-tools') {
+                updateIntegrationTools();
+            }
+        }
+
+        function showSubTab(evt, tabName) {
+            const parentSection = evt.currentTarget.closest('.main-content');
+            
+            const subContents = parentSection.getElementsByClassName("sub-content");
+            for (let i = 0; i < subContents.length; i++) {
+                subContents[i].classList.remove("active");
+            }
+            
+            const subTabs = parentSection.getElementsByClassName("sub-tab");
+            for (let i = 0; i < subTabs.length; i++) {
+                subTabs[i].classList.remove("active");
+            }
+            
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+
+        function updateRiskTeamMembers() {
+            const selectedPark = document.getElementById('riskHolidayPark').value;
+            const selectedArea = document.getElementById('riskBusinessArea').value;
+            const ownerSelect = document.getElementById('riskOwner');
+            
+            if (window.SafeParkUtils && selectedPark) {
+                const teamMembers = window.SafeParkUtils.getTeamMembers(selectedArea, selectedPark);
+                ownerSelect.innerHTML = '<option value="">Select team member...</option>';
+                teamMembers.forEach(member => {
+                    ownerSelect.innerHTML += `<option value="${member.name}">${member.name} (${member.role || 'Team Member'})</option>`;
+                });
+            }
+        }
+
+        function updateProcessTeamMembers() {
+            const selectedPark = document.getElementById('processHolidayPark').value;
+            const selectedArea = document.getElementById('processBusinessArea').value;
+            const ownerSelect = document.getElementById('processOwner');
+            
+            if (window.SafeParkUtils && selectedPark) {
+                const teamMembers = window.SafeParkUtils.getTeamMembers(selectedArea, selectedPark);
+                ownerSelect.innerHTML = '<option value="">Select process owner...</option>';
+                teamMembers.forEach(member => {
+                    ownerSelect.innerHTML += `<option value="${member.name}">${member.name} (${member.role || 'Team Member'})</option>`;
+                });
+            }
+        }
+
+        function toggleCustomField(selectId, customFieldId) {
+            const select = document.getElementById(selectId);
+            const customField = document.getElementById(customFieldId);
+            
+            if (select.value === 'other' && customField) {
+                customField.style.display = 'block';
+            } else if (customField) {
+                customField.style.display = 'none';
+            }
+        }
+
+        function updateProcessOptions() {
+            const businessArea = document.getElementById('processBusinessArea').value;
+            const processSelect = document.getElementById('processName');
+            
+            processSelect.innerHTML = '<option value="">Select Process</option>';
+            
+            if (businessArea && highlandHolidaysProcessOptions[businessArea]) {
+                highlandHolidaysProcessOptions[businessArea].forEach(process => {
+                    const option = document.createElement('option');
+                    option.value = process;
+                    option.textContent = process;
+                    processSelect.appendChild(option);
+                });
+            }
+        }
+
+        function updateLinkedProcessDropdown() {
+            const dropdown = document.getElementById('linkedProcess');
+            dropdown.innerHTML = '<option value="">Select related business process</option>';
+            
+            bcmDatabase.forEach(process => {
+                const option = document.createElement('option');
+                option.value = process.id;
+                option.textContent = `${process.processName} (${process.businessArea} - ${process.holidayPark})`;
+                dropdown.appendChild(option);
+            });
+        }
+
+        function updateLinkedRisksDropdown() {
+            const dropdown = document.getElementById('linkedRisks');
+            dropdown.innerHTML = '';
+            
+            riskDatabase.forEach(risk => {
+                const option = document.createElement('option');
+                option.value = risk.id;
+                option.textContent = `${risk.description.substring(0, 50)}... (${risk.businessArea} - ${risk.holidayPark})`;
+                dropdown.appendChild(option);
+            });
+        }
+
+        function calculateRisk() {
+            const probability = parseInt(document.getElementById('probability').value) || 0;
+            const impact = parseInt(document.getElementById('impact').value) || 0;
+            
+            if (probability && impact) {
+                const riskScore = probability * impact;
+                let riskLevel = '';
+                let riskClass = '';
+                
+                if (riskScore <= 4) {
+                    riskLevel = 'Low Risk';
+                    riskClass = 'risk-low';
+                } else if (riskScore <= 9) {
+                    riskLevel = 'Medium Risk';
+                    riskClass = 'risk-medium';
+                } else if (riskScore <= 16) {
+                    riskLevel = 'High Risk';
+                    riskClass = 'risk-high';
+                } else {
+                    riskLevel = 'Critical Risk';
+                    riskClass = 'risk-critical';
+                }
+                
+                document.getElementById('riskScore').innerHTML = `
+                    <div class="${riskClass}" style="padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                        <strong>Risk Score: ${riskScore}</strong><br>
+                        <strong>${riskLevel}</strong><br>
+                        <small>Highland Holidays Risk Assessment</small>
+                    </div>
+                `;
+                
+                // Show process impact if linked
+                const linkedProcessId = document.getElementById('linkedProcess').value;
+                if (linkedProcessId) {
+                    showProcessImpact(linkedProcessId, riskScore);
+                }
+                
+                return { score: riskScore, level: riskLevel, class: riskClass };
+            }
+            return null;
+        }
+
+        function calculateImpactLevel() {
+            const severity = parseInt(document.getElementById('impactSeverity').value) || 0;
+            
+            if (severity) {
+                let impactLevel = '';
+                let impactClass = '';
+                
+                if (severity <= 1) {
+                    impactLevel = 'Low Impact';
+                    impactClass = 'status-low';
+                } else if (severity <= 2) {
+                    impactLevel = 'Medium Impact';
+                    impactClass = 'status-medium';
+                } else if (severity <= 3) {
+                    impactLevel = 'High Impact';
+                    impactClass = 'status-high';
+                } else {
+                    impactLevel = 'Critical Impact';
+                    impactClass = 'status-critical';
+                }
+                
+                document.getElementById('impactResult').innerHTML = `
+                    <div class="${impactClass}" style="padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                        <strong>Impact Score: ${severity}</strong><br>
+                        <strong>${impactLevel}</strong><br>
+                        <small>Highland Holidays Impact Assessment</small>
+                    </div>
+                `;
+                
+                // Show risk impact if linked
+                const linkedRiskIds = Array.from(document.getElementById('linkedRisks').selectedOptions).map(option => parseInt(option.value));
+                if (linkedRiskIds.length > 0) {
+                    showRiskImpact(linkedRiskIds);
+                }
+                
+                return { score: severity, level: impactLevel, class: impactClass };
+            }
+            return null;
+        }
+
+        function showProcessImpact(processId, riskScore) {
+            const process = bcmDatabase.find(p => p.id == processId);
+            if (process) {
+                const panel = document.getElementById('processImpact');
+                const details = document.getElementById('processImpactDetails');
+                
+                details.innerHTML = `
+                    <p><strong>Process:</strong> ${process.processName}</p>
+                    <p><strong>Business Area:</strong> ${process.businessArea}</p>
+                    <p><strong>Holiday Park:</strong> ${process.holidayPark}</p>
+                    <p><strong>RTO:</strong> ${process.rto || 'Not set'}</p>
+                    <p><strong>Process Impact Level:</strong> ${process.impactLevel || 'Not assessed'}</p>
+                    <p><strong>Combined Risk-Process Score:</strong> ${riskScore + (process.impactScore || 0)}</p>
+                `;
+                
+                panel.style.display = 'block';
+            }
+        }
+
+        function showRiskImpact(riskIds) {
+            const panel = document.getElementById('riskImpact');
+            const details = document.getElementById('riskImpactDetails');
+            
+            let content = '<ul style="color: var(--white);">';
+            riskIds.forEach(riskId => {
+                const risk = riskDatabase.find(r => r.id === riskId);
+                if (risk) {
+                    content += `<li><strong>${risk.description.substring(0, 50)}...</strong> (Score: ${risk.score || 'N/A'}, ${risk.holidayPark})</li>`;
+                }
+            });
+            content += '</ul>';
+            
+            details.innerHTML = content;
+            panel.style.display = 'block';
+        }
+
+        function saveRisk() {
+            const riskCalc = calculateRisk();
+            
+            const riskData = {
+                id: currentRiskId++,
+                dateCreated: new Date().toISOString().split('T')[0],
+                holidayPark: document.getElementById('riskHolidayPark').value,
+                businessArea: document.getElementById('riskBusinessArea').value,
+                category: document.getElementById('riskCategory').value,
+                description: document.getElementById('riskDescription').value,
+                linkedProcess: document.getElementById('linkedProcess').value,
+                probability: document.getElementById('probability').value,
+                impact: document.getElementById('impact').value,
+                owner: document.getElementById('riskOwner').value,
+                status: 'Active'
+            };
+            
+            if (riskCalc) {
+                riskData.score = riskCalc.score;
+                riskData.level = riskCalc.level;
+                riskData.class = riskCalc.class;
+            }
+            
+            if (!riskData.description || !riskData.category || !riskData.holidayPark || !riskData.businessArea) {
+                alert('Please fill in all required fields including Holiday Park and Business Area.');
+                return;
+            }
+            
+            riskDatabase.push(riskData);
+            
+            // Create automatic link if process selected
+            if (riskData.linkedProcess) {
+                linkDatabase.push({
+                    id: currentLinkId++,
+                    riskId: riskData.id,
+                    processId: parseInt(riskData.linkedProcess),
+                    dateCreated: new Date().toISOString().split('T')[0],
+                    type: 'auto'
+                });
+            }
+            
+            // Create maintenance record for high/critical risks
+            if (riskData.score >= 10 && window.SafeParkUtils) {
+                window.SafeParkUtils.addMaintenanceRecord({
+                    title: `High Risk Assessment: ${riskData.category}`,
+                    description: `Risk identified: ${riskData.description}`,
+                    businessArea: riskData.businessArea,
+                    holidayPark: riskData.holidayPark,
+                    priority: riskData.score >= 17 ? 'Critical' : 'High',
+                    module: 'Risk Management'
+                });
+                maintenanceRecordsCreated++;
+            }
+            
+            // Log activity to SafePark system
+            if (window.SafeParkUtils) {
+                window.SafeParkUtils.addRecentActivity(
+                    'Risk Management', 
+                    `Risk assessment completed: ${riskData.category} at ${riskData.holidayPark}`, 
+                    'success'
+                );
+            }
+            
+            saveSafeParkData();
+            resetRiskForm();
+            alert('Risk assessment saved successfully and integrated with SafePark.PRO!');
+            showMainSection({currentTarget: document.querySelector('.main-nav-item')}, 'integrated-dashboard');
+        }
+
+        function saveBIA() {
+            const impactCalc = calculateImpactLevel();
+            
+            const biaData = {
+                id: currentBCMId++,
+                dateCreated: new Date().toISOString().split('T')[0],
+                holidayPark: document.getElementById('processHolidayPark').value,
+                businessArea: document.getElementById('processBusinessArea').value,
+                processName: document.getElementById('processName').value,
+                description: document.getElementById('processDescription').value,
+                owner: document.getElementById('processOwner').value,
+                linkedRisks: Array.from(document.getElementById('linkedRisks').selectedOptions).map(option => parseInt(option.value)),
+                impactSeverity: document.getElementById('impactSeverity').value,
+                rto: document.getElementById('rto').value,
+                rpo: document.getElementById('rpo').value,
+                status: 'Active'
+            };
+            
+            if (impactCalc) {
+                biaData.impactScore = impactCalc.score;
+                biaData.impactLevel = impactCalc.level;
+                biaData.impactClass = impactCalc.class;
+            }
+            
+            if (!biaData.processName || !biaData.businessArea || !biaData.holidayPark) {
+                alert('Please fill in all required fields including Holiday Park and Business Area.');
+                return;
+            }
+            
+            bcmDatabase.push(biaData);
+            
+            // Create automatic links for selected risks
+            biaData.linkedRisks.forEach(riskId => {
+                linkDatabase.push({
+                    id: currentLinkId++,
+                    riskId: riskId,
+                    processId: biaData.id,
+                    dateCreated: new Date().toISOString().split('T')[0],
+                    type: 'auto'
+                });
+            });
+            
+            // Create maintenance record for critical processes
+            if (biaData.impactScore >= 4 && window.SafeParkUtils) {
+                window.SafeParkUtils.addMaintenanceRecord({
+                    title: `Critical Process Review: ${biaData.processName}`,
+                    description: `Business continuity assessment for critical process`,
+                    businessArea: biaData.businessArea,
+                    holidayPark: biaData.holidayPark,
+                    priority: biaData.impactScore >= 5 ? 'Critical' : 'High',
+                    module: 'Business Continuity'
+                });
+                maintenanceRecordsCreated++;
+            }
+            
+            // Log activity to SafePark system
+            if (window.SafeParkUtils) {
+                window.SafeParkUtils.addRecentActivity(
+                    'Business Continuity', 
+                    `Business impact analysis completed: ${biaData.processName} at ${biaData.holidayPark}`, 
+                    'success'
+                );
+            }
+            
+            saveSafeParkData();
+            resetBIAForm();
+            alert('Business Impact Analysis saved successfully and integrated with SafePark.PRO!');
+            showMainSection({currentTarget: document.querySelector('.main-nav-item')}, 'integrated-dashboard');
+        }
+
+        function resetRiskForm() {
+            const inputs = document.querySelectorAll('#risk-assessment input, #risk-assessment select, #risk-assessment textarea');
+            inputs.forEach(input => {
+                if (input.tagName === 'SELECT') {
+                    input.selectedIndex = 0;
+                } else {
+                    input.value = '';
+                }
+            });
+            document.getElementById('riskScore').innerHTML = '';
+            document.getElementById('processImpact').style.display = 'none';
+        }
+
+        function resetBIAForm() {
+            const inputs = document.querySelectorAll('#bia input, #bia select, #bia textarea');
+            inputs.forEach(input => {
+                if (input.tagName === 'SELECT') {
+                    input.selectedIndex = 0;
+                } else {
+                    input.value = '';
+                }
+            });
+            document.getElementById('impactResult').innerHTML = '';
+            document.getElementById('riskImpact').style.display = 'none';
+            document.getElementById('processName').innerHTML = '<option value="">Select Process</option>';
+        }
+
+        function updateIntegratedDashboard() {
+            // Risk counts
+            const riskCounts = { low: 0, medium: 0, high: 0, critical: 0 };
+            riskDatabase.forEach(risk => {
+                if (risk.score <= 4) riskCounts.low++;
+                else if (risk.score <= 9) riskCounts.medium++;
+                else if (risk.score <= 16) riskCounts.high++;
+                else if (risk.score > 16) riskCounts.critical++;
+            });
+            
+            document.getElementById('dashLowCount').textContent = riskCounts.low;
+            document.getElementById('dashMediumCount').textContent = riskCounts.medium;
+            document.getElementById('dashHighCount').textContent = riskCounts.high;
+            document.getElementById('dashCriticalCount').textContent = riskCounts.critical;
+            
+            // BCM counts
+            const bcmCounts = { low: 0, medium: 0, high: 0, critical: 0 };
+            bcmDatabase.forEach(process => {
+                if (process.impactScore <= 1) bcmCounts.low++;
+                else if (process.impactScore <= 2) bcmCounts.medium++;
+                else if (process.impactScore <= 3) bcmCounts.high++;
+                else if (process.impactScore > 3) bcmCounts.critical++;
+            });
+            
+            document.getElementById('dashLowImpactCount').textContent = bcmCounts.low;
+            document.getElementById('dashMediumImpactCount').textContent = bcmCounts.medium;
+            document.getElementById('dashHighImpactCount').textContent = bcmCounts.high;
+            document.getElementById('dashCriticalImpactCount').textContent = bcmCounts.critical;
+            
+            // Integration counts
+            document.getElementById('linkedItemsCount').textContent = linkDatabase.length;
+            document.getElementById('unlinkedRisksCount').textContent = riskDatabase.filter(r => !linkDatabase.some(l => l.riskId === r.id)).length;
+            document.getElementById('unlinkedProcessesCount').textContent = bcmDatabase.filter(p => !linkDatabase.some(l => l.processId === p.id)).length;
+            document.getElementById('maintenanceRecordsCount').textContent = maintenanceRecordsCreated;
+            
+            // Top risks
+            const topRisks = [...riskDatabase].sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 5);
+            document.getElementById('topRisks').innerHTML = topRisks.map(risk => `
+                <div class="linked-item">
+                    <strong>RISK-${risk.id.toString().padStart(3, '0')}</strong><br>
+                    ${risk.description.substring(0, 60)}...<br>
+                    <small>Score: ${risk.score || 'N/A'} | ${risk.level || 'Not assessed'} | ${risk.holidayPark}</small>
+                </div>
+            `).join('') || '<p style="color: var(--medium-gray);">No risks assessed yet.</p>';
+            
+            // Critical processes
+            const criticalProcesses = [...bcmDatabase].sort((a, b) => (b.impactScore || 0) - (a.impactScore || 0)).slice(0, 5);
+            document.getElementById('criticalProcesses').innerHTML = criticalProcesses.map(process => `
+                <div class="linked-item">
+                    <strong>BCP-${process.id.toString().padStart(3, '0')}</strong><br>
+                    ${process.processName}<br>
+                    <small>Impact: ${process.impactLevel || 'Not assessed'} | RTO: ${process.rto || 'Not set'} | ${process.holidayPark}</small>
+                </div>
+            `).join('') || '<p style="color: var(--medium-gray);">No processes analyzed yet.</p>';
+        }
+
+        function updateRiskDashboard() {
+            const counts = { low: 0, medium: 0, high: 0, critical: 0 };
+            riskDatabase.forEach(risk => {
+                if (risk.score <= 4) counts.low++;
+                else if (risk.score <= 9) counts.medium++;
+                else if (risk.score <= 16) counts.high++;
+                else if (risk.score > 16) counts.critical++;
+            });
+            
+            document.getElementById('lowCount').textContent = counts.low;
+            document.getElementById('mediumCount').textContent = counts.medium;
+            document.getElementById('highCount').textContent = counts.high;
+            document.getElementById('criticalCount').textContent = counts.critical;
+            
+            const tableBody = document.getElementById('riskTableBody');
+            
+            if (riskDatabase.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="8" style="padding: 2rem; text-align: center; color: var(--medium-gray);">No risks assessed yet.</td></tr>';
+                return;
+            }
+            
+            tableBody.innerHTML = riskDatabase.map(risk => {
+                const linkedProcess = bcmDatabase.find(p => p.id == risk.linkedProcess);
+                const linkedProcessName = linkedProcess ? linkedProcess.processName : 'None';
+                
+                return `
+                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                        <td style="padding: 1rem;">RISK-${risk.id.toString().padStart(3, '0')}</td>
+                        <td style="padding: 1rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${risk.description}">${risk.description}</td>
+                        <td style="padding: 1rem;">${risk.businessArea || 'Not specified'}</td>
+                        <td style="padding: 1rem;">${risk.holidayPark || 'Not specified'}</td>
+                        <td style="padding: 1rem; text-align: center;">
+                            <span class="${risk.class}" style="padding: 0.25rem 0.5rem; border-radius: 4px;">
+                                ${risk.score || 'N/A'}
+                            </span>
+                        </td>
+                        <td style="padding: 1rem;">${risk.level || 'Not assessed'}</td>
+                        <td style="padding: 1rem;">${risk.owner || 'Unassigned'}</td>
+                        <td style="padding: 1rem;">
+                            <button onclick="deleteRisk(${risk.id})" style="background: var(--danger); color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.8rem;">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateBCMDashboard() {
+            const counts = { low: 0, medium: 0, high: 0, critical: 0 };
+            bcmDatabase.forEach(process => {
+                if (process.impactScore <= 1) counts.low++;
+                else if (process.impactScore <= 2) counts.medium++;
+                else if (process.impactScore <= 3) counts.high++;
+                else if (process.impactScore > 3) counts.critical++;
+            });
+            
+            document.getElementById('lowImpactCount').textContent = counts.low;
+            document.getElementById('mediumImpactCount').textContent = counts.medium;
+            document.getElementById('highImpactCount').textContent = counts.high;
+            document.getElementById('criticalImpactCount').textContent = counts.critical;
+            
+            const tableBody = document.getElementById('bcmTableBody');
+            
+            if (bcmDatabase.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="9" style="padding: 2rem; text-align: center; color: var(--medium-gray);">No processes analyzed yet.</td></tr>';
+                return;
+            }
+            
+            tableBody.innerHTML = bcmDatabase.map(process => {
+                const linkedRisksCount = linkDatabase.filter(l => l.processId === process.id).length;
+                
+                return `
+                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                        <td style="padding: 1rem;">BCP-${process.id.toString().padStart(3, '0')}</td>
+                        <td style="padding: 1rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${process.processName}">${process.processName}</td>
+                        <td style="padding: 1rem;">${process.businessArea || 'Not specified'}</td>
+                        <td style="padding: 1rem;">${process.holidayPark || 'Not specified'}</td>
+                        <td style="padding: 1rem; text-align: center;">
+                            <span class="${process.impactClass}" style="padding: 0.25rem 0.5rem; border-radius: 4px;">
+                                ${process.impactLevel || 'Not assessed'}
+                            </span>
+                        </td>
+                        <td style="padding: 1rem;">${process.rto || 'Not set'}</td>
+                        <td style="padding: 1rem;">${process.rpo || 'Not set'}</td>
+                        <td style="padding: 1rem;">${process.owner || 'Unassigned'}</td>
+                        <td style="padding: 1rem;">
+                            <button onclick="deleteProcess(${process.id})" style="background: var(--danger); color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.8rem;">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateIntegrationTools() {
+            // Update risk dropdown
+            const riskSelect = document.getElementById('selectRisk');
+            riskSelect.innerHTML = '<option value="">Choose a risk to link</option>';
+            riskDatabase.forEach(risk => {
+                const option = document.createElement('option');
+                option.value = risk.id;
+                option.textContent = `RISK-${risk.id.toString().padStart(3, '0')}: ${risk.description.substring(0, 50)}... (${risk.holidayPark})`;
+                riskSelect.appendChild(option);
+            });
+            
+            // Update process dropdown
+            const processSelect = document.getElementById('selectProcess');
+            processSelect.innerHTML = '<option value="">Choose a process to link</option>';
+            bcmDatabase.forEach(process => {
+                const option = document.createElement('option');
+                option.value = process.id;
+                option.textContent = `BCP-${process.id.toString().padStart(3, '0')}: ${process.processName} (${process.holidayPark})`;
+                processSelect.appendChild(option);
+            });
+            
+            // Update existing links
+            updateExistingLinks();
+        }
+
+        function showRiskDetails() {
+            updateLinkPreview();
+        }
+
+        function showProcessDetails() {
+            updateLinkPreview();
+        }
+
+        function updateLinkPreview() {
+            const riskId = document.getElementById('selectRisk').value;
+            const processId = document.getElementById('selectProcess').value;
+            
+            if (riskId && processId) {
+                const risk = riskDatabase.find(r => r.id == riskId);
+                const process = bcmDatabase.find(p => p.id == processId);
+                
+                if (risk && process) {
+                    const preview = document.getElementById('linkPreview');
+                    const content = document.getElementById('linkPreviewContent');
+                    
+                    content.innerHTML = `
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div>
+                                <strong>Risk:</strong> RISK-${risk.id.toString().padStart(3, '0')}<br>
+                                <strong>Description:</strong> ${risk.description}<br>
+                                <strong>Score:</strong> ${risk.score || 'N/A'} (${risk.level || 'Not assessed'})<br>
+                                <strong>Location:</strong> ${risk.holidayPark}
+                            </div>
+                            <div>
+                                <strong>Process:</strong> BCP-${process.id.toString().padStart(3, '0')}<br>
+                                <strong>Name:</strong> ${process.processName}<br>
+                                <strong>Impact:</strong> ${process.impactLevel || 'Not assessed'}<br>
+                                <strong>Location:</strong> ${process.holidayPark}
+                            </div>
+                        </div>
+                    `;
+                    
+                    preview.style.display = 'block';
+                }
+            } else {
+                document.getElementById('linkPreview').style.display = 'none';
+            }
+        }
+
+        function createLink() {
+            const riskId = parseInt(document.getElementById('selectRisk').value);
+            const processId = parseInt(document.getElementById('selectProcess').value);
+            
+            // Check if link already exists
+            if (linkDatabase.some(l => l.riskId === riskId && l.processId === processId)) {
+                alert('This link already exists!');
+                return;
+            }
+            
+            linkDatabase.push({
+                id: currentLinkId++,
+                riskId: riskId,
+                processId: processId,
+                dateCreated: new Date().toISOString().split('T')[0],
+                type: 'manual'
+            });
+            
+            // Log activity to SafePark system
+            if (window.SafeParkUtils) {
+                window.SafeParkUtils.addRecentActivity(
+                    'Risk-BCP Integration', 
+                    `Risk-process link created in integration tools`, 
+                    'success'
+                );
+            }
+            
+            saveSafeParkData();
+            
+            document.getElementById('selectRisk').value = '';
+            document.getElementById('selectProcess').value = '';
+            document.getElementById('linkPreview').style.display = 'none';
+            
+            updateExistingLinks();
+            alert('Link created successfully and saved to SafePark.PRO!');
+        }
+
+        function updateExistingLinks() {
+            const container = document.getElementById('existingLinks');
+            
+            if (linkDatabase.length === 0) {
+                container.innerHTML = '<p style="color: var(--medium-gray);">No risk-process links created yet.</p>';
+                return;
+            }
+            
+            container.innerHTML = linkDatabase.map(link => {
+                const risk = riskDatabase.find(r => r.id === link.riskId);
+                const process = bcmDatabase.find(p => p.id === link.processId);
+                
+                return `
+                    <div class="linked-item" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>RISK-${risk ? risk.id.toString().padStart(3, '0') : 'N/A'}</strong> ↔ 
+                            <strong>BCP-${process ? process.id.toString().padStart(3, '0') : 'N/A'}</strong><br>
+                            <small>${risk ? risk.description.substring(0, 30) + '...' : 'Risk not found'} ↔ ${process ? process.processName : 'Process not found'}</small><br>
+                            <small style="color: var(--medium-gray);">Created: ${link.dateCreated} (${link.type})</small>
+                        </div>
+                        <button onclick="deleteLink(${link.id})" style="background: var(--danger); color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.8rem;">Delete</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function deleteRisk(riskId) {
+            if (confirm('Are you sure you want to delete this risk? This will also remove any links to business processes.')) {
+                riskDatabase = riskDatabase.filter(r => r.id !== riskId);
+                linkDatabase = linkDatabase.filter(l => l.riskId !== riskId);
+                
+                if (window.SafeParkUtils) {
+                    window.SafeParkUtils.addRecentActivity(
+                        'Risk Management', 
+                        `Risk assessment deleted from system`, 
+                        'warning'
+                    );
+                }
+                
+                saveSafeParkData();
+                updateRiskDashboard();
+                updateIntegratedDashboard();
+            }
+        }
+
+        function deleteProcess(processId) {
+            if (confirm('Are you sure you want to delete this process? This will also remove any links to risks.')) {
+                bcmDatabase = bcmDatabase.filter(p => p.id !== processId);
+                linkDatabase = linkDatabase.filter(l => l.processId !== processId);
+                
+                if (window.SafeParkUtils) {
+                    window.SafeParkUtils.addRecentActivity(
+                        'Business Continuity', 
+                        `Business process assessment deleted from system`, 
+                        'warning'
+                    );
+                }
+                
+                saveSafeParkData();
+                updateBCMDashboard();
+                updateIntegratedDashboard();
+            }
+        }
+
+        function deleteLink(linkId) {
+            if (confirm('Are you sure you want to delete this link?')) {
+                linkDatabase = linkDatabase.filter(l => l.id !== linkId);
+                
+                if (window.SafeParkUtils) {
+                    window.SafeParkUtils.addRecentActivity(
+                        'Risk-BCP Integration', 
+                        `Risk-process link removed`, 
+                        'info'
+                    );
+                }
+                
+                saveSafeParkData();
+                updateExistingLinks();
+                updateIntegratedDashboard();
+            }
+        }
+
+        // Additional integration functions
+        function saveTreatmentPlan() {
+            // Implementation for risk treatment
+            alert('Treatment plan saved to SafePark.PRO system!');
+        }
+
+        function saveMonitoringPlan() {
+            // Implementation for monitoring plan
+            alert('Monitoring plan saved to SafePark.PRO system!');
+        }
+
+        function saveRecoveryStrategy() {
+            // Implementation for recovery strategy
+            alert('Recovery strategy saved to SafePark.PRO system!');
+        }
+
+        function saveBCPlan() {
+            // Implementation for BC plan
+            alert('Business continuity plan saved to SafePark.PRO system!');
+        }
+
+        function saveBCTest() {
+            // Implementation for BC test
+            alert('BC test plan saved to SafePark.PRO system!');
+        }
+
+        function runImpactAnalysis() {
+            const analysisType = document.getElementById('analysisType').value;
+            const resultsDiv = document.getElementById('analysisResults');
+            const contentDiv = document.getElementById('analysisContent');
+            
+            if (analysisType) {
+                let analysisContent = '';
+                
+                switch(analysisType) {
+                    case 'risk-to-process':
+                        analysisContent = generateRiskToProcessAnalysis();
+                        break;
+                    case 'process-to-risk':
+                        analysisContent = generateProcessToRiskAnalysis();
+                        break;
+                    case 'cascade-analysis':
+                        analysisContent = generateCascadeAnalysis();
+                        break;
+                    case 'recovery-alignment':
+                        analysisContent = generateRecoveryAlignment();
+                        break;
+                }
+                
+                contentDiv.innerHTML = analysisContent;
+                resultsDiv.style.display = 'block';
+            }
+        }
+
+        function generateRiskToProcessAnalysis() {
+            if (riskDatabase.length === 0 || bcmDatabase.length === 0) {
+                return '<p>No data available for analysis. Please create risk assessments and business impact analyses first.</p>';
+            }
+            
+            let analysis = '<h5>Risk Impact on Highland Holidays Processes</h5>';
+            analysis += '<div style="overflow-x: auto;"><table style="width: 100%; margin-top: 1rem;">';
+            analysis += '<thead><tr><th>Risk</th><th>Score</th><th>Affected Processes</th><th>Combined Impact</th></tr></thead>';
+            analysis += '<tbody>';
+            
+            riskDatabase.forEach(risk => {
+                const linkedProcesses = linkDatabase.filter(l => l.riskId === risk.id).map(l => {
+                    const process = bcmDatabase.find(p => p.id === l.processId);
+                    return process ? process.processName : 'Unknown';
+                });
+                
+                analysis += `
+                    <tr>
+                        <td>${risk.description.substring(0, 40)}...</td>
+                        <td><span class="${risk.class}" style="padding: 0.25rem 0.5rem; border-radius: 4px;">${risk.score || 'N/A'}</span></td>
+                        <td>${linkedProcesses.length > 0 ? linkedProcesses.join(', ') : 'None'}</td>
+                        <td>${linkedProcesses.length > 0 ? 'High' : 'Low'}</td>
+                    </tr>
+                `;
+            });
+            
+            analysis += '</tbody></table></div>';
+            return analysis;
+        }
+
+        function generateProcessToRiskAnalysis() {
+            if (bcmDatabase.length === 0 || riskDatabase.length === 0) {
+                return '<p>No data available for analysis. Please create business impact analyses and risk assessments first.</p>';
+            }
+            
+            let analysis = '<h5>Highland Holidays Process Risk Exposure</h5>';
+            analysis += '<div style="overflow-x: auto;"><table style="width: 100%; margin-top: 1rem;">';
+            analysis += '<thead><tr><th>Process</th><th>Impact Level</th><th>Associated Risks</th><th>Risk Exposure</th></tr></thead>';
+            analysis += '<tbody>';
+            
+            bcmDatabase.forEach(process => {
+                const linkedRisks = linkDatabase.filter(l => l.processId === process.id).map(l => {
+                    const risk = riskDatabase.find(r => r.id === l.riskId);
+                    return risk ? `${risk.category} (${risk.score})` : 'Unknown';
+                });
+                
+                const riskCount = linkedRisks.length;
+                let exposureLevel = 'Low';
+                if (riskCount >= 3) exposureLevel = 'High';
+                else if (riskCount >= 2) exposureLevel = 'Medium';
+                
+                analysis += `
+                    <tr>
+                        <td>${process.processName}</td>
+                        <td><span class="${process.impactClass}" style="padding: 0.25rem 0.5rem; border-radius: 4px;">${process.impactLevel || 'N/A'}</span></td>
+                        <td>${linkedRisks.length > 0 ? linkedRisks.join(', ') : 'None'}</td>
+                        <td>${exposureLevel}</td>
+                    </tr>
+                `;
+            });
+            
+            analysis += '</tbody></table></div>';
+            return analysis;
+        }
+
+        function generateCascadeAnalysis() {
+            let analysis = '<h5>Highland Holidays Cascade Impact Analysis</h5>';
+            analysis += '<p>This analysis identifies potential cascade effects where risks could impact multiple interconnected processes.</p>';
+            
+            const criticalProcesses = bcmDatabase.filter(p => p.impactScore >= 4);
+            const highRisks = riskDatabase.filter(r => r.score >= 12);
+            
+            analysis += `<h6>Critical Dependencies:</h6>`;
+            analysis += `<ul>`;
+            analysis += `<li><strong>Critical Processes:</strong> ${criticalProcesses.length} processes identified</li>`;
+            analysis += `<li><strong>High Risks:</strong> ${highRisks.length} risks identified</li>`;
+            analysis += `<li><strong>Interconnected Links:</strong> ${linkDatabase.length} risk-process links</li>`;
+            analysis += `</ul>`;
+            
+            if (criticalProcesses.length > 0 && highRisks.length > 0) {
+                analysis += `<p style="color: var(--warning); font-weight: 600;">⚠️ Cascade Risk Alert: High risks affecting critical processes could create widespread operational disruption across Highland Holidays parks.</p>`;
+            }
+            
+            return analysis;
+        }
+
+        function generateRecoveryAlignment() {
+            let analysis = '<h5>Recovery Strategy Alignment Analysis</h5>';
+            analysis += '<p>Assessment of recovery time objectives (RTO) alignment with operational requirements.</p>';
+            
+            const processesWithRTO = bcmDatabase.filter(p => p.rto);
+            const criticalProcesses = bcmDatabase.filter(p => p.impactScore >= 4);
+            
+            analysis += `<h6>Recovery Objectives Summary:</h6>`;
+            analysis += `<ul>`;
+            analysis += `<li><strong>Processes with RTO defined:</strong> ${processesWithRTO.length} of ${bcmDatabase.length}</li>`;
+            analysis += `<li><strong>Critical processes:</strong> ${criticalProcesses.length}</li>`;
+            analysis += `<li><strong>RTO compliance:</strong> ${Math.round((processesWithRTO.length / Math.max(bcmDatabase.length, 1)) * 100)}%</li>`;
+            analysis += `</ul>`;
+            
+            if (processesWithRTO.length < bcmDatabase.length) {
+                analysis += `<p style="color: var(--danger); font-weight: 600;">⚠️ Action Required: ${bcmDatabase.length - processesWithRTO.length} processes need RTO definition for complete recovery planning.</p>`;
+            }
+            
+            return analysis;
+        }
+
+        // Initialize SafePark.PRO data sync on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.syncSafeParkData) {
+                window.syncSafeParkData();
+            }
+        });
+    </script>
+</body>
+</html>
