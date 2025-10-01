@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>CQR365 - SafePark.PRO Hot Tub Management</title>
+    <style>
+        /* SafePark.PRO CSS Variables - EXACT SPECIFICATION */
+        :root {
+            --primary-orange: #CC5500;
+            --dark-orange: #B8460C;
+            --light-orange: #E6672E;
+            --black: #000000;
+            --white: #FFFFFF;
+            --smart-dark-grey: #2A2A2A;
+            --content-background: #2F2F2F;
+            --light-gray: #F8F9FA;
+            --medium-gray: #6C757D;
+            --dark-gray: #343A40;
+            --border-color: #DEE2E6;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --shadow-light: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-medium: 0 4px 20px rgba(0,0,0,0.15);
+            --shadow-heavy: 0 8px 40px rgba(0,0,0,0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+            color: var(--white);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--content-background);
+            padding: 20px;
+            border-bottom: 3px solid var(--primary-orange);
+            text-align: center;
+            position: relative;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary-orange);
+            color: var(--white);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: var(--dark-orange);
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        h1 {
+            color: var(--primary-orange);
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .brand-line {
+            color: var(--white);
+            font-size: 1.2em;
+            font-weight: 600;
+            margin: 5px 0;
+        }
+
+        .subtitle {
+            color: var(--medium-gray);
+            font-size: 1em;
+            margin: 5px 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .form-section {
+            background: var(--content-background);
+            margin: 20px 0;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: var(--shadow-medium);
+            border-left: 4px solid var(--primary-orange);
+        }
+
+        .form-section h3 {
+            color: var(--primary-orange);
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            color: var(--white);
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .required {
+            color: var(--danger);
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--dark-gray);
+            border-radius: 5px;
+            background: var(--smart-dark-grey);
+            color: var(--white);
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 3px rgba(204, 85, 0, 0.1);
+        }
+
+        .quick-check-container {
+            background: rgba(204, 85, 0, 0.1);
+            border: 2px solid var(--primary-orange);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .quick-check-options {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .tub-selection {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .tub-selection-content {
+            background: var(--content-background);
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 2px solid var(--primary-orange);
+        }
+
+        .tub-checklist {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+
+        .maintenance-tasks {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: var(--smart-dark-grey);
+            border-radius: 5px;
+            border: 1px solid var(--dark-gray);
+        }
+
+        .task-item:hover {
+            border-color: var(--primary-orange);
+        }
+
+        .task-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-orange);
+        }
+
+        .btn {
+            background: var(--primary-orange);
+            color: var(--white);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background: var(--dark-orange);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .btn-secondary {
+            background: var(--medium-gray);
+        }
+
+        .btn-secondary:hover {
+            background: var(--dark-gray);
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+        }
+
+        .management-section {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .hot-tub-list {
+            background: var(--smart-dark-grey);
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--medium-gray);
+            border-top: 1px solid var(--dark-gray);
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 15px;
+            }
+
+            .back-btn {
+                position: static;
+                transform: none;
+                margin-bottom: 15px;
+                display: block;
+                width: auto;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-check-options {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="back-btn" onclick="window.location.href='index.html'">← Back to SafePark</button>
+        <h1>CQR365</h1>
+        <div class="brand-line">SafePark.PRO</div>
+        <div class="subtitle">Highland Holidays Hot Tub Management</div>
+        <div style="color: var(--medium-gray); font-size: 0.9em; margin-top: 5px;">Comprehensive hot tub maintenance and compliance tracking system</div>
+    </div>
+
+    <div class="container">
+        <form id="hotTubForm" action="https://formspree.io/f/xldprzkr" method="POST" enctype="multipart/form-data">
+            <!-- Hidden SafePark.PRO Integration Fields -->
+            <input type="hidden" name="module" value="Hot Tub Management">
+            <input type="hidden" name="_subject" value="SafePark.PRO - Hot Tub Management Submission">
+
+
+
+            <div class="form-section">
+                <h3>Select Location</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Highland Holidays Location <span class="required">*</span></label>
+                        <select name="holiday_park" class="form-select" data-populate="holiday-parks" required id="ht-site-select" onchange="updateHotTubList()">
+                            <option value="">Select Highland Holidays Location</option>
+                            <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                            <option value="Oban Holiday Park">Oban Holiday Park</option>
+                            <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                            <option value="Overburns Farm">Overburns Farm</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Inspection Date <span class="required">*</span></label>
+                        <input type="date" name="maintenance_date" class="form-input" required id="ht-maintenance-date">
+                    </div>
+                </div>
+                
+                <!-- Quick Daily Check Option -->
+                <div class="quick-check-container" id="quick-check-option">
+                    <h4>Highland Holidays Quick Daily Check</h4>
+                    <p style="color: var(--white); margin-bottom: 16px;">For routine daily inspections with no issues found</p>
+                    <div class="quick-check-options">
+                        <button type="button" class="btn" onclick="selectAllDailyChecks()">Select All Daily Tasks</button>
+                        <button type="button" class="btn btn-success" onclick="showQuickCheckDialog()">Quick Check All Units</button>
+                    </div>
+                    
+                    <!-- Hot Tub Selection for Quick Check -->
+                    <div id="quick-check-tubs" class="tub-selection">
+                        <div class="tub-selection-content">
+                            <h4 style="color: var(--primary-orange); margin-bottom: 15px;">Select Hot Tubs for Quick Check:</h4>
+                            <div id="tub-checklist" class="tub-checklist">
+                                <!-- Dynamically populated -->
+                            </div>
+                            <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                                <button type="button" class="btn" onclick="selectAllTubs()">Select All Units</button>
+                                <button type="button" class="btn btn-secondary" onclick="deselectAllTubs()">Deselect All</button>
+                                <button type="button" class="btn btn-success" onclick="confirmQuickCheck()">Confirm & Submit</button>
+                                <button type="button" class="btn btn-secondary" onclick="cancelQuickCheck()">Cancel</button>
+                            </div>
+                            <div style="margin-top: 15px; padding: 10px; background: rgba(255,193,7,0.2); border-radius: 5px;">
+                                <small style="color: #FFD700;">
+                                    <strong>Note:</strong> Deselect any hot tubs with issues. Only selected units will be marked as checked with all daily tasks complete and optimal water values.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Individual Hot Tub Selection -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Individual Hot Tub (Optional if using Quick Check)</label>
+                        <select name="hottub_unit" class="form-select" id="hottub-select" onchange="updateHotTubDetails()">
+                            <option value="">Select Hot Tub</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Team Member <span class="required">*</span></label>
+                        <select name="team_member" class="form-select" data-populate="team-members" data-business-area="Water Activities" required>
+                            <option value="">Select team member...</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Maintenance Tasks -->
+            <div class="form-section">
+                <h3>Daily Maintenance Tasks</h3>
+                <div class="maintenance-tasks">
+                    <div class="task-item">
+                        <input type="checkbox" id="visual-inspection" name="daily_tasks" value="Visual Inspection">
+                        <label for="visual-inspection">Visual Inspection</label>
+                    </div>
+                    <div class="task-item">
+                        <input type="checkbox" id="water-testing" name="daily_tasks" value="Water Testing">
+                        <label for="water-testing">Water Testing</label>
+                    </div>
+                    <div class="task-item">
+                        <input type="checkbox" id="waterline-clean" name="daily_tasks" value="Waterline Cleaning">
+                        <label for="waterline-clean">Waterline Cleaning</label>
+                    </div>
+                    <div class="task-item">
+                        <input type="checkbox" id="surface-debris" name="daily_tasks" value="Surface Debris Removal">
+                        <label for="surface-debris">Surface Debris Removal</label>
+                    </div>
+                    <div class="task-item">
+                        <input type="checkbox" id="lid-inspection" name="daily_tasks" value="Lid Inspection">
+                        <label for="lid-inspection">Lid Inspection</label>
+                    </div>
+                    <div class="task-item">
+                        <input type="checkbox" id="lid-clean" name="daily_tasks" value="Lid Cleaning">
+                        <label for="lid-clean">Lid Cleaning</label>
+                    </div>
+                    <div class="task-item">
+                        <input type="checkbox" id="lid-secure" name="daily_tasks" value="Lid Security Check">
+                        <label for="lid-secure">Lid Security Check</label>
+                    </div>
+                    <div class="task-item">
+                        <input type="checkbox" id="safety-equipment" name="daily_tasks" value="Safety Equipment Check">
+                        <label for="safety-equipment">Safety Equipment Check</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Water Quality -->
+            <div class="form-section">
+                <h3>Water Quality Readings</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">pH Level</label>
+                        <input type="number" id="ph-level" name="ph_level" class="form-input" step="0.1" min="6.0" max="8.0" placeholder="7.2-7.6 optimal">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Bromine Level (mg/L)</label>
+                        <input type="number" id="bromine-level" name="bromine_level" class="form-input" step="0.1" min="0" max="10" placeholder="3.0-5.0 optimal">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Water Temperature (°C)</label>
+                        <input type="number" id="temperature" name="temperature" class="form-input" step="0.1" min="35" max="42" placeholder="37-40 optimal">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Total Alkalinity (mg/L)</label>
+                        <input type="number" id="total-alkalinity" name="total_alkalinity" class="form-input" step="1" min="0" max="300" placeholder="80-120 optimal">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Issues & Priority -->
+            <div class="form-section">
+                <h3>Issues & Maintenance Requirements</h3>
+                <div class="form-group">
+                    <label class="form-label">Issues Identified</label>
+                    <textarea name="issues_identified" class="form-textarea" rows="4" placeholder="Describe any issues, maintenance needs, or observations..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Priority Level</label>
+                        <select name="priority_level" class="form-select">
+                            <option value="">Select priority...</option>
+                            <option value="low">Low - Routine maintenance</option>
+                            <option value="medium">Medium - Needs attention</option>
+                            <option value="high">High - Urgent repair required</option>
+                            <option value="critical">Critical - Safety issue</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Maintenance Type</label>
+                        <select name="maintenance_type" class="form-select">
+                            <option value="">Select type...</option>
+                            <option value="daily">Daily Check</option>
+                            <option value="weekly">Weekly Maintenance</option>
+                            <option value="monthly">Monthly Inspection</option>
+                            <option value="repair">Repair Work</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Photo Upload -->
+            <div class="form-section">
+                <h3>Photo Documentation</h3>
+                <div class="form-group">
+                    <label class="form-label">Upload Photos (Max 10MB each)</label>
+                    <input type="file" name="maintenance_photos" class="form-input" accept="image/*" multiple>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="form-section" style="text-align: center;">
+                <button type="submit" class="btn" style="font-size: 18px; padding: 15px 40px;">
+                    Submit Hot Tub Report
+                </button>
+            </div>
+        </form>
+
+        <!-- Hot Tub Management Section -->
+        <div class="form-section">
+            <h3>
+                Hot Tub Management
+                <button type="button" id="management-toggle" class="btn btn-secondary" onclick="toggleHotTubManagement()">Hide Management</button>
+            </h3>
+            <div id="hottub-management" class="management-section" style="display: block;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Location</label>
+                        <select id="add-location" class="form-select">
+                            <option value="">Select location...</option>
+                            <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                            <option value="Oban Holiday Park">Oban Holiday Park</option>
+                            <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                            <option value="Overburns Farm">Overburns Farm</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Hot Tub ID (e.g., HT-001-BNHP)</label>
+                        <input type="text" id="add-hottub-id" class="form-input" placeholder="HT-XXX-XXXHP">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Capacity (litres)</label>
+                        <input type="number" id="add-capacity" class="form-input" min="1" max="2000">
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn" onclick="addHotTub()">Add Hot Tub</button>
+                    </div>
+                </div>
+                <div id="hot-tub-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2025 CQR365 SafePark.PRO - Highland Holidays Hot Tub Management System</p>
+    </div>
+
+    <script>
+        // Highland Holidays Hot Tub Data - Start with empty data, managed through interface
+        const highlandHolidaysSiteData = {
+            'Ben Nevis Holiday Park': { hotTubs: [] },
+            'Oban Holiday Park': { hotTubs: [] },
+            'Tyndrum Holiday Park': { hotTubs: [] },
+            'Overburns Farm': { hotTubs: [] }
+        };
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Highland Holidays Hot Tub Management System Initialized');
+            setInitialDates();
+            loadFormData();
+            loadHotTubData();
+            setupFormSubmission();
+            
+            // Initialize SafePark.PRO integration
+            if (window.syncSafeParkData) {
+                window.syncSafeParkData();
+            }
+            
+            // Auto-save on form changes
+            const form = document.getElementById('hotTubForm');
+            form.addEventListener('change', saveFormData);
+            form.addEventListener('input', saveFormData);
+        });
+
+        // Set initial dates
+        function setInitialDates() {
+            const today = new Date().toISOString().split('T')[0];
+            const dateField = document.getElementById('ht-maintenance-date');
+            if (dateField && !dateField.value) {
+                dateField.value = today;
+            }
+        }
+
+        // Update hot tub list based on selected site
+        function updateHotTubList() {
+            const site = document.getElementById('ht-site-select')?.value;
+            const hotTubSelect = document.getElementById('hottub-select');
+            
+            if (!hotTubSelect) return;
+            
+            hotTubSelect.innerHTML = '<option value="">Select Hot Tub</option>';
+            
+            // Hide quick check dialog when changing sites
+            const quickCheckTubs = document.getElementById('quick-check-tubs');
+            if (quickCheckTubs) {
+                quickCheckTubs.style.display = 'none';
+            }
+            
+            if (site && highlandHolidaysSiteData[site] && highlandHolidaysSiteData[site].hotTubs) {
+                highlandHolidaysSiteData[site].hotTubs.forEach(tub => {
+                    const option = document.createElement('option');
+                    option.value = tub.id;
+                    option.textContent = `${tub.name} (${tub.id})`;
+                    option.setAttribute('data-capacity', tub.capacity);
+                    hotTubSelect.appendChild(option);
+                });
+            }
+            
+            saveFormData();
+        }
+
+        // Update hot tub details
+        function updateHotTubDetails() {
+            const hotTubSelect = document.getElementById('hottub-select');
+            const selectedOption = hotTubSelect.options[hotTubSelect.selectedIndex];
+            
+            if (selectedOption && selectedOption.getAttribute('data-capacity')) {
+                console.log(`Selected hot tub capacity: ${selectedOption.getAttribute('data-capacity')}`);
+            }
+            
+            saveFormData();
+        }
+
+        // Quick check dialog functions
+        function showQuickCheckDialog() {
+            const site = document.getElementById('ht-site-select').value;
+            if (!site) {
+                alert('Please select a Highland Holidays location first');
+                return;
+            }
+            
+            const dialog = document.getElementById('quick-check-tubs');
+            const list = document.getElementById('tub-checklist');
+            
+            list.innerHTML = '';
+            
+            if (highlandHolidaysSiteData[site] && highlandHolidaysSiteData[site].hotTubs && highlandHolidaysSiteData[site].hotTubs.length > 0) {
+                highlandHolidaysSiteData[site].hotTubs.forEach(tub => {
+                    const div = document.createElement('div');
+                    div.style.cssText = 'display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 5px; border: 1px solid rgba(255,255,255,0.2); margin-bottom: 10px;';
+                    div.innerHTML = `
+                        <input type="checkbox" id="quick-${tub.id}" name="quick_check_tubs" value="${tub.id}" checked style="width: 20px; height: 20px; accent-color: var(--primary-orange);">
+                        <label for="quick-${tub.id}" style="color: var(--white); cursor: pointer; flex: 1;">
+                            <strong>${tub.name}</strong><br>
+                            <small style="color: #B8C5D6;">${tub.id} - ${tub.capacity}L</small>
+                        </label>
+                    `;
+                    list.appendChild(div);
+                });
+                
+                dialog.style.display = 'flex';
+                selectAllDailyChecks();
+            } else {
+                alert('No hot tubs found for this location. Please add hot tubs using the management section first.');
+            }
+        }
+
+        function selectAllTubs() {
+            document.querySelectorAll('input[name="quick_check_tubs"]').forEach(checkbox => {
+                checkbox.checked = true;
+            });
+        }
+
+        function deselectAllTubs() {
+            document.querySelectorAll('input[name="quick_check_tubs"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+        }
+
+        function cancelQuickCheck() {
+            document.getElementById('quick-check-tubs').style.display = 'none';
+        }
+
+        function confirmQuickCheck() {
+            const selectedTubs = Array.from(document.querySelectorAll('input[name="quick_check_tubs"]:checked')).map(cb => cb.value);
+            
+            if (selectedTubs.length === 0) {
+                alert('Please select at least one hot tub');
+                return;
+            }
+            
+            // Select all daily tasks
+            selectAllDailyChecks();
+            
+            // Set optimal water values
+            document.getElementById('ph-level').value = '7.4';
+            document.getElementById('bromine-level').value = '4.0';
+            document.getElementById('temperature').value = '38.5';
+            document.getElementById('total-alkalinity').value = '100';
+            
+            // Set maintenance type to daily
+            const maintenanceType = document.querySelector('select[name="maintenance_type"]');
+            if (maintenanceType) maintenanceType.value = 'daily';
+            
+            // **FIX: Bypass individual hot tub selection requirement**
+            const hotTubSelect = document.getElementById('hottub-select');
+            if (hotTubSelect && selectedTubs.length > 0) {
+                // Add "Multiple Units" option if it doesn't exist
+                let multipleOption = Array.from(hotTubSelect.options).find(opt => opt.value === 'MULTIPLE_UNITS');
+                if (!multipleOption) {
+                    multipleOption = document.createElement('option');
+                    multipleOption.value = 'MULTIPLE_UNITS';
+                    multipleOption.textContent = `Multiple Units (${selectedTubs.length} selected)`;
+                    hotTubSelect.appendChild(multipleOption);
+                }
+                hotTubSelect.value = 'MULTIPLE_UNITS';
+                
+                // Make individual hot tub selection optional
+                hotTubSelect.removeAttribute('required');
+            }
+            
+            // Add hidden field with selected tubs for submission
+            let hiddenField = document.getElementById('selected-quick-check-tubs');
+            if (!hiddenField) {
+                hiddenField = document.createElement('input');
+                hiddenField.type = 'hidden';
+                hiddenField.id = 'selected-quick-check-tubs';
+                hiddenField.name = 'selected_quick_check_tubs';
+                document.getElementById('hotTubForm').appendChild(hiddenField);
+            }
+            
+            const selectedTubNames = selectedTubs.map(id => {
+                const site = document.getElementById('ht-site-select').value;
+                const tub = highlandHolidaysSiteData[site].hotTubs.find(t => t.id === id);
+                return tub ? tub.name : id;
+            });
+            hiddenField.value = JSON.stringify(selectedTubNames);
+            
+            document.getElementById('quick-check-tubs').style.display = 'none';
+            saveFormData();
+            
+            alert(`Quick check configured for ${selectedTubs.length} hot tub(s):\n${selectedTubNames.join('\n')}\n\nAll daily tasks selected with optimal water values.\nForm is ready to submit!`);
+        }
+
+        // Select all daily maintenance tasks
+        function selectAllDailyChecks() {
+            const checkboxes = [
+                'visual-inspection', 'water-testing', 'waterline-clean',
+                'surface-debris', 'lid-inspection', 'lid-clean',
+                'lid-secure', 'safety-equipment'
+            ];
+            
+            checkboxes.forEach(id => {
+                const checkbox = document.getElementById(id);
+                if (checkbox) checkbox.checked = true;
+            });
+            
+            saveFormData();
+        }
+
+        // Hot tub management functions
+        function toggleHotTubManagement() {
+            const managementDiv = document.getElementById('hottub-management');
+            const toggleBtn = document.getElementById('management-toggle');
+            
+            if (managementDiv.style.display === 'none') {
+                managementDiv.style.display = 'block';
+                toggleBtn.textContent = 'Hide Management';
+                displayHotTubList();
+            } else {
+                managementDiv.style.display = 'none';
+                toggleBtn.textContent = 'Show Management';
+            }
+        }
+
+        function addHotTub() {
+            const location = document.getElementById('add-location').value;
+            const hotTubId = document.getElementById('add-hottub-id').value.trim();
+            const capacity = parseInt(document.getElementById('add-capacity').value);
+
+            if (!location || !hotTubId || !capacity) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            // Validate ID format
+            if (!/^HT-\d{3}-[A-Z]{2,4}HP$/.test(hotTubId)) {
+                alert('Hot Tub ID must follow format: HT-XXX-XXXHP (e.g., HT-003-BNHP)');
+                return;
+            }
+
+            // Check if ID already exists
+            const existingIds = [];
+            Object.values(highlandHolidaysSiteData).forEach(site => {
+                if (site.hotTubs) {
+                    site.hotTubs.forEach(tub => existingIds.push(tub.id));
+                }
+            });
+
+            if (existingIds.includes(hotTubId)) {
+                alert('Hot Tub ID already exists. Please use a unique ID.');
+                return;
+            }
+
+            // Add the hot tub
+            if (!highlandHolidaysSiteData[location]) {
+                highlandHolidaysSiteData[location] = { hotTubs: [] };
+            }
+            if (!highlandHolidaysSiteData[location].hotTubs) {
+                highlandHolidaysSiteData[location].hotTubs = [];
+            }
+
+            highlandHolidaysSiteData[location].hotTubs.push({
+                id: hotTubId,
+                name: hotTubId,
+                capacity: capacity
+            });
+
+            // Save and update
+            saveHotTubData();
+            displayHotTubList();
+            
+            // Clear form
+            document.getElementById('add-location').value = '';
+            document.getElementById('add-hottub-id').value = '';
+            document.getElementById('add-capacity').value = '';
+
+            // Log activity
+            if (window.SafeParkUtils && window.SafeParkUtils.addRecentActivity) {
+                window.SafeParkUtils.addRecentActivity(
+                    'Hot Tub Management',
+                    `Added new hot tub: ${hotTubId} at ${location}`,
+                    'success'
+                );
+            }
+
+            alert(`Hot Tub ${hotTubId} added successfully to ${location}`);
+        }
+
+        function removeHotTub(location, hotTubId) {
+            if (!confirm(`Are you sure you want to remove hot tub ${hotTubId} from ${location}?`)) {
+                return;
+            }
+
+            if (highlandHolidaysSiteData[location] && highlandHolidaysSiteData[location].hotTubs) {
+                const index = highlandHolidaysSiteData[location].hotTubs.findIndex(tub => tub.id === hotTubId);
+                if (index > -1) {
+                    highlandHolidaysSiteData[location].hotTubs.splice(index, 1);
+                    saveHotTubData();
+                    displayHotTubList();
+
+                    // Log activity
+                    if (window.SafeParkUtils && window.SafeParkUtils.addRecentActivity) {
+                        window.SafeParkUtils.addRecentActivity(
+                            'Hot Tub Management',
+                            `Removed hot tub: ${hotTubId} from ${location}`,
+                            'warning'
+                        );
+                    }
+
+                    alert(`Hot Tub ${hotTubId} removed from ${location}`);
+                }
+            }
+        }
+
+        function displayHotTubList() {
+            const listDiv = document.getElementById('hot-tub-list');
+            listDiv.innerHTML = '<h4>Current Hot Tub Inventory:</h4>';
+
+            Object.keys(highlandHolidaysSiteData).forEach(location => {
+                if (highlandHolidaysSiteData[location].hotTubs && highlandHolidaysSiteData[location].hotTubs.length > 0) {
+                    const locationDiv = document.createElement('div');
+                    locationDiv.className = 'hot-tub-list';
+                    locationDiv.innerHTML = `<h5>${location}:</h5>`;
+
+                    highlandHolidaysSiteData[location].hotTubs.forEach(tub => {
+                        const tubDiv = document.createElement('div');
+                        tubDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--dark-gray);';
+                        tubDiv.innerHTML = `
+                            <span>${tub.id} (Capacity: ${tub.capacity}L)</span>
+                            <button type="button" class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="removeHotTub('${location}', '${tub.id}')">Remove</button>
+                        `;
+                        locationDiv.appendChild(tubDiv);
+                    });
+
+                    listDiv.appendChild(locationDiv);
+                }
+            });
+        }
+
+        // Data persistence functions
+        function saveFormData() {
+            const formData = new FormData(document.getElementById('hotTubForm'));
+            const data = {};
+            
+            for (let [key, value] of formData.entries()) {
+                if (data[key]) {
+                    if (Array.isArray(data[key])) {
+                        data[key].push(value);
+                    } else {
+                        data[key] = [data[key], value];
+                    }
+                } else {
+                    data[key] = value;
+                }
+            }
+            
+            localStorage.setItem('safePark_hotTubForm', JSON.stringify(data));
+        }
+
+        function loadFormData() {
+            try {
+                const saved = localStorage.getItem('safePark_hotTubForm');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    Object.keys(data).forEach(key => {
+                        const element = document.querySelector(`[name="${key}"]`);
+                        if (element) {
+                            if (element.type === 'checkbox') {
+                                const values = Array.isArray(data[key]) ? data[key] : [data[key]];
+                                values.forEach(value => {
+                                    const checkbox = document.querySelector(`[name="${key}"][value="${value}"]`);
+                                    if (checkbox) checkbox.checked = true;
+                                });
+                            } else {
+                                element.value = Array.isArray(data[key]) ? data[key][0] : data[key];
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.log('No saved form data found');
+            }
+        }
+
+        function saveHotTubData() {
+            localStorage.setItem('safePark_hotTubData', JSON.stringify(highlandHolidaysSiteData));
+        }
+
+        function loadHotTubData() {
+            try {
+                const saved = localStorage.getItem('safePark_hotTubData');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    Object.assign(highlandHolidaysSiteData, data);
+                }
+            } catch (error) {
+                console.log('No saved hot tub data found');
+            }
+        }
+
+        // Form submission with SafePark.PRO integration
+        function setupFormSubmission() {
+            const hotTubForm = document.getElementById('hotTubForm');
+            if (hotTubForm) {
+                hotTubForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Get form data for maintenance record creation
+                    const site = document.getElementById('ht-site-select').value;
+                    const hotTubId = document.getElementById('hottub-select').value;
+                    const issues = document.querySelector('textarea[name="issues_identified"]').value;
+                    const priority = document.querySelector('select[name="priority_level"]').value;
+                    
+                    // Create maintenance record if issues identified
+                    if (issues && issues.trim() && window.SafeParkUtils && window.SafeParkUtils.addMaintenanceRecord) {
+                        window.SafeParkUtils.addMaintenanceRecord({
+                            title: `Hot Tub Issue: ${hotTubId || 'Multiple Units'}`,
+                            description: `Hot tub maintenance issue at ${site}: ${issues.trim()}`,
+                            businessArea: 'Water Activities',
+                            holidayPark: site,
+                            priority: priority || 'medium',
+                            module: 'Hot Tub Management',
+                            location: hotTubId || 'Multiple Units'
+                        });
+                    }
+                    
+                    // Log activity to main SafePark system
+                    if (window.SafeParkUtils && window.SafeParkUtils.addRecentActivity) {
+                        const quickCheck = document.getElementById('selected-quick-check-tubs');
+                        const activityDescription = quickCheck && quickCheck.value ? 
+                            `Quick check completed for multiple hot tubs` : 
+                            `Hot tub maintenance completed: ${hotTubId || 'Unit not specified'}`;
+                        
+                        window.SafeParkUtils.addRecentActivity(
+                            'Hot Tub Management',
+                            activityDescription,
+                            issues && issues.trim() ? 'warning' : 'success'
+                        );
+                    }
+                    
+                    // Submit the form
+                    this.submit();
+                });
+            }
+        }
+    </script>
+</body>
+</html>
