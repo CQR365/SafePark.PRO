@@ -1,0 +1,1751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>CQR365 - SafePark.PRO Contractor Management</title>
+    <script type="module" src="firebase-config.js"></script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#CC5500">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-orange: #CC5500;
+            --dark-orange: #B8460C;
+            --light-orange: #E6672E;
+            --black: #000000;
+            --white: #FFFFFF;
+            --smart-dark-grey: #2A2A2A;
+            --content-background: #3A3A3A; /* Lighter form backgrounds */
+            --light-gray: #F8F9FA;
+            --medium-gray: #6C757D;
+            --dark-gray: #343A40;
+            --border-color: #DEE2E6;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --shadow-light: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-medium: 0 4px 20px rgba(0,0,0,0.15);
+            --shadow-heavy: 0 8px 40px rgba(0,0,0,0.2);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+            color: #E8E8E8;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Enhanced Sticky Logo Back Button */
+        .sticky-logo-back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 70px;
+            height: 70px;
+            z-index: 1000;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.4));
+        }
+
+        .sticky-logo-back:hover {
+            transform: scale(1.1);
+            filter: drop-shadow(0 12px 30px rgba(204, 85, 0, 0.6));
+        }
+
+        .sticky-logo-back:active {
+            transform: scale(0.95);
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+            color: white;
+            padding: 30px 20px;
+            box-shadow: var(--shadow-heavy);
+            position: relative;
+            text-align: center;
+            border-bottom: 3px solid var(--primary-orange);
+            margin-top: 20px; /* Space for sticky logo */
+        }
+
+        .header h1 {
+            font-size: 36px;
+            margin: 0;
+            line-height: 1.2;
+            color: var(--primary-orange);
+            font-weight: 700;
+        }
+
+        .brand-line {
+            font-size: 18px;
+            margin: 8px 0;
+            line-height: 1.2;
+            color: var(--light-orange);
+            font-weight: 600;
+        }
+
+        .header .subtitle {
+            font-size: 16px;
+            margin: 8px 0 0 0;
+            line-height: 1.2;
+            color: #B8B8B8;
+            font-weight: 500;
+        }
+
+        /* Hide original back button */
+        .back-btn {
+            display: none;
+        }
+
+        .navigation {
+            background: var(--content-background);
+            box-shadow: var(--shadow-light);
+            padding: 15px 0;
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: linear-gradient(145deg, #4a4a4a, var(--content-background));
+            color: #E8E8E8;
+            border: 1px solid #555;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-btn:hover {
+            background: linear-gradient(145deg, #5a5a5a, #4a4a4a);
+            border-color: var(--primary-orange);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            border-color: var(--primary-orange);
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--content-background);
+            border-radius: 16px;
+            box-shadow: var(--shadow-heavy);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-orange), var(--dark-orange));
+            transition: width 0.3s ease;
+            z-index: 1000;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .section {
+            margin-bottom: 0;
+            border-bottom: 1px solid #555;
+            transition: all 0.3s ease;
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #4a4a4a 0%, #424242 100%);
+            padding: 25px 30px;
+            border-left: 6px solid var(--primary-orange);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .section-header:hover {
+            background: linear-gradient(135deg, #525252 0%, #4a4a4a 100%);
+            transform: translateX(2px);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #E8E8E8;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-number {
+            background: var(--primary-orange);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .collapse-icon {
+            font-size: 20px;
+            color: var(--primary-orange);
+            transition: transform 0.3s ease;
+        }
+
+        .section-content {
+            padding: 30px;
+            background: var(--content-background);
+            display: block;
+        }
+
+        .section.collapsed .section-content {
+            display: none;
+        }
+
+        .section.collapsed .collapse-icon {
+            transform: rotate(-90deg);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .form-row-three {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #E8E8E8;
+            font-size: 14px;
+        }
+
+        .required {
+            color: var(--primary-orange);
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="date"],
+        input[type="number"],
+        input[type="file"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #555;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: #4a4a4a; /* Lighter input backgrounds */
+            color: #E8E8E8;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="tel"]:focus,
+        input[type="date"]:focus,
+        input[type="number"]:focus,
+        input[type="file"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 3px rgba(204, 85, 0, 0.1);
+            transform: translateY(-1px);
+            background: #525252;
+        }
+
+        input[type="file"] {
+            padding: 12px 16px;
+            background: #424242;
+            border-style: dashed;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 20px;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            background: #4a4a4a;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .checkbox-item:hover {
+            background: #525252;
+            transform: translateY(-1px);
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary-orange);
+            cursor: pointer;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 18px;
+            background: #4a4a4a;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .radio-item:hover {
+            background: #525252;
+            border-color: var(--primary-orange);
+        }
+
+        input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-orange);
+            cursor: pointer;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #5a4a30 0%, #4a3e28 100%);
+            border: 1px solid var(--primary-orange);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            font-size: 14px;
+            position: relative;
+            overflow: hidden;
+            color: #E8E8E8;
+        }
+
+        .info-box::before {
+            content: 'ℹ';
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 24px;
+            height: 24px;
+            background: var(--primary-orange);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        small {
+            font-size: 13px;
+            color: #999;
+            margin-top: 6px;
+            display: block;
+        }
+
+        .submit-section {
+            text-align: center;
+            padding: 40px 30px;
+            background: linear-gradient(135deg, #4a4a4a 0%, #424242 100%);
+        }
+
+        .submit-btn, .print-btn {
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: white;
+            padding: 16px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+            box-shadow: var(--shadow-medium);
+            min-width: 180px;
+        }
+
+        .submit-btn:hover, .print-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-heavy);
+        }
+
+        .submit-btn:active, .print-btn:active {
+            transform: translateY(1px);
+            box-shadow: var(--shadow-light);
+        }
+
+        .summary-page {
+            display: none;
+        }
+
+        .summary-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .summary-section {
+            background: var(--content-background);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-medium);
+            border-top: 4px solid var(--primary-orange);
+            transition: transform 0.3s ease;
+        }
+
+        .summary-section:hover {
+            transform: translateY(-3px);
+        }
+
+        .summary-section h3 {
+            color: var(--primary-orange);
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .summary-item {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #555;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .summary-label {
+            font-weight: 600;
+            color: #E8E8E8;
+            flex: 1;
+        }
+
+        .summary-value {
+            color: #999;
+            text-align: right;
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: #424242;
+            color: #999;
+            font-size: 14px;
+            border-top: 1px solid #555;
+        }
+
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 30px 20px;
+                margin-top: 30px; /* More space on mobile for sticky logo */
+            }
+
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .brand-line {
+                font-size: 16px;
+            }
+
+            .section-header {
+                padding: 20px 20px;
+            }
+
+            .section-content {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 18px;
+            }
+
+            .form-row,
+            .form-row-three {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
+
+            .radio-group {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .summary-content {
+                grid-template-columns: 1fr;
+                padding: 20px;
+                gap: 20px;
+            }
+
+            .submit-btn, .print-btn {
+                width: 100%;
+                margin: 5px 0;
+            }
+
+            .sticky-logo-back {
+                width: 60px;
+                height: 60px;
+                top: 15px;
+                left: 15px;
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+            }
+        }
+
+        @media print {
+            body {
+                background: var(--content-background);
+                padding: 0;
+            }
+
+            .submit-btn, .print-btn {
+                display: none;
+            }
+
+            .container {
+                box-shadow: none;
+                border: 1px solid #555;
+            }
+
+            .section-header {
+                background: #4a4a4a !important;
+            }
+
+            .summary-section {
+                break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #555;
+            }
+        }
+
+        /* Hide Chrome PWA install badge */
+        button[data-balloon="Install SafePark.PRO"] {
+            display: none !important;
+        }
+        .pwa-install-prompt {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Enhanced Sticky Logo Back Button -->
+    <div class="sticky-logo-back" onclick="window.location.href='index.html'" title="Back to SafePark.PRO">
+        <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <!-- 3D Gradient Definitions -->
+                <radialGradient id="mainGradient" cx="0.3" cy="0.3" r="0.8">
+                    <stop offset="0%" stop-color="#FF8533"/>
+                    <stop offset="30%" stop-color="#CC5500"/>
+                    <stop offset="70%" stop-color="#B8460C"/>
+                    <stop offset="100%" stop-color="#8B3700"/>
+                </radialGradient>
+                
+                <!-- Inner Ring Gradient -->
+                <radialGradient id="innerGradient" cx="0.4" cy="0.4" r="0.6">
+                    <stop offset="0%" stop-color="#FFB366"/>
+                    <stop offset="50%" stop-color="#E6672E"/>
+                    <stop offset="100%" stop-color="#CC5500"/>
+                </radialGradient>
+                
+                <!-- Text Gradient with Chrome-like finish -->
+                <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#FFFFFF"/>
+                    <stop offset="30%" stop-color="#F8F8F8"/>
+                    <stop offset="60%" stop-color="#E8E8E8"/>
+                    <stop offset="100%" stop-color="#D0D0D0"/>
+                </linearGradient>
+                
+                <!-- Enhanced Shimmer Effect -->
+                <linearGradient id="shimmer" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="rgba(255,255,255,0)" stop-opacity="0"/>
+                    <stop offset="45%" stop-color="rgba(255,255,255,0.7)" stop-opacity="1"/>
+                    <stop offset="50%" stop-color="rgba(255,255,255,1)" stop-opacity="1"/>
+                    <stop offset="55%" stop-color="rgba(255,255,255,0.7)" stop-opacity="1"/>
+                    <stop offset="100%" stop-color="rgba(255,255,255,0)" stop-opacity="0"/>
+                    <animateTransform
+                        attributeName="gradientTransform"
+                        type="translate"
+                        values="-150,-150;700,700;-150,-150"
+                        dur="4s"
+                        repeatCount="indefinite"/>
+                </linearGradient>
+                
+                <!-- Pulsing Glow Effect -->
+                <radialGradient id="glow">
+                    <stop offset="70%" stop-color="rgba(255,133,51,0)"/>
+                    <stop offset="90%" stop-color="rgba(255,133,51,0.3)"/>
+                    <stop offset="100%" stop-color="rgba(255,133,51,0.8)"/>
+                    <animateTransform
+                        attributeName="gradientTransform"
+                        type="scale"
+                        values="1;1.1;1"
+                        dur="2s"
+                        repeatCount="indefinite"/>
+                </radialGradient>
+                
+                <!-- Professional Shadow Filter -->
+                <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur in="SourceAlpha" stdDeviation="12"/>
+                    <feOffset dx="6" dy="12" result="offset"/>
+                    <feFlood flood-color="#000000" flood-opacity="0.4"/>
+                    <feComposite in2="offset" operator="in"/>
+                    <feMerge>
+                        <feMergeNode/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+                
+                <!-- Text Emboss Effect -->
+                <filter id="emboss" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                    <feSpecularLighting result="specOut" surfaceScale="5" specularConstant="2" specularExponent="30" lighting-color="#fff">
+                        <fePointLight x="180" y="120" z="400"/>
+                    </feSpecularLighting>
+                    <feComposite in="specOut" in2="SourceAlpha" operator="in" result="specOut2"/>
+                    <feComposite in="SourceGraphic" in2="specOut2" operator="arithmetic" k1="0" k2="1" k3="1" k4="0"/>
+                </filter>
+            </defs>
+            
+            <!-- Outer Glow Ring -->
+            <circle cx="256" cy="256" r="240" fill="url(#glow)" opacity="0.6"/>
+            
+            <!-- Main Circle with Enhanced 3D Effect -->
+            <circle cx="256" cy="256" r="220" fill="url(#mainGradient)" filter="url(#shadow)"/>
+            
+            <!-- Dark Professional Border Ring -->
+            <circle cx="256" cy="256" r="212" fill="none" stroke="rgba(0,0,0,0.6)" stroke-width="8"/>
+            <circle cx="256" cy="256" r="208" fill="none" stroke="rgba(120,120,120,0.4)" stroke-width="3"/>
+            <circle cx="256" cy="256" r="205" fill="none" stroke="rgba(180,180,180,0.3)" stroke-width="1"/>
+            
+            <!-- Multiple Depth Rings for Premium Look -->
+            <circle cx="256" cy="256" r="190" fill="none" stroke="url(#innerGradient)" stroke-width="4" opacity="0.7"/>
+            <circle cx="256" cy="256" r="170" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+            <circle cx="256" cy="256" r="150" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+            
+            <!-- Enhanced Highlight for 3D Effect -->
+            <ellipse cx="200" cy="180" rx="80" ry="60" fill="rgba(255,255,255,0.4)" opacity="0.8"/>
+            <ellipse cx="190" cy="170" rx="40" ry="30" fill="rgba(255,255,255,0.6)" opacity="0.9"/>
+            
+            <!-- PRO Text with Premium Emboss Effect -->
+            <text x="256" y="300" font-family="Arial, sans-serif" font-size="116" font-weight="900" 
+                  text-anchor="middle" fill="url(#textGradient)" filter="url(#emboss)" stroke="rgba(0,0,0,0.1)" stroke-width="1">PRO</text>
+            
+            <!-- Text Shadow with Multiple Layers -->
+            <text x="262" y="306" font-family="Arial, sans-serif" font-size="116" font-weight="900" 
+                  text-anchor="middle" fill="rgba(0,0,0,0.4)" opacity="0.7">PRO</text>
+            <text x="259" y="303" font-family="Arial, sans-serif" font-size="116" font-weight="900" 
+                  text-anchor="middle" fill="rgba(0,0,0,0.2)" opacity="0.5">PRO</text>
+            
+            <!-- Additional Depth Rings -->
+            <circle cx="256" cy="256" r="200" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+            <circle cx="256" cy="256" r="140" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
+            
+            <!-- Shimmer Overlay -->
+            <circle cx="256" cy="256" r="220" fill="url(#shimmer)" opacity="0.6"/>
+            
+            <!-- Edge Enhancement -->
+            <circle cx="256" cy="256" r="218" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+            <circle cx="256" cy="256" r="222" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="1"/>
+        </svg>
+    </div>
+
+    <div class="progress-bar" id="progress-bar"></div>
+    
+    <div class="header">
+        <h1>CQR365</h1>
+        <div class="brand-line">SafePark.PRO</div>
+        <div class="subtitle">Contractor Control & Compliance Module</div>
+    </div>
+
+    <div class="navigation">
+        <div class="nav-container">
+            <div class="nav-buttons">
+                <button class="nav-btn active" onclick="showPage('main-form', this)">Contractor Onboarding</button>
+                <button class="nav-btn" onclick="showPage('contractor-list', this)">Contractor Directory</button>
+                <button class="nav-btn" onclick="showPage('compliance-tracker', this)">Compliance Tracking</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- Main Form Page -->
+        <div id="main-form" class="page active">
+            <div class="container">
+                <form id="contractor-form" action="https://formspree.io/f/xldprzkr" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="module" value="Contractors">
+                    <input type="hidden" name="_subject" value="SafePark.PRO - Contractor Onboarding Submission">
+
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div style="display: flex; align-items: center;">
+                                <div class="section-number">1</div>
+                                <h2 class="section-title">Highland Holidays Assignment</h2>
+                            </div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="holiday-park">Holiday Park <span class="required">*</span></label>
+                                    <select id="holiday-park" name="holiday-park" data-populate="holiday-parks" onchange="updateTeamMemberDropdowns()" required>
+                                        <option value="">Select holiday park...</option>
+                                        <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                                        <option value="Oban Holiday Park">Oban Holiday Park</option>
+                                        <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                                        <option value="Overburns Farm">Overburns Farm</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="business-area">Business Area <span class="required">*</span></label>
+                                    <select id="business-area" name="business-area" required>
+                                        <option value="">Select business area...</option>
+                                        <option value="Reception & Administration">Reception & Administration</option>
+                                        <option value="Accommodation Services">Accommodation Services</option>
+                                        <option value="Play Areas & Recreation">Play Areas & Recreation</option>
+                                        <option value="Maintenance & Grounds">Maintenance & Grounds</option>
+                                        <option value="Food & Beverage">Food & Beverage</option>
+                                        <option value="Security & Safety">Security & Safety</option>
+                                        <option value="Water Activities">Water Activities</option>
+                                        <option value="Entertainment">Entertainment</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="client-contact">Primary Highland Holidays Contact <span class="required">*</span></label>
+                                    <select id="client-contact" name="client-contact" data-populate="team-members" required>
+                                        <option value="">Select team member...</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="project-manager">Project Manager <span class="required">*</span></label>
+                                    <select id="project-manager" name="project-manager" data-populate="team-members" required>
+                                        <option value="">Select project manager...</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div style="display: flex; align-items: center;">
+                                <div class="section-number">2</div>
+                                <h2 class="section-title">Contractor Information</h2>
+                            </div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="contractor-name">Company/Individual Name <span class="required">*</span></label>
+                                    <input type="text" id="contractor-name" name="contractor-name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="trading-name">Trading Name (if different)</label>
+                                    <input type="text" id="trading-name" name="trading-name">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="company-reg">Company Registration Number</label>
+                                    <input type="text" id="company-reg" name="company-reg">
+                                </div>
+                                <div class="form-group">
+                                    <label for="vat-number">VAT Registration Number</label>
+                                    <input type="text" id="vat-number" name="vat-number">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="registered-address">Registered Address <span class="required">*</span></label>
+                                <textarea id="registered-address" name="registered-address" required></textarea>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="contact-email">Primary Contact Email <span class="required">*</span></label>
+                                    <input type="email" id="contact-email" name="contact-email" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="contact-phone">Primary Contact Phone <span class="required">*</span></label>
+                                    <input type="tel" id="contact-phone" name="contact-phone" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div style="display: flex; align-items: center;">
+                                <div class="section-number">3</div>
+                                <h2 class="section-title">Employment Status & IR35 Assessment</h2>
+                            </div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-group">
+                                <label>Contractor Type <span class="required">*</span></label>
+                                <div class="radio-group">
+                                    <div class="radio-item">
+                                        <input type="radio" id="limited-company" name="contractor-type" value="limited-company" required>
+                                        <label for="limited-company">Limited Company</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" id="sole-trader" name="contractor-type" value="sole-trader" required>
+                                        <label for="sole-trader">Sole Trader</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" id="partnership" name="contractor-type" value="partnership" required>
+                                        <label for="partnership">Partnership</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" id="umbrella" name="contractor-type" value="umbrella" required>
+                                        <label for="umbrella">Umbrella Company</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                <strong>IR35 Assessment:</strong> For off-payroll working rules compliance, we need to assess the working relationship against control, substitution, and mutuality of obligation factors.
+                            </div>
+
+                            <div class="form-group">
+                                <label for="control-level">Level of Control Over Work Methods <span class="required">*</span></label>
+                                <select id="control-level" name="control-level" required>
+                                    <option value="">Select control level</option>
+                                    <option value="high-autonomy">High autonomy - Contractor determines how work is performed</option>
+                                    <option value="moderate-direction">Moderate direction - Some guidance on methods provided</option>
+                                    <option value="detailed-control">Detailed control - Specific instructions on how to work</option>
+                                    <option value="direct-supervision">Direct supervision - Constant oversight of work methods</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="substitution">Right of Substitution <span class="required">*</span></label>
+                                <select id="substitution" name="substitution" required>
+                                    <option value="">Select substitution rights</option>
+                                    <option value="unrestricted">Unrestricted right to send substitute without client approval</option>
+                                    <option value="with-approval">Right to substitute with client approval</option>
+                                    <option value="limited">Limited substitution rights in specific circumstances</option>
+                                    <option value="none">No right of substitution - personal service required</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="financial-risk">Financial Risk <span class="required">*</span></label>
+                                <select id="financial-risk" name="financial-risk" required>
+                                    <option value="">Select financial risk level</option>
+                                    <option value="high">High - Significant financial investment/liability</option>
+                                    <option value="moderate">Moderate - Some financial risk beyond materials</option>
+                                    <option value="low">Low - Limited financial risk</option>
+                                    <option value="none">None - No financial risk, guaranteed payment</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Equipment and Tools Provision <span class="required">*</span></label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="own-equipment" name="equipment" value="own-equipment">
+                                        <label for="own-equipment">Uses own major equipment/tools</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="client-equipment" name="equipment" value="client-equipment">
+                                        <label for="client-equipment">Uses client-provided equipment</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="specialist-tools" name="equipment" value="specialist-tools">
+                                        <label for="specialist-tools">Provides specialist tools</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="office-facilities" name="equipment" value="office-facilities">
+                                        <label for="office-facilities">Has separate office/premises</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div style="display: flex; align-items: center;">
+                                <div class="section-number">4</div>
+                                <h2 class="section-title">Insurance Requirements</h2>
+                            </div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="public-liability">Public Liability Insurance Limit <span class="required">*</span></label>
+                                    <select id="public-liability" name="public-liability" required>
+                                        <option value="">Select coverage amount</option>
+                                        <option value="1m">£1 Million</option>
+                                        <option value="2m">£2 Million</option>
+                                        <option value="5m">£5 Million</option>
+                                        <option value="10m">£10 Million</option>
+                                        <option value="other">Other Amount</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="pl-expiry">Public Liability Expiry Date <span class="required">*</span></label>
+                                    <input type="date" id="pl-expiry" name="pl-expiry" required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="employers-liability">Employers' Liability Insurance Limit</label>
+                                    <select id="employers-liability" name="employers-liability">
+                                        <option value="">Select coverage amount</option>
+                                        <option value="5m">£5 Million (Minimum Required)</option>
+                                        <option value="10m">£10 Million</option>
+                                        <option value="not-required">Not Required (No Employees)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="insurer-name">Insurance Provider Name <span class="required">*</span></label>
+                                    <input type="text" id="insurer-name" name="insurer-name" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="insurance-certificates">Insurance Certificates</label>
+                                <input type="file" id="insurance-certificates" name="insurance-certificates" multiple accept=".pdf,.jpg,.jpeg,.png">
+                                <small>Upload current insurance certificates (PDF, JPG, PNG - Max 5MB each)</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div style="display: flex; align-items: center;">
+                                <div class="section-number">5</div>
+                                <h2 class="section-title">Health & Safety Compliance</h2>
+                            </div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-group">
+                                <label for="hs-policy">Health & Safety Policy Status <span class="required">*</span></label>
+                                <select id="hs-policy" name="hs-policy" required>
+                                    <option value="">Select policy status</option>
+                                    <option value="current">Current written policy in place</option>
+                                    <option value="needs-update">Policy exists but needs updating</option>
+                                    <option value="none">No formal policy in place</option>
+                                    <option value="not-required">Not required (fewer than 5 employees)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="hs-policy-date">Health & Safety Policy Date</label>
+                                    <input type="date" id="hs-policy-date" name="hs-policy-date">
+                                </div>
+                                <div class="form-group">
+                                    <label for="risk-assessment-date">Last Risk Assessment Date</label>
+                                    <input type="date" id="risk-assessment-date" name="risk-assessment-date">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Health & Safety Competencies <span class="required">*</span></label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="iosh" name="hs-competencies" value="iosh">
+                                        <label for="iosh">IOSH Managing Safely</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="nebosh" name="hs-competencies" value="nebosh">
+                                        <label for="nebosh">NEBOSH Qualifications</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="citb" name="hs-competencies" value="citb">
+                                        <label for="citb">CITB Health & Safety Test</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="cscs" name="hs-competencies" value="cscs">
+                                        <label for="cscs">CSCS Card</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="first-aid" name="hs-competencies" value="first-aid">
+                                        <label for="first-aid">First Aid Training</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="manual-handling" name="hs-competencies" value="manual-handling">
+                                        <label for="manual-handling">Manual Handling Training</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="accident-record">Accident/Incident Record (Last 3 Years)</label>
+                                <textarea id="accident-record" name="accident-record" placeholder="Describe any workplace accidents, incidents, or near misses in the last 3 years"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div style="display: flex; align-items: center;">
+                                <div class="section-number">6</div>
+                                <h2 class="section-title">Project Specific Information</h2>
+                            </div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-group">
+                                <label for="project-description">Project Description <span class="required">*</span></label>
+                                <textarea id="project-description" name="project-description" required placeholder="Describe the specific work to be undertaken"></textarea>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="project-value">Estimated Project Value <span class="required">*</span></label>
+                                    <select id="project-value" name="project-value" required>
+                                        <option value="">Select value range</option>
+                                        <option value="under-5k">Under £5,000</option>
+                                        <option value="5k-25k">£5,000 - £25,000</option>
+                                        <option value="25k-100k">£25,000 - £100,000</option>
+                                        <option value="100k-500k">£100,000 - £500,000</option>
+                                        <option value="over-500k">Over £500,000</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="project-duration">Expected Duration <span class="required">*</span></label>
+                                    <select id="project-duration" name="project-duration" required>
+                                        <option value="">Select duration</option>
+                                        <option value="under-1-week">Under 1 week</option>
+                                        <option value="1-4-weeks">1-4 weeks</option>
+                                        <option value="1-3-months">1-3 months</option>
+                                        <option value="3-12-months">3-12 months</option>
+                                        <option value="over-12-months">Over 12 months</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="start-date">Proposed Start Date <span class="required">*</span></label>
+                                    <input type="date" id="start-date" name="start-date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="end-date">Proposed End Date</label>
+                                    <input type="date" id="end-date" name="end-date">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div style="display: flex; align-items: center;">
+                                <div class="section-number">7</div>
+                                <h2 class="section-title">Trade Skills & Experience</h2>
+                            </div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="trade-skills">Primary Trade/Skills <span class="required">*</span></label>
+                                    <select id="trade-skills" name="trade-skills" required>
+                                        <option value="">Select primary trade</option>
+                                        <option value="building">General Building/Construction</option>
+                                        <option value="electrical">Electrical</option>
+                                        <option value="plumbing">Plumbing/Heating</option>
+                                        <option value="roofing">Roofing</option>
+                                        <option value="carpentry">Carpentry/Joinery</option>
+                                        <option value="painting">Painting/Decorating</option>
+                                        <option value="landscaping">Landscaping/Groundworks</option>
+                                        <option value="it-services">IT Services</option>
+                                        <option value="consultancy">Professional Consultancy</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="years-experience">Years of Experience <span class="required">*</span></label>
+                                    <select id="years-experience" name="years-experience" required>
+                                        <option value="">Select experience level</option>
+                                        <option value="0-2">0-2 years</option>
+                                        <option value="3-5">3-5 years</option>
+                                        <option value="6-10">6-10 years</option>
+                                        <option value="11-20">11-20 years</option>
+                                        <option value="20+">20+ years</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="previous-work">Examples of Similar Previous Work</label>
+                                <textarea id="previous-work" name="previous-work" placeholder="Describe relevant experience and similar projects completed"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="trade-certificates">Trade/Skills Certificates</label>
+                                <input type="file" id="trade-certificates" name="trade-certificates" multiple accept=".pdf,.jpg,.jpeg,.png">
+                                <small>Upload relevant trade qualifications and certificates (PDF, JPG, PNG - Max 5MB each)</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div style="display: flex; align-items: center;">
+                                <div class="section-number">8</div>
+                                <h2 class="section-title">Declaration & Compliance Confirmation</h2>
+                            </div>
+                            <span class="collapse-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="info-box">
+                                <strong>Important:</strong> By submitting this form, you confirm that all information provided is accurate and complete. False information may result in contract termination and potential legal action.
+                            </div>
+
+                            <div class="form-group">
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="info-accurate" name="declarations" value="info-accurate" required>
+                                        <label for="info-accurate">I confirm all information provided is accurate and complete <span class="required">*</span></label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="legal-compliance" name="declarations" value="legal-compliance" required>
+                                        <label for="legal-compliance">I confirm compliance with all applicable UK legislation <span class="required">*</span></label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="insurance-valid" name="declarations" value="insurance-valid" required>
+                                        <label for="insurance-valid">I confirm all insurance policies are current and valid <span class="required">*</span></label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="hs-commitment" name="declarations" value="hs-commitment" required>
+                                        <label for="hs-commitment">I commit to maintaining health and safety standards throughout the project <span class="required">*</span></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="signatory-name">Signatory Name <span class="required">*</span></label>
+                                    <input type="text" id="signatory-name" name="signatory-name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="signatory-position">Position/Title <span class="required">*</span></label>
+                                    <input type="text" id="signatory-position" name="signatory-position" required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="signature-date">Date <span class="required">*</span></label>
+                                    <input type="date" id="signature-date" name="signature-date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="review-date">Next Review Date</label>
+                                    <input type="date" id="review-date" name="review-date">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="submit-section">
+                        <button type="submit" class="submit-btn">Complete Contractor Onboarding</button>
+                        <button type="button" class="print-btn" onclick="saveContractorData()">Save Draft</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Contractor Directory Page -->
+        <div id="contractor-list" class="page">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Contractor Directory</h2>
+                </div>
+                <div class="section-content">
+                    <div id="contractor-directory">
+                        <p style="text-align: center; color: #888; padding: 40px;">No contractors registered yet. Use the onboarding form to add contractors.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Compliance Tracking Page -->
+        <div id="compliance-tracker" class="page">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Compliance Tracking</h2>
+                </div>
+                <div class="section-content">
+                    <div id="compliance-overview">
+                        <p style="text-align: center; color: #888; padding: 40px;">Compliance tracking will show insurance expiry dates, certification renewals, and project statuses.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Page -->
+        <div class="container summary-page" id="summary-page">
+            <div class="section-header">
+                <h1 class="section-title">Contractor Onboarding Complete</h1>
+                <p style="color: #B8B8B8;">Contractor successfully onboarded and approved for work</p>
+            </div>
+
+            <div class="summary-content">
+                <div class="summary-section">
+                    <h3>Contractor Details</h3>
+                    <div class="summary-item">
+                        <span class="summary-label">Company Name:</span>
+                        <span class="summary-value" id="summary-company-name">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Primary Contact:</span>
+                        <span class="summary-value" id="summary-contact-email">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Primary Trade:</span>
+                        <span class="summary-value" id="summary-trade-skills">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Holiday Park:</span>
+                        <span class="summary-value" id="summary-holiday-park">-</span>
+                    </div>
+                </div>
+
+                <div class="summary-section">
+                    <h3>Project Information</h3>
+                    <div class="summary-item">
+                        <span class="summary-label">Project Start:</span>
+                        <span class="summary-value" id="summary-start-date">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Project Value:</span>
+                        <span class="summary-value" id="summary-project-value">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Duration:</span>
+                        <span class="summary-value" id="summary-project-duration">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Business Area:</span>
+                        <span class="summary-value" id="summary-business-area">-</span>
+                    </div>
+                </div>
+
+                <div class="summary-section">
+                    <h3>Compliance Status</h3>
+                    <div class="summary-item">
+                        <span class="summary-label">Public Liability:</span>
+                        <span class="summary-value" id="summary-public-liability">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">H&S Policy:</span>
+                        <span class="summary-value" id="summary-hs-policy">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Insurance Provider:</span>
+                        <span class="summary-value" id="summary-insurer-name">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="submit-section">
+                <button type="button" class="print-btn" onclick="window.print()">Print Summary</button>
+                <button type="button" class="submit-btn" onclick="showPage('main-form')">Edit Details</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p><strong>CQR365 SafePark.PRO</strong></p>
+        <p>Comprehensive safety and compliance management system</p>
+    </div>
+
+    <script>
+        let contractorData = {};
+        let contractors = [];
+
+        // Initialize form
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const todayString = today.toISOString().split('T')[0];
+            
+            // Set default dates
+            document.getElementById('signature-date').value = todayString;
+            
+            const reviewDate = new Date(today);
+            reviewDate.setFullYear(reviewDate.getFullYear() + 1);
+            document.getElementById('review-date').value = reviewDate.toISOString().split('T')[0];
+
+            // Initialize SafePark integration
+            if (window.syncSafeParkData) {
+                window.syncSafeParkData();
+            }
+
+            // Load saved contractors
+            loadContractors();
+            updateProgress();
+        });
+
+        // Team member and holiday park population function - Firebase integration
+        window.syncSafeParkData = function() {
+            const holidayParks = JSON.parse(localStorage.getItem('safePark_holidayParks') || '["Ben Nevis Holiday Park", "Oban Holiday Park", "Tyndrum Holiday Park", "Overburns Farm"]');
+            
+            // Populate holiday park dropdown
+            const holidayParkSelect = document.getElementById('holiday-park');
+            if (holidayParkSelect && holidayParkSelect.hasAttribute('data-populate')) {
+                const currentValue = holidayParkSelect.value;
+                // Clear existing options except first (placeholder)
+                while (holidayParkSelect.children.length > 1) {
+                    holidayParkSelect.removeChild(holidayParkSelect.lastChild);
+                }
+                // Add holiday parks as options
+                holidayParks.forEach(park => {
+                    const option = document.createElement('option');
+                    option.value = park;
+                    option.textContent = park;
+                    holidayParkSelect.appendChild(option);
+                });
+                // Restore selection if it still exists
+                if (holidayParks.includes(currentValue)) {
+                    holidayParkSelect.value = currentValue;
+                }
+            }
+            
+            updateTeamMemberDropdowns();
+        };
+
+        // Update team member dropdowns based on selected holiday park
+        function updateTeamMemberDropdowns() {
+            const selectedPark = document.getElementById('holiday-park').value;
+            const clientContactSelect = document.getElementById('client-contact');
+            const projectManagerSelect = document.getElementById('project-manager');
+            
+            // Clear existing options except first
+            clientContactSelect.innerHTML = '<option value="">Select team member...</option>';
+            projectManagerSelect.innerHTML = '<option value="">Select project manager...</option>';
+            
+            if (!selectedPark) {
+                return;
+            }
+            
+            // Get team members from Firebase or localStorage
+            let teamMembers = [];
+            if (window.safeParkManager && window.safeParkManager.teamMembers) {
+                teamMembers = window.safeParkManager.teamMembers;
+            } else {
+                teamMembers = JSON.parse(localStorage.getItem('safePark_teamMembers') || '[]');
+            }
+            
+            // Filter team members by selected holiday park
+            const filteredMembers = teamMembers.filter(member => member.holidayPark === selectedPark);
+            
+            // Populate both dropdowns
+            filteredMembers.forEach(member => {
+                // Client contact dropdown
+                const clientOption = document.createElement('option');
+                clientOption.value = member.name;
+                clientOption.textContent = `${member.name} - ${member.role}`;
+                clientContactSelect.appendChild(clientOption);
+                
+                // Project manager dropdown
+                const pmOption = document.createElement('option');
+                pmOption.value = member.name;
+                pmOption.textContent = `${member.name} - ${member.role}`;
+                projectManagerSelect.appendChild(pmOption);
+            });
+        }
+
+        // Page navigation
+        function showPage(pageId, button) {
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            
+            const navButtons = document.querySelectorAll('.nav-btn');
+            navButtons.forEach(btn => btn.classList.remove('active'));
+            if (button) button.classList.add('active');
+
+            if (pageId === 'contractor-list') {
+                updateContractorDirectory();
+            }
+        }
+
+        // Section toggle functionality
+        function toggleSection(header) {
+            const section = header.parentElement;
+            section.classList.toggle('collapsed');
+            setTimeout(updateProgress, 100);
+        }
+
+        // Progress tracking
+        function updateProgress() {
+            const totalFields = document.querySelectorAll('input[required], select[required], textarea[required]').length;
+            const completedFields = Array.from(document.querySelectorAll('input[required], select[required], textarea[required]')).filter(field => {
+                if (field.type === 'checkbox' || field.type === 'radio') {
+                    const groupName = field.name;
+                    return document.querySelector(`input[name="${groupName}"]:checked`) !== null;
+                }
+                return field.value.trim() !== '';
+            }).length;
+            
+            const progress = (completedFields / totalFields) * 100;
+            document.getElementById('progress-bar').style.width = progress + '%';
+        }
+
+        // Add progress tracking to form inputs
+        document.addEventListener('input', updateProgress);
+        document.addEventListener('change', updateProgress);
+
+        // Save contractor data
+        function saveContractorData() {
+            const formData = new FormData(document.getElementById('contractor-form'));
+            const data = {};
+            
+            for (let [key, value] of formData.entries()) {
+                if (data[key]) {
+                    if (Array.isArray(data[key])) {
+                        data[key].push(value);
+                    } else {
+                        data[key] = [data[key], value];
+                    }
+                } else {
+                    data[key] = value;
+                }
+            }
+            
+            data.id = Date.now();
+            data.onboardingDate = new Date().toISOString().split('T')[0];
+            
+            contractors.push(data);
+            localStorage.setItem('safePark_contractors', JSON.stringify(contractors));
+            
+            // Add to SafePark team if it's a suitable contractor
+            if (window.SafeParkUtils && window.SafeParkUtils.addTeamMember && data['contractor-name']) {
+                window.SafeParkUtils.addTeamMember({
+                    name: data['contractor-name'],
+                    email: data['contact-email'] || 'contractor@external.com',
+                    businessArea: data['business-area'] || 'Contractors',
+                    holidayPark: data['holiday-park'] || 'All Parks',
+                    role: `Contractor - ${data['trade-skills'] || 'General'}`
+                });
+            }
+
+            // Log activity
+            if (window.SafeParkUtils && window.SafeParkUtils.addRecentActivity) {
+                window.SafeParkUtils.addRecentActivity('Contractors', `New contractor onboarded: ${data['contractor-name']}`, 'success');
+            }
+            
+            alert('Contractor data saved successfully!');
+        }
+
+        // Load contractors
+        function loadContractors() {
+            const saved = localStorage.getItem('safePark_contractors');
+            if (saved) {
+                contractors = JSON.parse(saved);
+            }
+        }
+
+        // Update contractor directory
+        function updateContractorDirectory() {
+            const directory = document.getElementById('contractor-directory');
+            
+            if (contractors.length === 0) {
+                directory.innerHTML = '<p style="text-align: center; color: #888; padding: 40px;">No contractors registered yet. Use the onboarding form to add contractors.</p>';
+                return;
+            }
+            
+            let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px;">';
+            
+            contractors.forEach(contractor => {
+                html += `
+                    <div class="summary-section">
+                        <h3>${contractor['contractor-name'] || 'Unknown Contractor'}</h3>
+                        <div class="summary-item">
+                            <span class="summary-label">Trade:</span>
+                            <span class="summary-value">${contractor['trade-skills'] || 'N/A'}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Holiday Park:</span>
+                            <span class="summary-value">${contractor['holiday-park'] || 'N/A'}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Business Area:</span>
+                            <span class="summary-value">${contractor['business-area'] || 'N/A'}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Contact:</span>
+                            <span class="summary-value">${contractor['contact-email'] || 'N/A'}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Onboarded:</span>
+                            <span class="summary-value">${contractor.onboardingDate || 'N/A'}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            directory.innerHTML = html;
+        }
+
+        // Form submission
+        document.getElementById('contractor-form').addEventListener('submit', function(e) {
+            const submitBtn = document.querySelector('.submit-btn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Processing...';
+            submitBtn.disabled = true;
+            document.body.classList.add('loading');
+
+            // Validate form
+            const requiredFields = document.querySelectorAll('[required]');
+            let allValid = true;
+            let firstInvalidField = null;
+
+            requiredFields.forEach(field => {
+                let isValid = false;
+                
+                if (field.type === 'checkbox') {
+                    const checkboxGroup = document.querySelectorAll(`[name="${field.name}"]`);
+                    isValid = Array.from(checkboxGroup).some(cb => cb.checked);
+                } else if (field.type === 'radio') {
+                    isValid = document.querySelector(`[name="${field.name}"]:checked`) !== null;
+                } else {
+                    isValid = field.value.trim() !== '';
+                }
+                
+                if (!isValid) {
+                    field.style.borderColor = '#CC5500';
+                    field.style.boxShadow = '0 0 0 3px rgba(204, 85, 0, 0.3)';
+                    allValid = false;
+                    if (!firstInvalidField) firstInvalidField = field;
+                } else {
+                    field.style.borderColor = '#555';
+                    field.style.boxShadow = 'none';
+                }
+            });
+
+            if (!allValid) {
+                e.preventDefault();
+                alert('Please complete all required fields marked with *');
+                firstInvalidField.focus();
+                firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                document.body.classList.remove('loading');
+                return;
+            }
+
+            // Save contractor data before submission
+            saveContractorData();
+
+            // Show summary after slight delay
+            setTimeout(() => {
+                showSummary();
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                document.body.classList.remove('loading');
+            }, 800);
+        });
+
+        // Show summary page
+        function showSummary() {
+            const formData = new FormData(document.getElementById('contractor-form'));
+            const data = {};
+            
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+
+            // Populate summary
+            const summaryFields = {
+                'summary-company-name': data['contractor-name'] || 'N/A',
+                'summary-contact-email': data['contact-email'] || 'N/A',
+                'summary-trade-skills': data['trade-skills'] || 'N/A',
+                'summary-holiday-park': data['holiday-park'] || 'N/A',
+                'summary-start-date': data['start-date'] || 'N/A',
+                'summary-project-value': data['project-value'] || 'N/A',
+                'summary-project-duration': data['project-duration'] || 'N/A',
+                'summary-business-area': data['business-area'] || 'N/A',
+                'summary-public-liability': data['public-liability'] || 'N/A',
+                'summary-hs-policy': data['hs-policy'] || 'N/A',
+                'summary-insurer-name': data['insurer-name'] || 'N/A'
+            };
+
+            Object.entries(summaryFields).forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = value;
+                }
+            });
+
+            document.getElementById('main-form').style.display = 'none';
+            document.getElementById('summary-page').style.display = 'block';
+            document.getElementById('progress-bar').style.width = '100%';
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            setTimeout(() => {
+                document.getElementById('progress-bar').style.width = '0%';
+            }, 2000);
+        }
+
+        // File upload validation
+        document.addEventListener('change', function(e) {
+            if (e.target.type === 'file') {
+                const files = Array.from(e.target.files);
+                const maxSize = 5 * 1024 * 1024; // 5MB
+                const invalidFiles = files.filter(file => file.size > maxSize);
+                
+                if (invalidFiles.length > 0) {
+                    alert(`The following files exceed the 5MB limit:\n${invalidFiles.map(f => f.name).join('\n')}`);
+                    e.target.value = '';
+                    return;
+                }
+            }
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.target.type !== 'textarea' && e.target.type !== 'submit') {
+                e.preventDefault();
+                const form = e.target.closest('.section-content');
+                if (form) {
+                    const inputs = Array.from(form.querySelectorAll('input, select, textarea'));
+                    const currentIndex = inputs.indexOf(e.target);
+                    const nextInput = inputs[currentIndex + 1];
+                    if (nextInput) nextInput.focus();
+                }
+            }
+        });
+    </script>
+
+    <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('sw.js')
+          .then(function(registration) {
+            console.log('SW registered: ', registration);
+          })
+          .catch(function(registrationError) {
+            console.log('SW registration failed: ', registrationError);
+          });
+      });
+    }
+    </script>
+</body>
+</html>
