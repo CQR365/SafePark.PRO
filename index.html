@@ -7,7 +7,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#CC5500">
-    <title>SafePark.PRO - Holiday Park Safety & Compliance System</title>
+    <title>CQR365 - SafePark.PRO Safety & Compliance System</title>
     <style>
         * {
             margin: 0;
@@ -44,31 +44,6 @@
             overflow-x: hidden;
             margin: 0;
             padding: 0;
-        }
-
-        /* Sticky Logo Back Button */
-        .sticky-logo-back {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            width: 70px;
-            height: 70px;
-            z-index: 1000;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.4));
-            display: none;
-        }
-
-        .sticky-logo-back:hover {
-            transform: scale(1.1);
-            filter: drop-shadow(0 12px 25px rgba(0,0,0,0.6));
-        }
-
-        @media (max-width: 768px) {
-            .sticky-logo-back {
-                display: block;
-            }
         }
 
         /* Login Overlay System */
@@ -239,12 +214,12 @@
             position: relative;
         }
 
-        /* Mobile Hamburger Button */
+        /* Mobile Hamburger Button - MOVED TO RIGHT SIDE */
         .hamburger-btn {
             display: none;
             position: fixed;
             top: 20px;
-            left: 20px;
+            right: 20px;
             z-index: 1001;
             background: var(--primary-orange);
             border: none;
@@ -872,101 +847,6 @@
     </style>
 </head>
 <body>
-    <!-- Sticky Logo Back Button -->
-    <div class="sticky-logo-back" onclick="window.location.href='index.html'">
-        <svg width="70" height="70" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <!-- 3D Gradient Definitions -->
-                <radialGradient id="mainGradient" cx="0.3" cy="0.3" r="0.8">
-                    <stop offset="0%" stop-color="#FF8533"/>
-                    <stop offset="30%" stop-color="#CC5500"/>
-                    <stop offset="70%" stop-color="#B8460C"/>
-                    <stop offset="100%" stop-color="#8B3700"/>
-                </radialGradient>
-                
-                <!-- Inner Ring Gradient -->
-                <radialGradient id="innerGradient" cx="0.4" cy="0.4" r="0.6">
-                    <stop offset="0%" stop-color="#FFB366"/>
-                    <stop offset="50%" stop-color="#E6672E"/>
-                    <stop offset="100%" stop-color="#CC5500"/>
-                </radialGradient>
-                
-                <!-- Text Gradient with Chrome-like finish -->
-                <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#FFFFFF"/>
-                    <stop offset="30%" stop-color="#F8F8F8"/>
-                    <stop offset="60%" stop-color="#E8E8E8"/>
-                    <stop offset="100%" stop-color="#D0D0D0"/>
-                </linearGradient>
-                
-                <!-- Enhanced Shimmer Effect -->
-                <linearGradient id="shimmer" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="rgba(255,255,255,0)" stop-opacity="0"/>
-                    <stop offset="45%" stop-color="rgba(255,255,255,0.7)" stop-opacity="1"/>
-                    <stop offset="50%" stop-color="rgba(255,255,255,1)" stop-opacity="1"/>
-                    <stop offset="55%" stop-color="rgba(255,255,255,0.7)" stop-opacity="1"/>
-                    <stop offset="100%" stop-color="rgba(255,255,255,0)" stop-opacity="0"/>
-                </linearGradient>
-
-                <!-- 3D Effects and Shadows -->
-                <filter id="emboss" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="3" result="blur"/>
-                    <feOffset in="blur" dx="4" dy="4" result="offset"/>
-                    <feFlood flood-color="rgba(0,0,0,0.4)"/>
-                    <feComposite in2="offset" operator="in"/>
-                    <feMerge>
-                        <feMergeNode/>
-                        <feMergeNode in="SourceGraphic"/>
-                    </feMerge>
-                </filter>
-
-                <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
-                    <feMerge>
-                        <feMergeNode in="coloredBlur"/>
-                        <feMergeNode in="SourceGraphic"/>
-                    </feMerge>
-                </filter>
-            </defs>
-
-            <!-- Outer Ring with Enhanced 3D -->
-            <circle cx="256" cy="256" r="240" fill="url(#mainGradient)" filter="url(#glow)"/>
-            
-            <!-- Inner Ring with Gradient -->
-            <circle cx="256" cy="256" r="180" fill="url(#innerGradient)"/>
-            
-            <!-- Depth Rings for 3D Effect -->
-            <circle cx="256" cy="256" r="190" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="3"/>
-            <circle cx="256" cy="256" r="170" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
-            <circle cx="256" cy="256" r="150" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
-            
-            <!-- Enhanced Highlight for 3D Effect -->
-            <ellipse cx="200" cy="180" rx="80" ry="60" fill="rgba(255,255,255,0.4)" opacity="0.8"/>
-            <ellipse cx="190" cy="170" rx="40" ry="30" fill="rgba(255,255,255,0.6)" opacity="0.9"/>
-            
-            <!-- PRO Text with Premium Emboss Effect -->
-            <text x="256" y="300" font-family="Arial, sans-serif" font-size="116" font-weight="900" 
-                  text-anchor="middle" fill="url(#textGradient)" filter="url(#emboss)" stroke="rgba(0,0,0,0.1)" stroke-width="1">PRO</text>
-            
-            <!-- Text Shadow with Multiple Layers -->
-            <text x="262" y="306" font-family="Arial, sans-serif" font-size="116" font-weight="900" 
-                  text-anchor="middle" fill="rgba(0,0,0,0.4)" opacity="0.7">PRO</text>
-            <text x="259" y="303" font-family="Arial, sans-serif" font-size="116" font-weight="900" 
-                  text-anchor="middle" fill="rgba(0,0,0,0.2)" opacity="0.5">PRO</text>
-            
-            <!-- Additional Depth Rings -->
-            <circle cx="256" cy="256" r="200" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-            <circle cx="256" cy="256" r="140" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
-            
-            <!-- Shimmer Overlay -->
-            <circle cx="256" cy="256" r="220" fill="url(#shimmer)" opacity="0.6"/>
-            
-            <!-- Edge Enhancement -->
-            <circle cx="256" cy="256" r="218" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
-            <circle cx="256" cy="256" r="222" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="1"/>
-        </svg>
-    </div>
-
     <!-- Login Overlay -->
     <div class="login-overlay" id="loginOverlay">
         <div class="login-container">
@@ -998,7 +878,7 @@
     </div>
 
     <div class="app-container">
-        <!-- Hamburger Menu Button -->
+        <!-- Hamburger Menu Button - NOW ON RIGHT SIDE -->
         <button class="hamburger-btn" onclick="toggleSidebar()">
             <span></span>
             <span></span>
@@ -1008,8 +888,8 @@
         <!-- Sidebar Navigation -->
         <nav class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <h1>SafePark.PRO</h1>
-                <div class="brand-line">CQR365</div>
+                <h1>CQR365</h1>
+                <div class="brand-line">SafePark.PRO</div>
                 <div style="color: #6C757D; font-size: 0.85rem; font-weight: 400; margin-top: 5px;">for Highland Holidays</div>
             </div>
 
@@ -1065,8 +945,8 @@
             <!-- Dashboard Section -->
             <div id="dashboard" class="content-section active">
                 <div class="header">
-                    <h1>SafePark.PRO</h1>
-                    <div class="brand-line">CQR365</div>
+                    <h1>CQR365</h1>
+                    <div class="brand-line">SafePark.PRO</div>
                     <p>Comprehensive Safety & Compliance Management System</p>
                 </div>
 
@@ -1418,7 +1298,21 @@
         </main>
     </div>
 
+    <script type="module" src="firebase-config.js"></script>
     <script>
+        // Service worker registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('sw.js')
+                .then(function(registration) {
+                    console.log('SW registered: ', registration);
+                })
+                .catch(function(registrationError) {
+                    console.log('SW registration failed: ', registrationError);
+                });
+            });
+        }
+
         // Login System Variables
         let isAuthenticated = false;
         let currentPark = null;
@@ -2168,20 +2062,6 @@
                 window.syncSafeParkData();
             }
         });
-
-        // Service Worker Registration
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('sw.js')
-                .then(function(registration) {
-                    console.log('SW registered: ', registration);
-                })
-                .catch(function(registrationError) {
-                    console.log('SW registration failed: ', registrationError);
-                });
-            });
-        }
     </script>
-    <script type="module" src="firebase-config.js"></script>
 </body>
 </html>
