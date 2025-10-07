@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#CC5500">
+    <title>CQR365 - SafePark.PRO Safety & Compliance System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-orange: #CC5500;
+            --dark-orange: #B8460C;
+            --light-orange: #E6672E;
+            --black: #000000;
+            --white: #FFFFFF;
+            --smart-dark-grey: #2A2A2A;
+            --content-background: #2F2F2F;
+            --light-gray: #F8F9FA;
+            --medium-gray: #6C757D;
+            --dark-gray: #343A40;
+            --border-color: #DEE2E6;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --shadow-light: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-medium: 0 4px 20px rgba(0,0,0,0.15);
+            --shadow-heavy: 0 8px 40px rgba(0,0,0,0.2);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #3A3A3A 0%, #2a2a2a 100%);
+            color: #E8E8E8;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* PWA Install Prompt - Show only when not installed */
+        .pwa-install-hidden {
+            display: none !important;
+        }
+
+        /* Login Overlay System */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .login-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .login-container {
+            background: linear-gradient(145deg, var(--content-background), var(--black));
+            border: 4px solid var(--primary-orange);
+            border-radius: 20px;
+            padding: 50px;
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9),
+                        inset 0 12px 30px rgba(255, 255, 255, 0.3),
+                        inset 0 -12px 30px rgba(0, 0, 0, 0.8);
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+        }
+
+        .login-title {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--primary-orange);
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .login-subtitle {
+            font-size: 1.1rem;
+            color: #B8B8B8;
+            margin-bottom: 20px;
+        }
+
+        .login-powered {
+            font-size: 0.9rem;
+            color: var(--medium-gray);
+            margin-bottom: 40px;
+            font-weight: 600;
+        }
+
+        .login-form {
+            margin-bottom: 30px;
+        }
+
+        .login-input {
+            width: 300px;
+            padding: 15px 20px;
+            font-size: 1.2rem;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--medium-gray);
+            border-radius: 10px;
+            color: var(--white);
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            letter-spacing: 2px;
+            font-weight: bold;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 3px rgba(204, 85, 0, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .login-input::placeholder {
+            color: var(--medium-gray);
+            font-weight: normal;
+            letter-spacing: 1px;
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
+            color: var(--white);
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-medium);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-heavy);
+            background: linear-gradient(135deg, var(--light-orange) 0%, var(--primary-orange) 100%);
+        }
+
+        .login-error {
+            color: var(--danger);
+            font-size: 0.9rem;
+            margin-top: 15px;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .login-error.show {
+            opacity: 1;
+        }
+
+        .welcome-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(145deg, var(--success), #1e7e34);
+            color: var(--white);
+            padding: 30px 40px;
+            border-radius: 15px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: var(--shadow-heavy);
+            opacity: 0;
+            scale: 0.8;
+            transition: all 0.4s ease;
+        }
+
+        .welcome-message.show {
+            opacity: 1;
+            scale: 1;
+        }
+
+        .login-footer {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--medium-gray);
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Mobile Hamburger Button - MOVED TO RIGHT SIDE */
+        .hamburger-btn {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+            background: var(--primary-orange);
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .hamburger-btn span {
+            width: 25px;
+            height: 3px;
+            background: var(--white);
+            transition: 0.3s;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 320px;
+            background: linear-gradient(180deg, var(--black) 0%, var(--dark-gray) 100%);
+            color: var(--white);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: var(--shadow-heavy);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.8rem;
+            color: var(--primary-orange);
+            margin-bottom: 5px;
+            font-weight: 800;
+        }
+
+        .brand-line {
+            font-size: 1.1rem;
+            color: var(--light-orange);
+            margin-bottom: 10px;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+
+        .nav-section {
+            margin: 20px 0;
+        }
+
+        .nav-section-title {
+            color: var(--medium-gray);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0 20px 10px;
+            border-bottom: 1px solid #444;
+            margin-bottom: 15px;
+        }
+
+        .nav-btn {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #B8B8B8;
+            text-align: left;
+            padding: 15px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .nav-btn:hover {
+            background: rgba(204, 85, 0, 0.1);
+            color: var(--primary-orange);
+            border-left-color: var(--primary-orange);
+        }
+
+        .nav-btn.active {
+            background: rgba(204, 85, 0, 0.2);
+            color: var(--primary-orange);
+            border-left-color: var(--primary-orange);
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 320px;
+            padding: 30px;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 40px 20px;
+            background: linear-gradient(145deg, #3a3a3a, #2f2f2f, #1f1f1f);
+            border-radius: 15px;
+            box-shadow: 
+                var(--shadow-medium),
+                inset 0 8px 20px rgba(255, 255, 255, 0.1),
+                inset 0 -8px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(204, 85, 0, 0.2);
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(204, 85, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(204, 85, 0, 0.08) 0%, transparent 50%),
+                linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+            border-radius: 15px;
+            pointer-events: none;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            color: var(--primary-orange);
+            margin-bottom: 10px;
+            font-weight: 800;
+        }
+
+        .header .brand-line {
+            font-size: 1.5rem;
+            color: var(--light-orange);
+            margin-bottom: 15px;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #B8B8B8;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Stats Overview */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: linear-gradient(145deg, #3a3a3a, #000000);
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 
+                        inset 0 8px 20px rgba(255, 255, 255, 0.3),
+                        inset 0 -8px 20px rgba(0, 0, 0, 0.7);
+            border: 4px solid var(--primary-orange);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-heavy);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary-orange);
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: #B8B8B8;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: var(--content-background);
+            border-radius: 12px;
+            box-shadow: var(--shadow-light);
+        }
+
+        .section-title {
+            font-size: 2rem;
+            color: var(--primary-orange);
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .section-subtitle {
+            color: #B8B8B8;
+            font-size: 1rem;
+        }
+
+        /* Daily Check Tiles - Small Hoverable */
+        .daily-checks {
+            margin-bottom: 40px;
+        }
+
+        .daily-checks h3 {
+            color: var(--primary-orange);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .daily-tiles {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .module-tile {
+            background: linear-gradient(145deg, #3a3a3a, #000000);
+            padding: 20px;
+            border-radius: 50%;
+            width: 150px;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 
+                        inset 0 8px 20px rgba(255, 255, 255, 0.3),
+                        inset 0 -8px 20px rgba(0, 0, 0, 0.7);
+            border: 4px solid var(--primary-orange);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+        }
+
+        .module-tile:hover {
+            transform: translateY(-15px) scale(1.1);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9),
+                        inset 0 12px 30px rgba(255, 255, 255, 0.5),
+                        inset 0 -12px 30px rgba(0, 0, 0, 0.8);
+            background: linear-gradient(145deg, #4a4a4a, rgba(204, 85, 0, 0.2));
+        }
+
+        .module-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .module-name {
+            color: var(--primary-orange);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .module-desc {
+            color: #B8B8B8;
+            font-size: 0.9rem;
+        }
+
+        /* Recent Activity */
+        .recent-activity {
+            background: var(--content-background);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-light);
+            margin-bottom: 30px;
+        }
+
+        .activity-header {
+            color: var(--primary-orange);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary-orange);
+            padding-bottom: 10px;
+        }
+
+        .activity-item {
+            padding: 15px;
+            border-left: 3px solid var(--medium-gray);
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .activity-item.success {
+            border-left-color: var(--success);
+        }
+
+        .activity-item.warning {
+            border-left-color: var(--warning);
+        }
+
+        .activity-item.danger {
+            border-left-color: var(--danger);
+        }
+
+        .activity-time {
+            color: var(--medium-gray);
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .activity-description {
+            color: #E8E8E8;
+            font-weight: 500;
+        }
+
+        /* Management Forms */
+        .management-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .form-section {
+            background: var(--content-background);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-light);
+        }
+
+        .form-section h3 {
+            color: var(--primary-orange);
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary-orange);
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #E8E8E8;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: #E8E8E8;
+            font-size: 1rem;
+        }
+
+        .form-group select option {
+            background: var(--content-background);
+            color: #E8E8E8;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 2px rgba(204, 85, 0, 0.2);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
+            color: var(--white);
+            padding: 15px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: var(--shadow-light);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+            background: linear-gradient(135deg, var(--light-orange) 0%, var(--primary-orange) 100%);
+        }
+
+        /* Data Grids */
+        .data-grid {
+            background: var(--content-background);
+            border-radius: 12px;
+            box-shadow: var(--shadow-light);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .grid-header {
+            background: var(--primary-orange);
+            color: var(--white);
+            padding: 20px;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .grid-content {
+            padding: 20px;
+        }
+
+        .grid-item {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 15px;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #444;
+            transition: background 0.3s ease;
+        }
+
+        .grid-item:hover {
+            background: rgba(204, 85, 0, 0.1);
+        }
+
+        .grid-item:last-child {
+            border-bottom: none;
+        }
+
+        .grid-item-name {
+            color: var(--primary-orange);
+            font-weight: 600;
+        }
+
+        .grid-item-info {
+            color: #B8B8B8;
+        }
+
+        .grid-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            min-height: auto;
+            background: var(--medium-gray);
+        }
+
+        .btn-small.danger {
+            background: var(--danger);
+        }
+
+        .btn-small:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Team Members Grid */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .team-member {
+            background: var(--content-background);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: var(--shadow-light);
+            border-left: 4px solid var(--primary-orange);
+            transition: transform 0.3s ease;
+        }
+
+        .team-member:hover {
+            transform: translateY(-5px);
+        }
+
+        .member-name {
+            color: var(--primary-orange);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .member-role {
+            color: #B8B8B8;
+            margin-bottom: 10px;
+        }
+
+        .member-park {
+            color: var(--light-orange);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .member-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 768px) {
+            .hamburger-btn {
+                display: flex;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 80px 20px 30px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .header .brand-line {
+                font-size: 1.2rem;
+            }
+
+            .stats-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .stat-card {
+                background: linear-gradient(145deg, #3a3a3a, #000000);
+                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 
+                            inset 0 8px 20px rgba(255, 255, 255, 0.3),
+                            inset 0 -8px 20px rgba(0, 0, 0, 0.7);
+                border: 4px solid var(--primary-orange);
+            }
+
+            .daily-tiles {
+                grid-template-columns: repeat(2, 1fr);
+                justify-items: center;
+            }
+
+            .management-container {
+                grid-template-columns: 1fr;
+            }
+
+            .grid-item {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .sidebar-header h1 {
+                font-size: 1.6rem;
+            }
+
+            .sidebar-header .brand-line {
+                font-size: 1rem;
+            }
+
+            .login-container {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+            
+            .login-title {
+                font-size: 2.5rem;
+            }
+            
+            .login-input {
+                width: 100%;
+                max-width: 280px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .daily-tiles {
+                grid-template-columns: 1fr;
+                justify-items: center;
+            }
+
+            .stat-card {
+                background: linear-gradient(145deg, #3a3a3a, #000000);
+                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 
+                            inset 0 8px 20px rgba(255, 255, 255, 0.3),
+                            inset 0 -8px 20px rgba(0, 0, 0, 0.7);
+                border: 4px solid var(--primary-orange);
+            }
+
+            .sidebar-header h1 {
+                font-size: 1.4rem;
+            }
+
+            .sidebar-header .brand-line {
+                font-size: 0.9rem;
+            }
+
+            .login-title {
+                font-size: 2rem;
+            }
+            
+            .login-container {
+                padding: 25px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Overlay -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-container">
+            <h1 class="login-title">SafePark.PRO</h1>
+            <div class="login-subtitle">Holiday Park Safety & Compliance Platform</div>
+            <div class="login-powered">Powered by CQR365</div>
+            
+            <div class="login-form">
+                <input 
+                    type="password" 
+                    class="login-input" 
+                    id="loginCode" 
+                    placeholder="Enter Access Code"
+                    maxlength="15"
+                    autocomplete="off"
+                >
+                <br>
+                <button class="login-btn" onclick="authenticateUser()">Access System</button>
+                <div class="login-error" id="loginError">Invalid access code. Please try again.</div>
+            </div>
+        </div>
+        
+        <div class="welcome-message" id="welcomeMessage"></div>
+        
+        <div class="login-footer">
+            &copy; 2025 CQR365 SafePark.PRO Management System
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- Hamburger Menu Button - NOW ON RIGHT SIDE -->
+        <button class="hamburger-btn" onclick="toggleSidebar()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1>CQR365</h1>
+                <div class="brand-line">SafePark.PRO</div>
+                <div style="color: #6C757D; font-size: 0.85rem; font-weight: 400; margin-top: 5px;">for Highland Holidays</div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Dashboard</div>
+                <button class="nav-btn active" onclick="showSection('dashboard')">Overview</button>
+                <button class="nav-btn" onclick="showSection('team-management')">Team Management</button>
+                <button class="nav-btn" onclick="showSection('maintenance-dashboard')">Maintenance Dashboard</button>
+                <button class="nav-btn" onclick="showSection('data-management')">Data Management</button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Safety Management</div>
+                <button class="nav-btn" onclick="window.open('play-parks.html', '_blank')">Play Park Safety</button>
+                <button class="nav-btn" onclick="window.open('incidents.html', '_blank')">Incident Reporting</button>
+                <button class="nav-btn" onclick="window.open('hot-tub.html', '_blank')">Hot Tub Management</button>
+                <button class="nav-btn" onclick="showSection('ai-near-miss')">AI Near Miss</button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Operations</div>
+                <button class="nav-btn" onclick="showSection('property-passports')">Property Passports</button>
+                <button class="nav-btn" onclick="window.open('accommodation.html', '_blank')">Accommodation</button>
+                <button class="nav-btn" onclick="window.open('maintenance.html', '_blank')">Grounds & Maintenance</button>
+                <button class="nav-btn" onclick="window.open('food-beverage.html', '_blank')">Food & Beverage</button>
+                <button class="nav-btn" onclick="window.open('vehicles.html', '_blank')">Vehicles</button>
+                <button class="nav-btn" onclick="window.open('ukas.html', '_blank')">UKAS Water Microbiology</button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Compliance & Risk</div>
+                <button class="nav-btn" onclick="window.open('contractors.html', '_blank')">Contractors</button>
+                <button class="nav-btn" onclick="window.open('risk-management.html', '_blank')">Risk & Business Continuity Management</button>
+                <button class="nav-btn" onclick="window.open('puwer.html', '_blank')">PUWER</button>
+                <button class="nav-btn" onclick="window.open('loler.html', '_blank')">LOLER</button>
+                <button class="nav-btn" onclick="window.open('gas.html', '_blank')">Gas Safety</button>
+                <button class="nav-btn" onclick="window.open('electric.html', '_blank')">Electrical Safety</button>
+                <button class="nav-btn" onclick="window.open('fire.html', '_blank')">Fire Safety</button>
+                <button class="nav-btn" onclick="window.open('coshh.html', '_blank')">COSHH</button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Reports & Analytics</div>
+                <button class="nav-btn" onclick="showSection('analytics')">Analytics Dashboard</button>
+                <button class="nav-btn" onclick="showSection('reports')">Generate Reports</button>
+                <button class="nav-btn" onclick="showSection('exports')">Data Export</button>
+                <button class="nav-btn" onclick="window.open('management.html', '_blank')">Management Suite</button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="content-section active">
+                <div class="header">
+                    <h1>CQR365</h1>
+                    <div class="brand-line">SafePark.PRO</div>
+                    <p>Comprehensive Safety & Compliance Management System</p>
+                </div>
+
+                <!-- Stats Overview -->
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalIncidents">0</div>
+                        <div class="stat-label">Total Incidents</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="teamMembers">0</div>
+                        <div class="stat-label">Team Members</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="maintenanceRecords">0</div>
+                        <div class="stat-label">Pending Maintenance</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="complianceScore">100%</div>
+                        <div class="stat-label">Compliance Score</div>
+                    </div>
+                </div>
+
+                <!-- Daily Checks - Small Hoverable Tiles -->
+                <div class="daily-checks">
+                    <h3>Daily "Quick" Checks</h3>
+                    <div class="daily-tiles">
+                        <a href="play-parks.html?section=inspection" class="module-tile">
+                            <div class="module-name">Play Parks</div>
+                        </a>
+
+                        <a href="hot-tub.html" class="module-tile">
+                            <div class="module-name">Hot Tubs</div>
+                        </a>
+
+                        <a href="accommodation.html" class="module-tile">
+                            <div class="module-name">Property</div>
+                        </a>
+
+                        <a href="maintenance.html" class="module-tile">
+                            <div class="module-name">+ / Check Maintenance</div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="recent-activity">
+                    <h3 class="activity-header">Recent Activity</h3>
+                    <div id="recentActivitiesList">
+                        <div class="activity-item">
+                            <div class="activity-time">Welcome to SafePark.PRO</div>
+                            <div class="activity-description">System initialized and ready for use</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Management Section -->
+            <div id="team-management" class="content-section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Team Management</h2>
+                        <p class="section-subtitle">Manage team members and locations across all Highland Holidays sites</p>
+                    </div>
+                </div>
+
+                <div class="management-container">
+                    <!-- Add Team Member Form -->
+                    <div class="form-section">
+                        <h3>Add New Team Member</h3>
+                        <form id="addTeamMemberForm" onsubmit="addTeamMember(event)">
+                            <div class="form-group">
+                                <label for="memberName">Full Name</label>
+                                <input type="text" id="memberName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="memberEmail">Email Address</label>
+                                <input type="email" id="memberEmail" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="memberRole">Role/Position</label>
+                                <input type="text" id="memberRole" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="memberHolidayPark">Holiday Park</label>
+                                <select id="memberHolidayPark" required>
+                                    <option value="">Select holiday park...</option>
+                                    <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                                    <option value="Oban Holiday Park">Oban Holiday Park</option>
+                                    <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                                    <option value="Overburns Farm">Overburns Farm</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn">Add Team Member</button>
+                        </form>
+                    </div>
+
+                    <!-- Add Location Form -->
+                    <div class="form-section">
+                        <h3>Add New Location</h3>
+                        <form id="addLocationForm" onsubmit="addLocation(event)">
+                            <div class="form-group">
+                                <label for="locationName">Location Name</label>
+                                <input type="text" id="locationName" required placeholder="e.g., New Holiday Park">
+                            </div>
+                            <button type="submit" class="btn">Add Location</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Team Members Grid -->
+                <div class="team-grid" id="teamMembersGrid">
+                    <!-- Team members will be populated here -->
+                </div>
+
+                <!-- Statistics below the grid -->
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalTeamMembers">0</div>
+                        <div class="stat-label">Total Members</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="activePark">4</div>
+                        <div class="stat-label">Active Parks</div>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <div class="form-group">
+                        <label for="filterHolidayPark">Filter by Holiday Park</label>
+                        <select id="filterHolidayPark" onchange="filterTeamMembers()">
+                            <option value="">All Holiday Parks</option>
+                            <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                            <option value="Oban Holiday Park">Oban Holiday Park</option>
+                            <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                            <option value="Overburns Farm">Overburns Farm</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Maintenance Dashboard Section -->
+            <div id="maintenance-dashboard" class="content-section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Maintenance Dashboard</h2>
+                        <p class="section-subtitle">Central maintenance record management across all modules</p>
+                    </div>
+                </div>
+
+                <!-- Maintenance Statistics -->
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-number" id="pendingMaintenance">0</div>
+                        <div class="stat-label">Pending Tasks</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="completedMaintenance">0</div>
+                        <div class="stat-label">Completed Tasks</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="highPriorityMaintenance">0</div>
+                        <div class="stat-label">High Priority</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalMaintenanceRecords">0</div>
+                        <div class="stat-label">Total Records</div>
+                    </div>
+                </div>
+
+                <!-- Maintenance Filters -->
+                <div class="form-section">
+                    <h3>Filter Maintenance Records</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                        <div class="form-group">
+                            <label for="filterMaintenanceArea">Filter by Business Area</label>
+                            <select id="filterMaintenanceArea" onchange="filterMaintenanceRecords()">
+                                <option value="">All Business Areas</option>
+                                <option value="Reception & Administration">Reception & Administration</option>
+                                <option value="Accommodation Services">Accommodation Services</option>
+                                <option value="Play Areas & Recreation">Play Areas & Recreation</option>
+                                <option value="Maintenance & Grounds">Maintenance & Grounds</option>
+                                <option value="Food & Beverage">Food & Beverage</option>
+                                <option value="Security & Safety">Security & Safety</option>
+                                <option value="Water Activities">Water Activities</option>
+                                <option value="Entertainment">Entertainment</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="filterMaintenanceHolidayPark">Filter by Holiday Park</label>
+                            <select id="filterMaintenanceHolidayPark" onchange="filterMaintenanceRecords()">
+                                <option value="">All Holiday Parks</option>
+                                <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                                <option value="Oban Holiday Park">Oban Holiday Park</option>
+                                <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                                <option value="Overburns Farm">Overburns Farm</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="filterMaintenanceStatus">Filter by Status</label>
+                            <select id="filterMaintenanceStatus" onchange="filterMaintenanceRecords()">
+                                <option value="">All Statuses</option>
+                                <option value="pending">Pending</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="filterMaintenancePriority">Filter by Priority</label>
+                            <select id="filterMaintenancePriority" onchange="filterMaintenanceRecords()">
+                                <option value="">All Priorities</option>
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                                <option value="critical">Critical</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Maintenance Records -->
+                <div class="data-grid">
+                    <div class="grid-header">Active Maintenance Records</div>
+                    <div class="grid-content" id="maintenanceRecordsGrid">
+                        <div style="text-align: center; color: #B8B8B8; padding: 20px;">No maintenance records found</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Management Section -->
+            <div id="data-management" class="content-section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Data Management</h2>
+                        <p class="section-subtitle">Import, export, and manage system data</p>
+                    </div>
+                </div>
+
+                <div class="management-container">
+                    <!-- Data Import/Export -->
+                    <div class="form-section">
+                        <h3>Data Operations</h3>
+                        <div class="form-group">
+                            <button class="btn" onclick="exportAllData()">Export All Data</button>
+                        </div>
+                        <div class="form-group">
+                            <button class="btn" onclick="clearAllData()" style="background: var(--danger);">Clear All Data</button>
+                        </div>
+                        <div class="form-group">
+                            <label for="importData">Import Data (JSON)</label>
+                            <input type="file" id="importData" accept=".json" onchange="importData(event)">
+                        </div>
+                    </div>
+
+                    <!-- System Information -->
+                    <div class="form-section">
+                        <h3>System Information</h3>
+                        <div class="stats-container">
+                            <div class="stat-card">
+                                <div class="stat-number" id="dataSize">0 KB</div>
+                                <div class="stat-label">Data Size</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number" id="lastBackup">Never</div>
+                                <div class="stat-label">Last Backup</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Near Miss Section -->
+            <div id="ai-near-miss" class="content-section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">AI Near Miss Detection System</h2>
+                        <p class="section-subtitle">Revolutionary AI technology for predictive safety management</p>
+                    </div>
+                </div>
+
+                <div class="form-section" style="text-align: center; padding: 50px; max-width: 800px; margin: 0 auto;">
+                    <h3 style="color: var(--primary-orange); font-size: 2rem; margin-bottom: 20px;">Patent Pending Technology</h3>
+                    <p style="font-size: 1.2rem; margin-bottom: 30px; color: #B8B8B8;">
+                        Our AI Near Miss Detection System uses cutting-edge machine learning algorithms to predict and prevent safety incidents before they occur. This groundbreaking technology is currently under patent review.
+                    </p>
+                    <p style="margin-bottom: 30px; color: #E8E8E8;">
+                        This revolutionary system represents the future of holiday park safety management, utilizing advanced predictive analytics to identify potential safety risks before they become incidents.
+                    </p>
+                    <button class="btn" onclick="alert('Please contact your CQR365 representative for access to this advanced technology.')">
+                        Contact for Access
+                    </button>
+                </div>
+            </div>
+
+            <!-- Property Passports Section -->
+            <div id="property-passports" class="content-section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Property Passports</h2>
+                        <p class="section-subtitle">Transform your park management with comprehensive documentation</p>
+                    </div>
+                </div>
+
+                <div class="form-section" style="text-align: center; padding: 50px; max-width: 800px; margin: 0 auto;">
+                    <h3 style="color: var(--primary-orange); font-size: 2rem; margin-bottom: 20px;">Upgrade to Full Suite</h3>
+                    <p style="font-size: 1.2rem; margin-bottom: 30px; color: #B8B8B8;">
+                        Property Passports are available as part of our comprehensive SafePark.PRO Full Suite. Transform your park management with detailed property documentation, compliance tracking, and asset management.
+                    </p>
+                    <p style="margin-bottom: 30px; color: #E8E8E8;">
+                        Contact your CQR365 representative to learn more about upgrading to the full suite and accessing advanced property management features.
+                    </p>
+                    <button class="btn" onclick="alert('Please contact your CQR365 representative to upgrade to the full SafePark.PRO suite.')">
+                        Request Upgrade
+                    </button>
+                </div>
+            </div>
+
+            <!-- Analytics Section -->
+            <div id="analytics" class="content-section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Analytics Dashboard</h2>
+                        <p class="section-subtitle">Data insights and performance metrics</p>
+                    </div>
+                </div>
+                <p>Advanced analytics dashboard coming soon...</p>
+            </div>
+
+            <!-- Reports Section -->
+            <div id="reports" class="content-section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Generate Reports</h2>
+                        <p class="section-subtitle">Custom reporting and documentation</p>
+                    </div>
+                </div>
+                <p>Report generation system coming soon...</p>
+            </div>
+
+            <!-- Data Export Section -->
+            <div id="exports" class="content-section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Data Export</h2>
+                        <p class="section-subtitle">Export data for external analysis</p>
+                    </div>
+                </div>
+                <p>Data export functionality coming soon...</p>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="firebase-config.js"></script>
+    <script type="module">
+        // Import the Firebase manager as single source of truth
+        import { safeParkManager } from './firebase-config.js';
+
+        // PWA Install Detection and Management (Coordinated with hot-tub.html)
+        let deferredPrompt;
+        let installButton;
+        let isAppInstalled = false;
+
+        // Check if app is running as installed PWA
+        function checkIfAppInstalled() {
+            // Method 1: Check display mode
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+            // Method 2: Check if launched from home screen (iOS)
+            const isIOSStandalone = ('standalone' in window.navigator) && window.navigator.standalone;
+            // Method 3: Check document referrer
+            const isInstalled = isStandalone || isIOSStandalone || document.referrer.includes('android-app://');
+            
+            isAppInstalled = isInstalled;
+            
+            if (isAppInstalled) {
+                // Hide any install prompts when running as installed PWA
+                hideInstallPrompts();
+                console.log('SafePark.PRO is running as installed PWA');
+            }
+            
+            return isAppInstalled;
+        }
+
+        // Hide install prompts
+        function hideInstallPrompts() {
+            // Hide any existing install button
+            if (installButton) {
+                installButton.classList.add('pwa-install-hidden');
+            }
+            // Hide any other install prompts
+            const installPrompts = document.querySelectorAll('[data-balloon*="Install"], .pwa-install-prompt');
+            installPrompts.forEach(prompt => prompt.classList.add('pwa-install-hidden'));
+        }
+
+        // Show install prompts (when not installed)
+        function showInstallPrompts() {
+            if (installButton) {
+                installButton.classList.remove('pwa-install-hidden');
+            }
+            const installPrompts = document.querySelectorAll('[data-balloon*="Install"], .pwa-install-prompt');
+            installPrompts.forEach(prompt => prompt.classList.remove('pwa-install-hidden'));
+        }
+
+        // Listen for beforeinstallprompt event
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('PWA install prompt available');
+            
+            if (!isAppInstalled) {
+                // Store the event for later use
+                deferredPrompt = e;
+                e.preventDefault(); // Prevent automatic showing
+                showInstallButton();
+                showInstallPrompts();
+            } else {
+                // Prevent install prompt if already installed
+                e.preventDefault();
+                hideInstallPrompts();
+            }
+        });
+
+        // Listen for app installation
+        window.addEventListener('appinstalled', (e) => {
+            console.log('SafePark.PRO was installed');
+            isAppInstalled = true;
+            hideInstallPrompts();
+            deferredPrompt = null;
+        });
+
+        function showInstallButton() {
+            if (!installButton && !isAppInstalled) {
+                installButton = document.createElement('button');
+                installButton.innerHTML = 'Install SafePark.PRO';
+                installButton.style.cssText = `
+                    position: fixed;
+                    top: 80px;
+                    right: 20px;
+                    z-index: 1002;
+                    background: linear-gradient(135deg, #CC5500, #B8460C);
+                    color: white;
+                    border: none;
+                    padding: 12px 20px;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                    transition: all 0.3s ease;
+                    font-size: 0.9rem;
+                `;
+                installButton.addEventListener('click', installPWA);
+                document.body.appendChild(installButton);
+            }
+            
+            if (installButton && !isAppInstalled) {
+                installButton.classList.remove('pwa-install-hidden');
+            }
+        }
+
+        async function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                deferredPrompt = null;
+                if (installButton) {
+                    installButton.classList.add('pwa-install-hidden');
+                }
+            }
+        }
+
+        // Service worker registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('sw.js')
+                .then(function(registration) {
+                    console.log('SW registered: ', registration);
+                })
+                .catch(function(registrationError) {
+                    console.log('SW registration failed: ', registrationError);
+                });
+            });
+        }
+
+        // Login System Variables
+        let isAuthenticated = false;
+        let currentPark = null;
+        const AUTH_DURATION = 60 * 60 * 1000; // 60 minutes in milliseconds
+
+        // Park access codes and welcome messages
+        const parkCodes = {
+            '1010': {
+                name: 'Ben Nevis Holiday Park',
+                message: 'Welcome Ben Nevis Holiday Park....lets get this done!!!'
+            },
+            '1020': {
+                name: 'Oban Holiday Park', 
+                message: 'Welcome Oban Holiday Park....lets get this done!!!'
+            },
+            '1030': {
+                name: 'Tyndrum Holiday Park',
+                message: 'Welcome Tyndrum Holiday Park....lets get this done!!!'
+            },
+            '365': {
+                name: 'Overburns Farm',
+                message: 'Welcome Overburns Farm....lets get this done!!!'
+            },
+            'CQR365SPP25': {
+                name: 'SafePark.PRO Master Access',
+                message: 'Welcome SafePark.PRO Administrator....lets get this done!!!'
+            }
+        };
+
+        // Check for existing authentication on page load
+        function checkExistingAuth() {
+            const authData = localStorage.getItem('safePark_auth');
+            if (authData) {
+                try {
+                    const { timestamp, park, code } = JSON.parse(authData);
+                    const now = Date.now();
+                    
+                    if (now - timestamp < AUTH_DURATION) {
+                        // Still within 60 minutes - auto login
+                        isAuthenticated = true;
+                        currentPark = park;
+                        hideLoginOverlay();
+                        
+                        if (window.SafeParkUtils && window.SafeParkUtils.addRecentActivity) {
+                            window.SafeParkUtils.addRecentActivity(
+                                'System Access',
+                                `Auto-login: ${park}`,
+                                'info'
+                            );
+                        }
+                        return true;
+                    } else {
+                        // Expired - remove old auth
+                        localStorage.removeItem('safePark_auth');
+                    }
+                } catch (error) {
+                    localStorage.removeItem('safePark_auth');
+                }
+            }
+            return false;
+        }
+
+        // Hide login overlay
+        function hideLoginOverlay() {
+            const overlay = document.getElementById('loginOverlay');
+            overlay.classList.add('hidden');
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 500);
+        }
+
+        // Authentication function
+        function authenticateUser() {
+            const code = document.getElementById('loginCode').value.trim();
+            const errorDiv = document.getElementById('loginError');
+            const welcomeDiv = document.getElementById('welcomeMessage');
+            const overlay = document.getElementById('loginOverlay');
+            
+            if (parkCodes[code]) {
+                // Valid code - store authentication with timestamp
+                isAuthenticated = true;
+                currentPark = parkCodes[code].name;
+                
+                const authData = {
+                    timestamp: Date.now(),
+                    park: currentPark,
+                    code: code
+                };
+                localStorage.setItem('safePark_auth', JSON.stringify(authData));
+                
+                // Hide error if showing
+                errorDiv.classList.remove('show');
+                
+                // Show welcome message
+                welcomeDiv.textContent = parkCodes[code].message;
+                welcomeDiv.classList.add('show');
+                
+                // Log the access
+                if (window.SafeParkUtils && window.SafeParkUtils.addRecentActivity) {
+                    window.SafeParkUtils.addRecentActivity(
+                        'System Access',
+                        `Successful login: ${parkCodes[code].name}`,
+                        'success'
+                    );
+                }
+                
+                // Hide overlay after welcome message
+                setTimeout(() => {
+                    hideLoginOverlay();
+                }, 2000); // Show welcome for 2 seconds
+                
+            } else {
+                // Invalid code - show error
+                errorDiv.classList.add('show');
+                document.getElementById('loginCode').value = '';
+                document.getElementById('loginCode').focus();
+                
+                // Shake animation for login container
+                const container = document.querySelector('.login-container');
+                container.style.animation = 'shake 0.5s ease-in-out';
+                setTimeout(() => {
+                    container.style.animation = '';
+                }, 500);
+            }
+        }
+
+        // Make this available globally immediately
+        window.authenticateUser = authenticateUser;
+
+        // Form handlers that connect to Firebase manager
+        async function addTeamMember(event) {
+            event.preventDefault();
+            
+            const memberData = {
+                name: document.getElementById('memberName').value,
+                email: document.getElementById('memberEmail').value,
+                role: document.getElementById('memberRole').value,
+                holidayPark: document.getElementById('memberHolidayPark').value
+            };
+
+            try {
+                await safeParkManager.addTeamMember(memberData);
+                document.getElementById('addTeamMemberForm').reset();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        async function addLocation(event) {
+            event.preventDefault();
+            
+            const locationData = {
+                name: document.getElementById('locationName').value
+            };
+
+            const success = await safeParkManager.addHolidayPark(locationData);
+            if (success) {
+                document.getElementById('addLocationForm').reset();
+                alert(`Location "${locationData.name}" added successfully!`);
+            } else {
+                alert(`Location "${locationData.name}" already exists.`);
+            }
+        }
+
+        async function removeTeamMember(memberId) {
+            if (confirm('Are you sure you want to remove this team member?')) {
+                await safeParkManager.removeTeamMember(memberId);
+            }
+        }
+
+        async function toggleMaintenanceStatus(recordId) {
+            await safeParkManager.toggleMaintenanceStatus(recordId);
+        }
+
+        function filterTeamMembers() {
+            safeParkManager.displayTeamMembers();
+        }
+
+        function filterMaintenanceRecords() {
+            safeParkManager.displayMaintenanceRecords();
+        }
+
+        // Data management functions
+        function exportAllData() {
+            const data = {
+                teamMembers: safeParkManager.teamMembers,
+                maintenanceRecords: safeParkManager.maintenanceRecords,
+                maintenanceTasks: safeParkManager.maintenanceTasks,
+                recentActivities: safeParkManager.recentActivities,
+                holidayParks: safeParkManager.holidayParks,
+                exportDate: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `safepark-data-export-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            safeParkManager.addRecentActivity('Data Management', 'Data exported successfully', 'success');
+        }
+
+        async function clearAllData() {
+            if (confirm('Are you sure you want to clear ALL data? This action cannot be undone.')) {
+                if (confirm('This will permanently delete all team members, maintenance records, and activity logs. Are you absolutely sure?')) {
+                    try {
+                        // Use Firebase manager to clear all data
+                        await safeParkManager.clearAllData();
+                        location.reload();
+                    } catch (error) {
+                        console.error('Error clearing data:', error);
+                        alert('Error clearing data. Please try again.');
+                    }
+                }
+            }
+        }
+
+        async function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    // Use Firebase manager to import data
+                    await safeParkManager.importData(data);
+                    
+                    alert('Data imported successfully. The page will now reload.');
+                    location.reload();
+                } catch (error) {
+                    alert('Error importing data. Please check the file format.');
+                    console.error('Import error:', error);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Navigation functions
+        function showSection(sectionId) {
+            if (!isAuthenticated) {
+                return false;
+            }
+
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if (btn.getAttribute('onclick')?.includes(`showSection('${sectionId}')`)) {
+                    btn.classList.add('active');
+                }
+            });
+
+            const formSections = ['team-management', 'maintenance-dashboard', 'data-management'];
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile && formSections.includes(sectionId)) {
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar && sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
+                }
+            }
+
+            if (sectionId === 'maintenance-dashboard') {
+                // Refresh data when switching to maintenance dashboard
+                safeParkManager.displayMaintenanceRecords();
+                safeParkManager.updateStats();
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check PWA installation status
+            checkIfAppInstalled();
+            
+            if (!checkExistingAuth()) {
+                const loginInput = document.getElementById('loginCode');
+                if (loginInput) {
+                    setTimeout(() => {
+                        loginInput.focus();
+                    }, 500);
+                }
+            }
+
+            const loginInput = document.getElementById('loginCode');
+            if (loginInput) {
+                loginInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        authenticateUser();
+                    }
+                });
+            }
+
+            // Wait for Firebase manager to be ready, then initialize displays
+            if (safeParkManager) {
+                // The Firebase manager is already initialized and will handle displays
+                console.log('Using Firebase manager as single source of truth');
+            }
+
+            // Auto-sync data for any forms on the page
+            if (window.syncSafeParkData) {
+                setTimeout(() => {
+                    window.syncSafeParkData();
+                }, 2000); // Give Firebase time to load and authenticate
+            }
+        });
+
+        // Make functions globally available
+        window.addTeamMember = addTeamMember;
+        window.addLocation = addLocation;
+        window.removeTeamMember = removeTeamMember;
+        window.toggleMaintenanceStatus = toggleMaintenanceStatus;
+        window.filterTeamMembers = filterTeamMembers;
+        window.filterMaintenanceRecords = filterMaintenanceRecords;
+        window.exportAllData = exportAllData;
+        window.clearAllData = clearAllData;
+        window.importData = importData;
+        window.showSection = showSection;
+        window.toggleSidebar = toggleSidebar;
+    </script>
+</body>
+</html>
