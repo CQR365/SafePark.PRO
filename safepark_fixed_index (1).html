@@ -1,0 +1,2442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CQR365 SafePark.PRO Management System</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#CC5500">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+    
+    <style>
+        :root {
+            --primary-orange: #CC5500;
+            --dark-orange: #B34700;
+            --light-orange: #E55D00;
+            --white: #FFFFFF;
+            --light-gray: #F8F9FA;
+            --medium-gray: #6C757D;
+            --dark-gray: #343A40;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --background-dark: #1a1a1a;
+            --content-background: #2d2d2d;
+            --sidebar-background: #252525;
+            --border-color: #404040;
+            --shadow-light: 0 2px 10px rgba(0, 0, 0, 0.1);
+            --shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.15);
+            --shadow-heavy: 0 8px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #E8E8E8;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Authentication Styles */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            padding: 20px;
+        }
+
+        .login-form {
+            background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 
+                        inset 0 10px 30px rgba(255, 255, 255, 0.1),
+                        inset 0 -10px 30px rgba(0, 0, 0, 0.7);
+            border: 3px solid var(--primary-orange);
+            max-width: 450px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-form::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.1) 0%, 
+                transparent 50%, 
+                rgba(0, 0, 0, 0.2) 100%);
+            border-radius: 17px;
+            pointer-events: none;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .login-header h1 {
+            color: var(--primary-orange);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .login-header .brand-line {
+            color: #E8E8E8;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .login-header .tagline {
+            color: #B8B8B8;
+            font-size: 1rem;
+            font-style: italic;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .form-group label {
+            display: block;
+            color: #E8E8E8;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: #E8E8E8;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 20px rgba(204, 85, 0, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3),
+                        inset 0 3px 10px rgba(255, 255, 255, 0.2);
+            position: relative;
+            z-index: 2;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4),
+                        inset 0 3px 10px rgba(255, 255, 255, 0.3);
+            background: linear-gradient(145deg, var(--light-orange), var(--primary-orange));
+        }
+
+        .login-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .error-message {
+            background: linear-gradient(145deg, var(--danger), #a71e2a);
+            color: var(--white);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .welcome-message {
+            text-align: center;
+            margin-top: 20px;
+            color: #B8B8B8;
+            font-size: 1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #888;
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* App Container */
+        .app-container {
+            display: none;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .app-container.authenticated {
+            display: block;
+        }
+
+        /* Enhanced PRO Button */
+        .pro-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+            padding: 12px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 700;
+            z-index: 1000;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3),
+                        inset 0 2px 5px rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            font-size: 1rem;
+        }
+
+        .pro-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4),
+                        inset 0 2px 8px rgba(255, 255, 255, 0.3);
+            background: linear-gradient(145deg, var(--light-orange), var(--primary-orange));
+        }
+
+        .pro-text {
+            font-size: 1.1rem;
+            font-weight: 900;
+            margin-right: 8px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Hamburger Menu */
+        .hamburger-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .hamburger-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .hamburger-btn span {
+            width: 20px;
+            height: 3px;
+            background: var(--white);
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -350px;
+            width: 350px;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--sidebar-background) 0%, #1a1a1a 100%);
+            z-index: 999;
+            transition: right 0.4s ease;
+            overflow-y: auto;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+            border-left: 3px solid var(--primary-orange);
+        }
+
+        .sidebar.active {
+            right: 0;
+        }
+
+        .sidebar-header {
+            padding: 30px 25px;
+            text-align: center;
+            border-bottom: 2px solid var(--border-color);
+            background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+        }
+
+        .sidebar-header h1 {
+            color: var(--primary-orange);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header .brand-line {
+            color: #E8E8E8;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header .highland-branding {
+            color: #B8B8B8;
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+
+        .nav-section {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .nav-section-title {
+            padding: 0 25px 15px;
+            color: var(--primary-orange);
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-btn {
+            display: block;
+            width: 100%;
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            color: #E8E8E8;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 500;
+            border-left: 4px solid transparent;
+        }
+
+        .nav-btn:hover {
+            background: rgba(204, 85, 0, 0.1);
+            border-left-color: var(--primary-orange);
+            color: var(--white);
+        }
+
+        .nav-btn.active {
+            background: rgba(204, 85, 0, 0.2);
+            border-left-color: var(--primary-orange);
+            color: var(--primary-orange);
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 100px 30px 30px;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Dashboard Header */
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .header h1 {
+            color: var(--primary-orange);
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header .brand-line {
+            color: #E8E8E8;
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .header p {
+            color: #B8B8B8;
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Stats Container - UPDATED for Play Parks */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+
+        .stat-card {
+            background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 
+                        inset 0 8px 20px rgba(255, 255, 255, 0.1),
+                        inset 0 -8px 20px rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--border-color);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.05) 0%, 
+                transparent 30%, 
+                transparent 70%, 
+                rgba(0, 0, 0, 0.1) 100%);
+            border-radius: 13px;
+            pointer-events: none;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-orange);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.9), 
+                        inset 0 8px 20px rgba(255, 255, 255, 0.15),
+                        0 0 20px rgba(204, 85, 0, 0.3);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary-orange);
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-label {
+            color: #E8E8E8;
+            font-size: 1.1rem;
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Daily Checks Section */
+        .daily-checks {
+            margin-bottom: 50px;
+        }
+
+        .daily-checks h3 {
+            color: var(--primary-orange);
+            font-size: 2rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .daily-tiles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .module-tile {
+            background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+            padding: 25px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 
+                        inset 0 5px 15px rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module-tile::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.05) 0%, 
+                transparent 50%, 
+                rgba(0, 0, 0, 0.1) 100%);
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .module-tile:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-orange);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7), 
+                        inset 0 5px 15px rgba(255, 255, 255, 0.15),
+                        0 0 20px rgba(204, 85, 0, 0.3);
+        }
+
+        .module-name {
+            color: var(--primary-orange);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .module-desc {
+            color: #B8B8B8;
+            font-size: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Tile Details Modal */
+        .tile-details-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .tile-details-content {
+            background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+            border: 3px solid var(--primary-orange);
+            position: relative;
+        }
+
+        .details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .details-title {
+            color: var(--primary-orange);
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: var(--danger);
+            color: var(--white);
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .details-content {
+            color: #E8E8E8;
+            line-height: 1.6;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .detail-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-orange);
+        }
+
+        .detail-title {
+            color: var(--primary-orange);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .detail-content {
+            color: #E8E8E8;
+            font-size: 0.95rem;
+        }
+
+        /* Section Headers */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .section-title {
+            color: var(--primary-orange);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .section-subtitle {
+            color: #B8B8B8;
+            font-size: 1.1rem;
+        }
+
+        /* Management Container */
+        .management-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .form-section {
+            background: var(--content-background);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-light);
+        }
+
+        .form-section h3 {
+            color: var(--primary-orange);
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary-orange);
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #E8E8E8;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: #E8E8E8;
+            font-size: 1rem;
+        }
+
+        .form-group select option {
+            background: var(--content-background);
+            color: #E8E8E8;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 2px rgba(204, 85, 0, 0.2);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
+            color: var(--white);
+            padding: 15px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: var(--shadow-light);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+            background: linear-gradient(135deg, var(--light-orange) 0%, var(--primary-orange) 100%);
+        }
+
+        /* Data Grids */
+        .data-grid {
+            background: var(--content-background);
+            border-radius: 12px;
+            box-shadow: var(--shadow-light);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .grid-header {
+            background: var(--primary-orange);
+            color: var(--white);
+            padding: 20px;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .grid-content {
+            padding: 20px;
+        }
+
+        .grid-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.3s ease;
+        }
+
+        .grid-item:hover {
+            background: rgba(204, 85, 0, 0.1);
+        }
+
+        .grid-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Maintenance Dashboard Enhancements */
+        .maintenance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .create-task-btn {
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .create-task-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            background: var(--content-background);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: #E8E8E8;
+            cursor: pointer;
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .task-item {
+            background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 5px solid var(--medium-gray);
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .task-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .task-item.priority-critical {
+            border-left-color: var(--danger);
+        }
+
+        .task-item.priority-high {
+            border-left-color: var(--warning);
+        }
+
+        .task-item.priority-medium {
+            border-left-color: var(--primary-orange);
+        }
+
+        .task-item.priority-low {
+            border-left-color: var(--success);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+            padding: 40px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+            border: 3px solid var(--primary-orange);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .modal-title {
+            color: var(--primary-orange);
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .close-modal {
+            background: var(--danger);
+            color: var(--white);
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .header .brand-line {
+                font-size: 1.5rem;
+            }
+
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+
+            .daily-tiles {
+                grid-template-columns: 1fr;
+            }
+
+            .management-container {
+                grid-template-columns: 1fr;
+            }
+
+            .main-content {
+                padding: 120px 15px 30px;
+            }
+
+            .sidebar {
+                width: 100vw;
+                right: -100vw;
+            }
+
+            .pro-button {
+                position: static;
+                margin-bottom: 20px;
+                display: inline-block;
+            }
+
+            .hamburger-btn {
+                position: static;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Firebase Configuration -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCHMmm8XmSYCmPk4BDPGb5k_W_f8LRxD9I",
+            authDomain: "safepark-pro.firebaseapp.com",
+            projectId: "safepark-pro",
+            storageBucket: "safepark-pro.appspot.com",
+            messagingSenderId: "1001659711460",
+            appId: "1:1001659711460:web:c6c3b7b5c7c4d8a9b2c3d4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        window.db = db;
+        window.firestoreFunctions = {
+            collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy, onSnapshot
+        };
+        
+        console.log('Firebase initialized successfully');
+    </script>
+
+    <!-- Authentication Screen -->
+    <div class="auth-container" id="authContainer">
+        <div class="login-form">
+            <div class="login-header">
+                <h1>CQR365</h1>
+                <div class="brand-line">SafePark.PRO</div>
+                <div class="tagline">Management System V3</div>
+            </div>
+            
+            <form id="loginForm" onsubmit="return authenticateUser(event)">
+                <div class="form-group">
+                    <label for="authCode">Enter Authentication Code</label>
+                    <input type="password" id="authCode" required>
+                </div>
+                
+                <button type="submit" class="login-btn">Access System</button>
+                
+                <div class="error-message" id="errorMessage" style="display: none;">
+                    Invalid authentication code. Please try again.
+                </div>
+            </form>
+            
+            <div class="welcome-message" id="welcomeMessage"></div>
+            
+            <div class="login-footer">
+                &copy; 2025 CQR365 SafePark.PRO Management System
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container" id="appContainer">
+        <!-- FIXED: Enhanced PRO Button -->
+        <a href="javascript:void(0)" onclick="showSection('dashboard')" class="pro-button" title="Return to Dashboard">
+            <span class="pro-text">PRO</span>
+            Dashboard
+        </a>
+
+        <!-- Hamburger Menu Button - NOW ON RIGHT SIDE -->
+        <button class="hamburger-btn" onclick="toggleSidebar()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1>CQR365</h1>
+                <div class="brand-line">SafePark.PRO</div>
+                <!-- FIXED: Highland Holidays branding only in main sidebar -->
+                <div class="highland-branding">for Highland Holidays</div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Dashboard</div>
+                <button class="nav-btn active" onclick="showSection('dashboard')">Overview</button>
+                <button class="nav-btn" onclick="showSection('team-management')">Team Management</button>
+                <button class="nav-btn" onclick="showSection('maintenance-dashboard')">Maintenance Dashboard</button>
+                <button class="nav-btn" onclick="showSection('data-management')">Data Management</button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Safety Management</div>
+                <button class="nav-btn" onclick="window.open('play-parks.html', '_blank')">Play Park Safety</button>
+                <button class="nav-btn" onclick="window.open('incidents.html', '_blank')">Incident Reporting</button>
+                <button class="nav-btn" onclick="window.open('hot-tub.html', '_blank')">Hot Tub Management</button>
+                <!-- FIXED: AI Near Miss with sidebar hiding -->
+                <button class="nav-btn" onclick="showSectionWithSidebar('ai-near-miss')">AI Near Miss</button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Compliance</div>
+                <button class="nav-btn" onclick="window.open('contractors.html', '_blank')">Contractor Management</button>
+                <button class="nav-btn" onclick="window.open('coshh.html', '_blank')">COSHH</button>
+                <button class="nav-btn" onclick="window.open('electric.html', '_blank')">Electrical Safety</button>
+                <button class="nav-btn" onclick="window.open('fire.html', '_blank')">Fire Safety</button>
+                <button class="nav-btn" onclick="window.open('gas.html', '_blank')">Gas Safety</button>
+                <button class="nav-btn" onclick="window.open('loler.html', '_blank')">LOLER</button>
+                <button class="nav-btn" onclick="window.open('puwer.html', '_blank')">PUWER</button>
+                <button class="nav-btn" onclick="window.open('risk-management.html', '_blank')">Risk Management</button>
+                <button class="nav-btn" onclick="window.open('ukas.html', '_blank')">UKAS</button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Operations</div>
+                <button class="nav-btn" onclick="window.open('accommodation.html', '_blank')">Accommodation</button>
+                <button class="nav-btn" onclick="window.open('food-beverage.html', '_blank')">Food & Beverage</button>
+                <button class="nav-btn" onclick="window.open('grounds-equipment.html', '_blank')">Grounds & Equipment</button>
+                <button class="nav-btn" onclick="window.open('vehicles.html', '_blank')">Vehicles</button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Management</div>
+                <button class="nav-btn" onclick="window.open('management.html', '_blank')">Management Suite</button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="content-section active">
+                <div class="header">
+                    <h1>CQR365</h1>
+                    <div class="brand-line">SafePark.PRO</div>
+                    <p>Comprehensive Safety & Compliance Management System</p>
+                </div>
+
+                <!-- UPDATED: Dashboard Stats with Play Park Integration -->
+                <div class="stats-container">
+                    <div class="stat-card" onclick="showTileDetails('incidents')" title="Click to view incident details">
+                        <div class="stat-number" id="totalIncidents">0</div>
+                        <div class="stat-label">Total Incidents</div>
+                    </div>
+                    <div class="stat-card" onclick="showTileDetails('team')" title="Click to view team member details">
+                        <div class="stat-number" id="teamMembers">0</div>
+                        <div class="stat-label">Team Members</div>
+                    </div>
+                    <div class="stat-card" onclick="showTileDetails('maintenance')" title="Click to view maintenance details">
+                        <div class="stat-number" id="maintenanceRecords">0</div>
+                        <div class="stat-label">Pending Maintenance</div>
+                    </div>
+                    <!-- NEW: Play Park Areas Stat Card -->
+                    <div class="stat-card" onclick="showTileDetails('playparks')" title="Click to view play park details">
+                        <div class="stat-number" id="playParkAreas">0</div>
+                        <div class="stat-label">Play Park Areas</div>
+                    </div>
+                    <div class="stat-card" onclick="showTileDetails('compliance')" title="Click to view compliance breakdown">
+                        <div class="stat-number" id="complianceScore">100%</div>
+                        <div class="stat-label">Compliance Score</div>
+                    </div>
+                </div>
+
+                <!-- UPDATED: Daily Checks with Play Park Navigation -->
+                <div class="daily-checks">
+                    <h3>Daily "Quick" Checks</h3>
+                    <div class="daily-tiles">
+                        <!-- UPDATED: Play Park Tile with Firebase Integration -->
+                        <a href="play-parks.html?section=inspection" class="module-tile" target="_blank">
+                            <div class="module-name">Play Parks</div>
+                            <div class="module-desc">Inspect play equipment and safety areas with Firebase sync</div>
+                        </a>
+
+                        <a href="hot-tub.html" class="module-tile" target="_blank">
+                            <div class="module-name">Hot Tub Safety</div>
+                            <div class="module-desc">Check water quality and safety systems</div>
+                        </a>
+
+                        <a href="incidents.html" class="module-tile" target="_blank">
+                            <div class="module-name">Incident Reports</div>
+                            <div class="module-desc">Report and manage safety incidents</div>
+                        </a>
+
+                        <a href="accommodation.html" class="module-tile" target="_blank">
+                            <div class="module-name">Accommodation</div>
+                            <div class="module-desc">Room inspections and maintenance</div>
+                        </a>
+
+                        <a href="food-beverage.html" class="module-tile" target="_blank">
+                            <div class="module-name">Food & Beverage</div>
+                            <div class="module-desc">Kitchen safety and hygiene checks</div>
+                        </a>
+
+                        <a href="grounds-equipment.html" class="module-tile" target="_blank">
+                            <div class="module-name">Grounds & Equipment</div>
+                            <div class="module-desc">Equipment maintenance and grounds safety</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Management Section -->
+            <div id="team-management" class="content-section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Team Management</h2>
+                        <p class="section-subtitle">Manage team members and locations</p>
+                    </div>
+                </div>
+
+                <div class="management-container">
+                    <!-- Add Team Member -->
+                    <div class="form-section">
+                        <h3>Add Team Member</h3>
+                        <div class="form-group">
+                            <label for="memberName">Full Name</label>
+                            <input type="text" id="memberName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="memberRole">Role</label>
+                            <select id="memberRole" required>
+                                <option value="">Select Role</option>
+                                <option value="Manager">Manager</option>
+                                <option value="Maintenance">Maintenance</option>
+                                <option value="Cleaner">Cleaner</option>
+                                <option value="Security">Security</option>
+                                <option value="Reception">Reception</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="memberLocation">Location</label>
+                            <select id="memberLocation" required>
+                                <option value="">Select Location</option>
+                                <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                                <option value="Oban Holiday Park">Oban Holiday Park</option>
+                                <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                                <option value="Overburns Farm">Overburns Farm</option>
+                            </select>
+                        </div>
+                        <button class="btn" onclick="addTeamMember()">Add Member</button>
+                    </div>
+
+                    <!-- Add Location -->
+                    <div class="form-section">
+                        <h3>Add Location</h3>
+                        <div class="form-group">
+                            <label for="locationName">Location Name</label>
+                            <input type="text" id="locationName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="locationAddress">Address</label>
+                            <textarea id="locationAddress" rows="3"></textarea>
+                        </div>
+                        <button class="btn" onclick="addLocation()">Add Location</button>
+                    </div>
+                </div>
+
+                <!-- Team Member List -->
+                <div class="data-grid">
+                    <div class="grid-header">Current Team Members</div>
+                    <div class="grid-content">
+                        <div class="filter-controls">
+                            <select class="filter-select" id="roleFilter" onchange="filterTeamMembers()">
+                                <option value="">All Roles</option>
+                                <option value="Manager">Manager</option>
+                                <option value="Maintenance">Maintenance</option>
+                                <option value="Cleaner">Cleaner</option>
+                                <option value="Security">Security</option>
+                                <option value="Reception">Reception</option>
+                            </select>
+                            <select class="filter-select" id="locationFilter" onchange="filterTeamMembers()">
+                                <option value="">All Locations</option>
+                                <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                                <option value="Oban Holiday Park">Oban Holiday Park</option>
+                                <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                                <option value="Overburns Farm">Overburns Farm</option>
+                            </select>
+                        </div>
+                        <div id="teamMembersList">
+                            <div style="text-align: center; color: #B8B8B8; padding: 40px;">
+                                No team members found.<br><br>
+                                Add team members using the form above.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Maintenance Dashboard Section -->
+            <div id="maintenance-dashboard" class="content-section">
+                <div class="maintenance-header">
+                    <div>
+                        <h2 class="section-title">Maintenance Dashboard</h2>
+                        <p class="section-subtitle">Create and manage maintenance tasks</p>
+                    </div>
+                    <button class="create-task-btn" onclick="openCreateTaskModal()">Create New Task</button>
+                </div>
+
+                <div class="filter-controls">
+                    <select class="filter-select" id="statusFilter" onchange="filterTasks()">
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                    <select class="filter-select" id="priorityFilter" onchange="filterTasks()">
+                        <option value="">All Priorities</option>
+                        <option value="critical">Critical</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                    <select class="filter-select" id="categoryFilter" onchange="filterTasks()">
+                        <option value="">All Categories</option>
+                        <option value="electrical">Electrical</option>
+                        <option value="plumbing">Plumbing</option>
+                        <option value="hvac">HVAC</option>
+                        <option value="grounds">Grounds</option>
+                        <option value="safety">Safety</option>
+                        <option value="cleaning">Cleaning</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div id="maintenanceTasksList" class="task-list">
+                    <div style="text-align: center; color: #B8B8B8; padding: 60px;">
+                        <h3 style="color: var(--primary-orange); margin-bottom: 15px;">No Maintenance Tasks Found</h3>
+                        <p style="margin-bottom: 20px;">
+                            Click "Create New Task" to add your first maintenance task.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Management Section -->
+            <div id="data-management" class="content-section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Data Management</h2>
+                        <p class="section-subtitle">Import, export, and manage system data</p>
+                    </div>
+                </div>
+
+                <div class="management-container">
+                    <!-- Data Import/Export -->
+                    <div class="form-section">
+                        <h3>Data Operations</h3>
+                        <div class="form-group">
+                            <button class="btn" onclick="exportAllData()">Export All Data</button>
+                        </div>
+                        <div class="form-group">
+                            <button class="btn" onclick="clearMaintenanceData()" style="background: var(--warning);">Clear Maintenance Data</button>
+                        </div>
+                        <div class="form-group">
+                            <button class="btn" onclick="clearAllData()" style="background: var(--danger);">Clear All Data</button>
+                        </div>
+                        <div class="form-group">
+                            <label for="importData">Import Data (JSON)</label>
+                            <input type="file" id="importData" accept=".json" onchange="importData(event)">
+                        </div>
+                    </div>
+
+                    <!-- System Information -->
+                    <div class="form-section">
+                        <h3>System Information</h3>
+                        <div class="stats-container">
+                            <div class="stat-card">
+                                <div class="stat-number" id="dataSize">0 KB</div>
+                                <div class="stat-label">Data Size</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number" id="lastBackup">Never</div>
+                                <div class="stat-label">Last Backup</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Create Task Modal -->
+        <div id="createTaskModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Create New Maintenance Task</h2>
+                    <button class="close-modal" onclick="closeCreateTaskModal()">&times;</button>
+                </div>
+                
+                <form id="createTaskForm" onsubmit="return submitMaintenanceTask(event)">
+                    <div class="form-group">
+                        <label for="taskTitle">Task Title</label>
+                        <input type="text" id="taskTitle" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="taskDescription">Description</label>
+                        <textarea id="taskDescription" rows="4" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="taskPriority">Priority</label>
+                        <select id="taskPriority" required>
+                            <option value="">Select Priority</option>
+                            <option value="critical">Critical</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="taskCategory">Category</label>
+                        <select id="taskCategory" required>
+                            <option value="">Select Category</option>
+                            <option value="electrical">Electrical</option>
+                            <option value="plumbing">Plumbing</option>
+                            <option value="hvac">HVAC</option>
+                            <option value="grounds">Grounds</option>
+                            <option value="safety">Safety</option>
+                            <option value="cleaning">Cleaning</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="taskLocation">Location</label>
+                        <select id="taskLocation" required>
+                            <option value="">Select Location</option>
+                            <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                            <option value="Oban Holiday Park">Oban Holiday Park</option>
+                            <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                            <option value="Overburns Farm">Overburns Farm</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="assignedTo">Assigned To</label>
+                        <select id="assignedTo">
+                            <option value="">Unassigned</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn" style="width: 100%;">Create Task</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tile Details Modal -->
+        <div id="tileDetailsModal" class="tile-details-modal">
+            <div class="tile-details-content">
+                <div class="details-header">
+                    <h2 class="details-title" id="detailsTitle">Details</h2>
+                    <button class="close-btn" onclick="closeTileDetails()">&times;</button>
+                </div>
+                <div class="details-content" id="detailsContent">
+                    <!-- Details content will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Authentication
+        let isAuthenticated = false;
+        const parkCodes = {
+            '1010': 'Ben Nevis Holiday Park',
+            '1020': 'Oban Holiday Park',
+            '1030': 'Tyndrum Holiday Park',
+            '365': 'Overburns Farm',
+            'CQR365SPP25': 'SafePark.PRO Master Access'
+        };
+
+        function authenticateUser(event) {
+            event.preventDefault();
+            const code = document.getElementById('authCode').value;
+            const errorMsg = document.getElementById('errorMessage');
+            const welcomeMsg = document.getElementById('welcomeMessage');
+
+            if (parkCodes[code]) {
+                isAuthenticated = true;
+                document.getElementById('authContainer').style.display = 'none';
+                document.getElementById('appContainer').classList.add('authenticated');
+                
+                welcomeMsg.innerHTML = `Welcome to ${parkCodes[code]}!`;
+                
+                // Initialize data after authentication
+                initializeDashboard();
+            } else {
+                errorMsg.style.display = 'block';
+                document.getElementById('authCode').value = '';
+            }
+            return false;
+        }
+
+        // UPDATED: Firebase-First Maintenance Manager with Play Park Integration
+        class FirebaseFirstMaintenanceManager {
+            constructor() {
+                this.isOnline = navigator.onLine;
+                this.localData = {
+                    maintenanceTasks: [],
+                    teamMembers: [],
+                    playParkAreas: [] // NEW: Play park areas data
+                };
+                
+                // Monitor connection status
+                window.addEventListener('online', () => {
+                    this.isOnline = true;
+                    this.syncWithFirebase();
+                });
+                
+                window.addEventListener('offline', () => {
+                    this.isOnline = false;
+                });
+
+                this.loadFromLocalStorage();
+            }
+
+            async initializeFirebaseConnection() {
+                if (!this.isOnline) return false;
+                
+                try {
+                    // Test Firebase connection
+                    await window.firestoreFunctions.getDocs(
+                        window.firestoreFunctions.collection(window.db, 'maintenanceTasks')
+                    );
+                    console.log('Firebase connection established');
+                    return true;
+                } catch (error) {
+                    console.warn('Firebase connection failed:', error);
+                    return false;
+                }
+            }
+
+            // NEW: Load Play Park Areas from Firebase
+            async loadPlayParkAreas() {
+                if (!this.isOnline) {
+                    return this.localData.playParkAreas;
+                }
+
+                try {
+                    const querySnapshot = await window.firestoreFunctions.getDocs(
+                        window.firestoreFunctions.collection(window.db, 'playParks')
+                    );
+                    
+                    const playParkAreas = [];
+                    querySnapshot.forEach((doc) => {
+                        playParkAreas.push({ id: doc.id, ...doc.data() });
+                    });
+                    
+                    this.localData.playParkAreas = playParkAreas;
+                    this.saveToLocalStorage();
+                    console.log('Play park areas loaded from Firebase:', playParkAreas.length);
+                    return playParkAreas;
+                } catch (error) {
+                    console.warn('Error loading play park areas from Firebase:', error);
+                    return this.localData.playParkAreas;
+                }
+            }
+
+            async loadMaintenanceTasks() {
+                if (!this.isOnline) {
+                    return this.localData.maintenanceTasks;
+                }
+
+                try {
+                    const querySnapshot = await window.firestoreFunctions.getDocs(
+                        window.firestoreFunctions.query(
+                            window.firestoreFunctions.collection(window.db, 'maintenanceTasks'),
+                            window.firestoreFunctions.orderBy('created', 'desc')
+                        )
+                    );
+                    
+                    const tasks = [];
+                    querySnapshot.forEach((doc) => {
+                        tasks.push({ id: doc.id, ...doc.data() });
+                    });
+                    
+                    this.localData.maintenanceTasks = tasks;
+                    this.saveToLocalStorage();
+                    console.log('Maintenance tasks loaded from Firebase:', tasks.length);
+                    return tasks;
+                } catch (error) {
+                    console.warn('Error loading maintenance tasks from Firebase:', error);
+                    return this.localData.maintenanceTasks;
+                }
+            }
+
+            async loadTeamMembers() {
+                if (!this.isOnline) {
+                    return this.localData.teamMembers;
+                }
+
+                try {
+                    const querySnapshot = await window.firestoreFunctions.getDocs(
+                        window.firestoreFunctions.collection(window.db, 'teamMembers')
+                    );
+                    
+                    const members = [];
+                    querySnapshot.forEach((doc) => {
+                        members.push({ id: doc.id, ...doc.data() });
+                    });
+                    
+                    this.localData.teamMembers = members;
+                    this.saveToLocalStorage();
+                    console.log('Team members loaded from Firebase:', members.length);
+                    return members;
+                } catch (error) {
+                    console.warn('Error loading team members from Firebase:', error);
+                    return this.localData.teamMembers;
+                }
+            }
+
+            async addMaintenanceTask(taskData) {
+                const task = {
+                    ...taskData,
+                    id: Date.now().toString(),
+                    created: new Date().toISOString(),
+                    status: 'pending'
+                };
+
+                // Add to local data immediately
+                this.localData.maintenanceTasks.unshift(task);
+                this.saveToLocalStorage();
+
+                // Sync to Firebase if online
+                if (this.isOnline) {
+                    try {
+                        const docRef = await window.firestoreFunctions.addDoc(
+                            window.firestoreFunctions.collection(window.db, 'maintenanceTasks'),
+                            task
+                        );
+                        console.log('Task added to Firebase:', docRef.id);
+                    } catch (error) {
+                        console.warn('Error adding task to Firebase:', error);
+                    }
+                }
+
+                return task;
+            }
+
+            async addTeamMember(memberData) {
+                const member = {
+                    ...memberData,
+                    id: Date.now().toString(),
+                    created: new Date().toISOString()
+                };
+
+                // Add to local data immediately
+                this.localData.teamMembers.push(member);
+                this.saveToLocalStorage();
+
+                // Sync to Firebase if online
+                if (this.isOnline) {
+                    try {
+                        const docRef = await window.firestoreFunctions.addDoc(
+                            window.firestoreFunctions.collection(window.db, 'teamMembers'),
+                            member
+                        );
+                        console.log('Team member added to Firebase:', docRef.id);
+                    } catch (error) {
+                        console.warn('Error adding team member to Firebase:', error);
+                    }
+                }
+
+                return member;
+            }
+
+            async syncWithFirebase() {
+                if (!this.isOnline) return;
+
+                try {
+                    await this.loadMaintenanceTasks();
+                    await this.loadTeamMembers();
+                    await this.loadPlayParkAreas(); // NEW: Sync play park areas
+                    console.log('Firebase sync completed');
+                    updateDashboardStats();
+                } catch (error) {
+                    console.warn('Firebase sync error:', error);
+                }
+            }
+
+            saveToLocalStorage() {
+                try {
+                    localStorage.setItem('safeparkData', JSON.stringify(this.localData));
+                } catch (error) {
+                    console.warn('Error saving to localStorage:', error);
+                }
+            }
+
+            loadFromLocalStorage() {
+                try {
+                    const saved = localStorage.getItem('safeparkData');
+                    if (saved) {
+                        this.localData = { ...this.localData, ...JSON.parse(saved) };
+                    }
+                } catch (error) {
+                    console.warn('Error loading from localStorage:', error);
+                }
+            }
+
+            getConnectionStatus() {
+                return {
+                    isOnline: this.isOnline,
+                    source: this.isOnline ? 'Firebase' : 'Local Storage'
+                };
+            }
+
+            // NEW: Get Play Park Areas Count
+            getPlayParkAreasCount() {
+                return this.localData.playParkAreas.length;
+            }
+
+            getMaintenanceTasksCount() {
+                return this.localData.maintenanceTasks.length;
+            }
+
+            getTeamMembersCount() {
+                return this.localData.teamMembers.length;
+            }
+
+            getPendingMaintenanceCount() {
+                return this.localData.maintenanceTasks.filter(task => 
+                    task.status === 'pending' || task.status === 'in-progress'
+                ).length;
+            }
+
+            clearAllData() {
+                this.localData = {
+                    maintenanceTasks: [],
+                    teamMembers: [],
+                    playParkAreas: []
+                };
+                this.saveToLocalStorage();
+            }
+        }
+
+        // Initialize Manager
+        const maintenanceManager = new FirebaseFirstMaintenanceManager();
+
+        // UPDATED: Dashboard initialization with Play Park integration
+        async function initializeDashboard() {
+            try {
+                // Initialize Firebase connection
+                const firebaseConnected = await maintenanceManager.initializeFirebaseConnection();
+                
+                if (firebaseConnected) {
+                    // Load all data from Firebase
+                    await maintenanceManager.syncWithFirebase();
+                } else {
+                    console.log('Using offline data');
+                }
+                
+                // Update dashboard
+                updateDashboardStats();
+                loadMaintenanceTasks();
+                
+                console.log('Dashboard initialized successfully');
+            } catch (error) {
+                console.error('Dashboard initialization error:', error);
+            }
+        }
+
+        // UPDATED: Dashboard stats with play park integration
+        async function updateDashboardStats() {
+            try {
+                // Update maintenance count
+                const pendingMaintenance = maintenanceManager.getPendingMaintenanceCount();
+                document.getElementById('maintenanceRecords').textContent = pendingMaintenance;
+                
+                // Update team members count
+                const teamCount = maintenanceManager.getTeamMembersCount();
+                document.getElementById('teamMembers').textContent = teamCount;
+                
+                // NEW: Update play park areas count
+                const playParkCount = maintenanceManager.getPlayParkAreasCount();
+                document.getElementById('playParkAreas').textContent = playParkCount;
+                
+                // Update incidents (placeholder for now)
+                document.getElementById('totalIncidents').textContent = '0';
+                
+                // Update compliance score
+                document.getElementById('complianceScore').textContent = '100%';
+                
+                console.log('Dashboard stats updated');
+            } catch (error) {
+                console.error('Error updating dashboard stats:', error);
+            }
+        }
+
+        // UPDATED: Show tile details with play park information
+        async function showTileDetails(tileType) {
+            const modal = document.getElementById('tileDetailsModal');
+            const title = document.getElementById('detailsTitle');
+            const content = document.getElementById('detailsContent');
+            
+            let detailsHtml = '';
+            
+            switch(tileType) {
+                case 'playparks':
+                    title.textContent = 'Play Park Areas Details';
+                    const playParkAreas = await maintenanceManager.loadPlayParkAreas();
+                    
+                    if (playParkAreas.length === 0) {
+                        detailsHtml = `
+                            <div style="text-align: center; padding: 40px;">
+                                <h3 style="color: var(--primary-orange); margin-bottom: 15px;">No Play Park Areas Found</h3>
+                                <p style="margin-bottom: 20px; color: #B8B8B8;">
+                                    Play park areas will appear here once they are added via the Play Park Safety module.
+                                </p>
+                                <a href="play-parks.html" target="_blank" class="btn">Open Play Park Safety Module</a>
+                            </div>
+                        `;
+                    } else {
+                        const connectionStatus = maintenanceManager.getConnectionStatus();
+                        detailsHtml = `
+                            <div class="detail-grid">
+                                <div class="detail-card">
+                                    <div class="detail-title">Areas Summary</div>
+                                    <div class="detail-content">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                            <span>Total Areas</span>
+                                            <span style="color: var(--primary-orange); font-weight: 600;">${playParkAreas.length}</span>
+                                        </div>
+                                        <hr style="margin: 10px 0; border: 1px solid rgba(255,255,255,0.1);">
+                                        <div style="font-size: 0.8rem; color: #999;">
+                                            Source: ${connectionStatus.source}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="detail-card">
+                                    <div class="detail-title">Recent Areas</div>
+                                    <div class="detail-content">
+                                        ${playParkAreas.slice(0, 3).map(area => `
+                                            <div style="margin-bottom: 8px;">
+                                                <strong style="color: var(--primary-orange);">${area.name}</strong><br>
+                                                <span style="font-size: 0.9rem; color: #B8B8B8;">${area.location || 'Location not specified'}</span>
+                                            </div>
+                                        `).join('')}
+                                        ${playParkAreas.length > 3 ? `<div style="font-size: 0.8rem; color: #999;">... and ${playParkAreas.length - 3} more</div>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="text-align: center; margin-top: 20px;">
+                                <a href="play-parks.html" target="_blank" class="btn">Manage Play Park Areas</a>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'maintenance':
+                    title.textContent = 'Maintenance Tasks Details';
+                    const tasks = await maintenanceManager.loadMaintenanceTasks();
+                    const pendingTasks = tasks.filter(t => t.status === 'pending' || t.status === 'in-progress');
+                    
+                    if (pendingTasks.length === 0) {
+                        detailsHtml = `
+                            <div style="text-align: center; padding: 40px;">
+                                <h3 style="color: var(--success); margin-bottom: 15px;">All Caught Up!</h3>
+                                <p style="margin-bottom: 20px; color: #B8B8B8;">
+                                    No pending maintenance tasks. Great work!<br><br>
+                                    Use the <strong>Maintenance Dashboard</strong> to create and manage maintenance tasks.
+                                </p>
+                            </div>
+                        `;
+                    } else {
+                        const connectionStatus = maintenanceManager.getConnectionStatus();
+                        detailsHtml = generateMaintenanceDetails(pendingTasks, connectionStatus);
+                    }
+                    break;
+                    
+                case 'team':
+                    title.textContent = 'Team Members Details';
+                    const members = await maintenanceManager.loadTeamMembers();
+                    
+                    if (members.length === 0) {
+                        detailsHtml = `
+                            <div style="text-align: center; padding: 40px;">
+                                <h3 style="color: var(--primary-orange); margin-bottom: 15px;">No Team Members Found</h3>
+                                <p style="margin-bottom: 20px; color: #B8B8B8;">
+                                    Add team members using the Team Management section.
+                                </p>
+                            </div>
+                        `;
+                    } else {
+                        const connectionStatus = maintenanceManager.getConnectionStatus();
+                        const byRole = {};
+                        const byLocation = {};
+                        
+                        members.forEach(member => {
+                            byRole[member.role] = (byRole[member.role] || 0) + 1;
+                            byLocation[member.location] = (byLocation[member.location] || 0) + 1;
+                        });
+                        
+                        detailsHtml = `
+                            <div class="detail-grid">
+                                <div class="detail-card">
+                                    <div class="detail-title">By Role</div>
+                                    <div class="detail-content">
+                                        ${Object.entries(byRole).map(([role, count]) => `
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                                <span>${role}</span>
+                                                <span style="color: var(--primary-orange); font-weight: 600;">${count}</span>
+                                            </div>
+                                        `).join('')}
+                                        <hr style="margin: 10px 0; border: 1px solid rgba(255,255,255,0.1);">
+                                        <div style="font-size: 0.8rem; color: #999;">
+                                            Source: ${connectionStatus.source}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="detail-card">
+                                    <div class="detail-title">By Location</div>
+                                    <div class="detail-content">
+                                        ${Object.entries(byLocation).map(([location, count]) => `
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                                <span style="font-size: 0.9rem;">${location}</span>
+                                                <span style="color: var(--primary-orange); font-weight: 600;">${count}</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'incidents':
+                    title.textContent = 'Incidents Details';
+                    detailsHtml = `
+                        <div style="text-align: center; padding: 40px;">
+                            <h3 style="color: var(--success); margin-bottom: 15px;">No Incidents Reported</h3>
+                            <p style="margin-bottom: 20px; color: #B8B8B8;">
+                                This is good news! No incidents have been reported.<br><br>
+                                Use the Incident Reporting module to report any safety incidents.
+                            </p>
+                            <a href="incidents.html" target="_blank" class="btn">Open Incident Reporting</a>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'compliance':
+                    title.textContent = 'Compliance Score Details';
+                    detailsHtml = `
+                        <div class="detail-grid">
+                            <div class="detail-card">
+                                <div class="detail-title">Overall Score</div>
+                                <div class="detail-content">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                        <span>Current Score</span>
+                                        <span style="color: var(--success); font-weight: 600;">100%</span>
+                                    </div>
+                                    <div style="font-size: 0.9rem; color: #B8B8B8;">
+                                        All compliance modules are up to date
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="detail-card">
+                                <div class="detail-title">Module Status</div>
+                                <div class="detail-content">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                        <span>Fire Safety</span>
+                                        <span style="color: var(--success);">✓</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                        <span>Electrical</span>
+                                        <span style="color: var(--success);">✓</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                        <span>Gas Safety</span>
+                                        <span style="color: var(--success);">✓</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                        <span>COSHH</span>
+                                        <span style="color: var(--success);">✓</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            content.innerHTML = detailsHtml;
+            modal.style.display = 'flex';
+        }
+
+        function closeTileDetails() {
+            document.getElementById('tileDetailsModal').style.display = 'none';
+        }
+
+        // Navigation Functions
+        function showSection(sectionId) {
+            if (!isAuthenticated) {
+                return false;
+            }
+
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show target section
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+                
+                if (sectionId === 'maintenance-dashboard') {
+                    loadMaintenanceTasks();
+                }
+            }
+            
+            // Update active nav button
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if (btn.getAttribute('onclick')?.includes(`showSection('${sectionId}')`)) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Hide sidebar on mobile
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar && sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
+                }
+            }
+        }
+
+        function showSectionWithSidebar(sectionId) {
+            showSection(sectionId);
+            // For AI sections, always hide sidebar
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar && sidebar.classList.contains('active')) {
+                sidebar.classList.remove('active');
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        // Maintenance Functions
+        function openCreateTaskModal() {
+            document.getElementById('createTaskModal').style.display = 'flex';
+            // Populate assigned to dropdown with team members
+            populateAssignedToDropdown();
+        }
+
+        function closeCreateTaskModal() {
+            document.getElementById('createTaskModal').style.display = 'none';
+            document.getElementById('createTaskForm').reset();
+        }
+
+        async function populateAssignedToDropdown() {
+            const select = document.getElementById('assignedTo');
+            const members = await maintenanceManager.loadTeamMembers();
+            
+            // Clear existing options except "Unassigned"
+            select.innerHTML = '<option value="">Unassigned</option>';
+            
+            members.forEach(member => {
+                const option = document.createElement('option');
+                option.value = member.name;
+                option.textContent = `${member.name} (${member.role})`;
+                select.appendChild(option);
+            });
+        }
+
+        async function submitMaintenanceTask(event) {
+            event.preventDefault();
+            
+            const taskData = {
+                title: document.getElementById('taskTitle').value,
+                description: document.getElementById('taskDescription').value,
+                priority: document.getElementById('taskPriority').value,
+                category: document.getElementById('taskCategory').value,
+                location: document.getElementById('taskLocation').value,
+                assignedTo: document.getElementById('assignedTo').value || 'Unassigned'
+            };
+            
+            try {
+                await maintenanceManager.addMaintenanceTask(taskData);
+                closeCreateTaskModal();
+                loadMaintenanceTasks();
+                updateDashboardStats();
+                
+                alert('Maintenance task created successfully!');
+            } catch (error) {
+                console.error('Error creating task:', error);
+                alert('Error creating task. Please try again.');
+            }
+            
+            return false;
+        }
+
+        async function loadMaintenanceTasks() {
+            const tasksList = document.getElementById('maintenanceTasksList');
+            const tasks = await maintenanceManager.loadMaintenanceTasks();
+            
+            if (tasks.length === 0) {
+                tasksList.innerHTML = `
+                    <div style="text-align: center; color: #B8B8B8; padding: 60px;">
+                        <h3 style="color: var(--primary-orange); margin-bottom: 15px;">No Maintenance Tasks Found</h3>
+                        <p style="margin-bottom: 20px;">
+                            Click "Create New Task" to add your first maintenance task.
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+            
+            tasksList.innerHTML = tasks.map(task => `
+                <div class="task-item priority-${task.priority}">
+                    <div class="task-header">
+                        <div>
+                            <div class="task-title">${task.title}</div>
+                            <div class="task-meta">
+                                <span>Priority: ${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}</span>
+                                <span>Category: ${task.category}</span>
+                                <span>Location: ${task.location}</span>
+                                <span>Assigned: ${task.assignedTo}</span>
+                            </div>
+                        </div>
+                        <div class="task-status">
+                            <span style="color: var(--${task.status === 'completed' ? 'success' : 'warning'});">
+                                ${task.status.charAt(0).toUpperCase() + task.status.slice(1)}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="task-description">${task.description}</div>
+                    <div class="task-actions">
+                        ${task.status !== 'completed' ? 
+                            `<button class="task-btn complete" onclick="completeTask('${task.id}')">Mark Complete</button>` : 
+                            ''
+                        }
+                        <button class="task-btn update" onclick="updateTaskStatus('${task.id}')">Update Status</button>
+                        <button class="task-btn delete" onclick="deleteMaintenanceTask('${task.id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterTasks() {
+            // This would filter tasks based on the selected filters
+            // For now, just reload all tasks
+            loadMaintenanceTasks();
+        }
+
+        async function completeTask(taskId) {
+            try {
+                const tasks = await maintenanceManager.loadMaintenanceTasks();
+                const task = tasks.find(t => t.id === taskId);
+                if (task) {
+                    task.status = 'completed';
+                    task.completed = new Date().toISOString();
+                    maintenanceManager.saveToLocalStorage();
+                    loadMaintenanceTasks();
+                    updateDashboardStats();
+                    alert('Task marked as complete!');
+                }
+            } catch (error) {
+                console.error('Error completing task:', error);
+                alert('Error updating task status.');
+            }
+        }
+
+        async function updateTaskStatus(taskId) {
+            const newStatus = prompt('Enter new status (pending, in-progress, completed):');
+            if (newStatus && ['pending', 'in-progress', 'completed'].includes(newStatus)) {
+                try {
+                    const tasks = await maintenanceManager.loadMaintenanceTasks();
+                    const task = tasks.find(t => t.id === taskId);
+                    if (task) {
+                        task.status = newStatus;
+                        if (newStatus === 'completed') {
+                            task.completed = new Date().toISOString();
+                        }
+                        maintenanceManager.saveToLocalStorage();
+                        loadMaintenanceTasks();
+                        updateDashboardStats();
+                        alert('Task status updated!');
+                    }
+                } catch (error) {
+                    console.error('Error updating task:', error);
+                    alert('Error updating task status.');
+                }
+            }
+        }
+
+        async function deleteMaintenanceTask(taskId) {
+            if (confirm('Are you sure you want to delete this task?')) {
+                try {
+                    maintenanceManager.localData.maintenanceTasks = 
+                        maintenanceManager.localData.maintenanceTasks.filter(t => t.id !== taskId);
+                    maintenanceManager.saveToLocalStorage();
+                    loadMaintenanceTasks();
+                    updateDashboardStats();
+                    alert('Task deleted successfully!');
+                } catch (error) {
+                    console.error('Error deleting task:', error);
+                    alert('Error deleting task.');
+                }
+            }
+        }
+
+        function generateMaintenanceDetails(pendingTasks, connectionStatus) {
+            const byPriority = {};
+            const byCategory = {};
+            
+            pendingTasks.forEach(task => {
+                byPriority[task.priority] = (byPriority[task.priority] || 0) + 1;
+                byCategory[task.category] = (byCategory[task.category] || 0) + 1;
+            });
+            
+            return `
+                <div class="detail-grid">
+                    <div class="detail-card">
+                        <div class="detail-title">By Priority</div>
+                        <div class="detail-content">
+                            ${Object.entries(byPriority).map(([priority, count]) => `
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <span>${priority.charAt(0).toUpperCase() + priority.slice(1)}</span>
+                                    <span style="color: var(--${priority === 'critical' ? 'danger' : priority === 'high' ? 'warning' : 'primary-orange'}); font-weight: 600;">${count}</span>
+                                </div>
+                            `).join('')}
+                            <hr style="margin: 10px 0; border: 1px solid rgba(255,255,255,0.1);">
+                            <div style="font-size: 0.8rem; color: #999;">
+                                Source: ${connectionStatus.source}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="detail-card">
+                        <div class="detail-title">By Category</div>
+                        <div class="detail-content">
+                            ${Object.entries(byCategory).map(([category, count]) => `
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <span>${category.charAt(0).toUpperCase() + category.slice(1)}</span>
+                                    <span style="color: var(--primary-orange); font-weight: 600;">${count}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Team Management Functions
+        async function addTeamMember() {
+            const name = document.getElementById('memberName').value.trim();
+            const role = document.getElementById('memberRole').value;
+            const location = document.getElementById('memberLocation').value;
+            
+            if (!name || !role || !location) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            const memberData = { name, role, location };
+            
+            try {
+                await maintenanceManager.addTeamMember(memberData);
+                
+                // Clear form
+                document.getElementById('memberName').value = '';
+                document.getElementById('memberRole').value = '';
+                document.getElementById('memberLocation').value = '';
+                
+                updateDashboardStats();
+                filterTeamMembers();
+                alert('Team member added successfully!');
+            } catch (error) {
+                console.error('Error adding team member:', error);
+                alert('Error adding team member. Please try again.');
+            }
+        }
+
+        function addLocation() {
+            const name = document.getElementById('locationName').value.trim();
+            const address = document.getElementById('locationAddress').value.trim();
+            
+            if (!name) {
+                alert('Please enter a location name');
+                return;
+            }
+            
+            // For now, just clear the form and show a success message
+            // In a full implementation, this would add to a locations collection
+            document.getElementById('locationName').value = '';
+            document.getElementById('locationAddress').value = '';
+            alert('Location added successfully!');
+        }
+
+        async function filterTeamMembers() {
+            const roleFilter = document.getElementById('roleFilter').value;
+            const locationFilter = document.getElementById('locationFilter').value;
+            const membersList = document.getElementById('teamMembersList');
+            
+            const members = await maintenanceManager.loadTeamMembers();
+            
+            const filteredMembers = members.filter(member => {
+                const roleMatch = !roleFilter || member.role === roleFilter;
+                const locationMatch = !locationFilter || member.location === locationFilter;
+                return roleMatch && locationMatch;
+            });
+            
+            if (filteredMembers.length === 0) {
+                membersList.innerHTML = `
+                    <div style="text-align: center; color: #B8B8B8; padding: 40px;">
+                        No team members found matching the selected filters.<br><br>
+                        Add team members using the form above.
+                    </div>
+                `;
+                return;
+            }
+            
+            membersList.innerHTML = filteredMembers.map(member => `
+                <div class="grid-item">
+                    <div>
+                        <div style="font-weight: 600; color: var(--primary-orange);">${member.name}</div>
+                        <div style="font-size: 0.9rem; color: #B8B8B8;">${member.role} • ${member.location}</div>
+                    </div>
+                    <button class="btn" onclick="removeTeamMember('${member.id}')" style="padding: 8px 15px; font-size: 0.9rem; background: var(--danger);">
+                        Remove
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        async function removeTeamMember(memberId) {
+            if (confirm('Are you sure you want to remove this team member?')) {
+                try {
+                    maintenanceManager.localData.teamMembers = 
+                        maintenanceManager.localData.teamMembers.filter(m => m.id !== memberId);
+                    maintenanceManager.saveToLocalStorage();
+                    updateDashboardStats();
+                    filterTeamMembers();
+                    alert('Team member removed successfully!');
+                } catch (error) {
+                    console.error('Error removing team member:', error);
+                    alert('Error removing team member.');
+                }
+            }
+        }
+
+        // Data Management Functions
+        async function exportAllData() {
+            try {
+                const data = {
+                    maintenanceTasks: await maintenanceManager.loadMaintenanceTasks(),
+                    teamMembers: await maintenanceManager.loadTeamMembers(),
+                    playParkAreas: await maintenanceManager.loadPlayParkAreas(), // NEW: Include play park areas
+                    exported: new Date().toISOString(),
+                    version: 'SafePark.PRO V3'
+                };
+                
+                const blob = new Blob([JSON.stringify(data, null, 2)], {
+                    type: 'application/json'
+                });
+                
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `safepark-data-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                alert('Data exported successfully!');
+            } catch (error) {
+                console.error('Export error:', error);
+                alert('Error exporting data.');
+            }
+        }
+
+        async function clearAllData() {
+            if (confirm('Are you sure you want to clear ALL data? This cannot be undone.')) {
+                try {
+                    maintenanceManager.clearAllData();
+                    updateDashboardStats();
+                    loadMaintenanceTasks();
+                    filterTeamMembers();
+                    alert('All data cleared successfully!');
+                } catch (error) {
+                    console.error('Error clearing data:', error);
+                    alert('Error clearing data.');
+                }
+            }
+        }
+
+        async function clearMaintenanceData() {
+            if (confirm('Are you sure you want to clear all maintenance data?')) {
+                try {
+                    maintenanceManager.localData.maintenanceTasks = [];
+                    maintenanceManager.saveToLocalStorage();
+                    updateDashboardStats();
+                    loadMaintenanceTasks();
+                    alert('Maintenance data cleared successfully!');
+                } catch (error) {
+                    console.error('Error clearing maintenance data:', error);
+                    alert('Error clearing maintenance data.');
+                }
+            }
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    if (importedData.maintenanceTasks) {
+                        maintenanceManager.localData.maintenanceTasks = importedData.maintenanceTasks;
+                    }
+                    if (importedData.teamMembers) {
+                        maintenanceManager.localData.teamMembers = importedData.teamMembers;
+                    }
+                    if (importedData.playParkAreas) {
+                        maintenanceManager.localData.playParkAreas = importedData.playParkAreas;
+                    }
+                    
+                    maintenanceManager.saveToLocalStorage();
+                    updateDashboardStats();
+                    loadMaintenanceTasks();
+                    filterTeamMembers();
+                    
+                    alert('Data imported successfully! The page will now reload.');
+                    location.reload();
+                } catch (error) {
+                    alert('Error importing data. Please check the file format.');
+                    console.error('Import error:', error);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-sync with Firebase every 30 seconds if online
+            setInterval(async () => {
+                if (isAuthenticated && navigator.onLine) {
+                    try {
+                        await maintenanceManager.syncWithFirebase();
+                        console.log('Background Firebase sync completed');
+                    } catch (error) {
+                        console.warn('Background sync error:', error);
+                    }
+                }
+            }, 30000);
+
+            console.log('SafePark.PRO V3 with Play Park integration initialized successfully');
+        });
+
+        // Make functions globally available
+        window.maintenanceManager = maintenanceManager;
+        window.authenticateUser = authenticateUser;
+        window.showTileDetails = showTileDetails;
+        window.closeTileDetails = closeTileDetails;
+        window.showSection = showSection;
+        window.showSectionWithSidebar = showSectionWithSidebar;
+        window.toggleSidebar = toggleSidebar;
+        window.openCreateTaskModal = openCreateTaskModal;
+        window.closeCreateTaskModal = closeCreateTaskModal;
+        window.submitMaintenanceTask = submitMaintenanceTask;
+        window.filterTasks = filterTasks;
+        window.completeTask = completeTask;
+        window.updateTaskStatus = updateTaskStatus;
+        window.deleteMaintenanceTask = deleteMaintenanceTask;
+        window.loadMaintenanceTasks = loadMaintenanceTasks;
+        window.updateDashboardStats = updateDashboardStats;
+        window.generateMaintenanceDetails = generateMaintenanceDetails;
+        window.addTeamMember = addTeamMember;
+        window.addLocation = addLocation;
+        window.removeTeamMember = removeTeamMember;
+        window.filterTeamMembers = filterTeamMembers;
+        window.exportAllData = exportAllData;
+        window.clearAllData = clearAllData;
+        window.clearMaintenanceData = clearMaintenanceData;
+        window.importData = importData;
+        
+        console.log('SafePark.PRO V3 - Fixed Index-Back-Up with Firebase-first architecture and Play Park integration loaded successfully');
+    </script>
+</body>
+</html>
