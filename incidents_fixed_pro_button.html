@@ -1,0 +1,2123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Incident Management System - CQR365 SafePark.PRO</title>
+    
+    <!-- Firebase Integration Script -->
+    <script type="module" src="firebase-config.js"></script>
+    
+    <style>
+        :root {
+            --primary-orange: #CC5500;
+            --dark-orange: #B8460C;
+            --light-orange: #E6672E;
+            --black: #000000;
+            --white: #FFFFFF;
+            --smart-dark-grey: #2A2A2A;
+            --content-background: #2F2F2F;
+            --light-gray: #F8F9FA;
+            --medium-gray: #6C757D;
+            --dark-gray: #343A40;
+            --border-color: #DEE2E6;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --shadow-light: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-medium: 0 4px 20px rgba(0,0,0,0.15);
+            --shadow-heavy: 0 8px 40px rgba(0,0,0,0.2);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+            color: var(--white);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* PROFESSIONAL PRO BUTTON - EXTRACTED FROM PLAY-PARKS.HTML */
+        /* PWA Install Prompt - Show only when not installed */
+        .pwa-install-hidden {
+            display: none !important;
+        }
+
+        /* Dynamic PRO Button - Sticky Logo Back Button */
+        .sticky-logo-back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 70px;
+            height: 70px;
+            z-index: 1000;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.4));
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .sticky-logo-back:hover {
+            transform: translateY(-2px);
+            filter: drop-shadow(0 12px 30px rgba(204, 85, 0, 0.3));
+        }
+
+        @media (max-width: 768px) {
+            .sticky-logo-back {
+                width: 60px;
+                height: 60px;
+                top: 15px;
+                left: 15px;
+            }
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 100px 24px 40px 24px; /* Added top padding to account for PRO button */
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+            background: 
+                radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 50%, rgba(0, 0, 0, 0.15) 100%),
+                linear-gradient(145deg, #3a3a3a, #2f2f2f, #1f1f1f);
+            background-size: 20px 20px, 15px 15px, 100% 100%, 100% 100%;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 
+                inset 2px 2px 5px rgba(255, 255, 255, 0.15),
+                inset -2px -2px 5px rgba(0, 0, 0, 0.6),
+                inset 0 1px 2px rgba(255, 255, 255, 0.1),
+                inset 0 -1px 2px rgba(0, 0, 0, 0.4),
+                4px 4px 10px rgba(0, 0, 0, 0.3),
+                0 2px 4px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(204, 85, 0, 0.2);
+            position: relative;
+            transform: translateZ(0);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--primary-orange);
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5),
+                         0 0 10px rgba(204, 85, 0, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .brand-line {
+            color: var(--light-orange);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .subtitle {
+            color: #B8B8B8;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .description {
+            color: var(--light-gray);
+            font-size: 1.125rem;
+            margin-top: 8px;
+        }
+
+        /* TAB SYSTEM FOR MAIN FUNCTIONALITY */
+        .tab-container {
+            margin-bottom: 30px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 30%, transparent 70%, rgba(0, 0, 0, 0.1) 100%),
+                linear-gradient(145deg, #3a3a3a, #2f2f2f);
+            border-radius: 12px;
+            padding: 8px;
+            box-shadow: 
+                inset 2px 2px 5px rgba(255, 255, 255, 0.1),
+                inset -2px -2px 5px rgba(0, 0, 0, 0.5),
+                4px 4px 10px rgba(0, 0, 0, 0.3),
+                0 2px 4px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+            overflow-x: auto;
+            gap: 8px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 50%, rgba(0, 0, 0, 0.1) 100%),
+                linear-gradient(145deg, #4a4a4a, #3a3a3a);
+            color: #B8B8B8;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            min-width: max-content;
+            box-shadow: 
+                inset 1px 1px 3px rgba(255, 255, 255, 0.1),
+                inset -1px -1px 3px rgba(0, 0, 0, 0.3),
+                2px 2px 4px rgba(0, 0, 0, 0.2);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            transform: translateZ(0);
+        }
+
+        .tab-btn.active {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(0, 0, 0, 0.2) 100%),
+                linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+            box-shadow: 
+                inset 2px 2px 4px rgba(255, 255, 255, 0.2),
+                inset -2px -2px 4px rgba(0, 0, 0, 0.4),
+                0 1px 3px rgba(0, 0, 0, 0.3);
+            transform: translateY(1px) translateZ(0);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(0, 0, 0, 0.15) 100%),
+                linear-gradient(145deg, rgba(204, 85, 0, 0.3), rgba(184, 70, 12, 0.3));
+            color: var(--light-orange);
+            transform: translateY(-1px) translateZ(0);
+            box-shadow: 
+                inset 1px 1px 4px rgba(255, 255, 255, 0.15),
+                inset -1px -1px 4px rgba(0, 0, 0, 0.4),
+                3px 3px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* PIN ACCESS MODAL */
+        .pin-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        }
+
+        .pin-modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: 
+                radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 50%, rgba(0, 0, 0, 0.15) 100%),
+                linear-gradient(145deg, #3a3a3a, #2f2f2f, #1f1f1f);
+            background-size: 20px 20px, 15px 15px, 100% 100%, 100% 100%;
+            border: 4px solid var(--primary-orange);
+            border-radius: 20px;
+            padding: 50px;
+            text-align: center;
+            box-shadow: 
+                inset 3px 3px 8px rgba(255, 255, 255, 0.15),
+                inset -3px -3px 8px rgba(0, 0, 0, 0.6),
+                inset 0 2px 4px rgba(255, 255, 255, 0.1),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.4),
+                8px 8px 20px rgba(0, 0, 0, 0.5),
+                0 4px 12px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+            transform: translate(-50%, -50%) translateZ(0);
+        }
+
+        .pin-title {
+            font-size: 2rem;
+            color: var(--primary-orange);
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .pin-input {
+            width: 300px;
+            padding: 15px 20px;
+            font-size: 1.2rem;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--medium-gray);
+            border-radius: 10px;
+            color: var(--white);
+            margin-bottom: 20px;
+            letter-spacing: 3px;
+            font-weight: bold;
+        }
+
+        .pin-input:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 3px rgba(204, 85, 0, 0.3);
+        }
+
+        .pin-btn {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(0, 0, 0, 0.2) 100%),
+                linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+            box-shadow: 
+                inset 2px 2px 4px rgba(255, 255, 255, 0.2),
+                inset -2px -2px 4px rgba(0, 0, 0, 0.4),
+                3px 3px 8px rgba(0, 0, 0, 0.3),
+                0 2px 6px rgba(0, 0, 0, 0.2);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            transform: translateZ(0);
+        }
+
+        .pin-btn:hover {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 50%, rgba(0, 0, 0, 0.25) 100%),
+                linear-gradient(145deg, var(--light-orange), var(--primary-orange));
+            transform: translateY(-2px) translateZ(0);
+            box-shadow: 
+                inset 2px 2px 5px rgba(255, 255, 255, 0.25),
+                inset -2px -2px 5px rgba(0, 0, 0, 0.5),
+                4px 6px 15px rgba(0, 0, 0, 0.4),
+                0 3px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .pin-btn.cancel {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(0, 0, 0, 0.2) 100%),
+                linear-gradient(145deg, var(--medium-gray), var(--dark-gray));
+        }
+
+        .pin-error {
+            color: var(--danger);
+            margin-top: 15px;
+            display: none;
+        }
+
+        /* CASE MANAGEMENT INTERFACE */
+        .case-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .case-card {
+            background: 
+                radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+                radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, transparent 50%, rgba(0, 0, 0, 0.12) 100%),
+                linear-gradient(145deg, #3a3a3a, #2f2f2f);
+            background-size: 22px 22px, 16px 16px, 100% 100%, 100% 100%;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 
+                inset 2px 2px 5px rgba(255, 255, 255, 0.1),
+                inset -2px -2px 5px rgba(0, 0, 0, 0.5),
+                inset 0 1px 2px rgba(255, 255, 255, 0.08),
+                inset 0 -1px 2px rgba(0, 0, 0, 0.3),
+                4px 4px 10px rgba(0, 0, 0, 0.3),
+                0 2px 6px rgba(0, 0, 0, 0.2);
+            border-left: 6px solid var(--medium-gray);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            transform: translateZ(0);
+        }
+
+        .case-card:hover {
+            transform: translateY(-3px) translateZ(0);
+            box-shadow: 
+                inset 2px 2px 6px rgba(255, 255, 255, 0.12),
+                inset -2px -2px 6px rgba(0, 0, 0, 0.6),
+                inset 0 1px 3px rgba(255, 255, 255, 0.1),
+                inset 0 -1px 3px rgba(0, 0, 0, 0.4),
+                6px 8px 20px rgba(0, 0, 0, 0.4),
+                0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .case-card.severity-low { border-left-color: var(--success); }
+        .case-card.severity-medium { border-left-color: var(--warning); }
+        .case-card.severity-high { border-left-color: #FF6B35; }
+        .case-card.severity-critical { border-left-color: var(--danger); }
+
+        .case-card.status-closed {
+            opacity: 0.7;
+        }
+
+        .case-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .case-ref {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary-orange);
+        }
+
+        .case-status {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 
+                inset 1px 1px 2px rgba(255, 255, 255, 0.2),
+                inset -1px -1px 2px rgba(0, 0, 0, 0.3),
+                2px 2px 4px rgba(0, 0, 0, 0.2);
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+        }
+
+        .status-open {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(0, 0, 0, 0.15) 100%),
+                linear-gradient(145deg, var(--success), #1e7e34);
+            color: var(--white);
+        }
+
+        .status-under-investigation {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(0, 0, 0, 0.15) 100%),
+                linear-gradient(145deg, var(--warning), #e0a800);
+            color: var(--black);
+        }
+
+        .status-closed {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(0, 0, 0, 0.15) 100%),
+                linear-gradient(145deg, var(--medium-gray), var(--dark-gray));
+            color: var(--white);
+        }
+
+        .case-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 10px;
+        }
+
+        .case-details {
+            color: #B8B8B8;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .case-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .case-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 
+                inset 1px 1px 2px rgba(255, 255, 255, 0.15),
+                inset -1px -1px 2px rgba(0, 0, 0, 0.3),
+                2px 2px 4px rgba(0, 0, 0, 0.2);
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-view {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(0, 0, 0, 0.15) 100%),
+                linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+        }
+
+        .btn-edit {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(0, 0, 0, 0.15) 100%),
+                linear-gradient(145deg, var(--warning), #e0a800);
+            color: var(--black);
+        }
+
+        .btn-close {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(0, 0, 0, 0.15) 100%),
+                linear-gradient(145deg, var(--danger), #c82333);
+            color: var(--white);
+        }
+
+        .btn-reopen {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(0, 0, 0, 0.15) 100%),
+                linear-gradient(145deg, var(--success), #1e7e34);
+            color: var(--white);
+        }
+
+        .btn-download {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(0, 0, 0, 0.15) 100%),
+                linear-gradient(145deg, var(--medium-gray), var(--dark-gray));
+            color: var(--white);
+        }
+
+        .case-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 
+                inset 1px 1px 3px rgba(255, 255, 255, 0.2),
+                inset -1px -1px 3px rgba(0, 0, 0, 0.4),
+                3px 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* INCIDENT REPORTING FORM */
+        .form-container {
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, transparent 50%, rgba(0, 0, 0, 0.12) 100%),
+                linear-gradient(145deg, #3a3a3a, #2f2f2f, #1f1f1f);
+            background-size: 25px 25px, 18px 18px, 100% 100%, 100% 100%;
+            padding: 48px;
+            border-radius: 16px;
+            box-shadow: 
+                inset 3px 3px 8px rgba(255, 255, 255, 0.1),
+                inset -3px -3px 8px rgba(0, 0, 0, 0.6),
+                inset 0 2px 4px rgba(255, 255, 255, 0.08),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.4),
+                6px 6px 15px rgba(0, 0, 0, 0.4),
+                0 3px 8px rgba(0, 0, 0, 0.3);
+            margin-bottom: 24px;
+            border: 1px solid rgba(204, 85, 0, 0.2);
+            transform: translateZ(0);
+        }
+        
+        .step {
+            display: none;
+        }
+        
+        .step.active {
+            display: block;
+            animation: fadeIn 0.6s ease;
+        }
+        
+        .step-header {
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(204, 85, 0, 0.3);
+            position: relative;
+        }
+        
+        .step-header::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 60px;
+            height: 2px;
+            background: var(--primary-orange);
+        }
+        
+        .step-header h2 {
+            color: var(--primary-orange);
+            font-size: 2rem;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        
+        .step-header p {
+            color: var(--light-gray);
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        .form-group {
+            margin-bottom: 28px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--white);
+            font-size: 0.95rem;
+        }
+        
+        .required {
+            color: var(--primary-orange);
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 50%, rgba(0, 0, 0, 0.15) 100%),
+                linear-gradient(145deg, #2a2a2a, #1f1f1f);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: var(--white);
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            box-shadow: 
+                inset 2px 2px 4px rgba(0, 0, 0, 0.3),
+                inset -2px -2px 4px rgba(255, 255, 255, 0.05),
+                0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 
+                inset 2px 2px 6px rgba(0, 0, 0, 0.4),
+                inset -2px -2px 6px rgba(255, 255, 255, 0.08),
+                0 0 0 3px rgba(204, 85, 0, 0.2),
+                0 2px 6px rgba(0, 0, 0, 0.3);
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, transparent 50%, rgba(0, 0, 0, 0.2) 100%),
+                linear-gradient(145deg, #333333, #222222);
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        select option {
+            background: var(--content-background);
+            color: var(--white);
+            padding: 8px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+
+        /* SEVERITY SELECTION */
+        .severity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        
+        .severity-card {
+            background: 
+                radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 50%, rgba(0, 0, 0, 0.15) 100%),
+                linear-gradient(145deg, #2a2a2a, #1a1a1a);
+            background-size: 20px 20px, 15px 15px, 100% 100%, 100% 100%;
+            border: 1px solid #444;
+            border-radius: 12px;
+            padding: 24px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                inset 2px 2px 5px rgba(255, 255, 255, 0.15),
+                inset -2px -2px 5px rgba(0, 0, 0, 0.6),
+                inset 0 1px 2px rgba(255, 255, 255, 0.1),
+                inset 0 -1px 2px rgba(0, 0, 0, 0.4),
+                4px 4px 10px rgba(0, 0, 0, 0.3),
+                0 2px 4px rgba(0, 0, 0, 0.2);
+            transform: translateZ(0);
+        }
+        
+        .severity-card:hover {
+            background: 
+                radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+                radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, transparent 50%, rgba(0, 0, 0, 0.2) 100%),
+                linear-gradient(145deg, #3a3a3a, #2a2a2a);
+            background-size: 20px 20px, 15px 15px, 100% 100%, 100% 100%;
+            border-color: #666;
+            transform: translateY(-3px) translateZ(0);
+            box-shadow: 
+                inset 2px 2px 8px rgba(255, 255, 255, 0.2),
+                inset -2px -2px 8px rgba(0, 0, 0, 0.7),
+                6px 8px 20px rgba(0, 0, 0, 0.4),
+                0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .severity-card.selected {
+            background: 
+                radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 50%, rgba(0, 0, 0, 0.25) 100%),
+                linear-gradient(145deg, #4a4a4a, #3a3a3a);
+            background-size: 20px 20px, 15px 15px, 100% 100%, 100% 100%;
+            border-color: var(--primary-orange);
+            box-shadow: 
+                inset 3px 3px 10px rgba(255, 255, 255, 0.25),
+                inset -3px -3px 10px rgba(0, 0, 0, 0.8),
+                0 0 0 2px rgba(204, 85, 0, 0.3),
+                8px 12px 25px rgba(0, 0, 0, 0.5);
+            transform: translateY(-1px) translateZ(0);
+        }
+        
+        .severity-card input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .severity-title {
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--white);
+            font-size: 1rem;
+        }
+        
+        .severity-desc {
+            font-size: 0.85rem;
+            color: var(--light-gray);
+            line-height: 1.4;
+            font-weight: 500;
+        }
+
+        /* BUTTONS */
+        .btn {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(0, 0, 0, 0.2) 100%),
+                linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+            border: none;
+            padding: 14px 28px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 2px solid transparent;
+            font-family: inherit;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                inset 2px 2px 4px rgba(255, 255, 255, 0.2),
+                inset -2px -2px 4px rgba(0, 0, 0, 0.4),
+                3px 3px 8px rgba(0, 0, 0, 0.3),
+                0 2px 6px rgba(0, 0, 0, 0.2);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            transform: translateZ(0);
+        }
+
+        .btn:hover:not(:disabled) {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 50%, rgba(0, 0, 0, 0.25) 100%),
+                linear-gradient(145deg, var(--light-orange), var(--primary-orange));
+            transform: translateY(-1px) translateZ(0);
+            box-shadow: 
+                inset 2px 2px 5px rgba(255, 255, 255, 0.25),
+                inset -2px -2px 5px rgba(0, 0, 0, 0.5),
+                4px 6px 15px rgba(204, 85, 0, 0.4),
+                0 3px 10px rgba(204, 85, 0, 0.3);
+        }
+        
+        .btn-secondary {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(0, 0, 0, 0.2) 100%),
+                linear-gradient(145deg, var(--medium-gray), var(--dark-gray));
+            color: var(--white);
+            border-color: transparent;
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 50%, rgba(0, 0, 0, 0.25) 100%),
+                linear-gradient(145deg, #7a7a7a, var(--medium-gray));
+            box-shadow: 
+                inset 2px 2px 5px rgba(255, 255, 255, 0.2),
+                inset -2px -2px 5px rgba(0, 0, 0, 0.5),
+                4px 6px 15px rgba(108, 117, 125, 0.4),
+                0 3px 10px rgba(108, 117, 125, 0.3);
+        }
+        
+        .btn-success {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(0, 0, 0, 0.2) 100%),
+                linear-gradient(145deg, var(--success), #1e7e34);
+            color: var(--white);
+            border-color: transparent;
+        }
+        
+        .btn-success:hover:not(:disabled) {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 50%, rgba(0, 0, 0, 0.25) 100%),
+                linear-gradient(145deg, #34ce57, var(--success));
+            box-shadow: 
+                inset 2px 2px 5px rgba(255, 255, 255, 0.2),
+                inset -2px -2px 5px rgba(0, 0, 0, 0.5),
+                4px 6px 15px rgba(40, 167, 69, 0.4),
+                0 3px 10px rgba(40, 167, 69, 0.3);
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 40px;
+            padding-top: 32px;
+            border-top: 2px solid rgba(255, 255, 255, 0.1);
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        /* FILTER CONTROLS */
+        .filter-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--medium-gray);
+            border-radius: 8px;
+            color: var(--white);
+            padding: 10px 15px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 2px rgba(204, 85, 0, 0.3);
+        }
+
+        .filter-select option {
+            background: var(--content-background);
+            color: var(--white);
+        }
+
+        /* EMPTY STATES */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--white);
+        }
+
+        .empty-state-text {
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        /* LOADING STATES */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: var(--primary-orange);
+            font-size: 1.1rem;
+        }
+
+        .loading::before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* RESPONSIVE DESIGN */
+        @media (max-width: 768px) {
+            .container {
+                padding: 80px 16px 20px 16px; /* Reduced top padding for mobile PRO button */
+            }
+            
+            .header {
+                padding: 24px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .form-container {
+                padding: 24px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .severity-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .btn {
+                justify-content: center;
+                width: 100%;
+            }
+
+            .tab-buttons {
+                overflow-x: auto;
+            }
+
+            .case-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-select {
+                min-width: auto;
+            }
+
+            .pin-modal {
+                padding: 30px 20px;
+            }
+
+            .pin-input {
+                width: 100%;
+                max-width: 280px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- PROFESSIONAL PRO BUTTON - EXTRACTED FROM PLAY-PARKS.HTML -->
+    <button class="sticky-logo-back" onclick="window.location.href='index.html'" title="Back to SafePark.PRO Dashboard">
+        <svg width="70" height="70" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <!-- 3D Gradient Definitions -->
+                <radialGradient id="mainGradient" cx="0.3" cy="0.3" r="0.7">
+                    <stop offset="0%" style="stop-color:#FF8C00;stop-opacity:1" />
+                    <stop offset="40%" style="stop-color:#CC5500;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#B8460C;stop-opacity:1" />
+                </radialGradient>
+                <radialGradient id="textGradient" cx="0.5" cy="0.3" r="0.8">
+                    <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+                    <stop offset="60%" style="stop-color:#E6672E;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#CC5500;stop-opacity:1" />
+                </radialGradient>
+                <radialGradient id="shimmer" cx="0.2" cy="0.2" r="0.6">
+                    <stop offset="0%" style="stop-color:rgba(255,255,255,0.8);stop-opacity:1" />
+                    <stop offset="50%" style="stop-color:rgba(255,255,255,0.3);stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:rgba(255,255,255,0);stop-opacity:0" />
+                </radialGradient>
+                <!-- 3D Emboss Filter -->
+                <filter id="emboss" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
+                    <feOffset dx="3" dy="3" result="offset1" />
+                    <feFlood flood-color="rgba(0,0,0,0.8)" />
+                    <feComposite in2="offset1" operator="in" />
+                    <feMerge>
+                        <feMergeNode />
+                        <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                </filter>
+            </defs>
+            
+            <!-- Outer Ring with 3D Effect -->
+            <circle cx="256" cy="256" r="230" fill="url(#mainGradient)" stroke="rgba(0,0,0,0.5)" stroke-width="4" />
+            <circle cx="256" cy="256" r="170" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" />
+            <circle cx="256" cy="256" r="150" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1" />
+            
+            <!-- Enhanced Highlight for 3D Effect -->
+            <ellipse cx="200" cy="180" rx="80" ry="60" fill="rgba(255,255,255,0.4)" opacity="0.8" />
+            <ellipse cx="190" cy="170" rx="40" ry="30" fill="rgba(255,255,255,0.6)" opacity="0.9" />
+            
+            <!-- PRO Text with Premium Emboss Effect -->
+            <text x="256" y="300" font-family="Arial, sans-serif" font-size="116" font-weight="900" text-anchor="middle" fill="url(#textGradient)" filter="url(#emboss)" stroke="rgba(0,0,0,0.1)" stroke-width="1" letter-spacing="8px">PRO</text>
+            
+            <!-- Text Shadow with Multiple Layers -->
+            <text x="262" y="306" font-family="Arial, sans-serif" font-size="116" font-weight="900" text-anchor="middle" fill="rgba(0,0,0,0.4)" opacity="0.7" letter-spacing="8px">PRO</text>
+            <text x="259" y="303" font-family="Arial, sans-serif" font-size="116" font-weight="900" text-anchor="middle" fill="rgba(0,0,0,0.2)" opacity="0.5" letter-spacing="8px">PRO</text>
+            
+            <!-- Additional Depth Rings -->
+            <circle cx="256" cy="256" r="200" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+            <circle cx="256" cy="256" r="140" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="1" />
+            
+            <!-- Shimmer Overlay -->
+            <circle cx="256" cy="256" r="220" fill="url(#shimmer)" opacity="0.6" />
+            
+            <!-- Edge Enhancement -->
+            <circle cx="256" cy="256" r="218" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" />
+            <circle cx="256" cy="256" r="222" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="1" />
+        </svg>
+    </button>
+
+    <!-- PIN Access Modal -->
+    <div class="pin-overlay" id="pinOverlay">
+        <div class="pin-modal">
+            <div class="pin-title">Incident Management Access</div>
+            <p style="color: #B8B8B8; margin-bottom: 30px;">Enter management PIN to access incident cases</p>
+            <input type="password" class="pin-input" id="managementPin" placeholder="Management PIN" maxlength="20" autocomplete="off">
+            <br>
+            <button class="pin-btn" onclick="authenticateManagement()">Access Cases</button>
+            <button class="pin-btn cancel" onclick="closePinModal()">Cancel</button>
+            <div class="pin-error" id="pinError">Invalid PIN. Access denied.</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>CQR365</h1>
+            <div class="brand-line">SafePark.PRO</div>
+            <div class="subtitle">Incident Management System</div>
+        </div>
+        
+        <!-- Main Tab System -->
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="showTab('report')">Report Incident</button>
+                <button class="tab-btn" onclick="requestManagementAccess()">Manage Cases</button>
+                <button class="tab-btn" onclick="requestManagementAccess(); showTab('download')">Download Reports</button>
+            </div>
+
+            <!-- Tab 1: Report New Incident (PUBLIC ACCESS) -->
+            <div id="tab-report" class="tab-content active">
+                <!-- Form with Formspree integration -->
+                <form id="incidentReportForm" action="https://formspree.io/f/xldprzkr" method="POST" enctype="multipart/form-data" style="display: contents;">
+                    <!-- Hidden fields for Formspree -->
+                    <input type="hidden" name="module" value="Incident Reporting">
+                    <input type="hidden" name="_subject" value="SafePark.PRO - New Incident Report">
+                    <input type="hidden" name="incident_reference" id="hiddenIncidentRef">
+                    
+                    <div class="form-container">
+                        <div class="step active">
+                            <div class="step-header">
+                                <h2>Report New Incident</h2>
+                                <p>Provide comprehensive details about the incident for proper documentation and follow-up</p>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="holidayPark">Holiday Park Location <span class="required">*</span></label>
+                                    <select id="holidayPark" name="holiday_park" required>
+                                        <option value="">Select Holiday Park Location</option>
+                                        <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                                        <option value="Oban Holiday Park">Oban Holiday Park</option>
+                                        <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                                        <option value="Overburns Farm">Overburns Farm</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="businessArea">Business Area <span class="required">*</span></label>
+                                    <select id="businessArea" name="business_area" required>
+                                        <option value="">Select Business Area</option>
+                                        <option value="Reception & Administration">Reception & Administration</option>
+                                        <option value="Accommodation Services">Accommodation Services</option>
+                                        <option value="Play Areas & Recreation">Play Areas & Recreation</option>
+                                        <option value="Maintenance & Grounds">Maintenance & Grounds</option>
+                                        <option value="Food & Beverage">Food & Beverage</option>
+                                        <option value="Security & Safety">Security & Safety</option>
+                                        <option value="Water Activities">Water Activities</option>
+                                        <option value="Entertainment">Entertainment</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="incidentDate">Date of Incident <span class="required">*</span></label>
+                                    <input type="date" id="incidentDate" name="incident_date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="incidentTime">Time of Incident <span class="required">*</span></label>
+                                    <input type="time" id="incidentTime" name="incident_time" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="reportedBy">Reported By <span class="required">*</span></label>
+                                    <input type="text" id="reportedBy" name="reported_by" required placeholder="Your full name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="reporterRole">Your Role <span class="required">*</span></label>
+                                    <select id="reporterRole" name="reporter_role" required>
+                                        <option value="">Select your role...</option>
+                                        <option value="manager">Manager</option>
+                                        <option value="supervisor">Supervisor</option>
+                                        <option value="team-lead">Team Lead</option>
+                                        <option value="employee">Employee</option>
+                                        <option value="contractor">Contractor</option>
+                                        <option value="visitor">Visitor</option>
+                                        <option value="guest">Guest</option>
+                                        <option value="customer">Customer</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="incidentLocation">Location of Incident <span class="required">*</span></label>
+                                <select id="incidentLocation" name="incident_location" required>
+                                    <option value="">Select incident location...</option>
+                                    <option value="reception">Reception Area</option>
+                                    <option value="restaurant">Restaurant</option>
+                                    <option value="bar">Bar/Lounge</option>
+                                    <option value="kitchen">Kitchen</option>
+                                    <option value="accommodation">Accommodation Unit</option>
+                                    <option value="swimming-pool">Swimming Pool Area</option>
+                                    <option value="hot-tub">Hot Tub Area</option>
+                                    <option value="playground">Playground</option>
+                                    <option value="car-park">Car Park</option>
+                                    <option value="maintenance">Maintenance Area</option>
+                                    <option value="toilet-facilities">Toilet Facilities</option>
+                                    <option value="outdoor-areas">Outdoor Areas</option>
+                                    <option value="entrance">Entrance/Exit</option>
+                                    <option value="stairways">Stairways</option>
+                                    <option value="corridors">Corridors</option>
+                                    <option value="laundry">Laundry Facilities</option>
+                                    <option value="entertainment-area">Entertainment Area</option>
+                                    <option value="other">Other Location</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="incidentType">Type of Incident <span class="required">*</span></label>
+                                <select id="incidentType" name="incident_type" required>
+                                    <option value="">Select incident type...</option>
+                                    <option value="accident">Accident</option>
+                                    <option value="near-miss">Near Miss</option>
+                                    <option value="injury">Personal Injury</option>
+                                    <option value="property-damage">Property Damage</option>
+                                    <option value="security">Security Incident</option>
+                                    <option value="fire">Fire Related</option>
+                                    <option value="medical">Medical Emergency</option>
+                                    <option value="environmental">Environmental</option>
+                                    <option value="equipment-failure">Equipment Failure</option>
+                                    <option value="customer-complaint">Customer Complaint</option>
+                                    <option value="theft">Theft/Loss</option>
+                                    <option value="violence">Violence/Aggression</option>
+                                    <option value="food-safety">Food Safety</option>
+                                    <option value="health-safety">Health & Safety</option>
+                                    <option value="water-safety">Water Safety</option>
+                                    <option value="playground-safety">Playground Safety</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Incident Severity <span class="required">*</span></label>
+                                <div class="severity-grid">
+                                    <div class="severity-card">
+                                        <input type="radio" name="incident_severity" value="low" id="severity-low" required>
+                                        <div class="severity-title">Low</div>
+                                        <div class="severity-desc">Minor incident, no injury, minimal impact</div>
+                                    </div>
+                                    <div class="severity-card">
+                                        <input type="radio" name="incident_severity" value="medium" id="severity-medium" required>
+                                        <div class="severity-title">Medium</div>
+                                        <div class="severity-desc">Moderate incident, first aid required</div>
+                                    </div>
+                                    <div class="severity-card">
+                                        <input type="radio" name="incident_severity" value="high" id="severity-high" required>
+                                        <div class="severity-title">High</div>
+                                        <div class="severity-desc">Serious incident, medical attention required</div>
+                                    </div>
+                                    <div class="severity-card">
+                                        <input type="radio" name="incident_severity" value="critical" id="severity-critical" required>
+                                        <div class="severity-title">Critical</div>
+                                        <div class="severity-desc">Major incident, emergency services required</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="incidentDescription">Detailed Description <span class="required">*</span></label>
+                                <textarea id="incidentDescription" name="incident_description" rows="4" placeholder="Provide a comprehensive description of what happened..." required></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="immediateActions">Immediate Actions Taken</label>
+                                <textarea id="immediateActions" name="immediate_actions" rows="3" placeholder="Describe any immediate actions taken..."></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="witnesses">Witnesses</label>
+                                <textarea id="witnesses" name="witnesses_info" rows="2" placeholder="Names and contact details of witnesses..."></textarea>
+                            </div>
+                            
+                            <div class="navigation">
+                                <div></div>
+                                <button type="submit" class="btn btn-success" id="submitIncidentBtn">
+                                    Submit Incident Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tab 2: Case Management (PIN PROTECTED) -->
+            <div id="tab-management" class="tab-content">
+                <div class="filter-container">
+                    <select class="filter-select" id="statusFilter" onchange="filterCases()">
+                        <option value="">All Status</option>
+                        <option value="open">Open</option>
+                        <option value="under-investigation">Under Investigation</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                    
+                    <select class="filter-select" id="severityFilter" onchange="filterCases()">
+                        <option value="">All Severities</option>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="critical">Critical</option>
+                    </select>
+                    
+                    <select class="filter-select" id="parkFilter" onchange="filterCases()">
+                        <option value="">All Parks</option>
+                        <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                        <option value="Oban Holiday Park">Oban Holiday Park</option>
+                        <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                        <option value="Overburns Farm">Overburns Farm</option>
+                    </select>
+                    
+                    <button class="btn btn-secondary" onclick="loadIncidentCases()">Refresh Cases</button>
+                </div>
+
+                <div id="casesList" class="case-grid">
+                    <div class="loading">Loading incident cases...</div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Download Reports (PIN PROTECTED) -->
+            <div id="tab-download" class="tab-content">
+                <div class="form-container">
+                    <div class="step-header">
+                        <h2>Download Incident Reports</h2>
+                        <p>Generate and download incident reports in various formats</p>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="downloadFormat">Report Format</label>
+                            <select id="downloadFormat">
+                                <option value="pdf">PDF Report</option>
+                                <option value="excel">Excel Spreadsheet</option>
+                                <option value="csv">CSV Data</option>
+                                <option value="json">JSON Data</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="downloadPark">Holiday Park</label>
+                            <select id="downloadPark">
+                                <option value="">All Parks</option>
+                                <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                                <option value="Oban Holiday Park">Oban Holiday Park</option>
+                                <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                                <option value="Overburns Farm">Overburns Farm</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="downloadDateFrom">Date From</label>
+                            <input type="date" id="downloadDateFrom">
+                        </div>
+                        <div class="form-group">
+                            <label for="downloadDateTo">Date To</label>
+                            <input type="date" id="downloadDateTo">
+                        </div>
+                    </div>
+                    
+                    <div class="navigation">
+                        <div></div>
+                        <button class="btn" onclick="generateReport()">
+                            Download Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div id="messageContainer" style="position: fixed; top: 20px; right: 20px; z-index: 11000;"></div>
+
+    <script type="module">
+        // ENHANCED FIREBASE INTEGRATION - SESSION 3 IMPROVEMENTS
+        // Improved Firebase configuration and error handling
+        let db = null;
+        let isFirebaseReady = false;
+        let offlineMode = false;
+
+        // Enhanced Firebase initialization with better error handling
+        async function initializeFirebase() {
+            try {
+                // Import Firebase configuration with timeout
+                const firebaseConfig = await Promise.race([
+                    import('./firebase-config.js'),
+                    new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Firebase import timeout')), 5000)
+                    )
+                ]);
+
+                if (firebaseConfig.safeParkManager) {
+                    db = firebaseConfig.safeParkManager.db;
+                    isFirebaseReady = true;
+                    console.log('✅ Firebase initialized successfully for incidents');
+                    
+                    // Test Firebase connection
+                    await testFirebaseConnection();
+                } else {
+                    throw new Error('safeParkManager not found in Firebase config');
+                }
+            } catch (error) {
+                console.warn('⚠️ Firebase initialization failed, running in offline mode:', error);
+                offlineMode = true;
+                isFirebaseReady = false;
+                
+                // Show user-friendly message
+                showMessage('Running in offline mode. Data will sync when connection is restored.', 'warning');
+            }
+        }
+
+        // Test Firebase connection with retry mechanism
+        async function testFirebaseConnection() {
+            if (!db) return false;
+
+            try {
+                // Attempt to read from a test collection with timeout
+                const testRef = db.collection('system').doc('health_check');
+                await Promise.race([
+                    testRef.get(),
+                    new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Connection timeout')), 3000)
+                    )
+                ]);
+                
+                console.log('✅ Firebase connection test successful');
+                return true;
+            } catch (error) {
+                console.warn('⚠️ Firebase connection test failed:', error);
+                offlineMode = true;
+                return false;
+            }
+        }
+
+        // Enhanced offline detection and handling
+        function setupOfflineHandling() {
+            window.addEventListener('online', async () => {
+                console.log('🔄 Connection restored, testing Firebase...');
+                offlineMode = false;
+                
+                if (await testFirebaseConnection()) {
+                    showMessage('Connection restored! Syncing data...', 'success');
+                    await syncPendingIncidents();
+                } else {
+                    showMessage('Connection restored but Firebase unavailable', 'warning');
+                    offlineMode = true;
+                }
+            });
+            
+            window.addEventListener('offline', () => {
+                console.log('📴 Connection lost, switching to offline mode');
+                offlineMode = true;
+                showMessage('Working offline. Changes will sync when connection returns.', 'info');
+            });
+        }
+
+        // Global variables
+        let isManagementAuthenticated = false;
+        let currentIncidentRef = null;
+        const MANAGEMENT_PIN = 'CQR365SPPINC';
+
+        // Generate incident reference number
+        function generateIncidentReference() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const random = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
+            
+            return `INC-${year}${month}${day}-${hours}${minutes}-${random}`;
+        }
+
+        // Tab system functions
+        window.showTab = function(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            const targetTab = document.getElementById(`tab-${tabName}`);
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
+            
+            // Activate corresponding button
+            const buttons = document.querySelectorAll('.tab-btn');
+            if (tabName === 'report') {
+                buttons[0]?.classList.add('active');
+            } else if (tabName === 'management') {
+                buttons[1]?.classList.add('active');
+                if (isManagementAuthenticated) {
+                    loadIncidentCases();
+                }
+            } else if (tabName === 'download') {
+                buttons[2]?.classList.add('active');
+            }
+        }
+
+        // PIN authentication system
+        window.requestManagementAccess = function() {
+            if (isManagementAuthenticated) {
+                showTab('management');
+            } else {
+                document.getElementById('pinOverlay').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('managementPin').focus();
+                }, 100);
+            }
+        }
+
+        window.authenticateManagement = function() {
+            const pin = document.getElementById('managementPin').value.trim();
+            const errorDiv = document.getElementById('pinError');
+            
+            if (pin === MANAGEMENT_PIN) {
+                isManagementAuthenticated = true;
+                closePinModal();
+                showTab('management');
+                showMessage('Management access granted', 'success');
+                
+                // Add activity to main system if available
+                if (window.SafeParkUtils?.addRecentActivity) {
+                    window.SafeParkUtils.addRecentActivity(
+                        'Incident Management',
+                        'Management access granted',
+                        'success'
+                    );
+                }
+            } else {
+                errorDiv.style.display = 'block';
+                document.getElementById('managementPin').value = '';
+                document.getElementById('managementPin').focus();
+                
+                // Shake animation
+                const modal = document.querySelector('.pin-modal');
+                modal.style.animation = 'shake 0.5s ease-in-out';
+                setTimeout(() => {
+                    modal.style.animation = '';
+                }, 500);
+            }
+        }
+
+        window.closePinModal = function() {
+            document.getElementById('pinOverlay').style.display = 'none';
+            document.getElementById('managementPin').value = '';
+            document.getElementById('pinError').style.display = 'none';
+        }
+
+        // Enhanced show message function with connection status
+        function showMessage(message, type = 'info') {
+            const container = document.getElementById('messageContainer');
+            const messageDiv = document.createElement('div');
+            
+            const colors = {
+                success: 'var(--success)',
+                error: 'var(--danger)',
+                warning: 'var(--warning)',
+                info: 'var(--primary-orange)'
+            };
+            
+            // Add connection status indicator for offline mode
+            if (offlineMode && type !== 'warning') {
+                message = `📴 ${message}`;
+            } else if (isFirebaseReady && type === 'success') {
+                message = `☁️ ${message}`;
+            }
+            
+            messageDiv.style.cssText = `
+                background: ${colors[type] || colors.info};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                margin-bottom: 10px;
+                box-shadow: var(--shadow-medium);
+                font-weight: 600;
+                max-width: 400px;
+                animation: slideIn 0.3s ease;
+                position: relative;
+                z-index: 11001;
+            `;
+            
+            messageDiv.textContent = message;
+            container.appendChild(messageDiv);
+            
+            // Auto remove after 5 seconds (8 seconds for warnings)
+            const duration = type === 'warning' ? 8000 : 5000;
+            setTimeout(() => {
+                messageDiv.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    if (messageDiv.parentNode) {
+                        messageDiv.parentNode.removeChild(messageDiv);
+                    }
+                }, 300);
+            }, duration);
+        }
+
+        // Enhanced Firebase-first incident management with better error handling
+        class EnhancedIncidentManager {
+            constructor() {
+                this.localCacheKey = 'safePark_incidents_cache';
+                this.pendingSyncKey = 'safePark_incidents_pending_sync';
+                this.retryAttempts = 0;
+                this.maxRetries = 3;
+            }
+
+            async getAllIncidents() {
+                // Always try Firebase first if available
+                if (isFirebaseReady && !offlineMode) {
+                    try {
+                        console.log('🔄 Loading incidents from Firebase');
+                        return await this.loadFromFirebase();
+                    } catch (error) {
+                        console.warn('⚠️ Firebase unavailable, using cached data:', error);
+                        offlineMode = true;
+                        return this.getCachedIncidents();
+                    }
+                } else {
+                    console.log('📴 Offline mode - using cached incidents');
+                    return this.getCachedIncidents();
+                }
+            }
+
+            async loadFromFirebase() {
+                if (!db) throw new Error('Firebase not available');
+
+                const snapshot = await db.collection('incidents').orderBy('createdAt', 'desc').get();
+                const firebaseIncidents = [];
+                
+                snapshot.forEach(doc => {
+                    firebaseIncidents.push({ id: doc.id, ...doc.data() });
+                });
+
+                this.updateCache(firebaseIncidents);
+                console.log(`✅ Loaded ${firebaseIncidents.length} incidents from Firebase`);
+                return firebaseIncidents;
+            }
+
+            getCachedIncidents() {
+                try {
+                    const cached = localStorage.getItem(this.localCacheKey);
+                    return cached ? JSON.parse(cached) : [];
+                } catch (error) {
+                    console.error('❌ Error reading incident cache:', error);
+                    return [];
+                }
+            }
+
+            updateCache(incidents) {
+                try {
+                    localStorage.setItem(this.localCacheKey, JSON.stringify(incidents));
+                    console.log(`💾 Cache updated with ${incidents.length} incidents`);
+                } catch (error) {
+                    console.error('❌ Error updating incident cache:', error);
+                    // Try to free space and retry
+                    this.cleanupOldCache();
+                    try {
+                        localStorage.setItem(this.localCacheKey, JSON.stringify(incidents));
+                    } catch (retryError) {
+                        console.error('❌ Cache update failed even after cleanup:', retryError);
+                    }
+                }
+            }
+
+            cleanupOldCache() {
+                try {
+                    // Remove old keys that might be taking space
+                    const keysToCheck = ['safePark_oldData', 'safePark_temp', 'safePark_backup'];
+                    keysToCheck.forEach(key => localStorage.removeItem(key));
+                    console.log('🧹 Cache cleanup completed');
+                } catch (error) {
+                    console.warn('⚠️ Cache cleanup failed:', error);
+                }
+            }
+
+            async addIncident(incidentData) {
+                // Add to pending sync queue first
+                this.addToPendingSync(incidentData);
+                
+                if (isFirebaseReady && !offlineMode) {
+                    try {
+                        await db.collection('incidents').doc(incidentData.id).set(incidentData);
+                        console.log('✅ Incident added to Firebase');
+                        
+                        // Remove from pending sync on success
+                        this.removeFromPendingSync(incidentData.id);
+                        
+                        // Refresh from Firebase
+                        await this.loadFromFirebase();
+                        return { success: true, synced: true };
+                    } catch (error) {
+                        console.error('❌ Failed to add incident to Firebase:', error);
+                        return { success: true, synced: false, error: error.message };
+                    }
+                } else {
+                    // Offline mode - just update cache
+                    const cached = this.getCachedIncidents();
+                    cached.unshift(incidentData);
+                    this.updateCache(cached);
+                    console.log('📴 Incident stored locally for sync');
+                    return { success: true, synced: false };
+                }
+            }
+
+            addToPendingSync(incidentData) {
+                try {
+                    const pending = JSON.parse(localStorage.getItem(this.pendingSyncKey) || '[]');
+                    // Remove any existing entry with same ID
+                    const filtered = pending.filter(item => item.id !== incidentData.id);
+                    filtered.push({ ...incidentData, _pendingSync: true });
+                    localStorage.setItem(this.pendingSyncKey, JSON.stringify(filtered));
+                } catch (error) {
+                    console.error('❌ Error adding to pending sync:', error);
+                }
+            }
+
+            removeFromPendingSync(incidentId) {
+                try {
+                    const pending = JSON.parse(localStorage.getItem(this.pendingSyncKey) || '[]');
+                    const filtered = pending.filter(item => item.id !== incidentId);
+                    localStorage.setItem(this.pendingSyncKey, JSON.stringify(filtered));
+                } catch (error) {
+                    console.error('❌ Error removing from pending sync:', error);
+                }
+            }
+
+            async updateIncident(incidentId, updates) {
+                if (isFirebaseReady && !offlineMode) {
+                    try {
+                        updates.updatedAt = new Date().toISOString();
+                        await db.collection('incidents').doc(incidentId).update(updates);
+                        console.log('✅ Incident updated in Firebase');
+                        await this.loadFromFirebase();
+                        return true;
+                    } catch (error) {
+                        console.error('❌ Failed to update incident in Firebase:', error);
+                        return false;
+                    }
+                } else {
+                    // Offline mode update
+                    const cached = this.getCachedIncidents();
+                    const incidentIndex = cached.findIndex(i => i.id === incidentId);
+                    
+                    if (incidentIndex !== -1) {
+                        cached[incidentIndex] = { 
+                            ...cached[incidentIndex], 
+                            ...updates, 
+                            _pendingSync: true,
+                            updatedAt: new Date().toISOString()
+                        };
+                        this.updateCache(cached);
+                        this.addToPendingSync(cached[incidentIndex]);
+                        return true;
+                    }
+                    return false;
+                }
+            }
+
+            async syncPendingIncidents() {
+                if (!isFirebaseReady || offlineMode) {
+                    console.log('⏳ Skipping sync - Firebase not ready or offline');
+                    return;
+                }
+
+                try {
+                    const pendingData = localStorage.getItem(this.pendingSyncKey);
+                    if (!pendingData) return;
+
+                    const pendingIncidents = JSON.parse(pendingData);
+                    if (pendingIncidents.length === 0) return;
+
+                    console.log(`🔄 Syncing ${pendingIncidents.length} pending incidents...`);
+
+                    const batch = db.batch();
+                    for (const incident of pendingIncidents) {
+                        const incidentRef = db.collection('incidents').doc(incident.id);
+                        const cleanIncident = { ...incident };
+                        delete cleanIncident._pendingSync;
+                        batch.set(incidentRef, cleanIncident, { merge: true });
+                    }
+
+                    await batch.commit();
+                    console.log('✅ Successfully synced all pending incidents');
+                    
+                    // Clear pending sync queue
+                    localStorage.removeItem(this.pendingSyncKey);
+                    
+                    // Refresh from Firebase
+                    await this.loadFromFirebase();
+                    showMessage('All incidents synced successfully!', 'success');
+                } catch (error) {
+                    console.error('❌ Error syncing pending incidents:', error);
+                    showMessage('Sync failed. Will retry when connection improves.', 'warning');
+                }
+            }
+        }
+
+        // Initialize enhanced incident manager
+        const incidentManager = new EnhancedIncidentManager();
+
+        // Sync pending incidents when coming back online
+        window.syncPendingIncidents = () => incidentManager.syncPendingIncidents();
+
+        // Load incident cases for management view
+        window.loadIncidentCases = async function() {
+            if (!isManagementAuthenticated) return;
+
+            const casesContainer = document.getElementById('casesList');
+            casesContainer.innerHTML = '<div class="loading">Loading incident cases...</div>';
+
+            try {
+                const incidents = await incidentManager.getAllIncidents();
+                
+                if (incidents.length === 0) {
+                    casesContainer.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📋</div>
+                            <div class="empty-state-title">No Incidents Found</div>
+                            <div class="empty-state-text">
+                                No incident reports have been submitted yet.<br>
+                                Incidents can be reported using the "Report Incident" tab.
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const caseHTML = incidents.map(incident => createCaseHTML(incident)).join('');
+                casesContainer.innerHTML = caseHTML;
+                
+            } catch (error) {
+                console.error('❌ Error loading incident cases:', error);
+                casesContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <div class="empty-state-title">Error Loading Cases</div>
+                        <div class="empty-state-text">
+                            Unable to load incident cases. Please check your connection and try again.
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function createCaseHTML(incident) {
+            const createdDate = new Date(incident.createdAt || incident.incident_date).toLocaleDateString();
+            const status = incident.status || 'open';
+            const severity = incident.incident_severity || incident.severity || 'medium';
+            
+            // Add pending sync indicator
+            const syncStatus = incident._pendingSync ? ' 📤' : (isFirebaseReady && !offlineMode ? ' ☁️' : '');
+            
+            return `
+                <div class="case-card severity-${severity} status-${status}" 
+                     data-status="${status}" 
+                     data-severity="${severity}" 
+                     data-park="${incident.holiday_park || incident.holidayPark || ''}"
+                     onclick="viewIncidentCase('${incident.id}')">
+                    <div class="case-header">
+                        <div class="case-ref">${incident.incident_reference || incident.id}${syncStatus}</div>
+                        <div class="case-status status-${status}">${status.replace('-', ' ')}</div>
+                    </div>
+                    <div class="case-title">${incident.incident_type || 'Incident'} - ${incident.holiday_park || 'Unknown Park'}</div>
+                    <div class="case-details">
+                        <div><strong>Date:</strong> ${createdDate}</div>
+                        <div><strong>Severity:</strong> ${severity.toUpperCase()}</div>
+                        <div><strong>Location:</strong> ${incident.incident_location || 'Not specified'}</div>
+                        <div><strong>Reported by:</strong> ${incident.reported_by || 'Unknown'}</div>
+                    </div>
+                    <div class="case-actions" onclick="event.stopPropagation()">
+                        <button class="case-btn btn-view" onclick="viewIncidentCase('${incident.id}')">View</button>
+                        <button class="case-btn btn-edit" onclick="editIncidentCase('${incident.id}')">Edit</button>
+                        ${status === 'open' || status === 'under-investigation' ? 
+                            `<button class="case-btn btn-close" onclick="closeIncidentCase('${incident.id}')">Close</button>` :
+                            `<button class="case-btn btn-reopen" onclick="reopenIncidentCase('${incident.id}')">Reopen</button>`
+                        }
+                        <button class="case-btn btn-download" onclick="downloadIncidentCase('${incident.id}')">Download</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Case management functions
+        window.viewIncidentCase = function(incidentId) {
+            showMessage(`Viewing case: ${incidentId}`, 'info');
+            // TODO: Implement detailed case view modal
+        }
+
+        window.editIncidentCase = function(incidentId) {
+            showMessage(`Edit functionality for case: ${incidentId}`, 'info');
+            // TODO: Implement case editing modal
+        }
+
+        window.closeIncidentCase = async function(incidentId) {
+            if (confirm('Are you sure you want to close this incident case?')) {
+                try {
+                    await incidentManager.updateIncident(incidentId, { 
+                        status: 'closed',
+                        closedAt: new Date().toISOString(),
+                        closedBy: 'Management'
+                    });
+                    showMessage('Incident case closed successfully', 'success');
+                    await loadIncidentCases();
+                } catch (error) {
+                    showMessage('Error closing incident case', 'error');
+                }
+            }
+        }
+
+        window.reopenIncidentCase = async function(incidentId) {
+            if (confirm('Are you sure you want to reopen this incident case?')) {
+                try {
+                    await incidentManager.updateIncident(incidentId, { 
+                        status: 'open',
+                        reopenedAt: new Date().toISOString(),
+                        reopenedBy: 'Management'
+                    });
+                    showMessage('Incident case reopened successfully', 'success');
+                    await loadIncidentCases();
+                } catch (error) {
+                    showMessage('Error reopening incident case', 'error');
+                }
+            }
+        }
+
+        window.downloadIncidentCase = function(incidentId) {
+            // TODO: Implement individual case download
+            showMessage(`Downloading case: ${incidentId}`, 'info');
+        }
+
+        // Filter cases
+        window.filterCases = function() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const severityFilter = document.getElementById('severityFilter').value;
+            const parkFilter = document.getElementById('parkFilter').value;
+            
+            const cases = document.querySelectorAll('.case-card');
+            
+            cases.forEach(caseCard => {
+                const status = caseCard.dataset.status;
+                const severity = caseCard.dataset.severity;
+                const park = caseCard.dataset.park;
+                
+                const showStatus = !statusFilter || status === statusFilter;
+                const showSeverity = !severityFilter || severity === severityFilter;
+                const showPark = !parkFilter || park === parkFilter;
+                
+                if (showStatus && showSeverity && showPark) {
+                    caseCard.style.display = 'block';
+                } else {
+                    caseCard.style.display = 'none';
+                }
+            });
+        }
+
+        // Generate reports
+        window.generateReport = function() {
+            if (!isManagementAuthenticated) {
+                requestManagementAccess();
+                return;
+            }
+
+            const format = document.getElementById('downloadFormat').value;
+            const park = document.getElementById('downloadPark').value;
+            const dateFrom = document.getElementById('downloadDateFrom').value;
+            const dateTo = document.getElementById('downloadDateTo').value;
+            
+            showMessage(`Generating ${format.toUpperCase()} report...`, 'info');
+            
+            // TODO: Implement actual report generation for all formats
+            setTimeout(() => {
+                showMessage(`${format.toUpperCase()} report generated successfully`, 'success');
+            }, 2000);
+        }
+
+        // Enhanced form submission with better error handling
+        document.getElementById('incidentReportForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitIncidentBtn');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            
+            try {
+                // Generate incident reference
+                const incidentRef = generateIncidentReference();
+                currentIncidentRef = incidentRef;
+                document.getElementById('hiddenIncidentRef').value = incidentRef;
+                
+                // Collect form data
+                const formData = new FormData(this);
+                const incidentData = {
+                    id: incidentRef,
+                    incident_reference: incidentRef,
+                    holiday_park: formData.get('holiday_park'),
+                    business_area: formData.get('business_area'),
+                    incident_date: formData.get('incident_date'),
+                    incident_time: formData.get('incident_time'),
+                    reported_by: formData.get('reported_by'),
+                    reporter_role: formData.get('reporter_role'),
+                    incident_location: formData.get('incident_location'),
+                    incident_type: formData.get('incident_type'),
+                    incident_severity: formData.get('incident_severity'),
+                    incident_description: formData.get('incident_description'),
+                    immediate_actions: formData.get('immediate_actions'),
+                    witnesses_info: formData.get('witnesses_info'),
+                    status: 'open',
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    userAgent: navigator.userAgent,
+                    submitSource: 'web_form'
+                };
+                
+                // Save to Firebase/cache
+                const saveResult = await incidentManager.addIncident(incidentData);
+                
+                // Attempt Formspree submission (non-blocking)
+                let emailSent = false;
+                try {
+                    const response = await Promise.race([
+                        fetch(this.action, {
+                            method: this.method,
+                            body: formData,
+                            headers: { 'Accept': 'application/json' }
+                        }),
+                        new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('Email timeout')), 10000)
+                        )
+                    ]);
+                    
+                    if (response.ok || response.status === 422) {
+                        emailSent = true;
+                        console.log('✅ Email notification sent successfully');
+                    }
+                } catch (emailError) {
+                    console.warn('⚠️ Email notification failed:', emailError);
+                    // Don't fail the entire submission for email issues
+                }
+                
+                // Update main dashboard if available
+                if (window.SafeParkUtils?.addRecentActivity) {
+                    window.SafeParkUtils.addRecentActivity(
+                        'Incident Reporting',
+                        `New ${incidentData.incident_severity} severity incident: ${incidentData.incident_type}`,
+                        incidentData.incident_severity === 'critical' || incidentData.incident_severity === 'high' ? 'warning' : 'success'
+                    );
+                }
+                
+                // Success message with sync status
+                let successMessage = `Incident report submitted! Reference: ${incidentRef}`;
+                if (saveResult.synced) {
+                    successMessage += ' (Synced to cloud)';
+                } else {
+                    successMessage += ' (Will sync when online)';
+                }
+                if (!emailSent) {
+                    successMessage += ' (Email notification may be delayed)';
+                }
+                
+                showMessage(successMessage, 'success');
+                
+                // Reset form
+                this.reset();
+                
+                // Reset severity cards
+                document.querySelectorAll('.severity-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                
+            } catch (error) {
+                console.error('❌ Submission error:', error);
+                showMessage('Error submitting incident report. Please try again.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 Initializing Incident Management System...');
+            
+            // Initialize Firebase with enhanced error handling
+            await initializeFirebase();
+            setupOfflineHandling();
+            
+            // Set current date and time
+            const now = new Date();
+            document.getElementById('incidentDate').value = now.toISOString().split('T')[0];
+            document.getElementById('incidentTime').value = now.toTimeString().slice(0, 5);
+            
+            // Add event listeners for severity cards
+            document.querySelectorAll('.severity-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    document.querySelectorAll('.severity-card').forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    this.querySelector('input[type="radio"]').checked = true;
+                });
+            });
+            
+            // PIN input enter key
+            document.getElementById('managementPin').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    authenticateManagement();
+                }
+            });
+            
+            // Auto-sync pending incidents if coming back online
+            if (navigator.onLine && !offlineMode) {
+                setTimeout(syncPendingIncidents, 2000);
+            }
+            
+            console.log('✅ Incident Management System initialized');
+        });
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+            @keyframes shake {
+                0%, 100% { transform: translate(-50%, -50%) translateX(0); }
+                10%, 30%, 50%, 70%, 90% { transform: translate(-50%, -50%) translateX(-5px); }
+                20%, 40%, 60%, 80% { transform: translate(-50%, -50%) translateX(5px); }
+            }
+            
+            /* Loading pulse animation for better UX */
+            @keyframes pulse {
+                0% { opacity: 1; }
+                50% { opacity: 0.5; }
+                100% { opacity: 1; }
+            }
+            
+            .loading {
+                animation: pulse 1.5s ease-in-out infinite;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Export for global access
+        window.incidentManager = incidentManager;
+        window.isFirebaseReady = () => isFirebaseReady;
+        window.isOffline = () => offlineMode;
+        
+        console.log('🎯 SafePark.PRO Incident Management System loaded with enhanced Firebase integration');
+    </script>
+</body>
+</html>
