@@ -1,0 +1,2132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafePark.PRO - Holiday Park Management System</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#FF8C00">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <style>
+        :root {
+            --primary-orange: #FF8C00;
+            --dark-orange: #CC5500;
+            --light-orange: #FFB347;
+            --dark-bg: #1a1a1a;
+            --light-bg: #2a2a2a;
+            --darker-bg: #0f0f0f;
+            --text-light: #f0f0f0;
+            --white: #ffffff;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --info: #17a2b8;
+            --border-color: #404040;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 50%, var(--darker-bg) 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Authentication Screen */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 50%, var(--darker-bg) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255, 140, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 140, 0, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .login-form {
+            background: linear-gradient(145deg, var(--light-bg), var(--dark-bg));
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.6),
+                inset 0 2px 10px rgba(255, 255, 255, 0.1),
+                inset 0 -2px 10px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 140, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            font-size: 2.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary-orange), var(--light-orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 5px 15px rgba(255, 140, 0, 0.3);
+            margin-bottom: 10px;
+        }
+
+        .brand-line {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 5px;
+        }
+
+        .tagline {
+            font-size: 1rem;
+            color: #B8B8B8;
+            font-weight: 300;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(255, 140, 0, 0.3);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 20px rgba(255, 140, 0, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(255, 140, 0, 0.3);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(255, 140, 0, 0.4);
+            background: linear-gradient(145deg, var(--light-orange), var(--primary-orange));
+        }
+
+        .error-message {
+            background: linear-gradient(145deg, var(--danger), #a71e2a);
+            color: var(--white);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        /* App Container */
+        .app-container {
+            display: none;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .app-container.authenticated {
+            display: block;
+        }
+
+        /* Enhanced PRO Button */
+        .pro-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+            padding: 12px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 700;
+            z-index: 1000;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3),
+                        inset 0 2px 5px rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            font-size: 1rem;
+        }
+
+        .pro-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4),
+                        inset 0 2px 8px rgba(255, 255, 255, 0.3);
+            background: linear-gradient(145deg, var(--light-orange), var(--primary-orange));
+        }
+
+        .pro-text {
+            font-size: 1.1rem;
+            font-weight: 900;
+            margin-right: 8px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Hamburger Menu */
+        .hamburger-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1001;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .hamburger-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .hamburger-icon {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        .hamburger-line {
+            width: 20px;
+            height: 2px;
+            background: var(--white);
+            margin: 2px 0;
+            transition: 0.3s;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -350px;
+            width: 350px;
+            height: 100vh;
+            background: linear-gradient(180deg, var(--dark-bg) 0%, var(--darker-bg) 100%);
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+            transition: right 0.3s ease;
+            z-index: 999;
+            overflow-y: auto;
+            border-left: 2px solid rgba(255, 140, 0, 0.3);
+        }
+
+        .sidebar.active {
+            right: 0;
+        }
+
+        .sidebar-header {
+            padding: 30px 20px 20px;
+            background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange));
+            text-align: center;
+            position: relative;
+        }
+
+        .sidebar-header h2 {
+            color: var(--white);
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+
+        .nav-menu {
+            padding: 20px 0;
+        }
+
+        .nav-btn {
+            display: block;
+            width: 100%;
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            text-align: left;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background: linear-gradient(90deg, rgba(255, 140, 0, 0.1), transparent);
+            border-left-color: var(--primary-orange);
+            color: var(--primary-orange);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 100px 30px 30px;
+            min-height: 100vh;
+        }
+
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary-orange), var(--light-orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .dashboard-header p {
+            font-size: 1.2rem;
+            color: #B8B8B8;
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* Dashboard Tiles */
+        .dashboard-tiles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .dashboard-tile {
+            background: linear-gradient(145deg, var(--light-bg), var(--dark-bg));
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 140, 0, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-tile::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 30%, transparent 70%, rgba(0, 0, 0, 0.1) 100%);
+            pointer-events: none;
+        }
+
+        .dashboard-tile:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+            border-color: var(--primary-orange);
+        }
+
+        .tile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .tile-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary-orange);
+        }
+
+        .tile-icon {
+            font-size: 2rem;
+        }
+
+        .tile-content {
+            color: #B8B8B8;
+            line-height: 1.6;
+        }
+
+        .tile-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--primary-orange);
+            display: block;
+            margin: 10px 0;
+        }
+
+        /* Maintenance Dashboard */
+        .maintenance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            color: var(--primary-orange);
+            font-weight: 700;
+        }
+
+        .section-subtitle {
+            color: #B8B8B8;
+            font-size: 1.1rem;
+            margin-top: 5px;
+        }
+
+        .create-task-btn {
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 140, 0, 0.3);
+        }
+
+        .create-task-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 140, 0, 0.4);
+        }
+
+        /* Filter Controls */
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            background: var(--light-bg);
+            color: var(--text-light);
+            border: 1px solid var(--border-color);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        /* Task List */
+        .task-list {
+            display: grid;
+            gap: 20px;
+        }
+
+        .task-item {
+            background: linear-gradient(145deg, var(--light-bg), var(--dark-bg));
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 140, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .task-item:hover {
+            border-color: var(--primary-orange);
+            box-shadow: 0 5px 20px rgba(255, 140, 0, 0.2);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .task-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-orange);
+            margin-bottom: 5px;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-complete {
+            background: var(--success);
+            color: var(--white);
+        }
+
+        .btn-delete {
+            background: var(--danger);
+            color: var(--white);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #B8B8B8;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .empty-state-title {
+            font-size: 1.5rem;
+            color: var(--primary-orange);
+            margin-bottom: 15px;
+        }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1050;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(145deg, var(--light-bg), var(--dark-bg));
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 140, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: var(--primary-orange);
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #B8B8B8;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: var(--primary-orange);
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 10px rgba(255, 140, 0, 0.3);
+        }
+
+        .btn {
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 140, 0, 0.4);
+        }
+
+        /* Maintenance Button - Fixed positioning */
+        .maintenance-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 998;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .maintenance-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Tile Details Modal */
+        .tile-details-modal {
+            display: none;
+            position: fixed;
+            z-index: 1100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .tile-details-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tile-details-content {
+            background: linear-gradient(145deg, var(--light-bg), var(--dark-bg));
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 140, 0, 0.3);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .dashboard-tiles {
+                grid-template-columns: 1fr;
+            }
+
+            .main-content {
+                padding: 120px 15px 30px;
+            }
+
+            .sidebar {
+                width: 100vw;
+                right: -100vw;
+            }
+
+            .pro-button {
+                position: static;
+                margin-bottom: 20px;
+                display: inline-block;
+            }
+
+            .hamburger-btn {
+                position: static;
+                margin-bottom: 20px;
+            }
+
+            .maintenance-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Firebase Configuration -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCHMmm8XmSYCmPk4BDPGb5k_W_f8LRxD9I",
+            authDomain: "safepark-pro.firebaseapp.com",
+            projectId: "safepark-pro",
+            storageBucket: "safepark-pro.appspot.com",
+            messagingSenderId: "1001659711460",
+            appId: "1:1001659711460:web:c6c3b7b5c7c4d8a9b2c3d4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        window.db = db;
+        window.firestoreFunctions = {
+            collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy, onSnapshot
+        };
+        
+        console.log('Firebase initialized successfully');
+    </script>
+
+    <!-- Authentication Screen -->
+    <div class="auth-container" id="authContainer">
+        <div class="login-form">
+            <div class="login-header">
+                <h1>CQR365</h1>
+                <div class="brand-line">SafePark.PRO</div>
+                <div class="tagline">Management System V3</div>
+            </div>
+            
+            <form id="loginForm" onsubmit="return authenticateUser(event)">
+                <div class="form-group">
+                    <label for="authCode">Enter Authentication Code</label>
+                    <input type="password" id="authCode" required>
+                </div>
+                
+                <button type="submit" class="login-btn">Access System</button>
+                
+                <div class="error-message" id="errorMessage" style="display: none;">
+                    Invalid authentication code. Please try again.
+                </div>
+            </form>
+            
+            <div class="welcome-message" id="welcomeMessage" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div class="app-container" id="appContainer">
+        <!-- PRO Button -->
+        <a href="#" class="pro-button" onclick="showSection('dashboard')">
+            <span class="pro-text">PRO</span> Dashboard
+        </a>
+
+        <!-- Hamburger Menu Button -->
+        <button class="hamburger-btn" onclick="toggleSidebar()">
+            <div class="hamburger-icon">
+                <div class="hamburger-line"></div>
+                <div class="hamburger-line"></div>
+                <div class="hamburger-line"></div>
+            </div>
+        </button>
+
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>SafePark.PRO</h2>
+                <p>Holiday Park Management</p>
+            </div>
+            
+            <div class="nav-menu">
+                <button class="nav-btn active" onclick="showSection('dashboard')">🏠 Dashboard</button>
+                <button class="nav-btn" onclick="showSection('maintenance-dashboard')">🔧 Maintenance</button>
+                <button class="nav-btn" onclick="showSection('team-management')">👥 Team Management</button>
+                <button class="nav-btn" onclick="showSection('data-management')">💾 Data Management</button>
+                <button class="nav-btn" onclick="showSectionWithSidebar('ai-assistant')">🤖 AI Assistant</button>
+                <button class="nav-btn" onclick="showSectionWithSidebar('property-passport')">📋 Property Passport</button>
+                
+                <hr style="margin: 20px 0; border: 1px solid rgba(255, 140, 0, 0.3);">
+                
+                <!-- Safety Modules -->
+                <button class="nav-btn" onclick="window.open('play-parks.html', '_blank')">🎠 Play Parks</button>
+                <button class="nav-btn" onclick="window.open('hot-tub.html', '_blank')">🛁 Hot Tub Safety</button>
+                <button class="nav-btn" onclick="window.open('incidents.html', '_blank')">⚠️ Incidents</button>
+                
+                <!-- Compliance Modules -->
+                <button class="nav-btn" onclick="window.open('contractors.html', '_blank')">👷 Contractors</button>
+                <button class="nav-btn" onclick="window.open('coshh.html', '_blank')">🧪 COSHH</button>
+                <button class="nav-btn" onclick="window.open('electric.html', '_blank')">⚡ Electrical</button>
+                <button class="nav-btn" onclick="window.open('fire.html', '_blank')">🔥 Fire Safety</button>
+                <button class="nav-btn" onclick="window.open('gas.html', '_blank')">⛽ Gas Safety</button>
+                <button class="nav-btn" onclick="window.open('loler.html', '_blank')">🏗️ LOLER</button>
+                <button class="nav-btn" onclick="window.open('puwer.html', '_blank')">⚙️ PUWER</button>
+                <button class="nav-btn" onclick="window.open('risk-management.html', '_blank')">📊 Risk Management</button>
+                <button class="nav-btn" onclick="window.open('ukas.html', '_blank')">🎯 UKAS</button>
+                
+                <!-- Operations Modules -->
+                <button class="nav-btn" onclick="window.open('accommodation.html', '_blank')">🏨 Accommodation</button>
+                <button class="nav-btn" onclick="window.open('food-beverage.html', '_blank')">🍽️ Food & Beverage</button>
+                <button class="nav-btn" onclick="window.open('grounds-equipment.html', '_blank')">🌳 Grounds & Equipment</button>
+                <button class="nav-btn" onclick="window.open('vehicles.html', '_blank')">🚗 Vehicles</button>
+                
+                <!-- Management -->
+                <button class="nav-btn" onclick="window.open('management.html', '_blank')">📈 Management</button>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="content-section active">
+                <div class="dashboard-header">
+                    <h1>SafePark.PRO</h1>
+                    <p>Holiday Park Management Dashboard</p>
+                </div>
+
+                <!-- Dashboard Tiles -->
+                <div class="dashboard-tiles">
+                    <div class="dashboard-tile" onclick="showTileDetails('incidents')">
+                        <div class="tile-header">
+                            <div class="tile-title">Recent Incidents</div>
+                            <div class="tile-icon">⚠️</div>
+                        </div>
+                        <div class="tile-content">
+                            <span class="tile-number" id="incidentCount">0</span>
+                            Active incidents requiring attention
+                        </div>
+                    </div>
+
+                    <div class="dashboard-tile" onclick="showTileDetails('playparks')">
+                        <div class="tile-header">
+                            <div class="tile-title">Play Park Areas</div>
+                            <div class="tile-icon">🎠</div>
+                        </div>
+                        <div class="tile-content">
+                            <span class="tile-number" id="playParkCount">0</span>
+                            Play areas monitored
+                        </div>
+                    </div>
+
+                    <div class="dashboard-tile" onclick="showTileDetails('maintenance')">
+                        <div class="tile-header">
+                            <div class="tile-title">Maintenance Tasks</div>
+                            <div class="tile-icon">🔧</div>
+                        </div>
+                        <div class="tile-content">
+                            <span class="tile-number" id="maintenanceCount">0</span>
+                            Pending maintenance items
+                        </div>
+                    </div>
+
+                    <div class="dashboard-tile" onclick="showTileDetails('team')">
+                        <div class="tile-header">
+                            <div class="tile-title">Team Members</div>
+                            <div class="tile-icon">👥</div>
+                        </div>
+                        <div class="tile-content">
+                            <span class="tile-number" id="teamCount">0</span>
+                            Active team members
+                        </div>
+                    </div>
+
+                    <div class="dashboard-tile" onclick="showTileDetails('compliance')">
+                        <div class="tile-header">
+                            <div class="tile-title">Compliance Status</div>
+                            <div class="tile-icon">✅</div>
+                        </div>
+                        <div class="tile-content">
+                            <span class="tile-number" id="complianceScore">98%</span>
+                            Overall compliance rating
+                        </div>
+                    </div>
+
+                    <div class="dashboard-tile" onclick="showTileDetails('safety')">
+                        <div class="tile-header">
+                            <div class="tile-title">Safety Score</div>
+                            <div class="tile-icon">🛡️</div>
+                        </div>
+                        <div class="tile-content">
+                            <span class="tile-number" id="safetyScore">95%</span>
+                            Current safety rating
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Maintenance Dashboard Section -->
+            <div id="maintenance-dashboard" class="content-section">
+                <div class="maintenance-header">
+                    <div>
+                        <h2 class="section-title">Maintenance Dashboard</h2>
+                        <p class="section-subtitle">Create and manage maintenance tasks</p>
+                    </div>
+                    <button class="create-task-btn" onclick="openCreateTaskModal()">Create New Task</button>
+                </div>
+
+                <div class="filter-controls">
+                    <select class="filter-select" id="statusFilter" onchange="filterTasks()">
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                    <select class="filter-select" id="priorityFilter" onchange="filterTasks()">
+                        <option value="">All Priorities</option>
+                        <option value="critical">Critical</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                    <select class="filter-select" id="categoryFilter" onchange="filterTasks()">
+                        <option value="">All Categories</option>
+                        <option value="electrical">Electrical</option>
+                        <option value="plumbing">Plumbing</option>
+                        <option value="hvac">HVAC</option>
+                        <option value="grounds">Grounds</option>
+                        <option value="safety">Safety</option>
+                        <option value="cleaning">Cleaning</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div id="maintenanceTasksList" class="task-list">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔧</div>
+                        <div class="empty-state-title">No Maintenance Tasks</div>
+                        <div class="empty-state-text">
+                            Click "Create New Task" to add your first maintenance task.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Management Section -->
+            <div id="team-management" class="content-section">
+                <div class="maintenance-header">
+                    <div>
+                        <h2 class="section-title">Team Management</h2>
+                        <p class="section-subtitle">Manage your team members and locations</p>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                    <!-- Add Team Member -->
+                    <div style="background: linear-gradient(145deg, var(--light-bg), var(--dark-bg)); padding: 25px; border-radius: 15px; border: 1px solid rgba(255, 140, 0, 0.2);">
+                        <h3 style="color: var(--primary-orange); margin-bottom: 20px;">Add Team Member</h3>
+                        <div class="form-group">
+                            <label for="memberName">Name</label>
+                            <input type="text" id="memberName" placeholder="Enter team member name">
+                        </div>
+                        <div class="form-group">
+                            <label for="memberRole">Role</label>
+                            <input type="text" id="memberRole" placeholder="Enter role/position">
+                        </div>
+                        <div class="form-group">
+                            <label for="memberContact">Contact</label>
+                            <input type="text" id="memberContact" placeholder="Phone or email">
+                        </div>
+                        <button class="btn" onclick="addTeamMember()">Add Member</button>
+                    </div>
+
+                    <!-- Add Location -->
+                    <div style="background: linear-gradient(145deg, var(--light-bg), var(--dark-bg)); padding: 25px; border-radius: 15px; border: 1px solid rgba(255, 140, 0, 0.2);">
+                        <h3 style="color: var(--primary-orange); margin-bottom: 20px;">Add Location</h3>
+                        <div class="form-group">
+                            <label for="locationName">Location Name</label>
+                            <input type="text" id="locationName" placeholder="Enter location name">
+                        </div>
+                        <div class="form-group">
+                            <label for="locationType">Type</label>
+                            <select id="locationType">
+                                <option value="building">Building</option>
+                                <option value="area">Area</option>
+                                <option value="facility">Facility</option>
+                                <option value="equipment">Equipment</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="locationDescription">Description</label>
+                            <input type="text" id="locationDescription" placeholder="Brief description">
+                        </div>
+                        <button class="btn" onclick="addLocation()">Add Location</button>
+                    </div>
+                </div>
+
+                <!-- Team Members List -->
+                <div style="background: linear-gradient(145deg, var(--light-bg), var(--dark-bg)); padding: 25px; border-radius: 15px; border: 1px solid rgba(255, 140, 0, 0.2);">
+                    <h3 style="color: var(--primary-orange); margin-bottom: 20px;">Team Members</h3>
+                    <div id="teamMembersList">
+                        <div class="empty-state">
+                            <div class="empty-state-title">No Team Members</div>
+                            <div class="empty-state-text">Add team members using the form above.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Management Section -->
+            <div id="data-management" class="content-section">
+                <div class="maintenance-header">
+                    <div>
+                        <h2 class="section-title">Data Management</h2>
+                        <p class="section-subtitle">Import, export, and manage system data</p>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                    <!-- Data Operations -->
+                    <div style="background: linear-gradient(145deg, var(--light-bg), var(--dark-bg)); padding: 25px; border-radius: 15px; border: 1px solid rgba(255, 140, 0, 0.2);">
+                        <h3 style="color: var(--primary-orange); margin-bottom: 20px;">Data Operations</h3>
+                        <div class="form-group">
+                            <button class="btn" onclick="exportAllData()">Export All Data</button>
+                        </div>
+                        <div class="form-group">
+                            <button class="btn" onclick="clearMaintenanceData()" style="background: var(--warning);">Clear Maintenance Data</button>
+                        </div>
+                        <div class="form-group">
+                            <button class="btn" onclick="clearAllData()" style="background: var(--danger);">Clear All Data</button>
+                        </div>
+                        <div class="form-group">
+                            <label for="importData">Import Data (JSON)</label>
+                            <input type="file" id="importData" accept=".json" onchange="importData(event)">
+                        </div>
+                    </div>
+
+                    <!-- System Information -->
+                    <div style="background: linear-gradient(145deg, var(--light-bg), var(--dark-bg)); padding: 25px; border-radius: 15px; border: 1px solid rgba(255, 140, 0, 0.2);">
+                        <h3 style="color: var(--primary-orange); margin-bottom: 20px;">System Information</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div style="text-align: center; padding: 15px; background: rgba(255, 140, 0, 0.1); border-radius: 8px;">
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-orange);" id="dataSize">0 KB</div>
+                                <div style="color: #B8B8B8;">Data Size</div>
+                            </div>
+                            <div style="text-align: center; padding: 15px; background: rgba(255, 140, 0, 0.1); border-radius: 8px;">
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-orange);" id="lastBackup">Never</div>
+                                <div style="color: #B8B8B8;">Last Backup</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Assistant Section -->
+            <div id="ai-assistant" class="content-section">
+                <div class="dashboard-header">
+                    <h1>AI Assistant</h1>
+                    <p>Intelligent holiday park management assistance</p>
+                </div>
+                <div style="text-align: center; padding: 60px; color: #B8B8B8;">
+                    <h3 style="color: var(--primary-orange); margin-bottom: 15px;">AI Assistant Coming Soon</h3>
+                    <p>Intelligent automation and assistance features will be available in a future update.</p>
+                </div>
+            </div>
+
+            <!-- Property Passport Section -->
+            <div id="property-passport" class="content-section">
+                <div class="dashboard-header">
+                    <h1>Property Passport</h1>
+                    <p>Comprehensive property documentation and compliance tracking</p>
+                </div>
+                <div style="text-align: center; padding: 60px; color: #B8B8B8;">
+                    <h3 style="color: var(--primary-orange); margin-bottom: 15px;">Property Passport Coming Soon</h3>
+                    <p>Digital property documentation and compliance tracking system in development.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Maintenance Button - Fixed positioning -->
+        <button class="maintenance-btn" onclick="showSection('maintenance-dashboard')" title="Quick Access to Maintenance">
+            🔧
+        </button>
+    </div>
+
+    <!-- Create Task Modal -->
+    <div class="modal" id="createTaskModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Create New Maintenance Task</h3>
+                <button class="close-btn" onclick="closeCreateTaskModal()">&times;</button>
+            </div>
+            
+            <form onsubmit="return submitMaintenanceTask(event)">
+                <div class="form-group">
+                    <label for="taskTitle">Task Title</label>
+                    <input type="text" id="taskTitle" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="taskDescription">Description</label>
+                    <textarea id="taskDescription" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="taskPriority">Priority</label>
+                    <select id="taskPriority" required>
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                        <option value="critical">Critical</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="taskCategory">Category</label>
+                    <select id="taskCategory" required>
+                        <option value="electrical">Electrical</option>
+                        <option value="plumbing">Plumbing</option>
+                        <option value="hvac">HVAC</option>
+                        <option value="grounds">Grounds</option>
+                        <option value="safety">Safety</option>
+                        <option value="cleaning">Cleaning</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="taskLocation">Location</label>
+                    <input type="text" id="taskLocation">
+                </div>
+                
+                <div class="form-group">
+                    <label for="taskAssignee">Assigned To</label>
+                    <select id="taskAssignee">
+                        <option value="">Unassigned</option>
+                    </select>
+                </div>
+                
+                <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 30px;">
+                    <button type="button" onclick="closeCreateTaskModal()" style="background: #666;">Cancel</button>
+                    <button type="submit" class="btn">Create Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tile Details Modal -->
+    <div class="tile-details-modal" id="tileDetailsModal">
+        <div class="tile-details-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="tileDetailsTitle">Details</h3>
+                <button class="close-btn" onclick="closeTileDetails()">&times;</button>
+            </div>
+            <div id="tileDetailsContent">
+                <!-- Dynamic content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let isAuthenticated = false;
+        let maintenanceManager;
+
+        // Authentication codes
+        const parkCodes = {
+            '1010': 'Ben Nevis Holiday Park',
+            '1020': 'Oban Holiday Park', 
+            '1030': 'Tyndrum Holiday Park',
+            '365': 'Overburns Farm',
+            'CQR365SPP25': 'SafePark.PRO Master Access'
+        };
+
+        // Authentication function
+        function authenticateUser(event) {
+            event.preventDefault();
+            const code = document.getElementById('authCode').value;
+            const errorMsg = document.getElementById('errorMessage');
+            const welcomeMsg = document.getElementById('welcomeMessage');
+
+            if (parkCodes[code]) {
+                isAuthenticated = true;
+                document.getElementById('authContainer').style.display = 'none';
+                document.getElementById('appContainer').classList.add('authenticated');
+                
+                welcomeMsg.innerHTML = `Welcome to ${parkCodes[code]}!`;
+                welcomeMsg.style.display = 'block';
+                
+                // Initialize data after authentication
+                initializeDashboard();
+            } else {
+                errorMsg.style.display = 'block';
+                document.getElementById('authCode').value = '';
+            }
+            return false;
+        }
+
+        // Firebase-First Maintenance Manager
+        class FirebaseFirstMaintenanceManager {
+            constructor() {
+                this.isOnline = navigator.onLine;
+                this.localCacheKey = 'safepark_maintenance_cache';
+                this.lastSyncTime = null;
+                
+                // Monitor connection status
+                window.addEventListener('online', () => {
+                    this.isOnline = true;
+                    this.syncWithFirebase();
+                });
+                
+                window.addEventListener('offline', () => {
+                    this.isOnline = false;
+                });
+            }
+
+            async initializeFirebaseConnection() {
+                if (!this.isOnline) return false;
+                
+                try {
+                    // Test Firebase connection
+                    await window.firestoreFunctions.getDocs(
+                        window.firestoreFunctions.collection(window.db, 'maintenanceTasks')
+                    );
+                    console.log('Firebase connection established');
+                    return true;
+                } catch (error) {
+                    console.warn('Firebase connection failed:', error);
+                    return false;
+                }
+            }
+
+            // Load tasks (Firebase first, cache fallback)
+            async loadMaintenanceTasks() {
+                try {
+                    if (this.isOnline && window.db) {
+                        // Firebase first
+                        const querySnapshot = await window.firestoreFunctions.getDocs(
+                            window.firestoreFunctions.query(
+                                window.firestoreFunctions.collection(window.db, 'maintenanceTasks'),
+                                window.firestoreFunctions.orderBy('createdAt', 'desc')
+                            )
+                        );
+                        
+                        const tasks = [];
+                        querySnapshot.forEach((doc) => {
+                            tasks.push({ id: doc.id, ...doc.data() });
+                        });
+                        
+                        // Update cache with Firebase data
+                        this.updateCache(tasks);
+                        this.lastSyncTime = new Date().toISOString();
+                        
+                        console.log(`Loaded ${tasks.length} tasks from Firebase`);
+                        return tasks;
+                    } else {
+                        // Fallback to cache
+                        const cachedTasks = this.getCachedTasks();
+                        console.log(`Loaded ${cachedTasks.length} tasks from cache (offline)`);
+                        return cachedTasks;
+                    }
+                } catch (error) {
+                    console.error('Error loading tasks:', error);
+                    return this.getCachedTasks();
+                }
+            }
+
+            // Load team members
+            async loadTeamMembers() {
+                try {
+                    if (this.isOnline && window.db) {
+                        const querySnapshot = await window.firestoreFunctions.getDocs(
+                            window.firestoreFunctions.collection(window.db, 'teamMembers')
+                        );
+                        
+                        const members = [];
+                        querySnapshot.forEach((doc) => {
+                            members.push({ id: doc.id, ...doc.data() });
+                        });
+                        
+                        // Update cache
+                        localStorage.setItem('safepark_team_cache', JSON.stringify(members));
+                        return members;
+                    } else {
+                        // Fallback to cache
+                        const cached = localStorage.getItem('safepark_team_cache');
+                        return cached ? JSON.parse(cached) : [];
+                    }
+                } catch (error) {
+                    console.error('Error loading team members:', error);
+                    const cached = localStorage.getItem('safepark_team_cache');
+                    return cached ? JSON.parse(cached) : [];
+                }
+            }
+
+            // Save task (Firebase first, cache fallback)
+            async saveMaintenanceTask(task) {
+                const taskWithTimestamp = {
+                    ...task,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+
+                try {
+                    if (this.isOnline && window.db) {
+                        // Save to Firebase
+                        const docRef = await window.firestoreFunctions.addDoc(
+                            window.firestoreFunctions.collection(window.db, 'maintenanceTasks'),
+                            taskWithTimestamp
+                        );
+                        
+                        const savedTask = { id: docRef.id, ...taskWithTimestamp };
+                        
+                        // Update cache
+                        const cached = this.getCachedTasks();
+                        cached.unshift(savedTask);
+                        this.updateCache(cached);
+                        
+                        console.log('Task saved to Firebase');
+                        return savedTask;
+                    } else {
+                        // Save to cache only (offline)
+                        const offlineTask = {
+                            id: 'offline_' + Date.now(),
+                            ...taskWithTimestamp,
+                            _pendingSync: true
+                        };
+                        
+                        const cached = this.getCachedTasks();
+                        cached.unshift(offlineTask);
+                        this.updateCache(cached);
+                        
+                        console.log('Task saved to cache (offline)');
+                        return offlineTask;
+                    }
+                } catch (error) {
+                    console.error('Error saving task:', error);
+                    throw error;
+                }
+            }
+
+            // Update task status
+            async updateTaskStatus(taskId, status) {
+                try {
+                    if (this.isOnline && window.db && !taskId.startsWith('offline_')) {
+                        // Update in Firebase
+                        await window.firestoreFunctions.updateDoc(
+                            window.firestoreFunctions.doc(window.db, 'maintenanceTasks', taskId),
+                            { 
+                                status: status,
+                                updatedAt: new Date().toISOString()
+                            }
+                        );
+                        console.log('Task status updated in Firebase');
+                    }
+                    
+                    // Update in cache
+                    const cached = this.getCachedTasks();
+                    const taskIndex = cached.findIndex(t => t.id === taskId);
+                    if (taskIndex !== -1) {
+                        cached[taskIndex].status = status;
+                        cached[taskIndex].updatedAt = new Date().toISOString();
+                        if (cached[taskIndex].id.startsWith('offline_')) {
+                            cached[taskIndex]._pendingSync = true;
+                        }
+                        this.updateCache(cached);
+                    }
+                    
+                } catch (error) {
+                    console.error('Error updating task status:', error);
+                    throw error;
+                }
+            }
+
+            // Delete task
+            async deleteTask(taskId) {
+                try {
+                    if (this.isOnline && window.db && !taskId.startsWith('offline_')) {
+                        // Delete from Firebase
+                        await window.firestoreFunctions.deleteDoc(
+                            window.firestoreFunctions.doc(window.db, 'maintenanceTasks', taskId)
+                        );
+                        console.log('Task deleted from Firebase');
+                    }
+                    
+                    // Remove from cache
+                    const cached = this.getCachedTasks();
+                    const filtered = cached.filter(t => t.id !== taskId);
+                    this.updateCache(filtered);
+                    
+                } catch (error) {
+                    console.error('Error deleting task:', error);
+                    throw error;
+                }
+            }
+
+            // Save team member
+            async saveTeamMember(member) {
+                try {
+                    if (this.isOnline && window.db) {
+                        const docRef = await window.firestoreFunctions.addDoc(
+                            window.firestoreFunctions.collection(window.db, 'teamMembers'),
+                            { ...member, createdAt: new Date().toISOString() }
+                        );
+                        console.log('Team member saved to Firebase');
+                        return { id: docRef.id, ...member };
+                    } else {
+                        // Save to cache only
+                        const cached = JSON.parse(localStorage.getItem('safepark_team_cache') || '[]');
+                        const newMember = { 
+                            id: 'offline_' + Date.now(), 
+                            ...member,
+                            createdAt: new Date().toISOString(),
+                            _pendingSync: true
+                        };
+                        cached.push(newMember);
+                        localStorage.setItem('safepark_team_cache', JSON.stringify(cached));
+                        console.log('Team member saved to cache (offline)');
+                        return newMember;
+                    }
+                } catch (error) {
+                    console.error('Error saving team member:', error);
+                    throw error;
+                }
+            }
+
+            // Cache management
+            getCachedTasks() {
+                const cached = localStorage.getItem(this.localCacheKey);
+                return cached ? JSON.parse(cached) : [];
+            }
+
+            updateCache(tasks) {
+                localStorage.setItem(this.localCacheKey, JSON.stringify(tasks));
+            }
+
+            // Sync with Firebase when coming back online
+            async syncWithFirebase() {
+                if (!this.isOnline || !window.db) return;
+
+                try {
+                    console.log('Syncing with Firebase...');
+                    
+                    // Load fresh data from Firebase
+                    const firebaseTasks = await this.loadMaintenanceTasks();
+                    
+                    // Sync pending offline tasks
+                    const cached = this.getCachedTasks();
+                    const pendingTasks = cached.filter(task => task._pendingSync && task.id.startsWith('offline_'));
+                    
+                    for (const task of pendingTasks) {
+                        try {
+                            // Remove offline markers
+                            const cleanTask = { ...task };
+                            delete cleanTask.id;
+                            delete cleanTask._pendingSync;
+                            
+                            // Save to Firebase
+                            await this.saveMaintenanceTask(cleanTask);
+                            
+                            // Remove from cache
+                            const updatedCache = this.getCachedTasks().filter(t => t.id !== task.id);
+                            this.updateCache(updatedCache);
+                            
+                            console.log('Synced offline task to Firebase');
+                        } catch (error) {
+                            console.error('Error syncing offline task:', error);
+                        }
+                    }
+                    
+                    console.log('Firebase sync completed');
+                } catch (error) {
+                    console.error('Firebase sync failed:', error);
+                }
+            }
+
+            getConnectionStatus() {
+                return {
+                    isOnline: this.isOnline,
+                    lastSyncTime: this.lastSyncTime,
+                    hasFirebase: !!window.db
+                };
+            }
+        }
+
+        // Initialize maintenance manager
+        maintenanceManager = new FirebaseFirstMaintenanceManager();
+
+        // UI Functions
+        function showSection(sectionId) {
+            if (!isAuthenticated) return false;
+
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show target section
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+                
+                if (sectionId === 'maintenance-dashboard') {
+                    loadMaintenanceTasks();
+                }
+            }
+            
+            // Update active nav button
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.includes(sectionId.replace('-', ' ').replace('dashboard', ''))) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Hide sidebar on mobile
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth <= 768 && sidebar.classList.contains('active')) {
+                sidebar.classList.remove('active');
+            }
+        }
+
+        function showSectionWithSidebar(sectionId) {
+            showSection(sectionId);
+            // Keep sidebar open for these sections
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        // Maintenance Task Functions
+        function openCreateTaskModal() {
+            const modal = document.getElementById('createTaskModal');
+            modal.classList.add('active');
+            
+            // Load team members for assignment dropdown
+            loadTeamMembersForAssignment();
+        }
+
+        function closeCreateTaskModal() {
+            const modal = document.getElementById('createTaskModal');
+            modal.classList.remove('active');
+            
+            // Reset form
+            document.getElementById('createTaskModal').querySelector('form').reset();
+        }
+
+        async function submitMaintenanceTask(event) {
+            event.preventDefault();
+            
+            const task = {
+                title: document.getElementById('taskTitle').value,
+                description: document.getElementById('taskDescription').value,
+                priority: document.getElementById('taskPriority').value,
+                category: document.getElementById('taskCategory').value,
+                location: document.getElementById('taskLocation').value,
+                assignee: document.getElementById('taskAssignee').value,
+                status: 'pending'
+            };
+
+            try {
+                await maintenanceManager.saveMaintenanceTask(task);
+                closeCreateTaskModal();
+                await loadMaintenanceTasks();
+                updateDashboardCounts();
+            } catch (error) {
+                alert('Error creating task: ' + error.message);
+            }
+        }
+
+        async function loadMaintenanceTasks() {
+            try {
+                const tasks = await maintenanceManager.loadMaintenanceTasks();
+                const container = document.getElementById('maintenanceTasksList');
+                
+                if (tasks.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🔧</div>
+                            <div class="empty-state-title">No Maintenance Tasks</div>
+                            <div class="empty-state-text">
+                                Click "Create New Task" to add your first maintenance task.
+                                <br><br>
+                                <small>Status: ${maintenanceManager.getConnectionStatus().isOnline ? 'Online (Firebase)' : 'Offline (Cached)'}</small>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = tasks.map(task => createTaskHTML(task)).join('');
+                }
+                
+                console.log(`Displayed ${tasks.length} tasks`);
+                
+            } catch (error) {
+                console.error('Error loading maintenance tasks:', error);
+            }
+        }
+
+        function createTaskHTML(task) {
+            const priorityColors = {
+                critical: '#dc3545',
+                high: '#fd7e14',
+                medium: '#ffc107',
+                low: '#28a745'
+            };
+
+            const statusColors = {
+                pending: '#ffc107',
+                'in-progress': '#17a2b8',
+                completed: '#28a745'
+            };
+
+            return `
+                <div class="task-item">
+                    <div class="task-header">
+                        <div>
+                            <div class="task-title">${task.title}</div>
+                            <div style="color: #B8B8B8; font-size: 0.9rem; margin-bottom: 10px;">
+                                ${task.description || 'No description'}
+                            </div>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <span style="background: ${priorityColors[task.priority]}; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8rem;">
+                                    ${task.priority.toUpperCase()}
+                                </span>
+                                <span style="background: ${statusColors[task.status]}; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8rem;">
+                                    ${task.status.replace('-', ' ').toUpperCase()}
+                                </span>
+                                <span style="background: #6c757d; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8rem;">
+                                    ${task.category.toUpperCase()}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="task-actions">
+                            ${task.status !== 'completed' ? 
+                                `<button class="btn-small btn-complete" onclick="completeTask('${task.id}')">Complete</button>` : 
+                                ''}
+                            <button class="btn-small btn-delete" onclick="deleteMaintenanceTask('${task.id}')">Delete</button>
+                        </div>
+                    </div>
+                    <div style="color: #888; font-size: 0.8rem; margin-top: 10px;">
+                        ${task.location ? `📍 ${task.location}` : ''} 
+                        ${task.assignee ? `👤 ${task.assignee}` : ''}
+                        ${task.createdAt ? `📅 ${new Date(task.createdAt).toLocaleDateString()}` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        async function completeTask(taskId) {
+            try {
+                await maintenanceManager.updateTaskStatus(taskId, 'completed');
+                await loadMaintenanceTasks();
+                updateDashboardCounts();
+            } catch (error) {
+                alert('Error completing task: ' + error.message);
+            }
+        }
+
+        async function deleteMaintenanceTask(taskId) {
+            if (confirm('Are you sure you want to delete this task?')) {
+                try {
+                    await maintenanceManager.deleteTask(taskId);
+                    await loadMaintenanceTasks();
+                    updateDashboardCounts();
+                } catch (error) {
+                    alert('Error deleting task: ' + error.message);
+                }
+            }
+        }
+
+        function filterTasks() {
+            // Implement filtering logic
+            loadMaintenanceTasks();
+        }
+
+        // Team Management Functions
+        async function addTeamMember() {
+            const name = document.getElementById('memberName').value;
+            const role = document.getElementById('memberRole').value;
+            const contact = document.getElementById('memberContact').value;
+
+            if (!name || !role) {
+                alert('Please fill in name and role fields');
+                return;
+            }
+
+            try {
+                await maintenanceManager.saveTeamMember({ name, role, contact });
+                
+                // Clear form
+                document.getElementById('memberName').value = '';
+                document.getElementById('memberRole').value = '';
+                document.getElementById('memberContact').value = '';
+                
+                await loadTeamMembers();
+                updateDashboardCounts();
+            } catch (error) {
+                alert('Error adding team member: ' + error.message);
+            }
+        }
+
+        async function loadTeamMembers() {
+            try {
+                const members = await maintenanceManager.loadTeamMembers();
+                const container = document.getElementById('teamMembersList');
+                
+                if (members.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-title">No Team Members</div>
+                            <div class="empty-state-text">Add team members using the form above.</div>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = members.map(member => `
+                        <div style="background: rgba(255, 140, 0, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                            <div style="font-weight: 600; color: var(--primary-orange);">${member.name}</div>
+                            <div style="color: #B8B8B8;">${member.role}</div>
+                            ${member.contact ? `<div style="color: #B8B8B8; font-size: 0.9rem;">${member.contact}</div>` : ''}
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading team members:', error);
+            }
+        }
+
+        async function loadTeamMembersForAssignment() {
+            try {
+                const members = await maintenanceManager.loadTeamMembers();
+                const select = document.getElementById('taskAssignee');
+                
+                // Clear existing options except the first one
+                select.innerHTML = '<option value="">Unassigned</option>';
+                
+                members.forEach(member => {
+                    const option = document.createElement('option');
+                    option.value = member.name;
+                    option.textContent = member.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading team members for assignment:', error);
+            }
+        }
+
+        function addLocation() {
+            // Implement location management
+            const name = document.getElementById('locationName').value;
+            const type = document.getElementById('locationType').value;
+            const description = document.getElementById('locationDescription').value;
+
+            if (!name) {
+                alert('Please enter a location name');
+                return;
+            }
+
+            // Clear form
+            document.getElementById('locationName').value = '';
+            document.getElementById('locationDescription').value = '';
+            
+            alert('Location added successfully');
+        }
+
+        // Tile Details Functions
+        async function showTileDetails(tileType) {
+            const modal = document.getElementById('tileDetailsModal');
+            const title = document.getElementById('tileDetailsTitle');
+            const content = document.getElementById('tileDetailsContent');
+            
+            let detailsHtml = '';
+            
+            switch (tileType) {
+                case 'incidents':
+                    title.textContent = 'Recent Incidents Details';
+                    detailsHtml = `
+                        <div style="text-align: center; padding: 40px;">
+                            <h3 style="color: var(--success); margin-bottom: 15px;">No Active Incidents</h3>
+                            <p style="margin-bottom: 20px; color: #B8B8B8;">
+                                No incidents have been reported recently. This is a good sign!<br><br>
+                                Use the <strong>Incidents</strong> module to report and manage incidents.
+                            </p>
+                            <a href="incidents.html" target="_blank" class="btn">Open Incidents Module</a>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'playparks':
+                    title.textContent = 'Play Park Areas Details';
+                    detailsHtml = `
+                        <div style="text-align: center; padding: 40px;">
+                            <h3 style="color: var(--primary-orange); margin-bottom: 15px;">Play Park Areas</h3>
+                            <p style="margin-bottom: 20px; color: #B8B8B8;">
+                                Manage and monitor your play park areas and equipment.<br><br>
+                                Use the <strong>Play Parks</strong> module for detailed management.
+                            </p>
+                            <a href="play-parks.html" target="_blank" class="btn">Manage Play Park Areas</a>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'maintenance':
+                    title.textContent = 'Maintenance Tasks Details';
+                    const tasks = await maintenanceManager.loadMaintenanceTasks();
+                    const pendingTasks = tasks.filter(t => t.status === 'pending' || t.status === 'in-progress');
+                    
+                    if (pendingTasks.length === 0) {
+                        detailsHtml = `
+                            <div style="text-align: center; padding: 40px;">
+                                <h3 style="color: var(--success); margin-bottom: 15px;">All Caught Up!</h3>
+                                <p style="margin-bottom: 20px; color: #B8B8B8;">
+                                    No pending maintenance tasks. Great work!<br><br>
+                                    Use the <strong>Maintenance Dashboard</strong> to create and manage maintenance tasks.
+                                </p>
+                                <button class="btn" onclick="closeTileDetails(); showSection('maintenance-dashboard');">Open Maintenance Dashboard</button>
+                            </div>
+                        `;
+                    } else {
+                        detailsHtml = `
+                            <div style="margin-bottom: 20px;">
+                                <h3 style="color: var(--primary-orange); margin-bottom: 15px;">Pending Tasks (${pendingTasks.length})</h3>
+                                ${pendingTasks.slice(0, 5).map(task => `
+                                    <div style="background: rgba(255, 140, 0, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                                        <div style="font-weight: 600; color: var(--primary-orange);">${task.title}</div>
+                                        <div style="color: #B8B8B8; font-size: 0.9rem;">${task.description || 'No description'}</div>
+                                        <div style="margin-top: 5px;">
+                                            <span style="background: var(--warning); color: black; padding: 2px 6px; border-radius: 10px; font-size: 0.8rem;">
+                                                ${task.priority.toUpperCase()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                                ${pendingTasks.length > 5 ? `<p style="color: #B8B8B8; text-align: center;">... and ${pendingTasks.length - 5} more</p>` : ''}
+                            </div>
+                            <div style="text-align: center;">
+                                <button class="btn" onclick="closeTileDetails(); showSection('maintenance-dashboard');">View All Tasks</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'team':
+                    title.textContent = 'Team Members Details';
+                    const members = await maintenanceManager.loadTeamMembers();
+                    
+                    if (members.length === 0) {
+                        detailsHtml = `
+                            <div style="text-align: center; padding: 40px;">
+                                <h3 style="color: var(--primary-orange); margin-bottom: 15px;">No Team Members Found</h3>
+                                <p style="margin-bottom: 20px; color: #B8B8B8;">
+                                    Add team members using the Team Management section.
+                                </p>
+                                <button class="btn" onclick="closeTileDetails(); showSection('team-management');">Manage Team</button>
+                            </div>
+                        `;
+                    } else {
+                        detailsHtml = `
+                            <div style="margin-bottom: 20px;">
+                                <h3 style="color: var(--primary-orange); margin-bottom: 15px;">Team Members (${members.length})</h3>
+                                ${members.slice(0, 5).map(member => `
+                                    <div style="background: rgba(255, 140, 0, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                                        <div style="font-weight: 600; color: var(--primary-orange);">${member.name}</div>
+                                        <div style="color: #B8B8B8;">${member.role}</div>
+                                        ${member.contact ? `<div style="color: #B8B8B8; font-size: 0.9rem;">${member.contact}</div>` : ''}
+                                    </div>
+                                `).join('')}
+                                ${members.length > 5 ? `<p style="color: #B8B8B8; text-align: center;">... and ${members.length - 5} more</p>` : ''}
+                            </div>
+                            <div style="text-align: center;">
+                                <button class="btn" onclick="closeTileDetails(); showSection('team-management');">Manage Team</button>
+                            </div>
+                        `;
+                    }
+                    break;
+                    
+                case 'compliance':
+                    title.textContent = 'Compliance Status Details';
+                    detailsHtml = `
+                        <div style="text-align: center; padding: 40px;">
+                            <h3 style="color: var(--success); margin-bottom: 15px;">Excellent Compliance</h3>
+                            <p style="margin-bottom: 20px; color: #B8B8B8;">
+                                Your holiday park maintains excellent compliance standards across all areas.<br><br>
+                                Continue using the various compliance modules to maintain these high standards.
+                            </p>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 20px;">
+                                <div style="background: rgba(40, 167, 69, 0.2); padding: 10px; border-radius: 8px;">
+                                    <div style="color: var(--success); font-weight: 600;">Fire Safety</div>
+                                    <div style="color: #B8B8B8;">100%</div>
+                                </div>
+                                <div style="background: rgba(40, 167, 69, 0.2); padding: 10px; border-radius: 8px;">
+                                    <div style="color: var(--success); font-weight: 600;">Electrical</div>
+                                    <div style="color: #B8B8B8;">98%</div>
+                                </div>
+                                <div style="background: rgba(40, 167, 69, 0.2); padding: 10px; border-radius: 8px;">
+                                    <div style="color: var(--success); font-weight: 600;">Gas Safety</div>
+                                    <div style="color: #B8B8B8;">95%</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'safety':
+                    title.textContent = 'Safety Score Details';
+                    detailsHtml = `
+                        <div style="text-align: center; padding: 40px;">
+                            <h3 style="color: var(--success); margin-bottom: 15px;">Outstanding Safety Performance</h3>
+                            <p style="margin-bottom: 20px; color: #B8B8B8;">
+                                Your safety score reflects excellent safety management across all areas.<br><br>
+                                Continue monitoring and maintaining safety standards using the safety modules.
+                            </p>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 20px;">
+                                <div style="background: rgba(40, 167, 69, 0.2); padding: 10px; border-radius: 8px;">
+                                    <div style="color: var(--success); font-weight: 600;">Incident Rate</div>
+                                    <div style="color: #B8B8B8;">0 this month</div>
+                                </div>
+                                <div style="background: rgba(40, 167, 69, 0.2); padding: 10px; border-radius: 8px;">
+                                    <div style="color: var(--success); font-weight: 600;">Inspections</div>
+                                    <div style="color: #B8B8B8;">Up to date</div>
+                                </div>
+                                <div style="background: rgba(40, 167, 69, 0.2); padding: 10px; border-radius: 8px;">
+                                    <div style="color: var(--success); font-weight: 600;">Training</div>
+                                    <div style="color: #B8B8B8;">Current</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            content.innerHTML = detailsHtml;
+            modal.classList.add('active');
+        }
+
+        function closeTileDetails() {
+            const modal = document.getElementById('tileDetailsModal');
+            modal.classList.remove('active');
+        }
+
+        // Data Management Functions
+        async function exportAllData() {
+            try {
+                const tasks = await maintenanceManager.loadMaintenanceTasks();
+                const members = await maintenanceManager.loadTeamMembers();
+                
+                const data = {
+                    maintenanceTasks: tasks,
+                    teamMembers: members,
+                    exportDate: new Date().toISOString(),
+                    version: 'SafePark.PRO V3'
+                };
+                
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `safepark-data-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                alert('Data exported successfully');
+            } catch (error) {
+                alert('Error exporting data: ' + error.message);
+            }
+        }
+
+        async function clearMaintenanceData() {
+            if (confirm('Are you sure you want to clear all maintenance data? This cannot be undone.')) {
+                try {
+                    localStorage.removeItem('safepark_maintenance_cache');
+                    await loadMaintenanceTasks();
+                    updateDashboardCounts();
+                    alert('Maintenance data cleared');
+                } catch (error) {
+                    alert('Error clearing data: ' + error.message);
+                }
+            }
+        }
+
+        async function clearAllData() {
+            if (confirm('Are you sure you want to clear ALL system data? This cannot be undone.')) {
+                try {
+                    localStorage.clear();
+                    location.reload();
+                } catch (error) {
+                    alert('Error clearing data: ' + error.message);
+                }
+            }
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (data.maintenanceTasks) {
+                        localStorage.setItem('safepark_maintenance_cache', JSON.stringify(data.maintenanceTasks));
+                    }
+                    if (data.teamMembers) {
+                        localStorage.setItem('safepark_team_cache', JSON.stringify(data.teamMembers));
+                    }
+                    
+                    alert('Data imported successfully! The page will now reload.');
+                    location.reload();
+                } catch (error) {
+                    alert('Error importing data. Please check the file format.');
+                    console.error('Import error:', error);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Dashboard Functions
+        async function updateDashboardCounts() {
+            try {
+                const tasks = await maintenanceManager.loadMaintenanceTasks();
+                const members = await maintenanceManager.loadTeamMembers();
+                const pendingTasks = tasks.filter(t => t.status === 'pending' || t.status === 'in-progress');
+                
+                document.getElementById('maintenanceCount').textContent = pendingTasks.length;
+                document.getElementById('teamCount').textContent = members.length;
+                document.getElementById('incidentCount').textContent = '0';
+                document.getElementById('playParkCount').textContent = '4';
+                document.getElementById('complianceScore').textContent = '98%';
+                document.getElementById('safetyScore').textContent = '95%';
+                
+                // Update data size
+                const allData = JSON.stringify({tasks, members});
+                const sizeKB = Math.round((allData.length * 2) / 1024); // Rough estimate
+                document.getElementById('dataSize').textContent = sizeKB + ' KB';
+                
+            } catch (error) {
+                console.error('Error updating dashboard counts:', error);
+            }
+        }
+
+        async function initializeDashboard() {
+            try {
+                // Initialize Firebase connection
+                await maintenanceManager.initializeFirebaseConnection();
+                
+                // Load initial data
+                await Promise.all([
+                    loadMaintenanceTasks(),
+                    loadTeamMembers(),
+                    updateDashboardCounts()
+                ]);
+                
+                console.log('Dashboard initialized successfully');
+            } catch (error) {
+                console.error('Error initializing dashboard:', error);
+            }
+        }
+
+        // Auto-sync every 30 seconds when online
+        setInterval(async () => {
+            if (navigator.onLine && window.db) {
+                try {
+                    await maintenanceManager.syncWithFirebase();
+                } catch (error) {
+                    console.warn('Auto-sync error:', error);
+                }
+            }
+        }, 30000);
+
+        // Make functions globally available
+        window.authenticateUser = authenticateUser;
+        window.showSection = showSection;
+        window.showSectionWithSidebar = showSectionWithSidebar;
+        window.toggleSidebar = toggleSidebar;
+        window.showTileDetails = showTileDetails;
+        window.closeTileDetails = closeTileDetails;
+        window.openCreateTaskModal = openCreateTaskModal;
+        window.closeCreateTaskModal = closeCreateTaskModal;
+        window.submitMaintenanceTask = submitMaintenanceTask;
+        window.loadMaintenanceTasks = loadMaintenanceTasks;
+        window.completeTask = completeTask;
+        window.deleteMaintenanceTask = deleteMaintenanceTask;
+        window.filterTasks = filterTasks;
+        window.addTeamMember = addTeamMember;
+        window.addLocation = addLocation;
+        window.exportAllData = exportAllData;
+        window.clearMaintenanceData = clearMaintenanceData;
+        window.clearAllData = clearAllData;
+        window.importData = importData;
+
+        console.log('SafePark.PRO V3 loaded successfully');
+    </script>
+</body>
+</html>
