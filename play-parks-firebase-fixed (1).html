@@ -1,0 +1,2766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>CQR365 - SafePark.PRO Play Parks Safety</title>
+    <script type="module" src="firebase-config.js"></script>
+    <style>
+        :root {
+            --primary-orange: #CC5500;
+            --dark-orange: #B8460C;
+            --light-orange: #E6672E;
+            --black: #000000;
+            --white: #FFFFFF;
+            --smart-dark-grey: #2A2A2A;
+            --content-background: #2F2F2F;
+            --light-gray: #F8F9FA;
+            --medium-gray: #6C757D;
+            --dark-gray: #343A40;
+            --border-color: #DEE2E6;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --shadow-light: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-medium: 0 4px 20px rgba(0,0,0,0.15);
+            --shadow-heavy: 0 8px 40px rgba(0,0,0,0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+            color: #E8E8E8;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* PWA Install Prompt - Show only when not installed */
+        .pwa-install-hidden {
+            display: none !important;
+        }
+
+        /* Dynamic PRO Button - Sticky Logo Back Button */
+        .sticky-logo-back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 70px;
+            height: 70px;
+            z-index: 1000;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.4));
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .sticky-logo-back:hover {
+            transform: translateY(-2px);
+            filter: drop-shadow(0 12px 30px rgba(204, 85, 0, 0.3));
+        }
+
+        @media (max-width: 768px) {
+            .sticky-logo-back {
+                width: 60px;
+                height: 60px;
+                top: 15px;
+                left: 15px;
+            }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* Textured Header */
+        .header {
+            background: linear-gradient(145deg, #3a3a3a, #1a1a1a);
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 
+                        inset 0 8px 20px rgba(255, 255, 255, 0.1),
+                        inset 0 -8px 20px rgba(0, 0, 0, 0.7);
+            border: 3px solid var(--primary-orange);
+            border-radius: 12px;
+            margin: 100px 20px 20px;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.1) 0%, 
+                transparent 30%, 
+                transparent 70%, 
+                rgba(0, 0, 0, 0.2) 100%);
+            border-radius: 9px;
+            pointer-events: none;
+        }
+
+        .header h1 {
+            color: var(--primary-orange);
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5),
+                         0 0 10px rgba(204, 85, 0, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .brand-line {
+            color: var(--light-orange);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 5px 0 15px 0;
+            letter-spacing: 2px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .subtitle {
+            color: var(--white);
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .description {
+            color: var(--light-gray);
+            font-size: 1.125rem;
+            margin-top: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stats-header {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-orange);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--medium-gray);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* Textured Playpark Container */
+        .playpark-container {
+            background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+            margin: 20px 0;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 
+                        inset 0 8px 20px rgba(255, 255, 255, 0.1),
+                        inset 0 -8px 20px rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--primary-orange);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .playpark-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.05) 0%, 
+                transparent 30%, 
+                transparent 70%, 
+                rgba(0, 0, 0, 0.1) 100%);
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .playpark-navigation {
+            background: var(--black);
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid var(--primary-orange);
+            position: relative;
+            z-index: 1;
+        }
+
+        .playpark-nav-button {
+            background: var(--black);
+            color: var(--white);
+            border: none;
+            padding: 15px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            border-right: 1px solid var(--primary-orange);
+            transition: background-color 0.3s ease;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .playpark-nav-button:hover,
+        .playpark-nav-button.active {
+            background-color: var(--primary-orange);
+        }
+
+        .playpark-nav-button:last-child {
+            border-right: none;
+        }
+
+        .playpark-step {
+            display: none;
+            animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .playpark-step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(24px);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0);
+            }
+        }
+
+        /* Textured Form Sections */
+        .form-section {
+            background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+            margin: 20px 0;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 
+                        inset 0 8px 20px rgba(255, 255, 255, 0.1),
+                        inset 0 -8px 20px rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--primary-orange);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.05) 0%, 
+                transparent 30%, 
+                transparent 70%, 
+                rgba(0, 0, 0, 0.1) 100%);
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .form-section h3 {
+            color: var(--primary-orange);
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5),
+                         0 0 8px rgba(204, 85, 0, 0.3);
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(204, 85, 0, 0.3);
+        }
+
+        .form-section h4 {
+            color: var(--primary-orange);
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-group-full {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--white);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .required {
+            color: var(--primary-orange);
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: var(--white);
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .form-select option {
+            background: var(--content-background);
+            color: var(--white);
+            padding: 8px;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 3px rgba(204, 85, 0, 0.1);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        select.form-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 12px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        textarea.form-input {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .checkbox-item:hover {
+            background: rgba(204, 85, 0, 0.1);
+            border-color: rgba(204, 85, 0, 0.3);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            accent-color: var(--primary-orange);
+        }
+
+        .checkbox-item label {
+            color: var(--white);
+            font-weight: 500;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .risk-matrix {
+            display: grid;
+            grid-template-columns: auto repeat(5, 1fr);
+            gap: 1px;
+            background-color: var(--black);
+            border: 2px solid var(--black);
+            margin: 20px 0;
+            display: none;
+        }
+
+        .risk-cell {
+            background-color: var(--smart-dark-grey);
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #E8E8E8;
+        }
+
+        .risk-header {
+            background-color: var(--primary-orange);
+            color: var(--white);
+        }
+
+        .risk-low { background-color: #90EE90; color: var(--black); }
+        .risk-medium { background-color: #FFD700; color: var(--black); }
+        .risk-high { background-color: #FFA500; color: var(--black); }
+        .risk-very-high { background-color: #FF4500; color: var(--white); }
+
+        .inspection-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .inspection-table th,
+        .inspection-table td {
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 12px 8px;
+            text-align: left;
+            font-size: 14px;
+            color: var(--white);
+        }
+
+        .inspection-table th {
+            background-color: var(--primary-orange);
+            color: var(--white);
+            font-weight: bold;
+        }
+
+        .inspection-table tr:nth-child(even) {
+            background-color: rgba(255,255,255,0.05);
+        }
+
+        .inspection-table input[type="text"] {
+            width: 100%;
+            padding: 6px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: var(--white);
+            border-radius: 4px;
+        }
+
+        .inspection-table input[type="checkbox"],
+        .inspection-table input[type="radio"] {
+            accent-color: var(--primary-orange);
+        }
+
+        /* Enhanced Button Styling */
+        .btn {
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 5px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3),
+                        inset 0 2px 5px rgba(255, 255, 255, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(204, 85, 0, 0.4),
+                        inset 0 2px 5px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(145deg, var(--medium-gray), var(--dark-gray));
+            color: var(--white);
+            border-color: var(--medium-gray);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: linear-gradient(145deg, var(--dark-gray), #2a2a2a);
+            box-shadow: 0 6px 20px rgba(108, 117, 125, 0.3);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange));
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn-submit:hover {
+            background: linear-gradient(135deg, var(--dark-orange), var(--primary-orange));
+        }
+
+        .btn-maintenance {
+            background: linear-gradient(135deg, var(--warning), #e0a800);
+            color: var(--black);
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .btn-maintenance:hover {
+            background: linear-gradient(135deg, #e0a800, var(--warning));
+            color: var(--black);
+        }
+
+        .alert {
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 28px;
+            border-left: 4px solid;
+            box-shadow: var(--shadow-light);
+            position: relative;
+            z-index: 1;
+        }
+
+        .alert-success {
+            background: rgba(40, 167, 69, 0.2);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .alert-info {
+            background: rgba(14, 165, 233, 0.1);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            color: #B8C5D6;
+        }
+
+        .alert-warning {
+            background: rgba(255, 193, 7, 0.2);
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .alert-danger {
+            background: rgba(220, 53, 69, 0.2);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .auto-generated {
+            background-color: rgba(14, 165, 233, 0.1);
+            border: 1px solid var(--primary-orange);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            font-size: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            padding: 10px 5px;
+            border-bottom: 3px solid rgba(255,255,255,0.2);
+            color: #B8C5D6;
+        }
+
+        .progress-step.active {
+            border-bottom-color: var(--primary-orange);
+            color: var(--primary-orange);
+            font-weight: bold;
+        }
+
+        .progress-step.completed {
+            border-bottom-color: var(--success);
+            color: var(--success);
+        }
+
+        .rpii-stage {
+            background-color: rgba(255,255,255,0.05);
+            border: 2px solid var(--primary-orange);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .rpii-title {
+            background-color: var(--primary-orange);
+            color: var(--white);
+            padding: 10px;
+            margin: -20px -20px 15px -20px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .legislation-ref {
+            font-size: 12px;
+            color: #B8C5D6;
+            font-style: italic;
+            margin-top: 5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .procedure-step {
+            background-color: rgba(255,255,255,0.05);
+            border-left: 4px solid var(--primary-orange);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 0 8px 8px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .procedure-step h4 {
+            color: var(--primary-orange);
+            margin-bottom: 10px;
+        }
+
+        .procedure-step ul {
+            color: var(--white);
+            margin-left: 20px;
+        }
+
+        .inspection-section {
+            display: none;
+            position: relative;
+            z-index: 1;
+        }
+
+        .inspection-section.active {
+            display: block;
+        }
+
+        .footer {
+            background: #1a1a1a;
+            text-align: center;
+            padding: 15px;
+            color: #888;
+            font-size: 0.9rem;
+            border-top: 2px solid #444;
+            margin-top: 40px;
+        }
+
+        /* Mobile and Tablet Responsive */
+        @media (max-width: 1024px) {
+            .container {
+                padding: 20px 16px;
+            }
+
+            .playpark-container {
+                padding: 24px;
+            }
+
+            .form-section {
+                padding: 24px;
+            }
+
+            .inspection-table {
+                font-size: 12px;
+            }
+
+            .inspection-table th,
+            .inspection-table td {
+                padding: 8px 4px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px 12px;
+            }
+
+            .header {
+                padding: 20px;
+                margin-bottom: 32px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .header .brand-line {
+                font-size: 1.2rem;
+            }
+
+            .header .description {
+                font-size: 1rem;
+            }
+
+            .playpark-container {
+                padding: 16px;
+                border-radius: 8px;
+            }
+
+            .form-section {
+                padding: 16px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+            }
+
+            .form-section h3 {
+                font-size: 1.3rem;
+                margin-bottom: 16px;
+            }
+
+            .form-section h4 {
+                font-size: 1.2rem;
+                margin-bottom: 16px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 16px;
+                margin-bottom: 16px;
+            }
+
+            .checkbox-group {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .checkbox-item {
+                padding: 12px;
+            }
+
+            .playpark-navigation {
+                flex-direction: column;
+                border-radius: 8px;
+                margin-bottom: 20px;
+            }
+
+            .playpark-nav-button {
+                border-right: none;
+                border-bottom: 1px solid var(--primary-orange);
+                width: 100%;
+                padding: 12px 16px;
+                font-size: 13px;
+            }
+
+            .playpark-nav-button:last-child {
+                border-bottom: none;
+            }
+
+            .btn {
+                width: 100%;
+                margin: 8px 0;
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+
+            .btn-secondary {
+                margin-top: 4px;
+            }
+
+            .risk-matrix {
+                overflow-x: auto;
+                font-size: 0.7rem;
+                margin: 16px 0;
+            }
+
+            .risk-cell {
+                padding: 6px 4px;
+                min-height: 30px;
+                font-size: 0.7rem;
+            }
+
+            .inspection-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+                font-size: 11px;
+                margin-top: 12px;
+            }
+
+            .inspection-table th,
+            .inspection-table td {
+                padding: 6px 4px;
+                font-size: 11px;
+            }
+
+            .inspection-table input[type="text"] {
+                min-width: 80px;
+                font-size: 11px;
+                padding: 4px;
+            }
+
+            .stats-header {
+                gap: 16px;
+                flex-wrap: wrap;
+            }
+
+            .stat-item {
+                min-width: 60px;
+            }
+
+            .stat-value {
+                font-size: 1.4rem;
+            }
+
+            .stat-label {
+                font-size: 0.7rem;
+            }
+
+            .progress-indicator {
+                flex-direction: column;
+                gap: 8px;
+                margin: 16px 0;
+            }
+
+            .progress-step {
+                border-bottom: none;
+                border-left: 3px solid rgba(255,255,255,0.2);
+                text-align: left;
+                padding: 8px 12px;
+                font-size: 11px;
+            }
+
+            .progress-step.active {
+                border-left-color: var(--primary-orange);
+            }
+
+            .progress-step.completed {
+                border-left-color: var(--success);
+            }
+
+            .alert {
+                padding: 16px;
+                margin-bottom: 20px;
+                font-size: 14px;
+            }
+
+            .alert .btn {
+                margin: 8px 4px;
+                padding: 8px 16px;
+                font-size: 12px;
+                width: auto;
+                display: inline-block;
+            }
+
+            .procedure-step {
+                padding: 12px;
+                margin: 8px 0;
+            }
+
+            .procedure-step h4 {
+                font-size: 1.1rem;
+                margin-bottom: 8px;
+            }
+
+            .procedure-step ul {
+                margin-left: 16px;
+                font-size: 14px;
+            }
+
+            .legislation-ref {
+                font-size: 11px;
+                margin-top: 8px;
+            }
+
+            .rpii-stage {
+                padding: 12px;
+                margin: 16px 0;
+            }
+
+            .rpii-title {
+                margin: -12px -12px 12px -12px;
+                padding: 8px;
+                font-size: 14px;
+            }
+
+            .auto-generated {
+                padding: 12px;
+                margin: 12px 0;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 12px 8px;
+            }
+
+            .header {
+                padding: 16px;
+                margin-bottom: 24px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .header .brand-line {
+                font-size: 1.1rem;
+            }
+
+            .header .subtitle {
+                font-size: 1rem;
+            }
+
+            .header .description {
+                font-size: 0.9rem;
+            }
+
+            .playpark-container {
+                padding: 12px;
+            }
+
+            .form-section {
+                padding: 12px;
+                margin-bottom: 16px;
+            }
+
+            .form-section h3 {
+                font-size: 1.2rem;
+                margin-bottom: 12px;
+            }
+
+            .form-section h4 {
+                font-size: 1.1rem;
+                margin-bottom: 12px;
+            }
+
+            .playpark-nav-button {
+                padding: 10px 12px;
+                font-size: 12px;
+            }
+
+            .btn {
+                padding: 10px 16px;
+                font-size: 13px;
+                margin: 6px 0;
+            }
+
+            .stats-header {
+                gap: 12px;
+            }
+
+            .stat-value {
+                font-size: 1.2rem;
+            }
+
+            .stat-label {
+                font-size: 0.65rem;
+            }
+
+            .inspection-table {
+                font-size: 10px;
+            }
+
+            .inspection-table th,
+            .inspection-table td {
+                padding: 4px 2px;
+                font-size: 10px;
+            }
+
+            .inspection-table input[type="text"] {
+                min-width: 60px;
+                font-size: 10px;
+                padding: 2px;
+            }
+
+            .checkbox-item {
+                padding: 10px;
+                gap: 8px;
+            }
+
+            .checkbox-item label {
+                font-size: 13px;
+            }
+
+            .form-input,
+            .form-select,
+            .form-textarea {
+                padding: 10px 12px;
+                font-size: 14px;
+            }
+
+            .alert {
+                padding: 12px;
+                font-size: 13px;
+            }
+
+            .alert .btn {
+                margin: 6px 2px;
+                padding: 6px 12px;
+                font-size: 11px;
+            }
+
+            .progress-step {
+                padding: 6px 10px;
+                font-size: 10px;
+            }
+
+            .risk-matrix {
+                font-size: 0.65rem;
+            }
+
+            .risk-cell {
+                padding: 4px 2px;
+                min-height: 25px;
+                font-size: 0.65rem;
+            }
+        }
+
+        /* Landscape mobile optimization */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .progress-indicator {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+
+            .progress-step {
+                border-left: none;
+                border-bottom: 2px solid rgba(255,255,255,0.2);
+                text-align: center;
+                padding: 4px 8px;
+                flex: 1;
+                min-width: 120px;
+            }
+
+            .progress-step.active {
+                border-bottom-color: var(--primary-orange);
+            }
+
+            .progress-step.completed {
+                border-bottom-color: var(--success);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Dynamic PRO Button - Sticky Logo Back Button -->
+    <button class="sticky-logo-back" onclick="window.location.href='index-back-up.html'" title="Back to SafePark.PRO Dashboard">
+        <svg width="70" height="70" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <!-- 3D Gradient Definitions -->
+                <radialGradient id="mainGradient" cx="0.3" cy="0.3" r="0.7">
+                    <stop offset="0%" style="stop-color:#FF8C00;stop-opacity:1" />
+                    <stop offset="40%" style="stop-color:#CC5500;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#B8460C;stop-opacity:1" />
+                </radialGradient>
+                <radialGradient id="textGradient" cx="0.5" cy="0.3" r="0.8">
+                    <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+                    <stop offset="60%" style="stop-color:#E6672E;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#CC5500;stop-opacity:1" />
+                </radialGradient>
+                <radialGradient id="shimmer" cx="0.2" cy="0.2" r="0.6">
+                    <stop offset="0%" style="stop-color:rgba(255,255,255,0.8);stop-opacity:1" />
+                    <stop offset="50%" style="stop-color:rgba(255,255,255,0.3);stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:rgba(255,255,255,0);stop-opacity:0" />
+                </radialGradient>
+                <!-- 3D Emboss Filter -->
+                <filter id="emboss" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                    <feOffset dx="3" dy="3" result="offset1"/>
+                    <feFlood flood-color="rgba(0,0,0,0.8)"/>
+                    <feComposite in2="offset1" operator="in"/>
+                    <feMerge>
+                        <feMergeNode/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+            </defs>
+            
+            <!-- Outer Ring with 3D Effect -->
+            <circle cx="256" cy="256" r="230" fill="url(#mainGradient)" stroke="rgba(0,0,0,0.5)" stroke-width="4"/>
+            <circle cx="256" cy="256" r="170" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+            <circle cx="256" cy="256" r="150" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+            
+            <!-- Enhanced Highlight for 3D Effect -->
+            <ellipse cx="200" cy="180" rx="80" ry="60" fill="rgba(255,255,255,0.4)" opacity="0.8"/>
+            <ellipse cx="190" cy="170" rx="40" ry="30" fill="rgba(255,255,255,0.6)" opacity="0.9"/>
+            
+            <!-- PRO Text with Premium Emboss Effect -->
+            <text x="256" y="300" font-family="Arial, sans-serif" font-size="116" font-weight="900" 
+                  text-anchor="middle" fill="url(#textGradient)" filter="url(#emboss)" stroke="rgba(0,0,0,0.1)" stroke-width="1" letter-spacing="8px">PRO</text>
+            
+            <!-- Text Shadow with Multiple Layers -->
+            <text x="262" y="306" font-family="Arial, sans-serif" font-size="116" font-weight="900" 
+                  text-anchor="middle" fill="rgba(0,0,0,0.4)" opacity="0.7" letter-spacing="8px">PRO</text>
+            <text x="259" y="303" font-family="Arial, sans-serif" font-size="116" font-weight="900" 
+                  text-anchor="middle" fill="rgba(0,0,0,0.2)" opacity="0.5" letter-spacing="8px">PRO</text>
+            
+            <!-- Additional Depth Rings -->
+            <circle cx="256" cy="256" r="200" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+            <circle cx="256" cy="256" r="140" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
+            
+            <!-- Shimmer Overlay -->
+            <circle cx="256" cy="256" r="220" fill="url(#shimmer)" opacity="0.6"/>
+            
+            <!-- Edge Enhancement -->
+            <circle cx="256" cy="256" r="218" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+            <circle cx="256" cy="256" r="222" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="1"/>
+        </svg>
+    </button>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>CQR365</h1>
+            <div class="brand-line">SafePark.PRO</div>
+            <div class="subtitle">Play Parks Safety</div>
+            <p class="description">Comprehensive Play Park Safety & Compliance Management for Highland Holidays</p>
+        </div>
+
+        <div class="stats-header">
+            <div class="stat-item">
+                <div class="stat-value">3</div>
+                <div class="stat-label">Holiday Parks</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalPlayAreas">0</div>
+                <div class="stat-label">Play Areas</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="complianceRate">0%</div>
+                <div class="stat-label">Compliance Rate</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="inspectionsDue">0</div>
+                <div class="stat-label">Due This Week</div>
+            </div>
+        </div>
+
+        <div class="playpark-container">
+            <!-- Sub-navigation for Play Parks -->
+            <div class="playpark-navigation">
+                <button class="playpark-nav-button active" onclick="showPlayParkStep('onboarding')">Park Setup</button>
+                <button class="playpark-nav-button" onclick="showPlayParkStep('risk-assessment')">Risk Assessment</button>
+                <button class="playpark-nav-button" onclick="showPlayParkStep('procedures')">Safe Working Procedures</button>
+                <button class="playpark-nav-button" onclick="showPlayParkStep('inspection')">Inspection</button>
+                <button class="playpark-nav-button" onclick="showPlayParkStep('rpii')">RPII Framework</button>
+            </div>
+
+            <!-- Form with SafePark.PRO Integration -->
+            <form id="playParkForm" action="https://formspree.io/f/xldprzkr" method="POST" enctype="multipart/form-data">
+                <!-- Hidden fields for SafePark.PRO integration -->
+                <input type="hidden" name="module" value="Play Parks Safety">
+                <input type="hidden" name="_subject" value="SafePark.PRO - Play Parks Safety">
+                <input type="hidden" name="submission_type" id="playParkSubmissionType" value="onboarding">
+
+                <!-- STEP 1: ONBOARDING -->
+                <div class="playpark-step active" id="pp-onboarding">
+                    <div class="form-section">
+                        <h3>Highland Holidays Play Park Setup</h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="pp-park-name">Highland Holidays Location <span class="required">*</span></label>
+                                <select id="pp-park-name" name="holiday_park" class="form-select" data-populate="holiday-parks" required onchange="updatePlayParkList()">
+                                    <option value="">Select Highland Holidays Location</option>
+                                    <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                                    <option value="Oban Holiday Park">Oban Holiday Park</option>
+                                    <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="pp-park-id">Play Park Area Name <span class="required">*</span></label>
+                                <input type="text" id="pp-park-id" name="play_park_area" class="form-input" placeholder="Enter play park area name (e.g., Adventure Playground)" required onchange="saveNewPlayParkAreaToFirebase()">
+                            </div>
+                        </div>
+
+                        <div class="form-group form-group-full">
+                            <label class="form-label" for="pp-address">Complete Address</label>
+                            <input type="text" id="pp-address" name="park_address" class="form-input" readonly>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="pp-park-type">Park Type <span class="required">*</span></label>
+                                <select id="pp-park-type" name="park_type" class="form-select" required>
+                                    <option value="">Select...</option>
+                                    <option value="holiday-park">Holiday Park</option>
+                                    <option value="public">Public Park</option>
+                                    <option value="school">School Playground</option>
+                                    <option value="nursery">Nursery/Childcare</option>
+                                    <option value="housing-estate">Housing Estate</option>
+                                    <option value="community">Community Centre</option>
+                                    <option value="private">Private Recreation</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="pp-installation-date">Installation Date</label>
+                                <input type="date" id="pp-installation-date" name="installation_date" class="form-input" onchange="updateInspectionsDue()">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="pp-owner">Owner/Organization</label>
+                                <input type="text" id="pp-owner" name="owner_organization" class="form-input" value="Highland Holidays" readonly>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="pp-contact-email">Email Address</label>
+                                <input type="email" id="pp-contact-email" name="contact_email" class="form-input" value="info@highlandholidays.co.uk">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="pp-contact-phone">Phone Number</label>
+                                <input type="tel" id="pp-contact-phone" name="contact_phone" class="form-input">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Target Age Groups</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pp-age-toddler" name="age_groups" value="6-23-months">
+                                    <label for="pp-age-toddler">6-23 months (Toddler)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pp-age-preschool" name="age_groups" value="2-5-years">
+                                    <label for="pp-age-preschool">2-5 years (Pre-school)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pp-age-school" name="age_groups" value="5-12-years">
+                                    <label for="pp-age-school">5-12 years (School age)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pp-age-teen" name="age_groups" value="13-plus">
+                                    <label for="pp-age-teen">13+ years (Teen/Adult)</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="pp-surface-type">Primary Surface Type <span class="required">*</span></label>
+                                <select id="pp-surface-type" name="surface_type" class="form-select" required onchange="updatePlayParkRiskAssessment()">
+                                    <option value="">Select...</option>
+                                    <option value="rubber-mulch">Rubber Mulch</option>
+                                    <option value="engineered-wood">Engineered Wood Fiber</option>
+                                    <option value="rubber-tiles">Rubber Safety Tiles</option>
+                                    <option value="pour-in-place">Pour-in-Place Rubber</option>
+                                    <option value="sand">Sand</option>
+                                    <option value="pea-gravel">Pea Gravel</option>
+                                    <option value="artificial-turf">Artificial Turf</option>
+                                    <option value="grass">Natural Grass</option>
+                                    <option value="concrete">Concrete/Hard Surface</option>
+                                    <option value="mixed">Mixed Surfaces</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="pp-compliance">Safety Standards Compliance</label>
+                                <select id="pp-compliance" name="safety_standards" class="form-select">
+                                    <option value="">Select...</option>
+                                    <option value="bs-en-1176">BS EN 1176:2017 (European)</option>
+                                    <option value="astm-f1487">ASTM F1487 (US)</option>
+                                    <option value="csa-z614">CSA Z614 (Canadian)</option>
+                                    <option value="as-4685">AS 4685 (Australian)</option>
+                                    <option value="multiple">Multiple Standards</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Equipment Present</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pp-equip-swings" name="equipment" value="swings" onchange="updatePlayParkRiskAssessment()">
+                                    <label for="pp-equip-swings">Swings (All Types)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pp-equip-slides" name="equipment" value="slides" onchange="updatePlayParkRiskAssessment()">
+                                    <label for="pp-equip-slides">Slides (All Heights)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pp-equip-climbing" name="equipment" value="climbing" onchange="updatePlayParkRiskAssessment()">
+                                    <label for="pp-equip-climbing">Climbing Equipment</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pp-equip-seesaws" name="equipment" value="seesaws" onchange="updatePlayParkRiskAssessment()">
+                                    <label for="pp-equip-seesaws">See-saws/Rockers</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pp-equip-roundabout" name="equipment" value="roundabout" onchange="updatePlayParkRiskAssessment()">
+                                    <label for="pp-equip-roundabout">Roundabouts/Carousels</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pp-equip-spring" name="equipment" value="spring" onchange="updatePlayParkRiskAssessment()">
+                                    <label for="pp-equip-spring">Spring Riders</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pp-equip-multiplay" name="equipment" value="multiplay" onchange="updatePlayParkRiskAssessment()">
+                                    <label for="pp-equip-multiplay">Multi-Play Units</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pp-equip-sandbox" name="equipment" value="sandbox" onchange="updatePlayParkRiskAssessment()">
+                                    <label for="pp-equip-sandbox">Sand Play/Sandbox</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pp-equip-water" name="equipment" value="water" onchange="updatePlayParkRiskAssessment()">
+                                    <label for="pp-equip-water">Water Play Equipment</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pp-equip-fitness" name="equipment" value="fitness" onchange="updatePlayParkRiskAssessment()">
+                                    <label for="pp-equip-fitness">Fitness Equipment</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                            <button type="button" class="btn" onclick="saveAndContinue('risk-assessment')">Continue to Risk Assessment</button>
+                            <button type="submit" class="btn btn-secondary" style="width: auto; padding: 14px 28px;">Save Setup</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: RISK ASSESSMENT -->
+                <div class="playpark-step" id="pp-risk-assessment">
+                    <div class="progress-indicator">
+                        <div class="progress-step completed">1. Setup</div>
+                        <div class="progress-step active">2. Risk Assessment</div>
+                        <div class="progress-step">3. Safe Working Procedures</div>
+                        <div class="progress-step">4. Inspection</div>
+                        <div class="progress-step">5. RPII Framework</div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Automated Risk Assessment Matrix</h3>
+                        
+                        <div class="alert alert-info">
+                            <strong>Automated Risk Assessment:</strong> This matrix is automatically populated based on your equipment selection, 
+                            surface type, and age groups. Additional risks can be manually added below.
+                        </div>
+
+                        <div class="risk-matrix" style="display: none;">
+                            <div class="risk-cell risk-header">Likelihood →<br>Severity ↓</div>
+                            <div class="risk-cell risk-header">Very Low</div>
+                            <div class="risk-cell risk-header">Low</div>
+                            <div class="risk-cell risk-header">Medium</div>
+                            <div class="risk-cell risk-header">High</div>
+                            <div class="risk-cell risk-header">Very High</div>
+                            
+                            <div class="risk-cell risk-header">Very High</div>
+                            <div class="risk-cell risk-medium">Medium</div>
+                            <div class="risk-cell risk-high">High</div>
+                            <div class="risk-cell risk-very-high">Very High</div>
+                            <div class="risk-cell risk-very-high">Very High</div>
+                            <div class="risk-cell risk-very-high">Very High</div>
+                            
+                            <div class="risk-cell risk-header">High</div>
+                            <div class="risk-cell risk-low">Low</div>
+                            <div class="risk-cell risk-medium">Medium</div>
+                            <div class="risk-cell risk-high">High</div>
+                            <div class="risk-cell risk-very-high">Very High</div>
+                            <div class="risk-cell risk-very-high">Very High</div>
+                            
+                            <div class="risk-cell risk-header">Medium</div>
+                            <div class="risk-cell risk-low">Low</div>
+                            <div class="risk-cell risk-low">Low</div>
+                            <div class="risk-cell risk-medium">Medium</div>
+                            <div class="risk-cell risk-high">High</div>
+                            <div class="risk-cell risk-very-high">Very High</div>
+                            
+                            <div class="risk-cell risk-header">Low</div>
+                            <div class="risk-cell risk-low">Very Low</div>
+                            <div class="risk-cell risk-low">Low</div>
+                            <div class="risk-cell risk-low">Low</div>
+                            <div class="risk-cell risk-medium">Medium</div>
+                            <div class="risk-cell risk-high">High</div>
+                            
+                            <div class="risk-cell risk-header">Very Low</div>
+                            <div class="risk-cell risk-low">Very Low</div>
+                            <div class="risk-cell risk-low">Very Low</div>
+                            <div class="risk-cell risk-low">Low</div>
+                            <div class="risk-cell risk-low">Low</div>
+                            <div class="risk-cell risk-medium">Medium</div>
+                        </div>
+
+                        <div id="pp-auto-risks" class="auto-generated">
+                            <h4 style="color: var(--primary-orange);">Automatically Identified Risks:</h4>
+                            <div id="pp-risk-list" style="color: var(--white);">
+                                <p><em>Please complete setup section to generate automatic risk assessment.</em></p>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="pp-additional-risks">Additional Site-Specific Risks:</label>
+                            <textarea id="pp-additional-risks" name="additional_risks" class="form-input" rows="4" 
+                                      placeholder="Identify any additional risks specific to your Highland Holidays location..."></textarea>
+                        </div>
+
+                        <div class="legislation-ref">
+                            Reference: Health and Safety at Work etc. Act 1974, Management of Health and Safety at Work Regulations 1999, 
+                            BS EN 1176:2017, BS EN 1177:2018
+                        </div>
+
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-secondary" onclick="showPlayParkStep('onboarding')">Back</button>
+                            <button type="button" class="btn" onclick="generateProcedures()">Generate Safe Working Procedures</button>
+                            <button type="button" class="btn" onclick="saveAndContinue('procedures')">Continue to Procedures</button>
+                            <button type="submit" class="btn btn-secondary" style="width: auto; padding: 14px 28px;">Save Risk Assessment</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 3: SAFE WORKING PROCEDURES -->
+                <div class="playpark-step" id="pp-procedures">
+                    <div class="progress-indicator">
+                        <div class="progress-step completed">1. Setup</div>
+                        <div class="progress-step completed">2. Risk Assessment</div>
+                        <div class="progress-step active">3. Safe Working Procedures</div>
+                        <div class="progress-step">4. Inspection</div>
+                        <div class="progress-step">5. RPII Framework</div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Automatically Generated Safe Working Procedures</h3>
+                        
+                        <div class="alert alert-success">
+                            <strong>Auto-Generated Procedures:</strong> These procedures are automatically created based on your equipment selection and 
+                            comply with BS EN 1176:2017, Health and Safety at Work Act 1974, and Management of Health and Safety at Work Regulations 1999.
+                        </div>
+
+                        <div id="pp-generated-procedures">
+                            <div class="procedure-step">
+                                <h4>General Highland Holidays Site Safety Procedures</h4>
+                                <p><strong>Before each inspection period:</strong></p>
+                                <ul>
+                                    <li>Ensure all inspection equipment is available and in working order</li>
+                                    <li>Review previous inspection reports and outstanding maintenance items</li>
+                                    <li>Check weather conditions are suitable for inspection</li>
+                                    <li>Confirm inspector competency and training status</li>
+                                    <li>Notify Highland Holidays management of any immediate safety concerns</li>
+                                </ul>
+                                <div class="legislation-ref">Reference: Management of Health and Safety at Work Regulations 1999, Reg. 3</div>
+                            </div>
+
+                            <div id="pp-equipment-procedures">
+                                <p><em>Equipment-specific procedures will be generated based on your selections in the Setup section.</em></p>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="pp-custom-procedures">Highland Holidays Site-Specific Procedures:</label>
+                            <textarea id="pp-custom-procedures" name="custom_procedures" class="form-input" rows="4" 
+                                      placeholder="Add any additional Highland Holidays location-specific procedures or modifications to the standard procedures..."></textarea>
+                        </div>
+
+                        <div class="form-section">
+                            <h4 style="color: var(--primary-orange); margin-bottom: 20px;">Competency Requirements</h4>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="pp-inspector-qualifications">Required Inspector Qualifications:</label>
+                                    <select id="pp-inspector-qualifications" name="inspector_qualifications_required" class="form-select" multiple size="5">
+                                        <option value="rospa-playground">RoSPA Playground Inspector</option>
+                                        <option value="iosh-managing">IOSH Managing Safely</option>
+                                        <option value="nebosh-general">NEBOSH General Certificate</option>
+                                        <option value="rpii-inspector">RPII Registered Inspector</option>
+                                        <option value="manufacturer-trained">Manufacturer Specific Training</option>
+                                        <option value="first-aid">First Aid Qualified</option>
+                                        <option value="risk-assessment">Risk Assessment Trained</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="pp-training-frequency">Training Refresh Frequency:</label>
+                                    <select id="pp-training-frequency" name="training_frequency" class="form-select">
+                                        <option value="">Select...</option>
+                                        <option value="annual">Annual</option>
+                                        <option value="biennial">Every 2 Years</option>
+                                        <option value="triennial">Every 3 Years</option>
+                                        <option value="as-required">As Required</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="legislation-ref">
+                                Reference: Health and Safety at Work Act 1974, Section 2; Management of Health and Safety at Work Regulations 1999, Reg. 13
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-secondary" onclick="showPlayParkStep('risk-assessment')">Back to Risk Assessment</button>
+                            <button type="button" class="btn" onclick="generateInspectionSchedules()">Generate Inspection Schedules</button>
+                            <button type="button" class="btn" onclick="saveAndContinue('inspection')">Continue to Inspection</button>
+                            <button type="submit" class="btn btn-secondary" style="width: auto; padding: 14px 28px;">Save Procedures</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 4: INSPECTION -->
+                <div class="playpark-step" id="pp-inspection">
+                    <div class="progress-indicator">
+                        <div class="progress-step completed">1. Setup</div>
+                        <div class="progress-step completed">2. Risk Assessment</div>
+                        <div class="progress-step completed">3. Safe Working Procedures</div>
+                        <div class="progress-step active">4. Inspection</div>
+                        <div class="progress-step">5. RPII Framework</div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Highland Holidays Play Park Inspection</h3>
+                        
+                        <!-- Location Selection for Direct Access -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="pp-inspection-park">Highland Holidays Location <span class="required">*</span></label>
+                                <select id="pp-inspection-park" name="inspection_holiday_park" class="form-select" required onchange="updateInspectionPlayParkList()">
+                                    <option value="">Select Highland Holidays Location</option>
+                                    <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                                    <option value="Oban Holiday Park">Oban Holiday Park</option>
+                                    <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="pp-inspection-area">Play Park Area <span class="required">*</span></label>
+                                <select id="pp-inspection-area" name="inspection_play_park_area" class="form-select" required>
+                                    <option value="">Select Play Area</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="pp-inspection-date">Inspection Date <span class="required">*</span></label>
+                                <input type="date" id="pp-inspection-date" name="inspection_date" class="form-input" required onchange="updateInspectionsDue()">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="pp-inspection-type">Inspection Type <span class="required">*</span></label>
+                                <select id="pp-inspection-type" name="inspection_type" class="form-select" required onchange="updateInspectionTypeButtons()">
+                                    <option value="">Select...</option>
+                                    <option value="daily">Daily Visual</option>
+                                    <option value="weekly">Weekly Functional</option>
+                                    <option value="monthly">Monthly Detailed</option>
+                                    <option value="annual">Annual Principal</option>
+                                    <option value="post-incident">Post-Incident</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- ADD MAINTENANCE REQUEST BUTTON HERE -->
+                        <div class="alert alert-warning" style="margin: 20px 0;">
+                            <strong>Found Issues?</strong> Use the button below to log maintenance requests for any problems identified during inspection.
+                            <button type="button" class="btn btn-maintenance" onclick="addMaintenanceRequest()" style="margin: 10px 0;">
+                                🔧 Add Maintenance Request
+                            </button>
+                        </div>
+
+                        <div class="alert alert-info" style="margin: 20px 0;" id="quickCheckAlert">
+                            <strong>Quick Daily Check:</strong> 
+                            <button type="button" class="btn" onclick="quickPlayParkDailyCheck()" style="margin: 0 10px;" id="quickCompleteBtn">Complete Daily Check (All Good)</button>
+                            <button type="button" class="btn btn-secondary" onclick="selectAllPlayParkDailyChecks()" style="margin: 0 10px;">Select All Safety Checks</button>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="pp-inspector-name">Inspector Name <span class="required">*</span></label>
+                                <select id="pp-inspector-name" name="inspector_name" class="form-select" data-populate="team-members" required>
+                                    <option value="">Select team member...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="pp-inspector-quals">Inspector Qualifications</label>
+                                <select id="pp-inspector-quals" name="inspector_qualifications" class="form-select">
+                                    <option value="">Select...</option>
+                                    <option value="rospa">RoSPA Playground Inspector</option>
+                                    <option value="rpii">RPII Registered Inspector</option>
+                                    <option value="manufacturer">Manufacturer Trained</option>
+                                    <option value="internal">Internal Trained Staff</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <h4 style="color: var(--primary-orange); margin: 20px 0;">Equipment Condition Assessment</h4>
+                        <table class="inspection-table">
+                            <thead>
+                                <tr>
+                                    <th>Equipment Type</th>
+                                    <th>Present</th>
+                                    <th>Good</th>
+                                    <th>Fair</th>
+                                    <th>Poor</th>
+                                    <th>Unsafe</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Swings</strong></td>
+                                    <td><input type="checkbox" name="swing_present"></td>
+                                    <td><input type="radio" name="swing_condition" value="good"></td>
+                                    <td><input type="radio" name="swing_condition" value="fair"></td>
+                                    <td><input type="radio" name="swing_condition" value="poor"></td>
+                                    <td><input type="radio" name="swing_condition" value="unsafe"></td>
+                                    <td><input type="text" name="swing_notes" placeholder="Inspection notes..."></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Slides</strong></td>
+                                    <td><input type="checkbox" name="slide_present"></td>
+                                    <td><input type="radio" name="slide_condition" value="good"></td>
+                                    <td><input type="radio" name="slide_condition" value="fair"></td>
+                                    <td><input type="radio" name="slide_condition" value="poor"></td>
+                                    <td><input type="radio" name="slide_condition" value="unsafe"></td>
+                                    <td><input type="text" name="slide_notes" placeholder="Inspection notes..."></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Climbing Equipment</strong></td>
+                                    <td><input type="checkbox" name="climb_present"></td>
+                                    <td><input type="radio" name="climb_condition" value="good"></td>
+                                    <td><input type="radio" name="climb_condition" value="fair"></td>
+                                    <td><input type="radio" name="climb_condition" value="poor"></td>
+                                    <td><input type="radio" name="climb_condition" value="unsafe"></td>
+                                    <td><input type="text" name="climb_notes" placeholder="Inspection notes..."></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Multi-Play Units</strong></td>
+                                    <td><input type="checkbox" name="multiplay_present"></td>
+                                    <td><input type="radio" name="multiplay_condition" value="good"></td>
+                                    <td><input type="radio" name="multiplay_condition" value="fair"></td>
+                                    <td><input type="radio" name="multiplay_condition" value="poor"></td>
+                                    <td><input type="radio" name="multiplay_condition" value="unsafe"></td>
+                                    <td><input type="text" name="multiplay_notes" placeholder="Inspection notes..."></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="form-group">
+                            <label class="form-label">Safety Compliance Checks</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pp-check-surface" name="safety_checks" value="surface_adequate">
+                                    <label for="pp-check-surface">Surface adequate depth and coverage</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pp-check-clearance" name="safety_checks" value="clearance_adequate">
+                                    <label for="pp-check-clearance">Adequate clearances around equipment</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pp-check-hardware" name="safety_checks" value="hardware_secure">
+                                    <label for="pp-check-hardware">All hardware secure and tight</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pp-check-signage" name="safety_checks" value="signage_present">
+                                    <label for="pp-check-signage">Safety signage present and visible</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="pp-overall-condition">Overall Playground Condition <span class="required">*</span></label>
+                            <select id="pp-overall-condition" name="overall_condition" class="form-select" required>
+                                <option value="">Select...</option>
+                                <option value="excellent">Excellent</option>
+                                <option value="good">Good</option>
+                                <option value="fair">Fair</option>
+                                <option value="poor">Poor</option>
+                                <option value="unsafe">Unsafe - Closure Required</option>
+                            </select>
+                        </div>
+
+                        <!-- Enhanced Inspection Schedules Section -->
+                        <div class="form-section">
+                            <h3>Automated Inspection Schedules</h3>
+                            
+                            <div class="alert alert-info">
+                                <strong>Compliance Note:</strong> Inspection frequencies are automatically set according to BS EN 1176:2017 recommendations 
+                                and can be adjusted based on risk assessment outcomes and manufacturer requirements.
+                            </div>
+
+                            <!-- Daily Inspection -->
+                            <div class="form-section inspection-section" id="daily-inspection">
+                                <h4 style="color: var(--primary-orange);">DAILY VISUAL INSPECTION CHECKLIST</h4>
+                                <p><strong>Frequency:</strong> Every day the playground is in use | <strong>Duration:</strong> 15-30 minutes | <strong>Competency:</strong> Basic trained staff</p>
+                                
+                                <table class="inspection-table" id="pp-daily-checklist">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 40%;">Check Item</th>
+                                            <th style="width: 15%;">Satisfactory</th>
+                                            <th style="width: 15%;">Action Required</th>
+                                            <th style="width: 30%;">Notes/Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>General Site Condition</strong><br><small>Litter, debris, vandalism, obstructions</small></td>
+                                            <td><input type="checkbox" name="daily_site_satisfactory"></td>
+                                            <td><input type="checkbox" name="daily_site_action"></td>
+                                            <td><input type="text" name="daily_site_notes" placeholder="Notes..."></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Safety Surfacing</strong><br><small>Displacement, holes, foreign objects</small></td>
+                                            <td><input type="checkbox" name="daily_surface_satisfactory"></td>
+                                            <td><input type="checkbox" name="daily_surface_action"></td>
+                                            <td><input type="text" name="daily_surface_notes" placeholder="Notes..."></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Equipment Stability</strong><br><small>Obvious movement, damage, wear</small></td>
+                                            <td><input type="checkbox" name="daily_stability_satisfactory"></td>
+                                            <td><input type="checkbox" name="daily_stability_action"></td>
+                                            <td><input type="text" name="daily_stability_notes" placeholder="Notes..."></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Moving Parts Operation</strong><br><small>Swings, rockers, spinners function correctly</small></td>
+                                            <td><input type="checkbox" name="daily_moving_satisfactory"></td>
+                                            <td><input type="checkbox" name="daily_moving_action"></td>
+                                            <td><input type="text" name="daily_moving_notes" placeholder="Notes..."></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                
+                                <div class="legislation-ref">Reference: BS EN 1176-7:2017, Section 4.2.2 - Routine Visual Inspection</div>
+                            </div>
+
+                            <!-- Weekly Inspection -->
+                            <div class="form-section inspection-section" id="weekly-inspection">
+                                <h4 style="color: var(--primary-orange);">WEEKLY FUNCTIONAL INSPECTION</h4>
+                                <p><strong>Frequency:</strong> Weekly | <strong>Duration:</strong> 1-2 hours | <strong>Competency:</strong> Trained maintenance staff</p>
+                                
+                                <table class="inspection-table" id="pp-weekly-checklist">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 40%;">Check Item</th>
+                                            <th style="width: 15%;">Good</th>
+                                            <th style="width: 15%;">Action Required</th>
+                                            <th style="width: 30%;">Details/Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Hardware & Fasteners</strong><br><small>Tightness, corrosion, wear, protrusions</small></td>
+                                            <td><input type="checkbox" name="weekly_hardware_good"></td>
+                                            <td><input type="checkbox" name="weekly_hardware_action"></td>
+                                            <td><input type="text" name="weekly_hardware_notes" placeholder="Details..."></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Surface Depth & Coverage</strong><br><small>Measure critical fall heights, rake if required</small></td>
+                                            <td><input type="checkbox" name="weekly_surface_depth_good"></td>
+                                            <td><input type="checkbox" name="weekly_surface_depth_action"></td>
+                                            <td><input type="text" name="weekly_surface_depth_notes" placeholder="Details..."></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Lubrication Points</strong><br><small>Moving parts, bearings, pivot points</small></td>
+                                            <td><input type="checkbox" name="weekly_lubrication_good"></td>
+                                            <td><input type="checkbox" name="weekly_lubrication_action"></td>
+                                            <td><input type="text" name="weekly_lubrication_notes" placeholder="Details..."></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                
+                                <div class="legislation-ref">Reference: BS EN 1176-7:2017, Section 4.2.3 - Operational Inspection</div>
+                            </div>
+
+                            <!-- Monthly Inspection -->
+                            <div class="form-section inspection-section" id="monthly-inspection">
+                                <h4 style="color: var(--primary-orange);">MONTHLY DETAILED INSPECTION</h4>
+                                <p><strong>Frequency:</strong> Monthly | <strong>Duration:</strong> 2-4 hours | <strong>Competency:</strong> Qualified inspector</p>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Monthly Inspection Items (Auto-generated based on equipment):</label>
+                                    <div id="pp-monthly-items" class="auto-generated">
+                                        <p><em>Monthly inspection items will be generated based on equipment selection in Setup.</em></p>
+                                    </div>
+                                </div>
+                                
+                                <div class="legislation-ref">Reference: BS EN 1176-7:2017, Section 4.2.3 - Operational Inspection (Detailed)</div>
+                            </div>
+
+                            <!-- Annual Inspection -->
+                            <div class="form-section inspection-section" id="annual-inspection">
+                                <h4 style="color: var(--primary-orange);">ANNUAL PRINCIPAL INSPECTION</h4>
+                                <p><strong>Frequency:</strong> Annually | <strong>Duration:</strong> Full day | <strong>Competency:</strong> Qualified principal inspector</p>
+                                
+                                <div class="alert alert-danger">
+                                    <strong>Legal Requirement:</strong> Annual principal inspection is a legal requirement under BS EN 1176-7:2017 
+                                    and must be documented for insurance and liability purposes.
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label" for="pp-annual-inspector">Principal Inspector Name:</label>
+                                        <input type="text" id="pp-annual-inspector" name="annual_inspector" class="form-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="pp-annual-qualifications">Inspector Qualifications:</label>
+                                        <input type="text" id="pp-annual-qualifications" name="annual_qualifications" class="form-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="pp-next-annual-due">Next Annual Inspection Due:</label>
+                                        <input type="date" id="pp-next-annual-due" name="next_annual_due" class="form-input">
+                                    </div>
+                                </div>
+                                
+                                <div class="legislation-ref">Reference: BS EN 1176-7:2017, Section 4.2.4 - Annual Principal Inspection</div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-secondary" onclick="showPlayParkStep('procedures')">Back to Procedures</button>
+                            <button type="button" class="btn" onclick="saveAndContinue('rpii')">Continue to RPII Framework</button>
+                            <button type="submit" class="btn btn-secondary" style="width: auto; padding: 14px 28px;">Save Inspection</button>
+                            <button type="submit" class="btn" style="width: auto; padding: 14px 28px;">Submit Inspection</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 5: RPII FRAMEWORK -->
+                <div class="playpark-step" id="pp-rpii">
+                    <div class="progress-indicator">
+                        <div class="progress-step completed">1. Setup</div>
+                        <div class="progress-step completed">2. Risk Assessment</div>
+                        <div class="progress-step completed">3. Safe Working Procedures</div>
+                        <div class="progress-step completed">4. Inspection</div>
+                        <div class="progress-step active">5. RPII Framework</div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>RPII Framework Implementation</h3>
+                        
+                        <div class="alert alert-success">
+                            <strong>RPII Framework:</strong> Record, Plan, Implement, Improve - Ensuring continuous safety improvement.
+                        </div>
+
+                        <!-- RECORD -->
+                        <div class="rpii-stage">
+                            <div class="rpii-title">R - RECORD</div>
+                            <div class="form-group">
+                                <label class="form-label">Recording Systems in Place</label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="pp-record-inspections" name="rpii_record" value="inspection_records" checked disabled>
+                                        <label for="pp-record-inspections">Inspection records maintained</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="pp-record-maintenance" name="rpii_record" value="maintenance_logs" checked disabled>
+                                        <label for="pp-record-maintenance">Maintenance logs documented</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="pp-record-incidents" name="rpii_record" value="incident_reporting">
+                                        <label for="pp-record-incidents">Incident reporting system</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="pp-record-training" name="rpii_record" value="training_records">
+                                        <label for="pp-record-training">Staff training records</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PLAN -->
+                        <div class="rpii-stage">
+                            <div class="rpii-title">P - PLAN</div>
+                            <div class="form-group">
+                                <label class="form-label" for="pp-safety-objectives">Current Year Safety Objectives</label>
+                                <textarea id="pp-safety-objectives" name="safety_objectives" class="form-input" rows="3" 
+                                          placeholder="Define specific safety objectives for Highland Holidays play areas..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- IMPLEMENT -->
+                        <div class="rpii-stage">
+                            <div class="rpii-title">I - IMPLEMENT</div>
+                            <div class="form-group">
+                                <label class="form-label">Implementation Status</label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="pp-impl-procedures" name="rpii_implement" value="procedures_documented" checked disabled>
+                                        <label for="pp-impl-procedures">Safe working procedures documented</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="pp-impl-schedules" name="rpii_implement" value="schedules_operational" checked disabled>
+                                        <label for="pp-impl-schedules">Inspection schedules operational</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="pp-impl-training" name="rpii_implement" value="training_delivered">
+                                        <label for="pp-impl-training">Staff training programme delivered</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- IMPROVE -->
+                        <div class="rpii-stage">
+                            <div class="rpii-title">I - IMPROVE</div>
+                            <div class="form-group">
+                                <label class="form-label" for="pp-improve-actions">Improvement Actions Identified</label>
+                                <textarea id="pp-improve-actions" name="improvement_actions" class="form-input" rows="3" 
+                                          placeholder="List specific improvement actions for Highland Holidays play park safety..."></textarea>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-secondary" onclick="showPlayParkStep('inspection')">Back</button>
+                            <button type="submit" class="btn btn-submit">Submit Complete Play Park Assessment</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Success Message -->
+                <div id="pp-successMessage" style="display: none;">
+                    <div class="alert alert-success">
+                        <h3>Submission Successful</h3>
+                        <p>Your Highland Holidays play park assessment has been successfully submitted to SafePark.PRO.</p>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2025 CQR365 SafePark.PRO Management System</p>
+    </div>
+
+    <script type="module">
+        // Import Firebase utilities
+        import { safeParkManager } from './firebase-config.js';
+
+        // PWA Install Detection and Management
+        let deferredPrompt;
+        let isAppInstalled = false;
+
+        // Check if app is running as installed PWA
+        function checkIfAppInstalled() {
+            // Method 1: Check display mode
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+            // Method 2: Check if launched from home screen (iOS)
+            const isIOSStandalone = ('standalone' in window.navigator) && window.navigator.standalone;
+            // Method 3: Check document referrer
+            const isInstalled = isStandalone || isIOSStandalone || document.referrer.includes('android-app://');
+            
+            isAppInstalled = isInstalled;
+            
+            if (isAppInstalled) {
+                // Hide any install prompts when running as installed PWA
+                hideInstallPrompts();
+                console.log('SafePark.PRO is running as installed PWA');
+            }
+            
+            return isAppInstalled;
+        }
+
+        // Hide install prompts
+        function hideInstallPrompts() {
+            // Hide Chrome's native install prompts
+            const installButtons = document.querySelectorAll('[data-balloon*="Install"], .pwa-install-prompt');
+            installButtons.forEach(btn => btn.classList.add('pwa-install-hidden'));
+        }
+
+        // Show install prompts (when not installed)
+        function showInstallPrompts() {
+            const installButtons = document.querySelectorAll('[data-balloon*="Install"], .pwa-install-prompt');
+            installButtons.forEach(btn => btn.classList.remove('pwa-install-hidden'));
+        }
+
+        // Listen for beforeinstallprompt event
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('PWA install prompt available');
+            if (!isAppInstalled) {
+                // Store the event for later use
+                deferredPrompt = e;
+                // Don't prevent the default - let browser show install option
+                showInstallPrompts();
+            } else {
+                // Prevent install prompt if already installed
+                e.preventDefault();
+                hideInstallPrompts();
+            }
+        });
+
+        // Listen for app installation
+        window.addEventListener('appinstalled', (e) => {
+            console.log('SafePark.PRO was installed');
+            isAppInstalled = true;
+            hideInstallPrompts();
+            deferredPrompt = null;
+        });
+
+        // Highland Holidays site data for play parks (INITIALIZED EMPTY - will load from Firebase)
+        const highlandHolidaysSiteData = {
+            'Ben Nevis Holiday Park': {
+                playParks: [],
+                address: 'Ben Nevis Holiday Park, Torlundy, Fort William, Highland, PH33 6SN',
+                owner: 'Highland Holidays',
+                phone: '+44 1397 702191',
+                email: 'bennevis@highlandholidays.co.uk'
+            },
+            'Oban Holiday Park': {
+                playParks: [],
+                address: 'Oban Holiday Park, Gallanach Road, Oban, Argyll and Bute, PA34 4QH',
+                owner: 'Highland Holidays',
+                phone: '+44 1631 562755',
+                email: 'oban@highlandholidays.co.uk'
+            },
+            'Tyndrum Holiday Park': {
+                playParks: [],
+                address: 'Tyndrum Holiday Park, By The Way, Tyndrum, Stirling, FK20 8RY',
+                owner: 'Highland Holidays',
+                phone: '+44 1838 400251',
+                email: 'tyndrum@highlandholidays.co.uk'
+            }
+        };
+
+        // FIREBASE-FIRST: Play Park Data Manager
+        class FirebasePlayParkManager {
+            constructor() {
+                this.isOnline = navigator.onLine;
+                this.localCacheKey = 'safePark_playParkAreas_cache';
+                this.initializeOfflineSupport();
+            }
+
+            initializeOfflineSupport() {
+                window.addEventListener('online', () => {
+                    this.isOnline = true;
+                    console.log('Play Parks: Connection restored - Firebase is now source of truth');
+                    this.syncPendingChanges();
+                });
+                
+                window.addEventListener('offline', () => {
+                    this.isOnline = false;
+                    console.log('Play Parks: Offline mode - using local cache until connection restored');
+                });
+            }
+
+            // FIREBASE FIRST: Load play park areas
+            async loadAllPlayParkAreas() {
+                if (this.isOnline && window.db) {
+                    try {
+                        console.log('Loading play park areas from Firebase (source of truth)');
+                        return await this.loadFromFirebase();
+                    } catch (error) {
+                        console.warn('Firebase unavailable for play parks, using cached data:', error);
+                        return this.getCachedPlayParkAreas();
+                    }
+                } else {
+                    console.log('Offline mode - using cached play park areas');
+                    return this.getCachedPlayParkAreas();
+                }
+            }
+
+            // Load from Firebase and update cache
+            async loadFromFirebase() {
+                if (!window.db) throw new Error('Firebase not available');
+
+                const db = window.db;
+                const snapshot = await db.collection('playParks').get();
+                const playParksData = {};
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const holidayPark = data.holidayPark;
+                    const playAreaName = data.playAreaName;
+                    
+                    if (!playParksData[holidayPark]) {
+                        playParksData[holidayPark] = [];
+                    }
+                    
+                    if (!playParksData[holidayPark].includes(playAreaName)) {
+                        playParksData[holidayPark].push(playAreaName);
+                    }
+                });
+
+                // Update local cache with Firebase data
+                this.updateCache(playParksData);
+                
+                console.log(`Loaded ${Object.keys(playParksData).length} holiday parks with play areas from Firebase`);
+                return playParksData;
+            }
+
+            // Save new play park area to Firebase
+            async savePlayParkAreaToFirebase(holidayPark, playAreaName) {
+                const playParkData = {
+                    holidayPark: holidayPark,
+                    playAreaName: playAreaName,
+                    createdAt: new Date(),
+                    module: 'Play Parks Safety',
+                    status: 'active'
+                };
+
+                if (this.isOnline && window.db) {
+                    try {
+                        console.log(`Saving play park area to Firebase: ${playAreaName} at ${holidayPark}`);
+                        const db = window.db;
+                        
+                        // Use a compound document ID to prevent duplicates
+                        const docId = `${holidayPark.replace(/\s+/g, '_')}_${playAreaName.replace(/\s+/g, '_')}`;
+                        await db.collection('playParks').doc(docId).set(playParkData);
+                        
+                        console.log(`Play park area saved to Firebase: ${docId}`);
+                        
+                        // Update local cache
+                        const cached = this.getCachedPlayParkAreas();
+                        if (!cached[holidayPark]) {
+                            cached[holidayPark] = [];
+                        }
+                        if (!cached[holidayPark].includes(playAreaName)) {
+                            cached[holidayPark].push(playAreaName);
+                            this.updateCache(cached);
+                        }
+                        
+                        return true;
+                    } catch (error) {
+                        console.error('Error saving play park area to Firebase:', error);
+                        // Store in pending queue for offline sync
+                        this.queuePendingChange('add', holidayPark, playAreaName, playParkData);
+                        return false;
+                    }
+                } else {
+                    // Store in pending queue for when online
+                    console.log('Offline - queuing play park area for sync:', playAreaName);
+                    this.queuePendingChange('add', holidayPark, playAreaName, playParkData);
+                    
+                    // Update local cache
+                    const cached = this.getCachedPlayParkAreas();
+                    if (!cached[holidayPark]) {
+                        cached[holidayPark] = [];
+                    }
+                    if (!cached[holidayPark].includes(playAreaName)) {
+                        cached[holidayPark].push(playAreaName);
+                        this.updateCache(cached);
+                    }
+                    
+                    return true;
+                }
+            }
+
+            // Get cached play park areas
+            getCachedPlayParkAreas() {
+                try {
+                    const cached = localStorage.getItem(this.localCacheKey);
+                    return cached ? JSON.parse(cached) : {};
+                } catch (error) {
+                    console.error('Error loading cached play park areas:', error);
+                    return {};
+                }
+            }
+
+            // Update cache
+            updateCache(playParksData) {
+                try {
+                    localStorage.setItem(this.localCacheKey, JSON.stringify(playParksData));
+                } catch (error) {
+                    console.error('Error updating play park areas cache:', error);
+                }
+            }
+
+            // Queue pending changes for offline sync
+            queuePendingChange(action, holidayPark, playAreaName, data) {
+                try {
+                    const pending = JSON.parse(localStorage.getItem('safePark_playParks_pending') || '[]');
+                    pending.push({
+                        action,
+                        holidayPark,
+                        playAreaName,
+                        data,
+                        timestamp: new Date().toISOString()
+                    });
+                    localStorage.setItem('safePark_playParks_pending', JSON.stringify(pending));
+                } catch (error) {
+                    console.error('Error queuing pending change:', error);
+                }
+            }
+
+            // Sync pending changes when coming back online
+            async syncPendingChanges() {
+                if (!this.isOnline || !window.db) return;
+
+                try {
+                    const pending = JSON.parse(localStorage.getItem('safePark_playParks_pending') || '[]');
+                    if (pending.length === 0) return;
+
+                    console.log(`Syncing ${pending.length} pending play park changes to Firebase`);
+                    const db = window.db;
+
+                    for (const change of pending) {
+                        if (change.action === 'add') {
+                            const docId = `${change.holidayPark.replace(/\s+/g, '_')}_${change.playAreaName.replace(/\s+/g, '_')}`;
+                            await db.collection('playParks').doc(docId).set(change.data);
+                            console.log(`Synced play park area to Firebase: ${change.playAreaName}`);
+                        }
+                    }
+
+                    // Clear pending changes after successful sync
+                    localStorage.removeItem('safePark_playParks_pending');
+                    console.log('All pending play park changes synced to Firebase');
+                } catch (error) {
+                    console.error('Error syncing pending play park changes:', error);
+                }
+            }
+
+            // Get connection status
+            getConnectionStatus() {
+                return {
+                    isOnline: this.isOnline,
+                    hasFirebase: !!window.db,
+                    hasCachedData: Object.keys(this.getCachedPlayParkAreas()).length > 0
+                };
+            }
+        }
+
+        // Initialize Firebase-first play park manager
+        const playParkManager = new FirebasePlayParkManager();
+
+        // FIREBASE-FIRST: Save new play park area
+        window.saveNewPlayParkAreaToFirebase = async function() {
+            const holidayPark = document.getElementById('pp-park-name').value;
+            const playAreaName = document.getElementById('pp-park-id').value.trim();
+            
+            if (!holidayPark || !playAreaName) return;
+            
+            try {
+                const success = await playParkManager.savePlayParkAreaToFirebase(holidayPark, playAreaName);
+                
+                if (success) {
+                    // Update the highland holidays site data in memory
+                    if (highlandHolidaysSiteData[holidayPark]) {
+                        if (!highlandHolidaysSiteData[holidayPark].playParks.includes(playAreaName)) {
+                            highlandHolidaysSiteData[holidayPark].playParks.push(playAreaName);
+                        }
+                    }
+                    
+                    // Refresh all dropdowns system-wide
+                    await updateAllPlayParkDropdowns();
+                    
+                    // Update stats
+                    await updatePlayParkStats();
+                    
+                    console.log(`Play park area "${playAreaName}" saved to Firebase and synced across modules`);
+                } else {
+                    console.warn('Play park area saved to offline queue - will sync when online');
+                }
+            } catch (error) {
+                console.error('Error saving play park area:', error);
+            }
+            
+            saveFormData();
+        };
+
+        // FIREBASE-FIRST: Load stored play park areas from Firebase
+        async function loadStoredPlayParkAreas() {
+            try {
+                const playParksData = await playParkManager.loadAllPlayParkAreas();
+                
+                // Update highland holidays site data with Firebase data
+                Object.keys(playParksData).forEach(holidayPark => {
+                    if (highlandHolidaysSiteData[holidayPark]) {
+                        highlandHolidaysSiteData[holidayPark].playParks = playParksData[holidayPark] || [];
+                    }
+                });
+                
+                console.log('Highland Holidays site data updated with Firebase play park areas');
+                await updatePlayParkStats();
+            } catch (error) {
+                console.error('Error loading stored play park areas:', error);
+            }
+        }
+
+        // NEW: Update play park statistics
+        async function updatePlayParkStats() {
+            try {
+                const playParksData = await playParkManager.loadAllPlayParkAreas();
+                
+                let totalPlayAreas = 0;
+                Object.values(playParksData).forEach(areas => {
+                    totalPlayAreas += areas.length;
+                });
+                
+                document.getElementById('totalPlayAreas').textContent = totalPlayAreas;
+                
+                // Calculate basic compliance rate (placeholder logic)
+                const complianceRate = totalPlayAreas > 0 ? 85 : 0; // Example calculation
+                document.getElementById('complianceRate').textContent = `${complianceRate}%`;
+                
+            } catch (error) {
+                console.error('Error updating play park stats:', error);
+                document.getElementById('totalPlayAreas').textContent = '0';
+                document.getElementById('complianceRate').textContent = '0%';
+            }
+        }
+
+        // FIREBASE-FIRST: Update all play park dropdowns system-wide
+        async function updateAllPlayParkDropdowns() {
+            try {
+                // Reload data from Firebase
+                await loadStoredPlayParkAreas();
+                
+                // Update setup dropdown (now input field, but we keep function for consistency)
+                updatePlayParkList();
+                
+                // Update inspection dropdown
+                updateInspectionPlayParkList();
+                
+                console.log('All play park dropdowns updated from Firebase data');
+            } catch (error) {
+                console.error('Error updating play park dropdowns:', error);
+            }
+        }
+
+        // FIREBASE-FIRST: Handle inspection-specific park selection for direct access
+        function updateInspectionPlayParkList() {
+            const facility = document.getElementById('pp-inspection-park').value;
+            const parkSelect = document.getElementById('pp-inspection-area');
+            
+            parkSelect.innerHTML = '<option value="">Select Play Area</option>';
+            
+            if (facility && highlandHolidaysSiteData[facility]) {
+                const siteData = highlandHolidaysSiteData[facility];
+                
+                // Populate play areas dropdown from Firebase data
+                siteData.playParks.forEach(park => {
+                    const option = document.createElement('option');
+                    option.value = park;
+                    option.textContent = park;
+                    parkSelect.appendChild(option);
+                });
+            }
+            
+            saveFormData();
+        }
+
+        // UPDATED: Calculate inspections due this week based on installation date and inspection frequencies
+        function updateInspectionsDue() {
+            const installationDate = document.getElementById('pp-installation-date').value;
+            const lastInspectionDate = document.getElementById('pp-inspection-date').value;
+            
+            if (!installationDate) {
+                document.getElementById('inspectionsDue').textContent = '0';
+                return;
+            }
+            
+            const today = new Date();
+            const oneWeekFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+            
+            let dueCount = 0;
+            
+            // Calculate based on installation date if no inspections completed yet
+            const baseDate = lastInspectionDate ? new Date(lastInspectionDate) : new Date(installationDate);
+            
+            // Daily inspections (every day since installation/last inspection)
+            const daysSinceBase = Math.floor((today - baseDate) / (24 * 60 * 60 * 1000));
+            if (daysSinceBase >= 1) dueCount += Math.min(daysSinceBase, 7); // Max 7 daily checks per week
+            
+            // Weekly inspections (every 7 days)
+            const weeksSinceBase = Math.floor(daysSinceBase / 7);
+            if (weeksSinceBase >= 1) dueCount += 1;
+            
+            // Monthly inspections (every 30 days)
+            const monthsSinceBase = Math.floor(daysSinceBase / 30);
+            if (monthsSinceBase >= 1) dueCount += 1;
+            
+            // Annual inspections (every 365 days)
+            const yearsSinceBase = Math.floor(daysSinceBase / 365);
+            if (yearsSinceBase >= 1) dueCount += 1;
+            
+            document.getElementById('inspectionsDue').textContent = dueCount;
+        }
+
+        // NEW: Add maintenance request function that goes to maintenance.html
+        function addMaintenanceRequest() {
+            const parkName = document.getElementById('pp-park-name').value || document.getElementById('pp-inspection-park').value;
+            const playArea = document.getElementById('pp-park-id').value || document.getElementById('pp-inspection-area').value;
+            const inspectionDate = document.getElementById('pp-inspection-date').value;
+            const inspectorName = document.getElementById('pp-inspector-name').value;
+            
+            // Collect any identified issues
+            let issues = [];
+            
+            // Check equipment conditions for problems
+            const equipmentTypes = ['swing', 'slide', 'climb', 'multiplay'];
+            equipmentTypes.forEach(type => {
+                const condition = document.querySelector(`input[name="${type}_condition"]:checked`);
+                const notes = document.querySelector(`input[name="${type}_notes"]`);
+                
+                if (condition && (condition.value === 'poor' || condition.value === 'unsafe')) {
+                    issues.push(`${type.charAt(0).toUpperCase() + type.slice(1)}: ${condition.value} condition. ${notes ? 'Notes: ' + notes.value : ''}`);
+                }
+            });
+            
+            // Check for unchecked safety items
+            const safetyChecks = document.querySelectorAll('input[name="safety_checks"]:not(:checked)');
+            safetyChecks.forEach(check => {
+                const label = document.querySelector(`label[for="${check.id}"]`);
+                if (label) {
+                    issues.push(`Safety Issue: ${label.textContent}`);
+                }
+            });
+            
+            // Prepare data for maintenance.html with stored play park context
+            const maintenanceData = {
+                source: 'Play Parks Safety',
+                park: parkName || 'Not specified',
+                location: playArea || 'Not specified',
+                requestedBy: inspectorName || 'Play Park Inspector',
+                dateIdentified: inspectionDate || new Date().toISOString().split('T')[0],
+                issues: issues.length > 0 ? issues.join('; ') : 'Issues identified during play park inspection',
+                priority: issues.some(issue => issue.includes('unsafe')) ? 'high' : 'medium'
+            };
+            
+            // Store in localStorage for maintenance.html to pick up
+            localStorage.setItem('safePark_maintenanceRequest', JSON.stringify(maintenanceData));
+            
+            // Also store current play park context for maintenance system
+            localStorage.setItem('safePark_currentPlayParkContext', JSON.stringify({
+                holidayPark: parkName,
+                playArea: playArea,
+                lastInspection: inspectionDate,
+                inspector: inspectorName
+            }));
+            
+            // Redirect to maintenance.html
+            window.location.href = 'index-back-up.html?maintenance=true';
+        }
+
+        // URL parameter detection function - Enhanced for direct inspection access
+        function checkURLParameters() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const section = urlParams.get('section');
+            
+            if (section && ['onboarding', 'risk-assessment', 'procedures', 'inspection', 'rpii'].includes(section)) {
+                showPlayParkStep(section);
+                
+                // If coming directly to inspection (from daily check tile), pre-configure for quick daily check
+                if (section === 'inspection') {
+                    setupQuickDailyCheck();
+                }
+            }
+        }
+
+        // Setup quick daily check when accessed directly via URL parameter
+        function setupQuickDailyCheck() {
+            // Set today's date
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('pp-inspection-date').value = today;
+            
+            // Pre-select daily inspection type
+            document.getElementById('pp-inspection-type').value = 'daily';
+            
+            // Show quick check info
+            const quickCheckAlert = document.querySelector('.alert-info');
+            if (quickCheckAlert) {
+                quickCheckAlert.style.background = 'rgba(40, 167, 69, 0.1)';
+                quickCheckAlert.style.borderColor = 'var(--success)';
+                quickCheckAlert.innerHTML = `
+                    <strong>Quick Daily Check Mode:</strong> 
+                    You've been directed straight to the daily inspection section. 
+                    <button type="button" class="btn" onclick="quickPlayParkDailyCheck()" style="margin: 0 10px;">Complete Daily Check (All Good)</button>
+                    <button type="button" class="btn btn-secondary" onclick="selectAllPlayParkDailyChecks()" style="margin: 0 10px;">Select All Safety Checks</button>
+                `;
+            }
+            
+            // Auto-scroll to the inspection form on mobile
+            if (window.innerWidth <= 768) {
+                setTimeout(() => {
+                    const inspectionForm = document.querySelector('#pp-inspection .form-section');
+                    if (inspectionForm) {
+                        inspectionForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 500);
+            }
+        }
+
+        // Form persistence system
+        function saveFormData() {
+            const formData = new FormData(document.getElementById('playParkForm'));
+            const dataObj = {};
+            
+            // Save form values
+            for (let [key, value] of formData.entries()) {
+                if (dataObj[key]) {
+                    if (Array.isArray(dataObj[key])) {
+                        dataObj[key].push(value);
+                    } else {
+                        dataObj[key] = [dataObj[key], value];
+                    }
+                } else {
+                    dataObj[key] = value;
+                }
+            }
+            
+            // Save checkboxes
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                dataObj[checkbox.name + '_checked'] = checkbox.checked;
+            });
+            
+            // Save radio buttons
+            document.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
+                dataObj[radio.name + '_selected'] = radio.value;
+            });
+            
+            localStorage.setItem('safePark_playParksFormData', JSON.stringify(dataObj));
+            
+            // Update inspections due count when form data changes
+            updateInspectionsDue();
+        }
+
+        function loadFormData() {
+            const savedData = localStorage.getItem('safePark_playParksFormData');
+            if (!savedData) return;
+            
+            try {
+                const dataObj = JSON.parse(savedData);
+                
+                // Restore form values
+                Object.keys(dataObj).forEach(key => {
+                    if (key.endsWith('_checked')) {
+                        const fieldName = key.replace('_checked', '');
+                        const checkbox = document.querySelector(`input[name="${fieldName}"][type="checkbox"]`);
+                        if (checkbox) checkbox.checked = dataObj[key];
+                    } else if (key.endsWith('_selected')) {
+                        const fieldName = key.replace('_selected', '');
+                        const radio = document.querySelector(`input[name="${fieldName}"][value="${dataObj[key]}"]`);
+                        if (radio) radio.checked = true;
+                    } else {
+                        const field = document.querySelector(`[name="${key}"]`);
+                        if (field && !key.includes('_checked') && !key.includes('_selected')) {
+                            field.value = dataObj[key];
+                        }
+                    }
+                });
+                
+                // Trigger dependent updates
+                updatePlayParkList();
+                updatePlayParkRiskAssessment();
+                updateInspectionsDue();
+            } catch (error) {
+                console.error('Error loading form data:', error);
+            }
+        }
+
+        function saveAndContinue(nextStep) {
+            saveFormData();
+            showPlayParkStep(nextStep);
+        }
+
+        // Navigation functions
+        window.showPlayParkStep = function(stepId) {
+            // Save current form data
+            saveFormData();
+            
+            // Hide all play park steps
+            document.querySelectorAll('.playpark-step').forEach(step => {
+                step.classList.remove('active');
+            });
+            
+            // Remove active from all nav buttons
+            document.querySelectorAll('.playpark-nav-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected step
+            document.getElementById('pp-' + stepId).classList.add('active');
+            
+            // Navigation mapping
+            const navButtons = {
+                'onboarding': 0,
+                'risk-assessment': 1,
+                'procedures': 2,
+                'inspection': 3,
+                'rpii': 4
+            };
+            
+            const buttons = document.querySelectorAll('.playpark-nav-button');
+            if (buttons[navButtons[stepId]]) {
+                buttons[navButtons[stepId]].classList.add('active');
+            }
+            
+            // Update hidden submission type
+            document.getElementById('playParkSubmissionType').value = stepId;
+        }
+
+        function updatePlayParkList() {
+            const facility = document.getElementById('pp-park-name').value;
+            const addressField = document.getElementById('pp-address');
+            const phoneField = document.getElementById('pp-contact-phone');
+            const emailField = document.getElementById('pp-contact-email');
+            
+            if (facility && highlandHolidaysSiteData[facility]) {
+                const siteData = highlandHolidaysSiteData[facility];
+                
+                // Auto-populate fields
+                if (addressField) addressField.value = siteData.address;
+                if (phoneField) phoneField.value = siteData.phone;
+                if (emailField) emailField.value = siteData.email;
+            } else {
+                // Clear fields if no facility selected
+                if (addressField) addressField.value = '';
+                if (phoneField) phoneField.value = '';
+                if (emailField) emailField.value = 'info@highlandholidays.co.uk';
+            }
+            
+            saveFormData();
+        }
+
+        function updatePlayParkRiskAssessment() {
+            const equipment = Array.from(document.querySelectorAll('input[name="equipment"]:checked')).map(el => el.value);
+            const surfaceType = document.getElementById('pp-surface-type').value;
+
+            if (equipment.length === 0 || !surfaceType) {
+                document.getElementById('pp-risk-list').innerHTML = '<p><em>Please complete setup section to generate risk assessment.</em></p>';
+                return;
+            }
+
+            let riskHTML = '<ul style="color: var(--white); list-style: none; padding: 0;">';
+            
+            equipment.forEach(item => {
+                const risks = getPlayParkEquipmentRisks(item, surfaceType);
+                risks.forEach(risk => {
+                    let riskColor = risk.level === 'High' ? '#FF4500' : 
+                                   risk.level === 'Medium' ? '#FFD700' : '#90EE90';
+                    riskHTML += `<li style="margin: 10px 0;">
+                        <strong>${risk.hazard}:</strong> ${risk.description} 
+                        <span style="background: ${riskColor}; color: var(--black); font-weight: bold; padding: 2px 8px; border-radius: 3px; margin-left: 10px;">
+                        ${risk.level} Risk</span>
+                    </li>`;
+                });
+            });
+            
+            riskHTML += '</ul>';
+            document.getElementById('pp-risk-list').innerHTML = riskHTML;
+        }
+
+        function getPlayParkEquipmentRisks(equipment, surfaceType) {
+            const riskDatabase = {
+                'swings': [
+                    { hazard: 'Fall from Height', description: 'Falls from swing seats during use', level: 'Medium' },
+                    { hazard: 'Impact Injury', description: 'Being struck by moving swing', level: 'High' },
+                    { hazard: 'Entanglement', description: 'Clothing/jewelry caught in chains', level: 'Low' }
+                ],
+                'slides': [
+                    { hazard: 'Fall from Height', description: 'Falls from platform or slide surface', level: 'Medium' },
+                    { hazard: 'Burns', description: 'Hot surfaces in direct sunlight', level: 'Low' },
+                    { hazard: 'Collision', description: 'Multiple users on slide simultaneously', level: 'Medium' }
+                ],
+                'climbing': [
+                    { hazard: 'Fall from Height', description: 'Falls during climbing activity', level: 'High' },
+                    { hazard: 'Crush Injury', description: 'Hands/fingers caught in gaps', level: 'Medium' }
+                ],
+                'seesaws': [
+                    { hazard: 'Impact Injury', description: 'Sudden impact when seesaw hits ground', level: 'Medium' },
+                    { hazard: 'Pinch Points', description: 'Fingers caught in pivot mechanism', level: 'Medium' }
+                ],
+                'roundabout': [
+                    { hazard: 'Centrifugal Force', description: 'Children thrown from equipment', level: 'High' },
+                    { hazard: 'Collision', description: 'Impact with stationary objects', level: 'Medium' }
+                ],
+                'spring': [
+                    { hazard: 'Fall Risk', description: 'Falls from spring riders', level: 'Low' },
+                    { hazard: 'Pinch Points', description: 'Fingers caught in spring mechanism', level: 'Medium' }
+                ],
+                'multiplay': [
+                    { hazard: 'Multiple Hazards', description: 'Combined risks from various components', level: 'Medium' },
+                    { hazard: 'Congestion', description: 'Multiple users causing collisions', level: 'Medium' }
+                ],
+                'sandbox': [
+                    { hazard: 'Hygiene', description: 'Contamination from animals or debris', level: 'Medium' },
+                    { hazard: 'Eye Injury', description: 'Sand thrown into eyes', level: 'Low' }
+                ],
+                'water': [
+                    { hazard: 'Slip Hazard', description: 'Wet surfaces causing slips', level: 'High' },
+                    { hazard: 'Hygiene', description: 'Water quality and contamination', level: 'Medium' }
+                ],
+                'fitness': [
+                    { hazard: 'Strain Injury', description: 'Improper use causing muscle strain', level: 'Medium' },
+                    { hazard: 'Impact', description: 'Falls from equipment', level: 'Medium' }
+                ]
+            };
+
+            let risks = riskDatabase[equipment] || [
+                { hazard: 'General Hazard', description: 'Equipment specific assessment required', level: 'Medium' }
+            ];
+            
+            // Adjust risk based on surface type
+            if (surfaceType === 'concrete' || surfaceType === 'grass') {
+                risks = risks.map(risk => {
+                    if (risk.hazard.includes('Fall')) {
+                        return {...risk, level: 'High'};
+                    }
+                    return risk;
+                });
+            }
+            
+            return risks;
+        }
+
+        // Generate Safe Working Procedures
+        window.generateProcedures = function() {
+            const equipment = Array.from(document.querySelectorAll('input[name="equipment"]:checked')).map(el => el.value);
+            const ageGroups = Array.from(document.querySelectorAll('input[name="age_groups"]:checked')).map(el => el.value);
+            
+            if (equipment.length === 0) {
+                alert('Please select equipment in the Setup section first.');
+                return;
+            }
+            
+            let proceduresHTML = '';
+            
+            equipment.forEach(item => {
+                const procedures = getEquipmentProcedures(item, ageGroups);
+                proce
