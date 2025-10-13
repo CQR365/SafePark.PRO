@@ -30,7 +30,7 @@ import {
 // FIREBASE CONFIGURATION
 // ============================================================================
 const firebaseConfig = {
-    apiKey: "your-actual-api-key",
+    apiKey: "your-api-key",
     authDomain: "your-project.firebaseapp.com", 
     projectId: "your-project-id",
     storageBucket: "your-project.appspot.com",
