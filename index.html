@@ -3436,7 +3436,15 @@ let authenticationInProgress = false;
         // Updated Team Management with Firebase
         async function addTeamMember(event) {
             event.preventDefault();
-            if (!isAuthenticated) return;
+            // Replace line 3439 with this:
+const currentUser = firebase.auth().currentUser;
+if (!currentUser) {
+    console.error('Firebase user not authenticated');
+    alert('Authentication expired. Please refresh the page and log in again.');
+    return;
+}
+
+console.log('Current user:', currentUser.uid); // For debugging
 
             const teamMember = {
                 name: document.getElementById('memberName').value,
