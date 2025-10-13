@@ -30,13 +30,12 @@ import {
 // FIREBASE CONFIGURATION
 // ============================================================================
 const firebaseConfig = {
-  apiKey: "AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
-  authDomain: "safepark-pro.firebaseapp.com",
-  projectId: "safepark-pro",
-  storageBucket: "safepark-pro.firebasestorage.app",
-  messagingSenderId: "511221743341",
-  appId: "1:511221743341:web:95bcc7e83d4861578016e4",
-  measurementId: "G-R1L16F7JJG"
+    apiKey: "your-actual-api-key",
+    authDomain: "your-project.firebaseapp.com", 
+    projectId: "your-project-id",
+    storageBucket: "your-project.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "your-app-id"
 };
 
 // Initialize Firebase
