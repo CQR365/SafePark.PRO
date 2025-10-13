@@ -2506,3 +2506,423 @@
     </script>
 </body>
 </html>
+// SafePark.PRO Integration Functions (Missing from original)
+        window.syncSafeParkData = function() {
+            try {
+                const authData = JSON.parse(localStorage.getItem('safePark_auth') || '{}');
+                
+                // Auto-populate location if user is logged in
+                if (authData && authData.user && authData.user.park) {
+                    const locationSelect = document.getElementById('locationSelect');
+                    if (locationSelect && highlandHolidaysData[authData.user.park]) {
+                        locationSelect.value = authData.user.park;
+                        updateLocationDetails();
+                    }
+                }
+                
+                // Update team member dropdowns
+                updateResponsibleManagerDropdown();
+                
+                console.log('SafePark.PRO data synced successfully');
+            } catch (error) {
+                console.warn('SafePark.PRO sync failed:', error);
+            }
+        };
+
+        function updateResponsibleManagerDropdown() {
+            try {
+                const authData = JSON.parse(localStorage.getItem('safePark_auth') || '{}');
+                const selectedPark = document.getElementById('locationSelect').value;
+                const managerSelect = document.getElementById('responsibleManager');
+                
+                if (!managerSelect) return;
+                
+                managerSelect.innerHTML = '<option value="">Select team member...</option>';
+                
+                // Add current user if available
+                if (authData && authData.user) {
+                    managerSelect.innerHTML += `<option value="${authData.user.name}">${authData.user.name} - ${authData.user.role || 'Manager'}</option>`;
+                }
+                
+                // Add team members from SafePark system
+                const teamMembers = JSON.parse(localStorage.getItem('safePark_team_members') || '[]');
+                const filteredMembers = teamMembers.filter(member => 
+                    (!selectedPark || member.holidayPark === selectedPark || member.holidayPark === 'All Parks') &&
+                    member.businessArea === 'Food & Beverage'
+                );
+                
+                filteredMembers.forEach(member => {
+                    if (!authData.user || member.name !== authData.user.name) {
+                        managerSelect.innerHTML += `<option value="${member.name}">${member.name} - ${member.role || 'Team Member'}</option>`;
+                    }
+                });
+            } catch (error) {
+                console.warn('Error updating manager dropdown:', error);
+            }
+        }
+
+        // Firebase Integration Mock (for systems without Firebase)
+        window.safeParkManager = window.safeParkManager || {
+            addRecentActivity: function(module, message, type) {
+                try {
+                    const activities = JSON.parse(localStorage.getItem('safePark_recent_activities') || '[]');
+                    activities.unshift({
+                        id: Date.now(),
+                        module: module,
+                        message: message,
+                        type: type,
+                        timestamp: new Date().toISOString(),
+                        park: document.getElementById('locationSelect')?.value || 'Unknown'
+                    });
+                    
+                    // Keep only last 50 activities
+                    activities.splice(50);
+                    localStorage.setItem('safePark_recent_activities', JSON.stringify(activities));
+                    console.log(`Activity logged: ${message}`);
+                } catch (error) {
+                    console.warn('Error logging activity:', error);
+                }
+            },
+            
+            addTeamMember: function(memberData) {
+                try {
+                    const teamMembers = JSON.parse(localStorage.getItem('safePark_team_members') || '[]');
+                    const existingIndex = teamMembers.findIndex(m => m.name === memberData.name);
+                    
+                    if (existingIndex >= 0) {
+                        teamMembers[existingIndex] = { ...teamMembers[existingIndex], ...memberData };
+                    } else {
+                        memberData.id = Date.now();
+                        memberData.dateAdded = new Date().toISOString();
+                        teamMembers.push(memberData);
+                    }
+                    
+                    localStorage.setItem('safePark_team_members', JSON.stringify(teamMembers));
+                    console.log(`Team member added/updated: ${memberData.name}`);
+                } catch (error) {
+                    console.warn('Error adding team member:', error);
+                }
+            }
+        };
+
+        // MaintenanceSystem Mock (for systems without maintenance module)
+        window.MaintenanceSystem = window.MaintenanceSystem || {
+            config: {
+                categories: {
+                    CLEANING_HYGIENE: 'Cleaning & Hygiene',
+                    EQUIPMENT_MAINTENANCE: 'Equipment Maintenance',
+                    SAFETY_COMPLIANCE: 'Safety Compliance'
+                }
+            },
+            
+            createMaintenanceRequest: function(requestData) {
+                return new Promise((resolve, reject) => {
+                    try {
+                        const requests = JSON.parse(localStorage.getItem('safePark_maintenance_requests') || '[]');
+                        const newRequest = {
+                            id: 'MR-' + Date.now(),
+                            ...requestData,
+                            status: 'pending',
+                            createdAt: new Date().toISOString(),
+                            createdBy: 'Food Safety System'
+                        };
+                        
+                        requests.push(newRequest);
+                        localStorage.setItem('safePark_maintenance_requests', JSON.stringify(requests));
+                        
+                        console.log('Maintenance request created:', newRequest.id);
+                        resolve(newRequest);
+                    } catch (error) {
+                        console.warn('Error creating maintenance request:', error);
+                        reject(error);
+                    }
+                });
+            }
+        };
+
+        // SafeParkUtils Mock (for systems without main SafePark utilities)
+        window.SafeParkUtils = window.SafeParkUtils || {
+            getTeamMembers: function(businessArea, holidayPark) {
+                try {
+                    const teamMembers = JSON.parse(localStorage.getItem('safePark_team_members') || '[]');
+                    return teamMembers.filter(member => 
+                        (!businessArea || member.businessArea === businessArea) &&
+                        (!holidayPark || member.holidayPark === holidayPark || member.holidayPark === 'All Parks')
+                    );
+                } catch (error) {
+                    console.warn('Error getting team members:', error);
+                    return [];
+                }
+            },
+            
+            addTeamMember: function(memberData) {
+                return window.safeParkManager.addTeamMember(memberData);
+            }
+        };
+
+        // Enhanced Form Validation
+        function validateStep1Extended() {
+            const location = document.getElementById('locationSelect').value;
+            const businessName = document.getElementById('businessName').value.trim();
+            const email = document.getElementById('businessEmail').value.trim();
+            const capacity = document.getElementById('businessCapacity').value;
+            
+            let isValid = true;
+            let errors = [];
+            
+            if (!location) {
+                errors.push('Location selection is required');
+                document.getElementById('locationError').classList.remove('hidden');
+                isValid = false;
+            }
+            
+            if (!businessName) {
+                errors.push('Business name is required');
+                document.getElementById('businessNameError').classList.remove('hidden');
+                isValid = false;
+            }
+            
+            if (!email || !email.includes('@') || !email.includes('.')) {
+                errors.push('Valid email address is required');
+                document.getElementById('businessEmailError').classList.remove('hidden');
+                isValid = false;
+            }
+            
+            if (capacity && (isNaN(capacity) || parseInt(capacity) < 1)) {
+                errors.push('Capacity must be a positive number');
+                isValid = false;
+            }
+            
+            if (errors.length > 0) {
+                console.warn('Validation errors:', errors);
+            }
+            
+            return isValid;
+        }
+
+        // Enhanced Team Member Validation
+        function validateTeamMembersExtended() {
+            const teamMembers = document.querySelectorAll('[data-member-id]');
+            let validMembers = 0;
+            let errors = [];
+            
+            teamMembers.forEach((memberEl, index) => {
+                const nameInput = memberEl.querySelector('.team-member-name');
+                const emailInput = memberEl.querySelector('input[type="email"]');
+                
+                if (nameInput && nameInput.value.trim()) {
+                    validMembers++;
+                    
+                    // Validate email if provided
+                    if (emailInput && emailInput.value.trim() && 
+                        (!emailInput.value.includes('@') || !emailInput.value.includes('.'))) {
+                        errors.push(`Invalid email for team member ${index + 1}`);
+                    }
+                }
+            });
+            
+            if (validMembers === 0) {
+                errors.push('At least one team member is required');
+            }
+            
+            if (errors.length > 0) {
+                alert('Team member validation errors:\n' + errors.join('\n'));
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Auto-save functionality
+        let autoSaveTimer;
+        function startAutoSave() {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                try {
+                    const config = generateSystemConfig();
+                    localStorage.setItem('safePark_foodBeverage_autosave', JSON.stringify({
+                        config: config,
+                        timestamp: new Date().toISOString(),
+                        currentStep: currentStep
+                    }));
+                    console.log('Configuration auto-saved');
+                } catch (error) {
+                    console.warn('Auto-save failed:', error);
+                }
+            }, 10000); // Auto-save every 10 seconds
+        }
+
+        function loadAutoSave() {
+            try {
+                const saved = localStorage.getItem('safePark_foodBeverage_autosave');
+                if (saved) {
+                    const saveData = JSON.parse(saved);
+                    const timeDiff = new Date() - new Date(saveData.timestamp);
+                    
+                    // If saved within last hour, offer to restore
+                    if (timeDiff < 3600000) {
+                        if (confirm(`Found auto-saved configuration from ${new Date(saveData.timestamp).toLocaleTimeString()}. Would you like to restore it?`)) {
+                            loadConfiguration(saveData.config);
+                            currentStep = saveData.currentStep || 1;
+                            updateStepDisplay();
+                        }
+                    }
+                }
+            } catch (error) {
+                console.warn('Error loading auto-save:', error);
+            }
+        }
+
+        // Enhanced Configuration Loading
+        function loadConfiguration(config) {
+            try {
+                if (config.businessInfo) {
+                    // Load business information
+                    if (config.businessInfo.highlandHolidaysLocation) {
+                        document.getElementById('locationSelect').value = config.businessInfo.highlandHolidaysLocation;
+                        updateLocationDetails();
+                    }
+                    
+                    if (config.businessInfo.selectedFoodService) {
+                        document.getElementById('foodServiceSelect').value = config.businessInfo.selectedFoodService;
+                        updateFoodServiceDetails();
+                    }
+                    
+                    // Load other business fields
+                    const businessFields = ['businessType', 'businessPhone', 'businessEmail', 'businessCapacity', 'openTime', 'closeTime', 'businessNotes'];
+                    businessFields.forEach(field => {
+                        const element = document.getElementById(field);
+                        if (element && config.businessInfo[field.replace('business', '').toLowerCase()]) {
+                            element.value = config.businessInfo[field.replace('business', '').toLowerCase()];
+                        }
+                    });
+                }
+                
+                // Load team members
+                if (config.teamMembers && config.teamMembers.length > 0) {
+                    // Clear existing team members
+                    document.getElementById('teamMembersContainer').innerHTML = '';
+                    teamMemberIdCounter = 0;
+                    
+                    // Add team members from config
+                    config.teamMembers.forEach(member => {
+                        addTeamMember();
+                        const memberEl = document.querySelector(`[data-member-id="${teamMemberIdCounter}"]`);
+                        if (memberEl) {
+                            const inputs = memberEl.querySelectorAll('input, select, textarea');
+                            if (inputs[0]) inputs[0].value = member.name || '';
+                            if (inputs[1]) inputs[1].value = member.role || '';
+                            if (inputs[2]) inputs[2].value = member.email || '';
+                            if (inputs[3]) inputs[3].value = member.phone || '';
+                            if (inputs[4]) inputs[4].value = member.startDate || '';
+                            if (inputs[6]) inputs[6].value = member.experience || '';
+                        }
+                    });
+                }
+                
+                // Load equipment
+                if (config.equipment && config.equipment.length > 0) {
+                    document.getElementById('equipmentContainer').innerHTML = '';
+                    equipmentIdCounter = 0;
+                    
+                    config.equipment.forEach(item => {
+                        addEquipment();
+                        const equipmentEl = document.querySelector(`[data-equipment-id="${equipmentIdCounter}"]`);
+                        if (equipmentEl) {
+                            const inputs = equipmentEl.querySelectorAll('input, select, textarea');
+                            if (inputs[0]) inputs[0].value = item.name || '';
+                            if (inputs[1]) inputs[1].value = item.type || '';
+                            if (inputs[2]) inputs[2].value = item.location || '';
+                            if (inputs[3]) inputs[3].value = item.model || '';
+                            if (inputs[4]) inputs[4].value = item.maintenanceInterval || 30;
+                            if (inputs[5]) inputs[5].value = item.cleaningInterval || 120;
+                            if (inputs[6]) inputs[6].value = item.notes || '';
+                        }
+                    });
+                }
+                
+                // Load cleaning schedule
+                if (config.cleaningSchedule) {
+                    formData.cleaningTasks = config.cleaningSchedule;
+                    renderCleaningTasks();
+                }
+                
+                // Load temperature settings
+                if (config.temperatureSettings) {
+                    document.getElementById('refrigeratorMin').value = config.temperatureSettings.refrigerator.min;
+                    document.getElementById('refrigeratorMax').value = config.temperatureSettings.refrigerator.max;
+                    document.getElementById('freezerMin').value = config.temperatureSettings.freezer.min;
+                    document.getElementById('freezerMax').value = config.temperatureSettings.freezer.max;
+                    document.getElementById('hotHoldMin').value = config.temperatureSettings.hotHold.min;
+                    document.getElementById('hotHoldMax').value = config.temperatureSettings.hotHold.max;
+                    document.getElementById('cookingMin').value = config.temperatureSettings.cooking.min;
+                    document.getElementById('cookingMax').value = config.temperatureSettings.cooking.max;
+                    document.getElementById('checkInterval').value = config.temperatureSettings.checkInterval;
+                    updateCheckIntervalDisplay();
+                }
+                
+                // Load policies
+                if (config.policies) {
+                    document.getElementById('allergenPolicy').value = config.policies.allergenPolicy || '';
+                    document.getElementById('haccp').checked = config.policies.haccp !== false;
+                    document.getElementById('temperatureLogging').checked = config.policies.temperatureLogging !== false;
+                    document.getElementById('staffHealthChecks').checked = config.policies.staffHealthChecks !== false;
+                    document.getElementById('incidentReporting').checked = config.policies.incidentReporting !== false;
+                    document.getElementById('inventoryTracking').checked = config.policies.inventoryTracking !== false;
+                }
+                
+                console.log('Configuration loaded successfully');
+            } catch (error) {
+                console.error('Error loading configuration:', error);
+                alert('Error loading configuration. Some settings may not have been restored.');
+            }
+        }
+
+        // Enhanced error handling
+        window.addEventListener('error', function(event) {
+            console.error('Global error:', event.error);
+        });
+
+        window.addEventListener('unhandledrejection', function(event) {
+            console.error('Unhandled promise rejection:', event.reason);
+        });
+
+        // Add input event listeners for auto-save
+        document.addEventListener('input', startAutoSave);
+        document.addEventListener('change', startAutoSave);
+
+        // Load auto-save on page load
+        setTimeout(loadAutoSave, 1000);
+
+        // Override the existing validateCurrentStep function with enhanced version
+        const originalValidateCurrentStep = validateCurrentStep;
+        validateCurrentStep = function() {
+            switch(currentStep) {
+                case 1:
+                    return validateStep1Extended();
+                case 2:
+                    return validateTeamMembersExtended();
+                default:
+                    return originalValidateCurrentStep ? originalValidateCurrentStep() : true;
+            }
+        };
+
+        console.log('SafePark.PRO Food & Beverage Management System - All modules loaded successfully');
+    </script>
+
+    <!-- Add before closing body tag -->
+    <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('sw.js')
+          .then(function(registration) {
+            console.log('SW registered: ', registration);
+          })
+          .catch(function(registrationError) {
+            console.log('SW registration failed: ', registrationError);
+          });
+      });
+    }
+    </script>
+</body>
+</html>
