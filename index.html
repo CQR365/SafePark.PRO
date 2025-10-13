@@ -2761,32 +2761,32 @@ let authenticationInProgress = false;
 
         // FIXED: Check existing authentication FIRST
         function checkExistingAuth() {
-            console.log('🔍 Checking existing authentication...');
+    console.log('🔍 Checking existing authentication...');
+    
+    try {
+        const authData = getStoredData('safePark_auth'); // Use safe helper
+        if (authData && authData.timestamp && authData.park) {
+            const now = Date.now();
             
-            const authData = localStorage.getItem('safePark_auth');
-            if (authData) {
-                try {
-                    const { timestamp, park, code } = JSON.parse(authData);
-                    const now = Date.now();
-                    
-                    if (now - timestamp < AUTH_DURATION) {
-                        console.log('✅ Valid authentication found:', park);
-                        isAuthenticated = true;
-                        currentPark = park;
-                        return true;
-                    } else {
-                        console.log('⏰ Authentication expired, clearing...');
-                        localStorage.removeItem('safePark_auth');
-                    }
-                } catch (error) {
-                    console.log('❌ Invalid auth data, clearing...');
-                    localStorage.removeItem('safePark_auth');
-                }
+            if (now - authData.timestamp < AUTH_DURATION) {
+                console.log('✅ Valid authentication found:', authData.park);
+                isAuthenticated = true;
+                currentPark = authData.park;
+                return true;
+            } else {
+                console.log('⏰ Authentication expired, clearing...');
+                localStorage.removeItem('safePark_auth');
             }
-            
-            console.log('🔒 No valid authentication found');
-            return false;
         }
+    } catch (error) {
+        console.error('Error checking authentication:', error);
+        // Clear potentially corrupted auth data
+        localStorage.removeItem('safePark_auth');
+    }
+    
+    console.log('🔐 No valid authentication found');
+    return false;
+}
 
         // FIXED: Authentication function
         function authenticateUser() {
