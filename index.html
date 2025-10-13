@@ -2047,7 +2047,10 @@
     <!-- Enhanced PWA Notifications -->
     <div id="pwaNotification" class="pwa-notification">
         <div class="pwa-notification-content">
-            <div id="pwaNotificationTitle" class="pwa-notification-title"></div>
+            <div id="pwaNotificationT
+                
+                
+                itle" class="pwa-notification-title"></div>
             <div id="pwaNotificationText" class="pwa-notification-text"></div>
         </div>
         <div id="pwaNotificationActions" class="pwa-notification-actions"></div>
@@ -2726,6 +2729,21 @@
         let firebaseInitialized = false;
 let firebaseAuthReady = false;
 let authenticationInProgress = false;
+        // Skip to app function
+        function skipToApp() {
+            // Hide the loading screen and show main content
+            const loadingScreen = document.querySelector('.loading-progress');
+            const mainContent = document.querySelector('main'); // or adjust selector as needed
+            
+            if (loadingScreen) {
+                loadingScreen.style.display = 'none';
+            }
+            if (mainContent) {
+                mainContent.style.display = 'block';
+            }
+            
+            console.log('Skipped to main app');
+        }
 
 // Add these new Firebase state variables here:
 let firebaseAuthReady = false;
