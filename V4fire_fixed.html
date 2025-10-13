@@ -2383,3 +2383,424 @@
                 // Create maintenance task if inspection failed
                 if (inspection.overallResult === 'fail') {
                     createInspectionMaintenanceTask(extinguisher, 'failed_
+                    // Create maintenance task if inspection failed
+                if (inspection.overallResult === 'fail') {
+                    createInspectionMaintenanceTask(extinguisher, 'failed_inspection');
+                }
+                
+                saveFireExtinguishers();
+                updateExtinguisherDisplay();
+            }
+            
+            closeInspectionModal();
+            alert('Inspection recorded successfully!');
+        }
+
+        function recordService(extinguisherId) {
+            const extinguisher = fireExtinguishers.find(ext => ext.id == extinguisherId);
+            if (!extinguisher) return;
+            
+            const serviceDate = prompt('Enter service date (YYYY-MM-DD):', new Date().toISOString().split('T')[0]);
+            if (!serviceDate) return;
+            
+            const serviceCompany = prompt('Enter service company name:');
+            if (!serviceCompany) return;
+            
+            extinguisher.lastService = serviceDate;
+            extinguisher.serviceCompany = serviceCompany;
+            
+            if (!extinguisher.services) extinguisher.services = [];
+            extinguisher.services.push({
+                id: Date.now(),
+                serviceDate: serviceDate,
+                serviceCompany: serviceCompany,
+                createdAt: new Date().toISOString()
+            });
+            
+            saveFireExtinguishers();
+            updateExtinguisherDisplay();
+            alert('Service record updated successfully!');
+        }
+
+        function removeExtinguisher(extinguisherId) {
+            if (!confirm('Are you sure you want to remove this fire extinguisher from the system?')) return;
+            
+            fireExtinguishers = fireExtinguishers.filter(ext => ext.id != extinguisherId);
+            saveFireExtinguishers();
+            updateExtinguisherDisplay();
+            alert('Fire extinguisher removed successfully!');
+        }
+
+        function showMaintenanceCalendar() {
+            alert('Maintenance Calendar feature - View upcoming inspections and services for all extinguishers');
+        }
+
+        // Compliance handling functions
+        function handleComplianceChange(category, value) {
+            const group = document.querySelector(`[data-category="${category}"]`);
+            const recommendations = document.getElementById(`${category}-recommendations`);
+            
+            if (value === 'no' || value === 'partial') {
+                group.classList.add('non-compliant');
+                recommendations.classList.add('visible');
+            } else {
+                group.classList.remove('non-compliant');
+                recommendations.classList.remove('visible');
+            }
+            
+            updateActionPlan();
+        }
+
+        // Risk calculation
+        function calculateRisk() {
+            const likelihood = parseInt(document.getElementById('likelihood').value);
+            const consequence = parseInt(document.getElementById('consequence').value);
+            
+            if (!likelihood || !consequence) {
+                document.getElementById('riskResult').style.display = 'none';
+                document.getElementById('riskLevel').value = '';
+                return;
+            }
+            
+            const riskScore = likelihood * consequence;
+            let riskLevel, riskClass, riskText;
+            
+            if (riskScore <= 4) {
+                riskLevel = 'Low';
+                riskClass = 'risk-low';
+                riskText = 'Low Risk - Monitor and maintain current controls';
+            } else if (riskScore <= 9) {
+                riskLevel = 'Medium';
+                riskClass = 'risk-medium';
+                riskText = 'Medium Risk - Additional controls may be required';
+            } else if (riskScore <= 16) {
+                riskLevel = 'High';
+                riskClass = 'risk-high';
+                riskText = 'High Risk - Immediate action required';
+            } else {
+                riskLevel = 'Very High';
+                riskClass = 'risk-very-high';
+                riskText = 'Very High Risk - Stop activity until risk is reduced';
+            }
+            
+            const resultDiv = document.getElementById('riskResult');
+            resultDiv.className = `risk-cell ${riskClass}`;
+            resultDiv.textContent = `${riskLevel} (${riskScore}) - ${riskText}`;
+            resultDiv.style.display = 'flex';
+            
+            document.getElementById('riskLevel').value = riskLevel;
+            
+            // Create maintenance task for high/very high risk
+            if (riskScore >= 10) {
+                const selectedPark = document.getElementById('holidayPark').value;
+                const propertyName = document.getElementById('premisesName').value;
+                
+                if (window.MaintenanceSystem && window.MaintenanceSystem.createMaintenanceRequest) {
+                    window.MaintenanceSystem.createMaintenanceRequest({
+                        title: `Fire Safety: ${riskLevel} Risk Assessment - ${propertyName || 'Property'}`,
+                        description: `${riskLevel} fire risk identified at ${selectedPark || 'Holiday Park'} - ${propertyName || 'Property'}. Risk Score: ${riskScore}. Immediate fire safety improvements required.`,
+                        priority: riskScore >= 16 ? 'critical' : 'high',
+                        category: window.MaintenanceSystem.config.categories.SAFETY_COMPLIANCE,
+                        location: propertyName || 'Fire Risk Assessment Location',
+                        dueDate: riskScore >= 16 ? new Date() : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                    }).then(request => {
+                        console.log('✅ Fire Risk Maintenance synced to Firebase:', request.id);
+                    }).catch(error => {
+                        console.error('⚠️ Firebase sync failed (local copy saved):', error);
+                    });
+                }
+            }
+        }
+
+        // Action plan management
+        function updateActionPlan() {
+            actionPlanItems = {
+                immediate: [],
+                'short-term': [],
+                'long-term': []
+            };
+            
+            // Gather checked recommendations
+            document.querySelectorAll('.recommendations-section.visible').forEach(section => {
+                section.querySelectorAll('.recommendation-item').forEach(item => {
+                    const checkbox = item.querySelector('input[type="checkbox"]');
+                    const prioritySelect = item.querySelector('.priority-select');
+                    
+                    if (checkbox && checkbox.checked && prioritySelect) {
+                        const priority = prioritySelect.value;
+                        actionPlanItems[priority].push(checkbox.value);
+                    }
+                });
+            });
+            
+            // Update action plan display
+            updateActionPlanDisplay();
+        }
+
+        function updateActionPlanDisplay() {
+            const categories = ['immediate', 'short-term', 'long-term'];
+            
+            categories.forEach(category => {
+                const container = document.getElementById(`${category.replace('-', '')}Actions`);
+                const list = document.getElementById(`${category.replace('-', '')}ActionsList`);
+                
+                if (actionPlanItems[category].length > 0) {
+                    container.style.display = 'block';
+                    list.innerHTML = actionPlanItems[category].map(action => 
+                        `<div class="action-item ${category}">${action}</div>`
+                    ).join('');
+                } else {
+                    container.style.display = 'none';
+                }
+            });
+            
+            // Store action plan data
+            document.getElementById('actionPlanData').value = JSON.stringify(actionPlanItems);
+        }
+
+        // Evidence handling
+        function handleFileUpload(event) {
+            const files = Array.from(event.target.files);
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            
+            files.forEach(file => {
+                if (file.size > maxSize) {
+                    alert(`File ${file.name} exceeds 10MB limit`);
+                    return;
+                }
+                
+                const fileData = {
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    lastModified: file.lastModified,
+                    file: file
+                };
+                
+                evidenceFiles.push(fileData);
+                displayEvidence();
+            });
+        }
+
+        function displayEvidence() {
+            const container = document.getElementById('evidenceContainer');
+            
+            if (evidenceFiles.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            evidenceFiles.forEach((evidence, index) => {
+                html += `
+                    <div class="evidence-item">
+                        <div class="evidence-header">
+                            <div class="evidence-filename">${evidence.name}</div>
+                            <button class="evidence-remove" onclick="removeEvidence(${index})">Remove</button>
+                        </div>
+                        <div class="file-info">
+                            Size: ${(evidence.size / 1024).toFixed(1)} KB | 
+                            Type: ${evidence.type} | 
+                            Modified: ${new Date(evidence.lastModified).toLocaleDateString()}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function removeEvidence(index) {
+            evidenceFiles.splice(index, 1);
+            displayEvidence();
+        }
+
+        // Property-specific requirements
+        function updateSpecificRequirements() {
+            const propertyType = document.getElementById('propertyType').value;
+            const requirementsSection = document.getElementById('specificRequirements');
+            const requirementsContent = document.getElementById('requirementsContent');
+            
+            if (!propertyType) {
+                requirementsSection.style.display = 'none';
+                return;
+            }
+            
+            let requirements = '';
+            
+            switch (propertyType) {
+                case 'static-caravan':
+                    requirements = `
+                        <div class="info-box">
+                            <h4>BS 3632:2015 Static Caravan Requirements</h4>
+                            <ul>
+                                <li>Smoke alarms in each bedroom and living area</li>
+                                <li>10-year battery smoke alarms recommended</li>
+                                <li>Carbon monoxide detector near gas appliances</li>
+                                <li>Fire blanket in kitchen area</li>
+                                <li>Minimum 1m clearance around heating appliances</li>
+                            </ul>
+                        </div>
+                    `;
+                    break;
+                case 'clubhouse':
+                    requirements = `
+                        <div class="info-box">
+                            <h4>Entertainment Venue Requirements</h4>
+                            <ul>
+                                <li>Emergency lighting system</li>
+                                <li>Fire exit signs illuminated</li>
+                                <li>Maximum occupancy clearly displayed</li>
+                                <li>Fire extinguishers near bar/kitchen areas</li>
+                                <li>Staff fire safety training required</li>
+                            </ul>
+                        </div>
+                    `;
+                    break;
+                case 'restaurant':
+                    requirements = `
+                        <div class="info-box">
+                            <h4>Commercial Kitchen Requirements</h4>
+                            <ul>
+                                <li>Class F fire extinguisher for cooking oils</li>
+                                <li>Fire blanket in kitchen</li>
+                                <li>Extraction system fire suppression</li>
+                                <li>Daily cleaning of extraction filters</li>
+                                <li>Staff trained in fire safety procedures</li>
+                            </ul>
+                        </div>
+                    `;
+                    break;
+                default:
+                    requirements = `
+                        <div class="info-box">
+                            <h4>General Property Requirements</h4>
+                            <ul>
+                                <li>Working smoke detection system</li>
+                                <li>Clear fire escape routes</li>
+                                <li>Appropriate fire extinguishers</li>
+                                <li>Emergency contact information displayed</li>
+                            </ul>
+                        </div>
+                    `;
+            }
+            
+            requirementsContent.innerHTML = requirements;
+            requirementsSection.style.display = 'block';
+        }
+
+        // Form data management
+        function saveFormData() {
+            const formData = new FormData(document.getElementById('fireRiskAssessment'));
+            const data = {};
+            
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            
+            // Add action plan data
+            data.actionPlan = actionPlanItems;
+            data.evidenceFiles = evidenceFiles.map(f => ({
+                name: f.name,
+                size: f.size,
+                type: f.type
+            }));
+            
+            try {
+                localStorage.setItem('fireRiskAssessment_draft', JSON.stringify(data));
+                alert('Form data saved as draft');
+            } catch (error) {
+                console.error('Error saving form data:', error);
+                alert('Error saving form data');
+            }
+        }
+
+        function loadFormData() {
+            try {
+                const savedData = localStorage.getItem('fireRiskAssessment_draft');
+                if (!savedData) {
+                    alert('No saved draft found');
+                    return;
+                }
+                
+                const data = JSON.parse(savedData);
+                
+                // Populate form fields
+                Object.keys(data).forEach(key => {
+                    const element = document.getElementById(key) || document.querySelector(`[name="${key}"]`);
+                    if (element && typeof data[key] === 'string') {
+                        element.value = data[key];
+                    }
+                });
+                
+                // Restore action plan
+                if (data.actionPlan) {
+                    actionPlanItems = data.actionPlan;
+                    updateActionPlanDisplay();
+                }
+                
+                alert('Draft data loaded successfully');
+                
+            } catch (error) {
+                console.error('Error loading form data:', error);
+                alert('Error loading form data');
+            }
+        }
+
+        // Auto-save functionality
+        function startAutoSave() {
+            setInterval(() => {
+                if (document.getElementById('holidayPark').value || 
+                    document.getElementById('premisesName').value) {
+                    saveFormData();
+                    console.log('Auto-saved form data');
+                }
+            }, 300000); // Auto-save every 5 minutes
+        }
+
+        // Form submission
+        document.getElementById('fireRiskAssessment').addEventListener('submit', function(e) {
+            const riskLevel = document.getElementById('riskLevel').value;
+            
+            if (riskLevel === 'Very High') {
+                const confirm = window.confirm(
+                    'This assessment shows VERY HIGH fire risk. Are you sure you want to submit? ' +
+                    'Consider taking immediate action to reduce risks before submission.'
+                );
+                if (!confirm) {
+                    e.preventDefault();
+                    return;
+                }
+            }
+            
+            // Store final action plan data
+            document.getElementById('actionPlanData').value = JSON.stringify(actionPlanItems);
+            
+            // Clear draft on successful submission
+            setTimeout(() => {
+                localStorage.removeItem('fireRiskAssessment_draft');
+            }, 1000);
+        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSystem();
+            
+            // Add event listeners for dynamic updates
+            document.addEventListener('change', updateActionPlan);
+            
+            console.log('Fire Risk Assessment System V3 - Fully Loaded with Firebase Integration');
+        });
+
+        // Click outside modal to close
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.extinguisher-modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
