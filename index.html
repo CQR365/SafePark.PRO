@@ -3337,7 +3337,22 @@ let authenticationInProgress = false;
                 const docRef = await window.firebaseCollections.addDoc(
                     window.firebaseCollections.collection(window.firebaseDb, 'maintenanceTasks'), 
                     {
-                        ...taskData,
+                        // Check if Firebase is loaded first
+if (typeof firebase === 'undefined') {
+    console.error('Firebase not loaded yet');
+    alert('System still loading, please wait a moment and try again');
+    return;
+}
+
+// Then check authentication
+const currentUser = firebase.auth().currentUser;
+if (!currentUser) {
+    console.error('Firebase user not authenticated');
+    alert('Authentication expired. Please refresh the page and log in again.');
+    return;
+}
+
+console.log('Current user:', currentUser.uid); // For debugging
                         createdAt: new Date(),
                         updatedAt: new Date()
                     }
