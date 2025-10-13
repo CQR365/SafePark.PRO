@@ -3592,7 +3592,27 @@ let authenticationInProgress = false;
                 alert('Error creating task. Please try again.');
             }
         }
+// Add this function before loadMaintenanceTasks
+function getStoredData(key) {
+    try {
+        const data = localStorage.getItem(key);
+        return data ? JSON.parse(data) : null;
+    } catch (error) {
+        console.error('Error getting stored data:', error);
+        return null;
+    }
+}
 
+// You might also need this companion function
+function setStoredData(key, data) {
+    try {
+        localStorage.setItem(key, JSON.stringify(data));
+        return true;
+    } catch (error) {
+        console.error('Error storing data:', error);
+        return false;
+    }
+}
         function loadMaintenanceTasks() {
             const tasks = getStoredData('safePark_maintenance_tasks') || [];
             const container = document.getElementById('maintenanceTasksList');
