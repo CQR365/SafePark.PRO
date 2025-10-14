@@ -3549,6 +3549,7 @@ This includes all stored maintenance records, activities, and system data.`;
                     document.getElementById('loadingOverlay').style.display = 'none';
                     document.getElementById('loginOverlay').style.display = 'flex';
                 }, 3000);
+                handleURLParameters();
             }
         });
 
@@ -3666,6 +3667,24 @@ This includes all stored maintenance records, activities, and system data.`;
         };
 
         console.log('✅ SafeParkAuth object created and available globally');
+        // Handle URL parameters on page load - ADD THIS HERE
+function handleURLParameters() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const section = urlParams.get('section');
+    
+    if (section && document.getElementById(section)) {
+        setTimeout(() => {
+            if (isAuthenticated) {
+                showSection(section);
+                const navButton = document.querySelector(`button[onclick*="${section}"]`);
+                if (navButton) {
+                    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+                    navButton.classList.add('active');
+                }
+            }
+        }, 1000);
+    }
+}
     </script>
 </body>
 </html>
