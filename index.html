@@ -2055,8 +2055,8 @@
             }
         };
 
-        // Authentication constants
-        const AUTH_DURATION = 60 * 60 * 1000; // 60 minutes
+        // Authentication constants - EXTENDED TO 24 HOURS
+        const AUTH_DURATION = 24 * 60 * 60 * 1000; // 24 hours instead of 1 hour
 
         // Check existing authentication
         function checkExistingAuth() {
@@ -2069,6 +2069,7 @@
                     
                     if (now - authData.timestamp < AUTH_DURATION) {
                         console.log('Valid authentication found:', authData.user.name);
+                        console.log('Authentication expires in:', Math.round((AUTH_DURATION - (now - authData.timestamp)) / (1000 * 60 * 60)), 'hours');
                         isAuthenticated = true;
                         currentUser = authData.user;
                         return true;
@@ -2434,7 +2435,7 @@
                 console.error('Error loading maintenance dashboard:', error);
                 container.innerHTML = `
                     <div class="empty-state">
-                        <div class="empty-state-icon">❌</div>
+                        <div class="empty-state-icon">⚠️</div>
                         <div class="empty-state-title">Error Loading Data</div>
                         <div class="empty-state-text">
                             Unable to load maintenance records. Please check your connection and try again.
@@ -3182,40 +3183,59 @@ This includes all stored maintenance records, activities, and system data.`;
             window.open('grounds-equipment.html#inspection', '_blank');
         }
 
-        // Page initialization with error handling
+        // ========================================================================
+        // FIXED PAGE INITIALIZATION - THE KEY FIX FOR YOUR PROBLEM
+        // ========================================================================
+
+        // Page initialization - FIXED VERSION
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('SafePark.PRO initializing...');
+            console.log('🚀 SafePark.PRO initializing...');
             console.log('Step 1: DOM loaded');
             
             try {
-                // Check authentication first
+                // Check authentication FIRST
                 const wasAuthenticated = checkExistingAuth();
-                console.log('Step 2: Authentication check complete -', wasAuthenticated ? 'AUTHENTICATED' : 'NOT AUTHENTICATED');
+                console.log('Step 2: Authentication check complete -', wasAuthenticated ? '✅ AUTHENTICATED' : '❌ NOT AUTHENTICATED');
                 
-                // Set up loading sequence with guaranteed completion
-                setTimeout(() => {
-                    console.log('Step 3: Starting loading sequence...');
+                if (wasAuthenticated) {
+                    // USER IS ALREADY LOGGED IN - SKIP LOADING SEQUENCE
+                    console.log('🎯 User already authenticated - skipping loading sequence');
                     
-                    // Always complete loading sequence after 7 seconds, regardless of errors
                     setTimeout(() => {
-                        try {
-                            hideLoadingSequence();
-                        } catch (error) {
-                            console.error('Error in hideLoadingSequence:', error);
-                            // Force show login if there's an error
-                            document.getElementById('loadingOverlay').style.display = 'none';
-                            if (!isAuthenticated) {
-                                document.getElementById('loginOverlay').style.display = 'flex';
-                            }
+                        // Hide loading overlay immediately
+                        const loadingOverlay = document.getElementById('loadingOverlay');
+                        const loginOverlay = document.getElementById('loginOverlay');
+                        
+                        if (loadingOverlay) {
+                            loadingOverlay.style.display = 'none';
+                            console.log('✅ Loading overlay hidden immediately');
                         }
-                    }, 7000); // 7 second loading sequence
+                        if (loginOverlay) {
+                            loginOverlay.style.display = 'none';
+                            console.log('✅ Login overlay hidden');
+                        }
+                        
+                        // Show dashboard immediately
+                        showUserInfo();
+                        initializeMaintenanceIntegration();
+                        updateActivityLog('User returned to dashboard (already authenticated)');
+                        console.log('✅ Dashboard shown immediately for authenticated user');
+                    }, 500); // Just a brief delay for smooth transition
                     
-                    initializationComplete = true;
-                    console.log('Initialization complete');
-                }, 100);
+                } else {
+                    // USER NEEDS TO LOGIN - SHOW FULL LOADING SEQUENCE
+                    console.log('🔐 User needs authentication - showing loading sequence');
+                    
+                    setTimeout(() => {
+                        hideLoadingSequence(); // This will show login after loading
+                    }, 7000); // 7 second loading sequence for new users only
+                }
+                
+                initializationComplete = true;
+                console.log('✅ Initialization complete');
                 
             } catch (error) {
-                console.error('Error during initialization:', error);
+                console.error('❌ Error during initialization:', error);
                 // Emergency fallback - skip directly to login after 3 seconds
                 setTimeout(() => {
                     document.getElementById('loadingOverlay').style.display = 'none';
@@ -3228,7 +3248,7 @@ This includes all stored maintenance records, activities, and system data.`;
         setTimeout(() => {
             const loadingOverlay = document.getElementById('loadingOverlay');
             if (loadingOverlay && loadingOverlay.style.display !== 'none') {
-                console.log('Emergency fallback activated');
+                console.log('🚨 Emergency fallback activated');
                 loadingOverlay.style.display = 'none';
                 document.getElementById('loginOverlay').style.display = 'flex';
             }
@@ -3330,7 +3350,6 @@ This includes all stored maintenance records, activities, and system data.`;
         };
 
         console.log('✅ SafeParkAuth object created and available globally');
-    </script>
     </script>
 </body>
 </html>
