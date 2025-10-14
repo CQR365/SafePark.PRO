@@ -157,31 +157,33 @@
             }
         }
 
-        /* OFFLINE STATUS INDICATORS - NEW */
-        .offline-status {
-            position: fixed;
-            top: 100px;
-            right: 20px;
-            padding: 12px 20px;
-            border-radius: 8px;
-            z-index: 1001;
-            font-weight: bold;
-            font-size: 14px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
-        }
+        /* OFFLINE STATUS INDICATORS - UPDATED TO GREEN DOT */
+.offline-status {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    z-index: 1001;
+    transition: all 0.3s ease;
+    border: 2px solid rgba(255,255,255,0.3);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
 
-        .status-online {
-            background: linear-gradient(135deg, var(--success), #22a35b);
-            color: white;
-            border: 2px solid var(--success);
-        }
+.status-online {
+    background: #28A745;
+}
 
-        .status-offline {
-            background: linear-gradient(135deg, var(--warning), #e0a800);
-            color: var(--black);
-            border: 2px solid var(--warning);
-            animation: pulse 2s infinite;
+.status-offline {
+    background: #FFC107;
+    animation: pulse 2s infinite;
+}
+
+.status-syncing {
+    background: #CC5500;
+    animation: pulse 1s infinite;
+}
         }
 
         .status-syncing {
