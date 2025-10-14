@@ -3272,6 +3272,65 @@ This includes all stored maintenance records, activities, and system data.`;
         window.refreshAllData = refreshAllData;
         window.showDataBreakdown = showDataBreakdown;
         window.updateChart = updateChart;
+               
+        // Create the SafeParkAuth object that other modules expect
+        window.SafeParkAuth = {
+            requireAuth: function() {
+                console.log('SafeParkAuth.requireAuth() called');
+                
+                try {
+                    const authData = getStoredData('safePark_auth');
+                    if (!authData || !authData.user || !authData.timestamp) {
+                        console.log('No valid auth data found');
+                        window.location.href = 'index.html';
+                        return false;
+                    }
+                    
+                    const now = Date.now();
+                    if (now - authData.timestamp > AUTH_DURATION) {
+                        console.log('Session expired');
+                        localStorage.removeItem('safePark_auth');
+                        window.location.href = 'index.html';
+                        return false;
+                    }
+                    
+                    console.log('Authentication valid for:', authData.user.name);
+                    return true;
+                    
+                } catch (error) {
+                    console.error('Authentication error:', error);
+                    window.location.href = 'index.html';
+                    return false;
+                }
+            },
+            
+            getCurrentUser: function() {
+                try {
+                    const authData = getStoredData('safePark_auth');
+                    return authData ? authData.user : null;
+                } catch (error) {
+                    console.error('Error getting current user:', error);
+                    return null;
+                }
+            },
+            
+            isAuthenticated: function() {
+                try {
+                    const authData = getStoredData('safePark_auth');
+                    if (!authData || !authData.user || !authData.timestamp) {
+                        return false;
+                    }
+                    
+                    const now = Date.now();
+                    return (now - authData.timestamp) < AUTH_DURATION;
+                } catch (error) {
+                    return false;
+                }
+            }
+        };
+
+        console.log('✅ SafeParkAuth object created and available globally');
+    </script>
     </script>
 </body>
 </html>
