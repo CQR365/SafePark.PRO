@@ -1777,6 +1777,20 @@
 
         // Initialize Firebase-first application
         document.addEventListener('DOMContentLoaded', async function() {
+              if (window.SafeParkAuth) {
+        if (!window.SafeParkAuth.requireAuth()) {
+            return; // Will redirect to index.html if not authenticated
+        }
+        console.log('User authenticated:', window.SafeParkAuth.getCurrentUser().name);
+    } else {
+        // Fallback check
+        const authData = JSON.parse(localStorage.getItem('safePark_auth') || '{}');
+        if (!authData || !authData.user || (Date.now() - authData.timestamp > 3600000)) {
+            alert('Session expired. Returning to main dashboard.');
+            window.location.href = 'index.html';
+            return;
+        }
+    }
             try {
                 // Initialize SafePark Manager
                 if (window.SafeParkManager) {
