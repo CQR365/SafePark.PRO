@@ -2208,18 +2208,14 @@
                 const offlineAlert = document.getElementById('offlineInspectionAlert');
                 
                 if (this.isOnline) {
-                    statusElement.className = 'offline-status status-online';
-                    statusElement.innerHTML = '🟢 Online - Data Synced';
-                    if (offlineAlert) {
-                        offlineAlert.innerHTML = '<strong>Online:</strong> Inspections will save locally first and sync immediately to cloud.';
-                    }
-                } else {
-                    statusElement.className = 'offline-status status-offline';
-                    statusElement.innerHTML = '🔴 Offline - Saving Locally';
-                    if (offlineAlert) {
-                        offlineAlert.innerHTML = '<strong>Offline Mode:</strong> Inspections will save locally and sync when connection is restored.';
-                    }
-                }
+    statusElement.className = 'offline-status status-online';
+    statusElement.title = 'Online - Data Synced';
+    // ...
+} else {
+    statusElement.className = 'offline-status status-offline';
+    statusElement.title = 'Offline - Saving Locally';
+    // ...
+}
 
                 this.updatePendingInspectionsInfo();
             }
