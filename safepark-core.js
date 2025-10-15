@@ -991,3 +991,17 @@ window.SafeParkCore = {
 console.log('✅ SafePark.PRO Core loaded successfully');
 
 export default window.SafeParkCore;
+// Export the main functions/classes for module imports
+export {
+    authenticateUser,
+    // Add any other functions you want to export
+    // SafeParkManager (if you have this function/class)
+};
+
+// OR if you have a SafeParkManager class/function, export it:
+// export class SafeParkManager {
+//     // your SafeParkManager code
+// }
+
+// OR if SafeParkManager is a function already defined above:
+// export { SafeParkManager };
