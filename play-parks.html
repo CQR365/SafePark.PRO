@@ -6,16 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <title>CQR365 - SafePark.PRO Play Parks Safety</title>
-    
-    <!-- GITHUB SCRIPT REFERENCES -->
-    <script type="module" src="https://cdn.jsdelivr.net/gh/CQR365/SafePark.PRO@main/safepark-core.js"></script>
-    <script type="module" src="https://cdn.jsdelivr.net/gh/CQR365/SafePark.PRO@main/auth-handler.js"></script>
-    
-    <!-- Firebase Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <script type="module" src="https://cdn.jsdelivr.net/gh/CQR365/SafePark.PRO@main/firebase-config.js"></script>
-    
+        
     <!-- Maintenance Integration Module -->
     <script type="module" src="https://cdn.jsdelivr.net/gh/CQR365/SafePark.PRO@main/maintenance-integration.js"></script>
     
@@ -3160,9 +3151,85 @@ const currentUser = authData.user || {};
     customOption.textContent = 'Other Inspector';
     select.appendChild(customOption);
 }
+        // Get current user from login system
+function getCurrentUser() {
+    const authData = JSON.parse(localStorage.getItem('safePark_auth') || '{}');
+    return authData.user || {};
+}
+
+// Populate inspector dropdown with real team members
+function populateInspectorDropdown() {
+    const select = document.getElementById('pp-inspector-name');
+    if (!select) return;
+    
+    const currentUser = getCurrentUser();
+    const userPark = currentUser.park;
+    
+    select.innerHTML = '<option value="">Select team member...</option>';
+    
+    // Your real team members from index.html
+    const teamMembers = {
+        'Ben Nevis Holiday Park': [
+            'Lesleyanne - Park Manager',
+            'David - Grounds & Maintenance Manager', 
+            'Kelly - Team BN',
+            'Rik - Team BN'
+        ],
+        'Oban Holiday Park': [
+            'Siobhan - Park Manager',
+            'Maurray - Grounds & Maintenance Manager',
+            'Allan - Team OBN',
+            'Nathan - Team OBN'
+        ],
+        'Tyndrum Holiday Park': [
+            'Tyndrum Holiday Park Manager - Manager',
+            'Alasdair Fraser - Assistant Manager'
+        ]
+    };
+    
+    if (userPark && teamMembers[userPark]) {
+        teamMembers[userPark].forEach(member => {
+            const option = document.createElement('option');
+            option.value = member;
+            option.textContent = member;
+            select.appendChild(option);
+        });
+    }
+}
+
+// Populate play areas dropdown
+function updatePlayParkList() {
+    const facility = document.getElementById('pp-park-name').value;
+    const playAreaSelect = document.getElementById('pp-park-id');
+    
+    if (playAreaSelect) {
+        playAreaSelect.innerHTML = '<option value="">Select Play Park Area</option>';
+        
+        const playAreas = {
+            'Ben Nevis Holiday Park': ['Main Playground', 'Toddler Area', 'Adventure Zone'],
+            'Oban Holiday Park': ['Seaside Playground', 'Junior Area', 'Family Zone'], 
+            'Tyndrum Holiday Park': ['Highland Playground', 'Mountain Area']
+        };
+        
+        if (facility && playAreas[facility]) {
+            playAreas[facility].forEach(area => {
+                const option = document.createElement('option');
+                option.value = area;
+                option.textContent = area;
+                playAreaSelect.appendChild(option);
+            });
+        }
+    }
+}
+
+// Load inspector dropdown when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    populateInspectorDropdown();
+});
 </script>
 </body>
 </html>
+
 
 
 
