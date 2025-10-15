@@ -3095,9 +3095,9 @@ console.log('🐛 Debug tools available: window.debugSafePark');
     const select = document.getElementById('pp-inspector-name');
     if (!select) return;
     
-    // Get current user's park from localStorage
-    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    const userPark = currentUser.park;
+    // Get user data from the correct localStorage key
+const authData = JSON.parse(localStorage.getItem('safePark_auth') || '{}');
+const currentUser = authData.user || {};
     
     // Clear existing options
     select.innerHTML = '<option value="">Select team member...</option>';
@@ -3124,6 +3124,7 @@ console.log('🐛 Debug tools available: window.debugSafePark');
 
 </body>
 </html>
+
 
 
 
