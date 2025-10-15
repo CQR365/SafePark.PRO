@@ -3091,6 +3091,7 @@ window.debugSafePark = {
 
 console.log('🐛 Debug tools available: window.debugSafePark');
 </script>
+    <script>
     function populateInspectorDropdown() {
     const select = document.getElementById('pp-inspector-name');
     if (!select) return;
@@ -3104,6 +3105,44 @@ const currentUser = authData.user || {};
     
     // Get access codes from your existing system (should be available from index.html)
     const accessCodes = getAccessCodes(); // We'll need to make this available
+    function populateInspectorDropdown() {
+    const select = document.getElementById('pp-inspector-name');
+    if (!select) return;
+    
+    // Get user data from the correct localStorage key (FIXED)
+    const authData = JSON.parse(localStorage.getItem('safePark_auth') || '{}');
+    const currentUser = authData.user || {};
+    const userPark = currentUser.park; // FIXED: Define userPark
+    
+    // Clear existing options
+    select.innerHTML = '<option value="">Select team member...</option>';
+    
+    // Real team members (FIXED: Direct access codes instead of missing function)
+    const accessCodes = {
+        '1010': { name: 'Lesleyanne', park: 'Ben Nevis Holiday Park', role: 'Park Manager', type: 'park' },
+        '1010001': { name: 'David', park: 'Ben Nevis Holiday Park', role: 'Grounds & Maintenance Manager', type: 'individual' },
+        '1010002': { name: 'Kelly', park: 'Ben Nevis Holiday Park', role: 'Team BN', type: 'individual' },
+        '1020': { name: 'Siobhan', park: 'Oban Holiday Park', role: 'Park Manager', type: 'park' },
+        '1020001': { name: 'Maurray', park: 'Oban Holiday Park', role: 'Grounds & Maintenance Manager', type: 'individual' },
+        '1030': { name: 'Tyndrum Holiday Park Manager', park: 'Tyndrum Holiday Park', role: 'Park Manager', type: 'park' }
+    };
+    
+    // Filter team members for current park (FIXED: Use currentUser.park)
+    Object.values(accessCodes).forEach(member => {
+        if (member.park === userPark && (member.type === 'individual' || member.type === 'park')) {
+            const option = document.createElement('option');
+            option.value = member.name;
+            option.textContent = `${member.name} - ${member.role}`;
+            select.appendChild(option);
+        }
+    });
+    
+    // Add "Other Inspector" option
+    const customOption = document.createElement('option');
+    customOption.value = 'custom';
+    customOption.textContent = 'Other Inspector';
+    select.appendChild(customOption);
+}
     
     // Filter team members for current park
     Object.values(accessCodes).forEach(member => {
@@ -3124,6 +3163,7 @@ const currentUser = authData.user || {};
 </script>
 </body>
 </html>
+
 
 
 
