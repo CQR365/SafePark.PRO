@@ -1749,7 +1749,7 @@ console.log('Emergency functions loaded successfully');
                             <button type="button" class="btn btn-secondary" onclick="showPlayParkStep('onboarding')">Back</button>
                             <button type="button" class="btn" onclick="generateProcedures()">Generate Safe Working Procedures</button>
                             <button type="button" class="btn" onclick="saveAndContinue('procedures')">Continue to Procedures</button>
-                            <button type="submit" class="btn btn-secondary" style="width: auto; padding: 14px 28px;">Save Risk Assessment</button>
+                            <button type="button" class="btn btn-secondary" onclick="saveCurrentStep('risk-assessment')" style="width: auto; padding: 14px 28px;">Save Risk Assessment</button>
                         </div>
                     </div>
                 </div>
@@ -1833,7 +1833,7 @@ console.log('Emergency functions loaded successfully');
                             <button type="button" class="btn btn-secondary" onclick="showPlayParkStep('risk-assessment')">Back to Risk Assessment</button>
                             <button type="button" class="btn" onclick="generateInspectionSchedules()">Generate Inspection Schedules</button>
                             <button type="button" class="btn" onclick="saveAndContinue('inspection')">Continue to Inspection</button>
-                            <button type="submit" class="btn btn-secondary" style="width: auto; padding: 14px 28px;">Save Procedures</button>
+                            <button type="button" class="btn btn-secondary" onclick="saveCurrentStep('procedures')" style="width: auto; padding: 14px 28px;">Save Procedures</button>
                         </div>
                     </div>
                 </div>
@@ -2147,7 +2147,7 @@ console.log('Emergency functions loaded successfully');
 
                         <div style="display: flex; gap: 16px; flex-wrap: wrap;">
                             <button type="button" class="btn btn-secondary" onclick="showPlayParkStep('procedures')">Back to Procedures</button>
-                            <button type="submit" class="btn btn-secondary" style="width: auto; padding: 14px 28px;">Save Inspection</button>
+                            <button type="button" class="btn btn-secondary" onclick="saveCurrentStep('inspection')" style="width: auto; padding: 14px 28px;">Save Inspection</button>
                             <button type="submit" class="btn btn-submit" style="width: auto; padding: 14px 28px;">Submit Complete Assessment</button>
                         </div>
                     </div>
