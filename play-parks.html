@@ -2859,7 +2859,7 @@ console.log('âœ… Emergency functions loaded successfully');
 
         // ENHANCED FORM SUBMISSION HANDLER
         async handleOfflineFormSubmission(event) {
-            event.preventDefault();
+            const formData = new FormData(form);
             
             const form = document.getElementById('playParkForm');
 // Convert FormData to object for storage
@@ -3098,4 +3098,5 @@ console.log('🐛 Debug tools available: window.debugSafePark');
 
 </body>
 </html>
+
 
