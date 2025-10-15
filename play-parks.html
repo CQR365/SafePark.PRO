@@ -3091,9 +3091,40 @@ window.debugSafePark = {
 
 console.log('🐛 Debug tools available: window.debugSafePark');
 </script>
+    function populateInspectorDropdown() {
+    const select = document.getElementById('pp-inspector-name');
+    if (!select) return;
+    
+    // Get current user's park from localStorage
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const userPark = currentUser.park;
+    
+    // Clear existing options
+    select.innerHTML = '<option value="">Select team member...</option>';
+    
+    // Get access codes from your existing system (should be available from index.html)
+    const accessCodes = getAccessCodes(); // We'll need to make this available
+    
+    // Filter team members for current park
+    Object.values(accessCodes).forEach(member => {
+        if (member.park === userPark && (member.type === 'individual' || member.type === 'park')) {
+            const option = document.createElement('option');
+            option.value = member.name;
+            option.textContent = `${member.name} - ${member.role}`;
+            select.appendChild(option);
+        }
+    });
+    
+    // Add "Other Inspector" option
+    const customOption = document.createElement('option');
+    customOption.value = 'custom';
+    customOption.textContent = 'Other Inspector';
+    select.appendChild(customOption);
+}
 
 </body>
 </html>
+
 
 
 
