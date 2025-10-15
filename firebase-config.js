@@ -1,5 +1,5 @@
 // firebase-config.js - Complete Firebase Integration for SafePark.PRO
-// Updated with real SafePark-PRO configuration values and fixes
+// Updated with real SafePark-PRO configuration values
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { 
@@ -49,6 +49,7 @@ const auth = getAuth(app);
 // ============================================================================
 class FirebaseSafeParkDataManager {
     constructor() {
+        this.teamMembers = [];
         this.maintenanceRecords = [];
         this.maintenanceTasks = [];
         this.recentActivities = [];
@@ -82,83 +83,33 @@ class FirebaseSafeParkDataManager {
         this.setupOfflineHandling();
         this.initializeNotificationSystem();
         
-        console.log('SafePark.PRO Firebase integration initialized with real config');
+        console.log('✅ SafePark.PRO Firebase integration initialized with real config');
     }
 
     // ========================================================================
-    // AUTHENTICATION & INITIALIZATION - FIXED VERSION
+    // AUTHENTICATION & INITIALIZATION
     // ========================================================================
     async initializeAuth() {
         try {
-            console.log('Starting Firebase authentication...');
-            
             // Sign in anonymously for basic access
-            const userCredential = await signInAnonymously(auth);
-            console.log('Anonymous sign-in successful:', userCredential.user.uid);
+            await signInAnonymously(auth);
             
-            onAuthStateChanged(auth, async (user) => {
+            onAuthStateChanged(auth, (user) => {
                 if (user) {
-                    console.log('Auth state changed - User authenticated:', user.uid);
                     this.currentUser = user;
-                    
-                    // CRITICAL FIX: Wait for authentication to propagate
-                    console.log('Waiting for authentication to propagate...');
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    
-                    // Now initialize Firebase listeners with retry logic
-                    try {
-                        await this.initializeFirebaseListenersWithRetry();
-                        this.loadDataFromFirebase();
-                        this.setupPresenceSystem();
-                        this.showNotification('Firebase connected successfully!', 'success');
-                        console.log('Firebase system fully initialized');
-                    } catch (error) {
-                        console.error('Error initializing Firebase listeners:', error);
-                        this.showNotification('Some Firebase features may be limited', 'warning');
-                    }
-                    
+                    this.initializeFirebaseListeners();
+                    this.loadDataFromFirebase();
+                    this.setupPresenceSystem();
+                    this.showNotification('Firebase connected successfully!', 'success');
+                    console.log('✅ Firebase Authentication successful');
                 } else {
-                    console.log('Authentication failed - no user');
+                    console.log('❌ Authentication failed');
                     this.showNotification('Authentication failed. Using offline mode.', 'warning');
                 }
             });
-            
         } catch (error) {
             console.error('Authentication error:', error);
-            
-            // Provide specific error messages
-            if (error.code === 'auth/network-request-failed') {
-                this.showNotification('Network error. Check your connection.', 'error');
-            } else if (error.code === 'auth/too-many-requests') {
-                this.showNotification('Too many requests. Please wait and try again.', 'error');
-            } else {
-                this.showNotification('Firebase connection failed. Working offline.', 'error');
-            }
-        }
-    }
-
-    // NEW METHOD: Initialize listeners with retry logic
-    async initializeFirebaseListenersWithRetry(maxRetries = 3) {
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-            try {
-                console.log(`Initializing Firebase listeners (attempt ${attempt}/${maxRetries})`);
-                await this.initializeFirebaseListeners();
-                console.log('Firebase listeners initialized successfully');
-                return; // Success, exit the retry loop
-                
-            } catch (error) {
-                console.error(`Attempt ${attempt} failed:`, error);
-                
-                if (attempt === maxRetries) {
-                    console.error('All retry attempts failed');
-                    throw error; // Re-throw on final attempt
-                }
-                
-                // Wait before retrying (exponential backoff)
-                const delay = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
-                console.log(`Waiting ${delay/1000}s before retry...`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-            }
+            this.showNotification('Firebase connection failed. Working offline.', 'error');
         }
     }
 
@@ -273,7 +224,7 @@ class FirebaseSafeParkDataManager {
     }
 
     // ========================================================================
-    // REAL-TIME FIREBASE LISTENERS - FIXED WITHOUT TEAM MEMBER MIGRATION
+    // REAL-TIME FIREBASE LISTENERS - FIXED WITH AUTO-MIGRATION
     // ========================================================================
     async initializeFirebaseListeners() {
         // Clear existing listeners
@@ -282,14 +233,16 @@ class FirebaseSafeParkDataManager {
 
         try {
             // Check if this is first time setup (empty Firebase collections)
+            const teamMembersSnapshot = await getDocs(collection(db, 'teamMembers'));
             const maintenanceSnapshot = await getDocs(collection(db, 'maintenanceRecords'));
             
             // If Firebase is empty but localStorage has data, migrate automatically
-            if (maintenanceSnapshot.empty) {
+            if (teamMembersSnapshot.empty || maintenanceSnapshot.empty) {
+                const localTeamMembers = JSON.parse(localStorage.getItem('safePark_teamMembers') || '[]');
                 const localMaintenance = JSON.parse(localStorage.getItem('safePark_maintenanceRecords') || '[]');
                 
-                if (localMaintenance.length > 0) {
-                    console.log('Auto-migrating localStorage maintenance data to Firebase...');
+                if (localTeamMembers.length > 0 || localMaintenance.length > 0) {
+                    console.log('Auto-migrating localStorage data to Firebase...');
                     await this.migrateFromLocalStorage();
                     return; // Exit and let the migration restart the listeners
                 }
@@ -299,7 +252,31 @@ class FirebaseSafeParkDataManager {
             // Continue with normal listener setup if check fails
         }
 
-        // Maintenance records listener
+        // Team members listener
+        const teamMembersUnsubscribe = onSnapshot(
+            query(collection(db, 'teamMembers'), orderBy('dateAdded', 'desc')), 
+            (snapshot) => {
+                const oldCount = this.teamMembers.length;
+                this.teamMembers = [];
+                snapshot.forEach((doc) => {
+                    this.teamMembers.push({ id: doc.id, ...doc.data() });
+                });
+                
+                if (this.teamMembers.length > oldCount && oldCount > 0) {
+                    this.showNotification('New team member added!', 'success');
+                }
+                
+                this.displayTeamMembers();
+                this.updateStats();
+                this.updateDropdowns();
+            },
+            (error) => {
+                console.error('Error listening to team members:', error);
+                this.showNotification('Error syncing team members', 'error');
+            }
+        );
+
+        // Maintenance records listener - FIXED NOTIFICATION LOGIC
         const maintenanceUnsubscribe = onSnapshot(
             query(
                 collection(db, 'maintenanceRecords'), 
@@ -314,6 +291,7 @@ class FirebaseSafeParkDataManager {
                 });
                 
                 const newPendingCount = this.maintenanceRecords.filter(r => r.status === 'pending').length;
+                // FIXED: Changed from >= 0 to > 0 to prevent false notifications on page load
                 if (newPendingCount > oldPendingCount && oldPendingCount > 0) {
                     this.showNotification('New maintenance task created!', 'warning');
                 }
@@ -365,13 +343,14 @@ class FirebaseSafeParkDataManager {
         );
 
         // Store listeners for cleanup
-        this.listeners.push(maintenanceUnsubscribe, tasksUnsubscribe, activitiesUnsubscribe);
+        this.listeners.push(teamMembersUnsubscribe, maintenanceUnsubscribe, tasksUnsubscribe, activitiesUnsubscribe);
     }
 
     // ========================================================================
     // MAINTENANCE INTEGRATION FOR MAINTENANCE_INTEGRATION.JS COMPATIBILITY
     // ========================================================================
     async createMaintenanceRequest(requestData) {
+        // This is the key function that maintenance_integration.js will call
         const record = {
             id: 'MAINT_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
             title: requestData.title,
@@ -381,7 +360,7 @@ class FirebaseSafeParkDataManager {
             location: requestData.location || 'Not specified',
             status: 'pending',
             createdAt: new Date().toISOString(),
-            dateCreated: new Date().toISOString(),
+            dateCreated: new Date().toISOString(), // For compatibility
             createdBy: requestData.createdBy || 'System',
             holidayPark: requestData.holidayPark || 'Unknown',
             assignedTo: requestData.assignedTo || 'Unassigned'
@@ -389,10 +368,10 @@ class FirebaseSafeParkDataManager {
 
         try {
             await setDoc(doc(db, 'maintenanceRecords', record.id), record);
-            console.log('Maintenance request created via Firebase:', record.id);
+            console.log('✅ Maintenance request created via Firebase:', record.id);
             return { id: record.id, ...record };
         } catch (error) {
-            console.error('Error creating maintenance request:', error);
+            console.error('❌ Error creating maintenance request:', error);
             throw error;
         }
     }
@@ -477,15 +456,15 @@ class FirebaseSafeParkDataManager {
             }
 
             await updateDoc(doc(db, 'maintenanceRecords', recordId), updateData);
-            console.log('Maintenance record updated:', recordId);
+            console.log('✅ Maintenance record updated:', recordId);
             return updateData;
         } catch (error) {
-            console.error('Error updating maintenance status:', error);
+            console.error('❌ Error updating maintenance status:', error);
             throw error;
         }
     }
 
-    // Real-time listener for maintenance stats
+    // Real-time listener for maintenance stats (for maintenance_integration.js compatibility)
     listenToMaintenanceStats(callback, parkFilter = null) {
         try {
             let query_ref = collection(db, 'maintenanceRecords');
@@ -519,8 +498,87 @@ class FirebaseSafeParkDataManager {
     }
 
     // ========================================================================
-    // MAINTENANCE RECORD MANAGEMENT
+    // REST OF THE CLASS METHODS (keeping all existing functionality)
     // ========================================================================
+    
+    async addTeamMember(memberData) {
+        // Validate required fields
+        const requiredFields = ['name', 'email', 'role', 'holidayPark'];
+        for (const field of requiredFields) {
+            if (!memberData[field] || memberData[field].trim() === '') {
+                throw new Error(`${field} is required`);
+            }
+        }
+
+        // Check for duplicate email
+        const existingMember = this.teamMembers.find(m => m.email.toLowerCase() === memberData.email.toLowerCase());
+        if (existingMember) {
+            throw new Error('A team member with this email already exists');
+        }
+
+        const member = {
+            ...memberData,
+            businessArea: 'All Business Areas',
+            dateAdded: new Date().toISOString(),
+            addedBy: this.currentUser?.uid || 'anonymous'
+        };
+
+        if (!this.isOnline) {
+            this.offlineQueue.push(async () => {
+                await addDoc(collection(db, 'teamMembers'), member);
+                await this.addRecentActivity('Team Management', `Added team member: ${member.name}`, 'success');
+            });
+            this.showNotification('Team member queued for sync when online', 'warning');
+            return { id: 'pending-' + Date.now(), ...member };
+        }
+
+        try {
+            const docRef = await addDoc(collection(db, 'teamMembers'), member);
+            await this.addRecentActivity('Team Management', `Added team member: ${member.name}`, 'success');
+            this.showNotification(`${member.name} added to team`, 'success');
+            return { id: docRef.id, ...member };
+        } catch (error) {
+            console.error('Error adding team member:', error);
+            this.showNotification('Failed to add team member', 'error');
+            throw error;
+        }
+    }
+
+    async removeTeamMember(memberId) {
+        const member = this.teamMembers.find(m => m.id === memberId);
+        
+        if (!this.isOnline) {
+            this.offlineQueue.push(async () => {
+                await deleteDoc(doc(db, 'teamMembers', memberId));
+                await this.addRecentActivity('Team Management', `Removed team member: ${member ? member.name : memberId}`, 'warning');
+            });
+            this.showNotification('Team member removal queued for sync', 'warning');
+            return true;
+        }
+
+        try {
+            await deleteDoc(doc(db, 'teamMembers', memberId));
+            await this.addRecentActivity('Team Management', `Removed team member: ${member ? member.name : memberId}`, 'warning');
+            this.showNotification('Team member removed', 'success');
+            return true;
+        } catch (error) {
+            console.error('Error removing team member:', error);
+            this.showNotification('Failed to remove team member', 'error');
+            throw error;
+        }
+    }
+
+    getTeamMembers(businessArea = null, holidayPark = null) {
+        let filtered = this.teamMembers;
+        if (businessArea) {
+            filtered = filtered.filter(member => member.businessArea === businessArea);
+        }
+        if (holidayPark) {
+            filtered = filtered.filter(member => member.holidayPark === holidayPark);
+        }
+        return filtered;
+    }
+
     async addMaintenanceRecord(recordData) {
         const record = {
             ...recordData,
@@ -611,14 +669,19 @@ class FirebaseSafeParkDataManager {
         }
     }
 
-    // ========================================================================
-    // MIGRATION (MAINTENANCE ONLY)
-    // ========================================================================
     async migrateFromLocalStorage() {
         try {
             this.showNotification('Starting data migration...', 'info');
             
-            // ONLY MIGRATE MAINTENANCE RECORDS
+            // Migrate team members
+            const localTeamMembers = JSON.parse(localStorage.getItem('safePark_teamMembers') || '[]');
+            for (const member of localTeamMembers) {
+                const { id, ...memberData } = member;
+                await this.addTeamMember(memberData);
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            // Migrate maintenance records
             const localMaintenanceRecords = JSON.parse(localStorage.getItem('safePark_maintenanceRecords') || '[]');
             for (const record of localMaintenanceRecords) {
                 const { id, ...recordData } = record;
@@ -627,6 +690,7 @@ class FirebaseSafeParkDataManager {
             }
             
             // Clear localStorage after successful migration
+            localStorage.removeItem('safePark_teamMembers');
             localStorage.removeItem('safePark_maintenanceRecords');
             localStorage.removeItem('safePark_recentActivities');
             
@@ -643,9 +707,6 @@ class FirebaseSafeParkDataManager {
         }
     }
 
-    // ========================================================================
-    // PRESENCE SYSTEM
-    // ========================================================================
     setupPresenceSystem() {
         if (!this.currentUser) return;
         
@@ -676,4 +737,348 @@ class FirebaseSafeParkDataManager {
             const presenceData = {
                 lastSeen: Date.now(),
                 page: window.location.pathname,
-       
+                userId: this.currentUser.uid
+            };
+
+            const userPresenceRef = doc(db, 'presence', this.currentUser.uid);
+            await updateDoc(userPresenceRef, presenceData).catch(async () => {
+                await addDoc(collection(db, 'presence'), {
+                    ...presenceData,
+                    id: this.currentUser.uid
+                });
+            });
+        } catch (error) {
+            console.error('Error updating presence:', error);
+        }
+    }
+
+    displayTeamMembers() {
+        const container = document.getElementById('teamMembersGrid');
+        if (!container) return;
+
+        const businessAreaFilter = document.getElementById('filterBusinessArea')?.value || '';
+        const holidayParkFilter = document.getElementById('filterHolidayPark')?.value || '';
+        
+        const filteredMembers = this.getTeamMembers(businessAreaFilter || null, holidayParkFilter || null);
+
+        container.innerHTML = filteredMembers.map(member => `
+            <div class="team-member">
+                <div class="member-name">${member.name}</div>
+                <div class="member-role">${member.role}</div>
+                <div class="member-park">${member.holidayPark}</div>
+                <div class="member-actions">
+                    <button class="btn btn-small danger" onclick="removeTeamMember('${member.id}')">Remove</button>
+                </div>
+            </div>
+        `).join('');
+
+        const totalEl = document.getElementById('totalTeamMembers');
+        if (totalEl) totalEl.textContent = this.teamMembers.length;
+    }
+
+    displayMaintenanceRecords() {
+        const container = document.getElementById('maintenanceRecordsGrid');
+        if (!container) return;
+
+        const businessAreaFilter = document.getElementById('filterMaintenanceArea')?.value || '';
+        const holidayParkFilter = document.getElementById('filterMaintenanceHolidayPark')?.value || '';
+        const statusFilter = document.getElementById('filterMaintenanceStatus')?.value || '';
+        const priorityFilter = document.getElementById('filterMaintenancePriority')?.value || '';
+
+        let filteredRecords = this.getMaintenanceRecords();
+        
+        if (businessAreaFilter) {
+            filteredRecords = filteredRecords.filter(record => 
+                record.businessArea === businessAreaFilter || 
+                record.category === businessAreaFilter
+            );
+        }
+        if (holidayParkFilter) {
+            filteredRecords = filteredRecords.filter(record => 
+                record.holidayPark === holidayParkFilter || 
+                record.location === holidayParkFilter
+            );
+        }
+        if (statusFilter) {
+            filteredRecords = filteredRecords.filter(record => record.status === statusFilter);
+        }
+        if (priorityFilter) {
+            filteredRecords = filteredRecords.filter(record => record.priority === priorityFilter);
+        }
+
+        if (filteredRecords.length === 0) {
+            container.innerHTML = '<div style="text-align: center; color: #B8B8B8; padding: 20px;">No maintenance records found</div>';
+            return;
+        }
+
+        container.innerHTML = filteredRecords.map(record => {
+            const priorityColor = {
+                'low': '#6C757D',
+                'medium': '#FFC107', 
+                'high': '#FF6B35',
+                'critical': '#DC3545'
+            };
+
+            return `
+                <div class="grid-item">
+                    <div class="grid-item-name">${record.title}</div>
+                    <div class="grid-item-info">${record.businessArea || record.category || 'N/A'}</div>
+                    <div class="grid-item-info">${record.holidayPark || record.location || 'N/A'}</div>
+                    <div class="grid-item-info">
+                        <span style="color: ${priorityColor[record.priority] || '#6C757D'}">${(record.priority || 'medium').charAt(0).toUpperCase() + (record.priority || 'medium').slice(1)}</span>
+                    </div>
+                    <div class="grid-actions">
+                        <button class="btn btn-small" onclick="toggleMaintenanceStatus('${record.id}')">${record.status === 'pending' ? 'Complete' : 'Reopen'}</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    displayRecentActivities() {
+        const container = document.getElementById('recentActivitiesList');
+        if (!container) return;
+
+        container.innerHTML = this.recentActivities.slice(0, 10).map(activity => `
+            <div class="activity-item ${activity.status}">
+                <div class="activity-time">${new Date(activity.timestamp).toLocaleString()}</div>
+                <div class="activity-description">${activity.module}: ${activity.action}</div>
+            </div>
+        `).join('');
+    }
+
+    displayActiveUsers() {
+        const container = document.getElementById('active-users-container');
+        if (!container) return;
+        
+        const activeUsers = Array.from(this.userPresence.values());
+        container.innerHTML = `
+            <h4>Active Users (${activeUsers.length})</h4>
+            ${activeUsers.map(user => `
+                <div class="active-user">
+                    <span class="user-indicator">ONLINE</span>
+                    <span>${user.page || 'Dashboard'}</span>
+                    <small>${new Date(user.lastSeen).toLocaleTimeString()}</small>
+                </div>
+            `).join('')}
+        `;
+    }
+
+    updateStats() {
+        const totalIncidentsEl = document.getElementById('totalIncidents');
+        const teamMembersEl = document.getElementById('teamMembers');
+        const maintenanceRecordsEl = document.getElementById('maintenanceRecords');
+        const complianceScoreEl = document.getElementById('complianceScore');
+
+        const allRecords = [...this.maintenanceRecords, ...this.maintenanceTasks];
+        const pendingTasks = allRecords.filter(r => r.status === 'pending').length;
+        const totalTasks = allRecords.length;
+        const complianceScore = totalTasks > 0 ? Math.round(((totalTasks - pendingTasks) / totalTasks) * 100) : 100;
+
+        if (totalIncidentsEl) totalIncidentsEl.textContent = '0';
+        if (teamMembersEl) teamMembersEl.textContent = this.teamMembers.length;
+        if (maintenanceRecordsEl) maintenanceRecordsEl.textContent = pendingTasks;
+        if (complianceScoreEl) complianceScoreEl.textContent = `${complianceScore}%`;
+
+        const completed = allRecords.filter(r => r.status === 'completed').length;
+        const highPriority = allRecords.filter(r => 
+            (r.priority === 'high' || r.priority === 'critical') && r.status === 'pending'
+        ).length;
+        
+        const pendingEl = document.getElementById('pendingMaintenance');
+        const completedEl = document.getElementById('completedMaintenance');
+        const highPriorityEl = document.getElementById('highPriorityMaintenance');
+        const totalMaintenanceEl = document.getElementById('totalMaintenanceRecords');
+        
+        if (pendingEl) pendingEl.textContent = pendingTasks;
+        if (completedEl) completedEl.textContent = completed;
+        if (highPriorityEl) highPriorityEl.textContent = highPriority;
+        if (totalMaintenanceEl) totalMaintenanceEl.textContent = totalTasks;
+    }
+
+    updateDropdowns() {
+        const teamMemberSelects = document.querySelectorAll('[data-populate="team-members"]');
+        teamMemberSelects.forEach(select => {
+            const businessArea = select.getAttribute('data-business-area');
+            const holidayPark = select.getAttribute('data-holiday-park');
+            const members = this.getTeamMembers(businessArea, holidayPark);
+            
+            const currentValue = select.value;
+            
+            while (select.children.length > 1) {
+                select.removeChild(select.lastChild);
+            }
+            
+            members.forEach(member => {
+                const option = document.createElement('option');
+                option.value = member.name;
+                option.textContent = `${member.name} - ${member.role}`;
+                select.appendChild(option);
+            });
+            
+            if (currentValue) {
+                select.value = currentValue;
+            }
+        });
+
+        const holidayParkSelects = document.querySelectorAll('[data-populate="holiday-parks"]');
+        holidayParkSelects.forEach(select => {
+            const currentValue = select.value;
+            
+            while (select.children.length > 1) {
+                select.removeChild(select.lastChild);
+            }
+            
+            this.holidayParks.forEach(park => {
+                const option = document.createElement('option');
+                option.value = park;
+                option.textContent = park;
+                select.appendChild(option);
+            });
+            
+            if (currentValue) {
+                select.value = currentValue;
+            }
+        });
+    }
+
+    async toggleMaintenanceStatus(recordId) {
+        let record = this.maintenanceRecords.find(r => r.id === recordId);
+        let collection_name = 'maintenanceRecords';
+        
+        if (!record) {
+            record = this.maintenanceTasks.find(r => r.id === recordId);
+            collection_name = 'maintenanceTasks';
+        }
+        
+        if (record) {
+            const newStatus = record.status === 'pending' ? 'completed' : 'pending';
+            
+            if (collection_name === 'maintenanceRecords') {
+                await this.updateMaintenanceRecord(recordId, { status: newStatus });
+            } else {
+                try {
+                    await updateDoc(doc(db, 'maintenanceTasks', recordId), { 
+                        status: newStatus,
+                        lastUpdated: new Date().toISOString()
+                    });
+                } catch (error) {
+                    console.error('Error updating maintenance task:', error);
+                }
+            }
+        }
+    }
+
+    async loadDataFromFirebase() {
+        console.log('Real-time listeners active - data loaded automatically');
+    }
+
+    destroy() {
+        if (this.presenceInterval) {
+            clearInterval(this.presenceInterval);
+        }
+        this.listeners.forEach(unsubscribe => unsubscribe());
+        this.listeners = [];
+    }
+
+    async addHolidayPark(parkData) {
+        const parkName = parkData.name;
+        if (!this.holidayParks.includes(parkName)) {
+            this.holidayParks.push(parkName);
+            
+            if (this.isOnline) {
+                try {
+                    await addDoc(collection(db, 'holidayParks'), { name: parkName });
+                    await this.addRecentActivity('Location Management', `Added holiday park: ${parkName}`, 'success');
+                } catch (error) {
+                    console.error('Error saving holiday park:', error);
+                }
+            }
+            
+            this.updateDropdowns();
+            return true;
+        }
+        return false;
+    }
+
+    refreshHolidayParkDropdowns() {
+        this.updateDropdowns();
+        
+        const activeParksEl = document.getElementById('activePark');
+        if (activeParksEl) activeParksEl.textContent = this.holidayParks.length;
+    }
+}
+
+// ============================================================================
+// INITIALIZE AND EXPORT
+// ============================================================================
+
+// Create the manager instance
+const safeParkManager = new FirebaseSafeParkDataManager();
+
+// CRITICAL: Make the MaintenanceSystem globally available for maintenance_integration.js
+window.MaintenanceSystem = {
+    config: {
+        statuses: {
+            PENDING: 'pending',
+            IN_PROGRESS: 'in-progress',
+            COMPLETED: 'completed'
+        },
+        priorities: {
+            CRITICAL: 'critical',
+            HIGH: 'high',
+            MEDIUM: 'medium',
+            LOW: 'low'
+        },
+        categories: {
+            HOT_TUBS: 'Hot Tubs',
+            PLAY_PARKS: 'Play Parks',
+            ACCOMMODATION: 'Accommodation',
+            EQUIPMENT: 'Grounds & Equipment',
+            FOOD_BEVERAGE: 'Food & Beverage',
+            VEHICLES: 'Vehicles',
+            GAS_SAFETY: 'Gas Safety',
+            ELECTRICAL: 'Electrical Safety',
+            FIRE_SAFETY: 'Fire Safety',
+            COSHH: 'COSHH',
+            GENERAL: 'General'
+        }
+    },
+    
+    // Bridge functions for maintenance_integration.js compatibility
+    createMaintenanceRequest: async (requestData) => await safeParkManager.createMaintenanceRequest(requestData),
+    getMaintenanceStats: async () => await safeParkManager.getMaintenanceStats(),
+    getMaintenanceRecords: async (options) => await safeParkManager.getMaintenanceRecords(options),
+    updateMaintenanceStatus: async (id, status, notes) => await safeParkManager.updateMaintenanceStatus(id, status, notes),
+    listenToMaintenanceStats: (callback, parkFilter) => safeParkManager.listenToMaintenanceStats(callback, parkFilter),
+    formatDate: (date) => safeParkManager.formatDate(date),
+    getPriorityBadgeHTML: (priority) => safeParkManager.getPriorityBadgeHTML(priority),
+    getStatusBadgeHTML: (status) => safeParkManager.getStatusBadgeHTML(status),
+    isAuthenticated: () => safeParkManager.currentUser !== null,
+    getCurrentUser: () => safeParkManager.currentUser
+};
+
+// Set up global utilities for backward compatibility
+window.SafeParkUtils = {
+    addTeamMember: async (memberData) => await safeParkManager.addTeamMember(memberData),
+    getTeamMembers: (businessArea, holidayPark) => safeParkManager.getTeamMembers(businessArea, holidayPark),
+    removeTeamMember: async (memberId) => await safeParkManager.removeTeamMember(memberId),
+    addMaintenanceRecord: async (recordData) => await safeParkManager.addMaintenanceRecord(recordData),
+    updateMaintenanceRecord: async (recordId, updates) => await safeParkManager.updateMaintenanceRecord(recordId, updates),
+    getMaintenanceRecords: (businessArea) => safeParkManager.getMaintenanceRecords(businessArea),
+    addRecentActivity: async (module, action, status) => await safeParkManager.addRecentActivity(module, action, status)
+};
+
+// Auto-population function
+window.syncSafeParkData = function() {
+    safeParkManager.updateDropdowns();
+};
+
+// Make manager globally available
+window.safeParkManager = safeParkManager;
+
+// Export for use in other modules
+export { db, auth, FirebaseSafeParkDataManager, safeParkManager };
+
+console.log('✅ SafePark.PRO Firebase Config Loaded with Real Credentials');
+console.log('✅ MaintenanceSystem Bridge Created for maintenance_integration.js compatibility');
