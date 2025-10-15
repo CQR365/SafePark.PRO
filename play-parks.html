@@ -3579,20 +3579,37 @@ statusElement.title = 'Syncing Data...';
 
         // Initialize everything on page load
         document.addEventListener('DOMContentLoaded', async () => {
-            if (window.SafeParkAuth) {
-                if (!window.SafeParkAuth.requireAuth()) {
-                    return; // Will redirect to index.html if not authenticated
-                }
-                console.log('User authenticated:', window.SafeParkAuth.getCurrentUser().name);
-            } else {
-                // Fallback check
-                const authData = JSON.parse(localStorage.getItem('safePark_auth') || '{}');
-                if (!authData || !authData.user || (Date.now() - authData.timestamp > 3600000)) {
-                    alert('Session expired. Returning to main dashboard.');
-                    window.location.href = 'index.html';
-                    return;
-                }
+    // Check for existing authentication from main system
+    const authData = JSON.parse(localStorage.getItem('safePark_auth') || '{}');
+    
+    if (authData && authData.user && authData.timestamp) {
+        const now = Date.now();
+        const AUTH_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+        
+        if (now - authData.timestamp < AUTH_DURATION) {
+            // User is authenticated, proceed
+            isAuthenticated = true;
+            currentUser = authData.user;
+            console.log('User authenticated:', currentUser.name);
+            
+            // Hide any login overlays and show the main interface
+            const loginOverlay = document.querySelector('.login-overlay');
+            if (loginOverlay) {
+                loginOverlay.style.display = 'none';
             }
+            
+            // Continue with initialization
+            console.log('Play Parks system ready - user already authenticated');
+        } else {
+            // Session expired, redirect to main page
+            window.location.href = 'index.html';
+            return;
+        }
+    } else {
+        // No valid authentication, redirect to main page
+        window.location.href = 'index.html';
+        return;
+    }
             console.log('Play Parks Offline-Capable System initialized');
             
             // Check PWA installation status
