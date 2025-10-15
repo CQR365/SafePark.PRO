@@ -90,28 +90,78 @@ class FirebaseSafeParkDataManager {
     // AUTHENTICATION & INITIALIZATION
     // ========================================================================
     async initializeAuth() {
-        try {
-            // Sign in anonymously for basic access
-            await signInAnonymously(auth);
-            
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    this.currentUser = user;
-                    this.initializeFirebaseListeners();
+    try {
+        console.log('🔐 Starting Firebase authentication...');
+        
+        // Sign in anonymously for basic access
+        const userCredential = await signInAnonymously(auth);
+        console.log('✅ Anonymous sign-in successful:', userCredential.user.uid);
+        
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                console.log('✅ Auth state changed - User authenticated:', user.uid);
+                this.currentUser = user;
+                
+                // CRITICAL FIX: Wait a moment for auth to propagate to Firestore
+                console.log('⏳ Waiting for authentication to propagate...');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Now initialize Firebase listeners with retry logic
+                try {
+                    await this.initializeFirebaseListenersWithRetry();
                     this.loadDataFromFirebase();
                     this.setupPresenceSystem();
                     this.showNotification('Firebase connected successfully!', 'success');
-                    console.log('✅ Firebase Authentication successful');
-                } else {
-                    console.log('❌ Authentication failed');
-                    this.showNotification('Authentication failed. Using offline mode.', 'warning');
+                    console.log('✅ Firebase system fully initialized');
+                } catch (error) {
+                    console.error('Error initializing Firebase listeners:', error);
+                    this.showNotification('Some Firebase features may be limited', 'warning');
                 }
-            });
-        } catch (error) {
-            console.error('Authentication error:', error);
+                
+            } else {
+                console.log('❌ Authentication failed - no user');
+                this.showNotification('Authentication failed. Using offline mode.', 'warning');
+            }
+        });
+        
+    } catch (error) {
+        console.error('Authentication error:', error);
+        
+        // Provide more specific error messages
+        if (error.code === 'auth/network-request-failed') {
+            this.showNotification('Network error. Check your connection.', 'error');
+        } else if (error.code === 'auth/too-many-requests') {
+            this.showNotification('Too many requests. Please wait and try again.', 'error');
+        } else {
             this.showNotification('Firebase connection failed. Working offline.', 'error');
         }
     }
+}
+
+// NEW METHOD: Initialize listeners with retry logic
+async initializeFirebaseListenersWithRetry(maxRetries = 3) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            console.log(`🔄 Initializing Firebase listeners (attempt ${attempt}/${maxRetries})`);
+            await this.initializeFirebaseListeners();
+            console.log('✅ Firebase listeners initialized successfully');
+            return; // Success, exit the retry loop
+            
+        } catch (error) {
+            console.error(`❌ Attempt ${attempt} failed:`, error);
+            
+            if (attempt === maxRetries) {
+                console.error('❌ All retry attempts failed');
+                throw error; // Re-throw on final attempt
+            }
+            
+            // Wait before retrying (exponential backoff)
+            const delay = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
+            console.log(`⏳ Waiting ${delay/1000}s before retry...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
+}
 
     // ========================================================================
     // OFFLINE/ONLINE HANDLING
