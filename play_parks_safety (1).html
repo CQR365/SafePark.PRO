@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>CQR365 - SafePark.PRO Play Parks Safety</title>
+    
+    <style>
+        :root {
+            --primary-orange: #CC5500;
+            --dark-orange: #B8460C;
+            --light-orange: #E6672E;
+            --black: #000000;
+            --white: #FFFFFF;
+            --smart-dark-grey: #2A2A2A;
+            --content-background: #2F2F2F;
+            --light-gray: #F8F9FA;
+            --medium-gray: #6C757D;
+            --dark-gray: #343A40;
+            --border-color: #DEE2E6;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --shadow-light: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-medium: 0 4px 20px rgba(0,0,0,0.15);
+            --shadow-heavy: 0 8px 40px rgba(0,0,0,0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+            color: #E8E8E8;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Sticky Logo Back Button */
+        .sticky-logo-back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 70px;
+            height: 70px;
+            z-index: 1000;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.4));
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .sticky-logo-back:hover {
+            transform: translateY(-2px);
+            filter: drop-shadow(0 12px 30px rgba(204, 85, 0, 0.3));
+        }
+
+        /* Sticky Maintenance Button */
+        .sticky-maintenance-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 8px 20px rgba(0,0,0,0.4),
+                inset 0 2px 5px rgba(255,255,255,0.2),
+                inset 0 -2px 5px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .sticky-maintenance-button:hover {
+            transform: scale(1.1) translateY(-2px);
+            box-shadow: 
+                0 12px 30px rgba(204, 85, 0, 0.6),
+                inset 0 2px 8px rgba(255,255,255,0.3),
+                inset 0 -2px 8px rgba(0,0,0,0.4);
+            border-color: rgba(255,255,255,0.4);
+        }
+
+        /* Offline Status Indicators */
+        .offline-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            z-index: 1001;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255,255,255,0.3);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .status-online {
+            background: #28A745;
+        }
+
+        .status-offline {
+            background: #FFC107;
+            animation: pulse 2s infinite;
+        }
+
+        .status-syncing {
+            background: #CC5500;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .sync-info {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            z-index: 1001;
+            max-width: 300px;
+            display: none;
+            border-left: 4px solid var(--primary-orange);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(145deg, #3a3a3a, #1a1a1a);
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 
+                        inset 0 8px 20px rgba(255, 255, 255, 0.1),
+                        inset 0 -8px 20px rgba(0, 0, 0, 0.7);
+            border: 3px solid var(--primary-orange);
+            border-radius: 12px;
+            margin: 100px 20px 20px;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.1) 0%, 
+                transparent 30%, 
+                transparent 70%, 
+                rgba(0, 0, 0, 0.2) 100%);
+            border-radius: 9px;
+            pointer-events: none;
+        }
+
+        .header h1 {
+            color: var(--primary-orange);
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5),
+                         0 0 10px rgba(204, 85, 0, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .brand-line {
+            color: var(--light-orange);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 5px 0 15px 0;
+            letter-spacing: 2px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .subtitle {
+            color: var(--white);
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .description {
+            color: var(--light-gray);
+            font-size: 1.125rem;
+            margin-top: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stats-header {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-orange);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--medium-gray);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* Container */
+        .playpark-container {
+            background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+            margin: 20px 0;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 
+                        inset 0 8px 20px rgba(255, 255, 255, 0.1),
+                        inset 0 -8px 20px rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--primary-orange);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .playpark-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.05) 0%, 
+                transparent 30%, 
+                transparent 70%, 
+                rgba(0, 0, 0, 0.1) 100%);
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        /* Navigation - Updated for 4 steps */
+        .playpark-navigation {
+            background: var(--black);
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid var(--primary-orange);
+            position: relative;
+            z-index: 1;
+        }
+
+        .playpark-nav-button {
+            background: var(--black);
+            color: var(--white);
+            border: none;
+            padding: 15px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            border-right: 1px solid var(--primary-orange);
+            transition: background-color 0.3s ease;
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .playpark-nav-button:hover,
+        .playpark-nav-button.active {
+            background-color: var(--primary-orange);
+        }
+
+        .playpark-nav-button:last-child {
+            border-right: none;
+        }
+
+        .playpark-step {
+            display: none;
+            animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .playpark-step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(24px);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0);
+            }
+        }
+
+        /* Form Sections */
+        .form-section {
+            background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+            margin: 20px 0;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 
+                        inset 0 8px 20px rgba(255, 255, 255, 0.1),
+                        inset 0 -8px 20px rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--primary-orange);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.05) 0%, 
+                transparent 30%, 
+                transparent 70%, 
+                rgba(0, 0, 0, 0.1) 100%);
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .form-section h3 {
+            color: var(--primary-orange);
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5),
+                         0 0 8px rgba(204, 85, 0, 0.3);
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(204, 85, 0, 0.3);
+        }
+
+        .form-section h4 {
+            color: var(--primary-orange);
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-group-full {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--white);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .required {
+            color: var(--primary-orange);
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: var(--white);
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .form-select option {
+            background: var(--content-background);
+            color: var(--white);
+            padding: 8px;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 3px rgba(204, 85, 0, 0.1);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        select.form-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 12px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        textarea.form-input {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .checkbox-item:hover {
+            background: rgba(204, 85, 0, 0.1);
+            border-color: rgba(204, 85, 0, 0.3);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            accent-color: var(--primary-orange);
+        }
+
+        .checkbox-item label {
+            color: var(--white);
+            font-weight: 500;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        /* Buttons */
+        .btn {
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 5px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3),
+                        inset 0 2px 5px rgba(255, 255, 255, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(204, 85, 0, 0.4),
+                        inset 0 2px 5px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(145deg, var(--medium-gray), var(--dark-gray));
+            color: var(--white);
+            border-color: var(--medium-gray);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: linear-gradient(145deg, var(--dark-gray), #2a2a2a);
+            box-shadow: 0 6px 20px rgba(108, 117, 125, 0.3);
+        }
+
+        .alert {
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 28px;
+            border-left: 4px solid;
+            box-shadow: var(--shadow-light);
+            position: relative;
+            z-index: 1;
+        }
+
+        .alert-info {
+            background: rgba(14, 165, 233, 0.1);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            color: #B8C5D6;
+        }
+
+        .footer {
+            background: #1a1a1a;
+            text-align: center;
+            padding: 15px;
+            color: #888;
+            font-size: 0.9rem;
+            border-top: 2px solid #444;
+            margin-top: 40px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px 12px;
+            }
+
+            .header {
+                padding: 20px;
+                margin-bottom: 32px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .header .brand-line {
+                font-size: 1.2rem;
+            }
+
+            .stats-header {
+                gap: 16px;
+                flex-wrap: wrap;
+            }
+
+            .playpark-navigation {
+                flex-direction: column;
+            }
+
+            .playpark-nav-button {
+                border-right: none;
+                border-bottom: 1px solid var(--primary-orange);
+                width: 100%;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Offline Status Indicators -->
+    <div id="offlineStatus" class="offline-status status-online" title="Online - Data Synced"></div>
+
+    <!-- Sync Information -->
+    <div id="syncInfo" class="sync-info">
+        <div id="syncMessage"></div>
+    </div>
+
+    <!-- Sticky Logo Back Button -->
+    <div class="sticky-logo-back" onclick="alert('Would navigate back to main dashboard')" title="Back to SafePark.PRO">
+        <svg width="70" height="70" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <radialGradient id="mainGradient" cx="0.3" cy="0.3" r="0.7">
+                    <stop offset="0%" style="stop-color:#FF8C00;stop-opacity:1" />
+                    <stop offset="40%" style="stop-color:#CC5500;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#B8460C;stop-opacity:1" />
+                </radialGradient>
+                <radialGradient id="textGradient" cx="0.5" cy="0.3" r="0.8">
+                    <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+                    <stop offset="60%" style="stop-color:#E6672E;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#CC5500;stop-opacity:1" />
+                </radialGradient>
+            </defs>
+            
+            <circle cx="256" cy="256" r="230" fill="url(#mainGradient)" stroke="rgba(0,0,0,0.5)" stroke-width="4"/>
+            <circle cx="256" cy="256" r="170" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+            
+            <ellipse cx="200" cy="180" rx="80" ry="60" fill="rgba(255,255,255,0.4)" opacity="0.8"/>
+            
+            <text x="256" y="300" font-family="Arial, sans-serif" font-size="116" font-weight="900" 
+                  text-anchor="middle" fill="url(#textGradient)" letter-spacing="8px">PRO</text>
+            
+            <text x="262" y="306" font-family="Arial, sans-serif" font-size="116" font-weight="900" 
+                  text-anchor="middle" fill="rgba(0,0,0,0.4)" opacity="0.7" letter-spacing="8px">PRO</text>
+        </svg>
+    </div>
+
+    <!-- Sticky Maintenance Button -->
+    <div class="sticky-maintenance-button" onclick="alert('Would open maintenance system')" title="Access Maintenance System">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+        </svg>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>CQR365</h1>
+            <div class="brand-line">SafePark.PRO</div>
+            <div class="subtitle">Play Parks Safety</div>
+            <p class="description">Comprehensive Play Park Safety & Compliance Management</p>
+        </div>
+
+        <div class="stats-header">
+            <div class="stat-item">
+                <div class="stat-value">3</div>
+                <div class="stat-label">Holiday Parks</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalPlayAreas">12</div>
+                <div class="stat-label">Play Areas</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="complianceRate">98%</div>
+                <div class="stat-label">Compliance Rate</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="inspectionsDue">3</div>
+                <div class="stat-label">Due This Week</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="offlineInspections">0</div>
+                <div class="stat-label">Offline Inspections</div>
+            </div>
+        </div>
+
+        <div class="playpark-container">
+            <!-- Navigation - Updated for 4 steps -->
+            <div class="playpark-navigation">
+                <button class="playpark-nav-button active" onclick="showStep('onboarding')">Park Setup</button>
+                <button class="playpark-nav-button" onclick="showStep('risk-assessment')">Risk Assessment</button>
+                <button class="playpark-nav-button" onclick="showStep('procedures')">Safe Working Procedures</button>
+                <button class="playpark-nav-button" onclick="showStep('inspection')">Inspection</button>
+            </div>
+
+            <!-- Form -->
+            <form id="playParkForm">
+                <!-- STEP 1: ONBOARDING -->
+                <div class="playpark-step active" id="pp-onboarding">
+                    <div class="form-section">
+                        <h3>Highland Holidays Play Park Setup</h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="pp-park-name">Highland Holidays Location <span class="required">*</span></label>
+                                <select id="pp-park-name" name="holiday_park" class="form-select" required>
+                                    <option value="">Select Highland Holidays Location</option>
+                                    <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                                    <option value="Oban Holiday Park">Oban Holiday Park</option>
+                                    <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="pp-park-id">Play Park Area Name <span class="required">*</span></label>
+                                <input type="text" id="pp-park-id" name="play_park_area" class="form-input" placeholder="Enter play park area name (e.g., Adventure Playground)" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group form-group-full">
+                            <label class="form-label" for="pp-address">Complete Address</label>
+                            <input type="text" id="pp-address" name="park_address" class="form-input" readonly>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="pp-park-type">Park Type <span class="required">*</span></label>
+                                <select id="pp-park-type" name="park_type" class="form-select" required>
+                                    <option value="">Select...</option>
+                                    <option value="holiday-park">Holiday Park</option>
+                                    <option value="public">Public Park</option>
+                                    <option value="school">School Playground</option>
+                                    <option value="nursery">Nursery/Childcare</option>
+                                    <option value="housing-estate">Housing Estate</option>
+                                    <option value="community">Community Centre</option>
+                                    <option value="private">Private Recreation</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="pp-installation-date">Installation Date</label>
+                                <input type="date" id="pp-installation-date" name="installation_date" class="form-input">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Equipment Present</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pp-equip-swings" name="equipment" value="swings">
+                                    <label for="pp-equip-swings">Swings (All Types)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pp-equip-slides" name="equipment" value="slides">
+                                    <label for="pp-equip-slides">Slides (All Heights)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pp-equip-climbing" name="equipment" value="climbing">
+                                    <label for="pp-equip-climbing">Climbing Equipment</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="pp-equip-seesaws" name="equipment" value="seesaws">
+                                    <label for="pp-equip-seesaws">See-saws/Rockers</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                            <button type="button" class="btn" onclick="showStep('risk-assessment')">Continue to Risk Assessment</button>
+                            <button type="button" class="btn btn-secondary">Save Setup</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: RISK ASSESSMENT -->
+                <div class="playpark-step" id="pp-risk-assessment">
+                    <div class="form-section">
+                        <h3>Automated Risk Assessment Matrix</h3>
+                        
+                        <div class="alert alert-info">
+                            <strong>Automated Risk Assessment:</strong> This matrix is automatically populated based on your equipment selection, 
+                            surface type, and age groups. Additional risks can be manually added below.
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="pp-additional-risks">Additional Site-Specific Risks:</label>
+                            <textarea id="pp-additional-risks" name="additional_risks" class="form-input" rows="4" 
+                                      placeholder="Identify any additional risks specific to your Highland Holidays location..."></textarea>
+                        </div>
+
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-secondary" onclick="showStep('onboarding')">Back</button>
+                            <button type="button" class="btn" onclick="showStep('procedures')">Continue to Procedures</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 3: SAFE WORKING PROCEDURES -->
+                <div class="playpark-step" id="pp-procedures">
+                    <div class="form-section">
+                        <h3>Automatically Generated Safe Working Procedures</h3>
+                        
+                        <div class="alert alert-info">
+                            <strong>Auto-Generated Procedures:</strong> These procedures are automatically created based on your equipment selection and 
+                            comply with BS EN 1176:2017, Health and Safety at Work Act 1974, and Management of Health and Safety at Work Regulations 1999.
+                        </div>
+
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-secondary" onclick="showStep('risk-assessment')">Back to Risk Assessment</button>
+                            <button type="button" class="btn" onclick="showStep('inspection')">Continue to Inspection</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 4: INSPECTION -->
+                <div class="playpark-step" id="pp-inspection">
+                    <div class="form-section">
+                        <h3>Highland Holidays Play Park Inspection</h3>
+                        
+                        <div class="alert alert-info">
+                            <strong>Offline Capable:</strong> This inspection will save locally first and sync to cloud when connection is available.
+                            <div style="margin-top: 8px; font-size: 13px;">All inspections synced</div>
+                        </div>
+
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-secondary" onclick="showStep('procedures')">Back to Procedures</button>
+                            <button type="button" class="btn">Submit Complete Play Park Assessment</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2025 CQR365 SafePark.PRO Management System - Offline Capable</p>
+    </div>
+
+    <script>
+        function showStep(stepId) {
+            // Hide all steps
+            document.querySelectorAll('.playpark-step').forEach(step => {
+                step.classList.remove('active');
+            });
+            
+            // Remove active from nav buttons
+            document.querySelectorAll('.playpark-nav-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show target step
+            const targetStep = document.getElementById('pp-' + stepId);
+            if (targetStep) {
+                targetStep.classList.add('active');
+            }
+            
+            // Activate correct nav button based on step
+            const navSteps = ['onboarding', 'risk-assessment', 'procedures', 'inspection'];
+            const stepIndex = navSteps.indexOf(stepId);
+            if (stepIndex >= 0) {
+                const navButtons = document.querySelectorAll('.playpark-nav-button');
+                if (navButtons[stepIndex]) {
+                    navButtons[stepIndex].classList.add('active');
+                }
+            }
+        }
+
+        // Initialize today's date
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            const dateField = document.getElementById('pp-installation-date');
+            if (dateField) {
+                dateField.value = today;
+            }
+        });
+    </script>
+</body>
+</html>
