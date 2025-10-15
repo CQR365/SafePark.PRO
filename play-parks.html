@@ -2208,8 +2208,8 @@
                 const offlineAlert = document.getElementById('offlineInspectionAlert');
                 
                 if (this.isOnline) {
-    statusElement.className = 'offline-status status-online';
-    statusElement.title = 'Online - Data Synced';
+    statusElement.className = 'offline-status status-syncing';
+statusElement.title = 'Syncing Data...';
     // ...
 } else {
     statusElement.className = 'offline-status status-offline';
