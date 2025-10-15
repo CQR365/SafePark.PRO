@@ -1258,29 +1258,29 @@ console.log('ðŸš¨ Emergency navigation functions loading...');
 // ============================================================================
 
 window.updatePlayParkList = function() {
-    console.log('updatePlayParkList called');
     const facility = document.getElementById('pp-park-name').value;
-    const addressField = document.getElementById('pp-address');
-    const phoneField = document.getElementById('pp-contact-phone');
-    const emailField = document.getElementById('pp-contact-email');
+    const playAreaSelect = document.getElementById('pp-park-id');
     
-    const siteData = {
-        'Ben Nevis Holiday Park': {
-            address: 'Ben Nevis Holiday Park, Torlundy, Fort William, Highland, PH33 6SN',
-            phone: '+44 1397 702191',
-            email: 'bennevis@highlandholidays.co.uk'
-        },
-        'Oban Holiday Park': {
-            address: 'Oban Holiday Park, Gallanach Road, Oban, Argyll and Bute, PA34 4QH',
-            phone: '+44 1631 562755',
-            email: 'oban@highlandholidays.co.uk'
-        },
-        'Tyndrum Holiday Park': {
-            address: 'Tyndrum Holiday Park, By The Way, Tyndrum, Stirling, FK20 8RY',
-            phone: '+44 1838 400251',
-            email: 'tyndrum@highlandholidays.co.uk'
-        }
+    // Clear dropdown
+    playAreaSelect.innerHTML = '<option value="">Select Play Park Area</option>';
+    
+    // Add areas based on selected park
+    const playAreas = {
+        'Ben Nevis Holiday Park': ['Main Playground', 'Toddler Area', 'Adventure Zone'],
+        'Oban Holiday Park': ['Seaside Playground', 'Junior Area', 'Family Zone'], 
+        'Tyndrum Holiday Park': ['Highland Playground', 'Mountain Area'],
+        'OverBurns Farm': ['Farm Playground', 'Rural Area']
     };
+    
+    if (facility && playAreas[facility]) {
+        playAreas[facility].forEach(area => {
+            const option = document.createElement('option');
+            option.value = area;
+            option.textContent = area;
+            playAreaSelect.appendChild(option);
+        });
+    }
+};
     
     if (facility && siteData[facility]) {
         const data = siteData[facility];
@@ -3124,6 +3124,7 @@ const currentUser = authData.user || {};
 
 </body>
 </html>
+
 
 
 
