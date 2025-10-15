@@ -935,6 +935,31 @@ if (document.readyState === 'loading') {
     initSafeParkCore();
 }
 
+// SafeParkManager class for play-parks.html compatibility
+export class SafeParkManager {
+    constructor() {
+        this.initialized = true;
+    }
+    
+    async savePlayParkAreaToFirebase(holidayPark, playAreaName) {
+        // Simple localStorage fallback
+        const areas = JSON.parse(localStorage.getItem('safePark_playParks_' + holidayPark) || '[]');
+        if (!areas.includes(playAreaName)) {
+            areas.push(playAreaName);
+            localStorage.setItem('safePark_playParks_' + holidayPark, JSON.stringify(areas));
+        }
+        return true;
+    }
+    
+    async loadAllPlayParkAreas() {
+        const areas = {};
+        ['Ben Nevis Holiday Park', 'Oban Holiday Park', 'Tyndrum Holiday Park'].forEach(park => {
+            areas[park] = JSON.parse(localStorage.getItem('safePark_playParks_' + park) || '[]');
+        });
+        return areas;
+    }
+}
+
 // Export enhanced SafePark Core functionality
 window.SafeParkCore = {
     // Authentication
@@ -990,18 +1015,9 @@ window.SafeParkCore = {
 
 console.log('✅ SafePark.PRO Core loaded successfully');
 
+// Create instance for export
+export const safeParkManager = new SafeParkManager();
+
+// Export for module imports
 export default window.SafeParkCore;
-// Export the main functions/classes for module imports
-export {
-    authenticateUser,
-    // Add any other functions you want to export
-    // SafeParkManager (if you have this function/class)
-};
-
-// OR if you have a SafeParkManager class/function, export it:
-// export class SafeParkManager {
-//     // your SafeParkManager code
-// }
-
-// OR if SafeParkManager is a function already defined above:
-// export { SafeParkManager };
+export { SafeParkManager, authenticateUser };
