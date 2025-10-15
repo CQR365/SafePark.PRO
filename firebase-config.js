@@ -29,14 +29,15 @@ import {
 // ============================================================================
 // REAL FIREBASE CONFIGURATION - SafePark-PRO
 // ============================================================================
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-    apiKey: "AIzaSyBvbKg5SAVQCN7JqZMOag3-5R24S145xM4",
-    authDomain: "safepark-pro.firebaseapp.com",
-    projectId: "safepark-pro", 
-    storageBucket: "safepark-pro.firebasestorage.app",
-    messagingSenderId: "511221743341",
-    appId: "1:511221743341:web:95bcc7e83d48615780164",
-    measurementId: "G-R1L16F7JJG"
+  apiKey: "AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+  authDomain: "safepark-pro.firebaseapp.com",
+  projectId: "safepark-pro",
+  storageBucket: "safepark-pro.firebasestorage.app",
+  messagingSenderId: "511221743341",
+  appId: "1:511221743341:web:95bcc7e83d4861578016e4",
+  measurementId: "G-R1L16F7JJG"
 };
 
 // Initialize Firebase
