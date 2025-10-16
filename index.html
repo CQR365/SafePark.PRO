@@ -2275,7 +2275,57 @@
                 console.log('Login overlay completely hidden');
             }, 500);
         }
+// Enhanced maintenance stats update
+        function updateMaintenanceStatsEnhanced() {
+            try {
+                const maintenanceRecords = JSON.parse(localStorage.getItem('safePark_maintenance_records') || '[]');
+                const pending = maintenanceRecords.filter(r => r.status === 'pending').length;
+                const inProgress = maintenanceRecords.filter(r => r.status === 'in-progress').length;
+                
+                const maintenanceEl = document.getElementById('maintenanceRecords');
+                if (maintenanceEl) {
+                    maintenanceEl.textContent = pending + inProgress;
+                }
+                
+                console.log('Maintenance stats updated - Pending:', pending, 'In Progress:', inProgress);
+            } catch (error) {
+                console.error('Error updating maintenance stats:', error);
+            }
+        }
 
+        // Update incident statistics display
+        function updateIncidentStats() {
+            try {
+                const incidents = JSON.parse(localStorage.getItem('safePark_incidents') || '[]');
+                
+                const stats = {
+                    total: incidents.length,
+                    open: incidents.filter(i => (i.status || 'open') === 'open').length,
+                    closed: incidents.filter(i => i.status === 'closed').length,
+                    investigation: incidents.filter(i => i.status === 'under-investigation').length
+                };
+                
+                const statsEl = document.getElementById('incidentStats');
+                if (statsEl) {
+                    if (stats.total === 0) {
+                        statsEl.textContent = '0';
+                    } else {
+                        statsEl.innerHTML = `
+                            <div style="font-size: 1.5rem;">${stats.total}</div>
+                            <div style="font-size: 0.7rem; line-height: 1;">
+                                ${stats.open} Open | ${stats.investigation} Investigating | ${stats.closed} Closed
+                            </div>
+                        `;
+                    }
+                }
+                
+                console.log('Incident stats updated:', stats);
+            } catch (error) {
+                console.error('Error updating incident stats:', error);
+                const statsEl = document.getElementById('incidentStats');
+                if (statsEl) statsEl.textContent = '0';
+            }
+        }
         // Skip to app function
         function skipToApp() {
             console.log('Skipping to app...');
