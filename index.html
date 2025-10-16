@@ -3789,7 +3789,56 @@ function addContractorSelection() {
                 if (statsEl) statsEl.textContent = '0';
             }
         }
+// INCIDENT DASHBOARD INTEGRATION FUNCTIONS
+        function openIncidentReporting() {
+            if (!isAuthenticated) {
+                alert('Please log in to report incidents.');
+                return;
+            }
+            updateActivityLog('Opened Incident Reporting');
+            window.open('incidents.html#report', '_blank');
+        }
 
+        function openIncidentManagement() {
+            if (!isAuthenticated) {
+                alert('Please log in to view incident management.');
+                return;
+            }
+            updateActivityLog('Opened Incident Management');
+            window.open('incidents.html#management', '_blank');
+        }
+
+        // Enhanced incident statistics display
+        async function updateIncidentStatsDisplay() {
+            try {
+                const incidents = JSON.parse(localStorage.getItem('safePark_incidents_cache') || '[]');
+                
+                const stats = {
+                    total: incidents.length,
+                    open: incidents.filter(i => (i.status || 'open') === 'open').length,
+                    closed: incidents.filter(i => i.status === 'closed').length,
+                    investigation: incidents.filter(i => i.status === 'under-investigation').length
+                };
+                
+                const statsEl = document.getElementById('incidentStats');
+                if (statsEl) {
+                    if (stats.total === 0) {
+                        statsEl.textContent = '0';
+                    } else {
+                        statsEl.innerHTML = `
+                            <div style="font-size: 1.5rem;">${stats.total}</div>
+                            <div style="font-size: 0.7rem; line-height: 1;">
+                                ${stats.open} Open | ${stats.investigation} Investigating | ${stats.closed} Closed
+                            </div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating incident stats:', error);
+                const statsEl = document.getElementById('incidentStats');
+                if (statsEl) statsEl.textContent = '0';
+            }
+        }
         // Make incident functions globally accessible
         window.openIncidentReporting = openIncidentReporting;
         window.openIncidentManagement = openIncidentManagement;
