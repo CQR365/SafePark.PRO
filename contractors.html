@@ -1453,6 +1453,23 @@ function populateHolidayParks() {
     addOption.textContent = '+ Add New Holiday Park';
     holidayParkSelect.appendChild(addOption);
 }
+        // Handle adding new holiday park
+document.getElementById('holiday-park').addEventListener('change', function() {
+    if (this.value === '__ADD_NEW__') {
+        const newPark = prompt('Enter new holiday park name:');
+        if (newPark && newPark.trim()) {
+            const parks = JSON.parse(localStorage.getItem('safePark_holidayParks') || '[]');
+            if (!parks.includes(newPark.trim())) {
+                parks.push(newPark.trim());
+                localStorage.setItem('safePark_holidayParks', JSON.stringify(parks));
+                populateHolidayParks();
+                this.value = newPark.trim();
+            }
+        } else {
+            this.value = '';
+        }
+    }
+});
 document.addEventListener('DOMContentLoaded', async function() {
     // Initialize form
     const today = new Date();
