@@ -1423,6 +1423,37 @@ let contractorData = {};
 let contractors = [];
 let safeParkManager;
 
+        // DYNAMIC HOLIDAY PARK POPULATION
+function populateHolidayParks() {
+    const holidayParkSelect = document.getElementById('holiday-park');
+    
+    // Get parks from localStorage or use defaults
+    let parks = JSON.parse(localStorage.getItem('safePark_holidayParks') || '[]');
+    
+    if (parks.length === 0) {
+        // Default parks
+        parks = [
+            'Ben Nevis Holiday Park',
+            'Oban Holiday Park', 
+            'Tyndrum Holiday Park',
+            'Overburns Farm'
+        ];
+    }
+    
+    holidayParkSelect.innerHTML = '<option value="">Select holiday park...</option>';
+    parks.forEach(park => {
+        const option = document.createElement('option');
+        option.value = park;
+        option.textContent = park;
+        holidayParkSelect.appendChild(option);
+    });
+    
+    // Add "Add New Park" option
+    const addOption = document.createElement('option');
+    addOption.value = '__ADD_NEW__';
+    addOption.textContent = '+ Add New Holiday Park';
+    holidayParkSelect.appendChild(addOption);
+}
 document.addEventListener('DOMContentLoaded', async function() {
     // Initialize form
     const today = new Date();
