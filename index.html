@@ -3685,6 +3685,50 @@ function handleURLParameters() {
         }, 1000);
     }
 }
+        // Add this to your index.html script section
+document.addEventListener('DOMContentLoaded', function() {
+    // Populate contractor dropdown when department is set to contractor
+    const departmentSelect = document.querySelector('select[name*="department"], select[name*="category"]');
+    const locationInput = document.querySelector('input[name*="location"], input[name*="maintenanceLocation"]');
+    
+    if (departmentSelect) {
+        departmentSelect.addEventListener('change', function() {
+            if (this.value === 'contractor') {
+                // Add contractor selection dropdown
+                addContractorSelection();
+            }
+        });
+    }
+});
+
+function addContractorSelection() {
+    const container = document.querySelector('.maintenance-form, #maintenance-form-container');
+    if (!container || document.getElementById('contractor-select-group')) return;
+    
+    const contractorGroup = document.createElement('div');
+    contractorGroup.id = 'contractor-select-group';
+    contractorGroup.innerHTML = `
+        <div style="margin-bottom: 20px;">
+            <label style="color: var(--primary-orange); font-weight: 600; margin-bottom: 8px; display: block;">
+                Assign to Contractor
+            </label>
+            <select id="contractor-select" name="assignedContractor" 
+                    style="width: 100%; padding: 12px; border: 1px solid #666; border-radius: 5px; background: rgba(255,255,255,0.1); color: white;">
+                <option value="">Select contractor...</option>
+            </select>
+        </div>
+    `;
+    
+    // Insert after department selection
+    const departmentGroup = document.querySelector('select[name*="department"]').closest('div');
+    departmentGroup.parentNode.insertBefore(contractorGroup, departmentGroup.nextSibling);
+    
+    // Populate with contractors
+    if (window.populateContractorDropdown) {
+        const contractorSelect = document.getElementById('contractor-select');
+        window.populateContractorDropdown(contractorSelect);
+    }
+}
     </script>
 </body>
 </html>
