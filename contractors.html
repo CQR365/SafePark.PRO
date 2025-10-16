@@ -1523,27 +1523,32 @@ updateBusinessAreaOptions();
 
 // SIMPLIFIED TEAM MEMBER INTEGRATION
 function updateTeamMemberDropdowns() {
-    const authData = JSON.parse(localStorage.getItem('safePark_auth') || '{}');
+    const holidayParkSelect = document.getElementById('holiday-park');
+    const selectedPark = holidayParkSelect.value;
     const clientContactSelect = document.getElementById('client-contact');
     const projectManagerSelect = document.getElementById('project-manager');
     
-    if (!authData.park) {
+    if (!selectedPark || selectedPark === '__ADD_NEW__') {
         clientContactSelect.innerHTML = '<option value="">Please select holiday park first</option>';
         projectManagerSelect.innerHTML = '<option value="">Please select holiday park first</option>';
         return;
     }
     
-    // Use current user as default contact
-    const currentUser = authData.park || 'System Administrator';
-    
+    // Use selected park for contacts
     clientContactSelect.innerHTML = `
-        <option value="${currentUser}" selected>${currentUser}</option>
-        <option value="Park Manager">Park Manager</option>
-        <option value="Maintenance Supervisor">Maintenance Supervisor</option>
-        <option value="Operations Manager">Operations Manager</option>
+        <option value="Park Manager" selected>Park Manager - ${selectedPark}</option>
+        <option value="Maintenance Supervisor">Maintenance Supervisor - ${selectedPark}</option>
+        <option value="Operations Manager">Operations Manager - ${selectedPark}</option>
+        <option value="System Administrator">System Administrator</option>
     `;
     
     projectManagerSelect.innerHTML = `
+        <option value="Park Manager">Park Manager - ${selectedPark}</option>
+        <option value="Maintenance Supervisor">Maintenance Supervisor - ${selectedPark}</option>
+        <option value="Operations Manager">Operations Manager - ${selectedPark}</option>
+        <option value="System Administrator">System Administrator</option>
+    `;
+}
         <option value="${currentUser}">${currentUser}</option>
         <option value="Park Manager">Park Manager</option>
         <option value="Maintenance Supervisor">Maintenance Supervisor</option>
