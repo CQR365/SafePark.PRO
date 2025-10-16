@@ -9,11 +9,14 @@
     <meta name="theme-color" content="#CC5500">
     <title>CQR365 - SafePark.PRO Safety & Compliance System</title>
     
-    <!-- Load Firebase Configuration as ES6 Module -->
-    <script type="module" src="firebase-config.js"></script>
-    
     <!-- Load Maintenance Integration after Firebase -->
-    <script src="maintenance-integration.js" defer></script>
+<script src="maintenance-integration.js"></script>
+
+<!-- Load Firebase Configuration as ES6 Module -->
+<script type="module" src="firebase-config.js"></script>
+
+<!-- Comment out auth-handler as per working pattern -->
+<!-- <script src="auth-handler.js"></script> -->
     
     <style>
         * {
@@ -1373,10 +1376,17 @@
 
                 <!-- Enhanced Interactive Stats Overview -->
                 <div class="stats-container">
-                    <div class="stat-card" title="Click to view incident reports" onclick="openIncidentsModule()">
-                        <div class="stat-number" id="totalIncidents">0</div>
-                        <div class="stat-label">Total Incidents</div>
-                    </div>
+                    <!-- TILE 1: Report Incident -->
+<div class="stat-card" title="Click to report new incident" onclick="openIncidentReporting()">
+    <div class="stat-number">📝</div>
+    <div class="stat-label">Report Incident</div>
+</div>
+
+<!-- TILE 2: View Incidents -->
+<div class="stat-card" title="Click to view incident management" onclick="openIncidentManagement()">
+    <div class="stat-number" id="incidentStats">0</div>
+    <div class="stat-label">Incidents Overview</div>
+</div>
                     <div class="stat-card" title="Click to view maintenance dashboard" onclick="openMaintenanceDashboard()">
                         <div class="stat-number" id="maintenanceRecords">0</div>
                         <div class="stat-label">Pending Maintenance</div>
