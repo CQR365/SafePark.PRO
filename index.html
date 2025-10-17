@@ -1852,13 +1852,13 @@
     </div>
 
     <script>
-        // ============================================================================
+  // ============================================================================
 // RELIABLE SAFEPARK.PRO AUTHENTICATION SYSTEM
 // ============================================================================
 
 const AUTH_CONFIG = {
     SESSION_KEY: 'safepark_session',
-    BACKUP_KEY: 'safepark_backup', 
+    BACKUP_KEY: 'safepark_backup',
     SESSION_DURATION: 24 * 60 * 60 * 1000, // 24 hours
     MAX_LOGIN_ATTEMPTS: 5,
     LOCKOUT_DURATION: 15 * 60 * 1000 // 15 minutes
@@ -1874,7 +1874,310 @@ const ACCESS_CODES = {
         role: 'Manager',
         message: 'Welcome Overburns Farm'
     },
-    // ... [all 43 access codes] ...
+    '1010': {
+        type: 'park',
+        name: 'Lesleyanne',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Park Manager',
+        message: 'Welcome Lesleyanne'
+    },
+    '1020': {
+        type: 'park',
+        name: 'Siobhan',
+        park: 'Oban Holiday Park',
+        role: 'Park Manager',
+        message: 'Welcome Siobhan'
+    },
+    '1030': {
+        type: 'park',
+        name: 'Tyndrum Holiday Park Manager',
+        park: 'Tyndrum Holiday Park',
+        role: 'Park Manager',
+        message: 'Welcome Tyndrum Holiday Park Manager'
+    },
+
+    // Individual Team Member Codes - Overburns Farm (365xxx)
+    '365001': {
+        type: 'individual',
+        name: 'John Smith',
+        park: 'Overburns Farm',
+        role: 'Maintenance Supervisor',
+        message: 'Welcome John Smith - Maintenance Supervisor....lets get this done!!!'
+    },
+    '365002': {
+        type: 'individual',
+        name: 'Sarah Wilson',
+        park: 'Overburns Farm',
+        role: 'Reception Manager',
+        message: 'Welcome Sarah Wilson - Reception Manager....lets get this done!!!'
+    },
+    '365003': {
+        type: 'individual',
+        name: 'Mike Davis',
+        park: 'Overburns Farm',
+        role: 'Groundskeeper',
+        message: 'Welcome Mike Davis - Groundskeeper....lets get this done!!!'
+    },
+    '365004': {
+        type: 'individual',
+        name: 'Emma Thompson',
+        park: 'Overburns Farm',
+        role: 'Cleaner',
+        message: 'Welcome Emma Thompson - Cleaner....lets get this done!!!'
+    },
+    '365005': {
+        type: 'individual',
+        name: 'David Brown',
+        park: 'Overburns Farm',
+        role: 'Security',
+        message: 'Welcome David Brown - Security....lets get this done!!!'
+    },
+
+    // Individual Team Member Codes - Ben Nevis (1010xxx)
+    '1010001': {
+        type: 'individual',
+        name: 'David',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Grounds & Maintenance Manager',
+        message: 'Welcome David'
+    },
+    '1010002': {
+        type: 'individual',
+        name: 'Kelly',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Team BN',
+        message: 'Welcome Kelly'
+    },
+    '1010003': {
+        type: 'individual',
+        name: 'Rik',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Team BN',
+        message: 'Welcome Rik'
+    },
+    '1010004': {
+        type: 'individual',
+        name: 'Sam',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Team BN',
+        message: 'Welcome Sam'
+    },
+    '1010005': {
+        type: 'individual',
+        name: 'Vinny',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Team BN',
+        message: 'Welcome Vinny'
+    },
+    '1010006': {
+        type: 'individual',
+        name: 'Sam',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Team BN',
+        message: 'Welcome Sam'
+    },
+    '1010007': {
+        type: 'individual',
+        name: 'Cooper',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Team BN',
+        message: 'Welcome Chef Cooper'
+    },
+    '1010008': {
+        type: 'individual',
+        name: 'Ewa',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Team BN',
+        message: 'Welcome Ewa'
+    },
+    '1010009': {
+        type: 'individual',
+        name: 'Sean',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Team BN',
+        message: 'Welcome Sean'
+    },
+    '1010010': {
+        type: 'individual',
+        name: 'Alison',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Team BN',
+        message: 'Welcome Alison'
+    },
+    '1010011': {
+        type: 'individual',
+        name: 'Petar',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Team BN',
+        message: 'Welcome Petar'
+    },
+    '1010012': {
+        type: 'individual',
+        name: 'Jenny',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Team BN',
+        message: 'Welcome Jenny'
+    },
+    '1010013': {
+        type: 'individual',
+        name: 'Morag',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Team BN',
+        message: 'Welcome Morag'
+    },
+    '1010014': {
+        type: 'individual',
+        name: 'Holly',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Team BN',
+        message: 'Welcome Holly'
+    },
+    '1010015': {
+        type: 'individual',
+        name: 'Inga',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Team BN',
+        message: 'Welcome Inga'
+    },
+    '1010016': {
+        type: 'individual',
+        name: 'Martyn',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Team BN',
+        message: 'Welcome Martyn'
+    },
+    '1010017': {
+        type: 'individual',
+        name: 'Deb',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Team BN',
+        message: 'Welcome Deb'
+    },
+    '1010018': {
+        type: 'individual',
+        name: 'Lynda',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Team BN',
+        message: 'Welcome Lynda'
+    },
+    '1010019': {
+        type: 'individual',
+        name: 'Lynda',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Team BN',
+        message: 'Welcome Lynda'
+    },
+    '1010020': {
+        type: 'individual',
+        name: 'Danielle',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Team BN',
+        message: 'Welcome Danielle'
+    },
+    '1010021': {
+        type: 'individual',
+        name: 'Lois',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Team BN',
+        message: 'Welcome Lois'
+    },
+    '1010022': {
+        type: 'individual',
+        name: 'Danielle',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Team BN',
+        message: 'Welcome Danielle'
+    },
+    '1010023': {
+        type: 'individual',
+        name: 'Ronan',
+        park: 'Ben Nevis Holiday Park',
+        role: 'Team BN',
+        message: 'Welcome Ronan'
+    },
+
+    // Individual Team Member Codes - Oban (1020xxx)
+    '1020001': {
+        type: 'individual',
+        name: 'Maurray',
+        park: 'Oban Holiday Park',
+        role: 'Grounds & Maintenance Manager',
+        message: 'Welcome Murray'
+    },
+    '1020002': {
+        type: 'individual',
+        name: 'Allan',
+        park: 'Oban Holiday Park',
+        role: 'Team OBN',
+        message: 'Welcome Allan'
+    },
+    '1020003': {
+        type: 'individual',
+        name: 'Nathan',
+        park: 'Oban Holiday Park',
+        role: 'Team OBN',
+        message: 'Welcome Nathan'
+    },
+    '1020004': {
+        type: 'individual',
+        name: 'John',
+        park: 'Oban Holiday Park',
+        role: 'Team OBN',
+        message: 'Welcome John'
+    },
+    '1020005': {
+        type: 'individual',
+        name: 'Moira',
+        park: 'Oban Holiday Park',
+        role: 'Team OBN',
+        message: 'Welcome Moira'
+    },
+    '1020006': {
+        type: 'individual',
+        name: 'Nicole',
+        park: 'Oban Holiday Park',
+        role: 'Team OBN',
+        message: 'Welcome Nicole'
+    },
+    '1020007': {
+        type: 'individual',
+        name: 'Cheryl',
+        park: 'Oban Holiday Park',
+        role: 'Team OBN',
+        message: 'Welcome Cheryl'
+    },
+    '1020008': {
+        type: 'individual',
+        name: 'Rachel',
+        park: 'Oban Holiday Park',
+        role: 'Team OBN',
+        message: 'Welcome Rachel'
+    },
+
+    // Individual Team Member Codes - Tyndrum (1030xxx)
+    '1030001': {
+        type: 'individual',
+        name: 'Alasdair Fraser',
+        park: 'Tyndrum Holiday Park',
+        role: 'Assistant Manager',
+        message: 'Welcome Alasdair Fraser - Assistant Manager....lets get this done!!!'
+    },
+    '1030002': {
+        type: 'individual',
+        name: 'Team TYN',
+        park: 'Tyndrum Holiday Park',
+        role: 'Team TYN',
+        message: 'Welcome Team TYN'
+    },
+
+    // Master Access
+    'CQR365SPP25': {
+        type: 'master',
+        name: 'SafePark.PRO System Administrator',
+        park: 'All Highland Holidays Parks',
+        role: 'System Administrator',
+        message: 'Welcome SafePark.PRO Administrator'
+    }
 };
 
 // Authentication state
@@ -1886,1004 +2189,487 @@ let authState = {
     lockedUntil: null
 };
 
-// [All authentication functions here]
+// ============================================================================
+// CORE AUTHENTICATION FUNCTIONS
+// ============================================================================
 
-        // Update activity counts
-        function updateActivityCounts() {
-            const activities = JSON.parse(localStorage.getItem('safePark_activities') || '[]');
-            const now = new Date();
-            
-            // Today
-            const today = activities.filter(a => 
-                new Date(a.timestamp).toDateString() === now.toDateString()
-            ).length;
-            document.getElementById('activityToday').textContent = today;
-            
-            // Yesterday
-            const yesterday = new Date(now);
-            yesterday.setDate(yesterday.getDate() - 1);
-            const yesterdayCount = activities.filter(a => 
-                new Date(a.timestamp).toDateString() === yesterday.toDateString()
-            ).length;
-            document.getElementById('activityYesterday').textContent = yesterdayCount;
-            
-            // This week
-            const weekStart = new Date(now);
-            weekStart.setDate(weekStart.getDate() - 7);
-            const thisWeek = activities.filter(a => 
-                new Date(a.timestamp) >= weekStart
-            ).length;
-            document.getElementById('activityWeek').textContent = thisWeek;
-            
-            // Equipment and Hot Tub counts
-            document.getElementById('hotTubCount').textContent = getHotTubRecords();
-            document.getElementById('equipmentCount').textContent = getEquipmentRecords();
-            document.getElementById('incidentCount').textContent = getIncidentCount();
-        }
+function generateSessionId() {
+    return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
 
-        // Get Hot Tub records count
-        function getHotTubRecords() {
-            try {
-                const records = JSON.parse(localStorage.getItem('hotTubRecords') || '[]');
-                return records.length;
-            } catch {
-                return 0;
-            }
-        }
-
-        // Get Equipment records count
-        function getEquipmentRecords() {
-            try {
-                const records = JSON.parse(localStorage.getItem('equipmentInspections') || '[]');
-                return records.length;
-            } catch {
-                return 0;
-            }
-        }
-
-        // Format bytes for display
-        function formatBytes(bytes) {
-            if (bytes === 0) return '0 B';
-            const k = 1024;
-            const sizes = ['B', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-        }
-
-        // Export data functions
-        function exportData(type, format) {
-            try {
-                let data = {};
-                let filename = '';
-                
-                switch(type) {
-                    case 'all':
-                        data = {
-                            maintenance: JSON.parse(localStorage.getItem('safePark_maintenance_records') || '[]'),
-                            activities: JSON.parse(localStorage.getItem('safePark_activities') || '[]'),
-                            hotTub: JSON.parse(localStorage.getItem('hotTubRecords') || '[]'),
-                            incidents: JSON.parse(localStorage.getItem('safePark_incidents') || '[]'),
-                            equipment: JSON.parse(localStorage.getItem('equipmentInspections') || '[]'),
-                            exportDate: new Date().toISOString()
-                        };
-                        filename = `SafePark_PRO_All_Data_${new Date().toISOString().split('T')[0]}`;
-                        break;
-                        
-                    case 'maintenance':
-                        data = JSON.parse(localStorage.getItem('safePark_maintenance_records') || '[]');
-                        filename = `SafePark_PRO_Maintenance_${new Date().toISOString().split('T')[0]}`;
-                        break;
-                        
-                    case 'activities':
-                        data = JSON.parse(localStorage.getItem('safePark_activities') || '[]');
-                        filename = `SafePark_PRO_Activities_${new Date().toISOString().split('T')[0]}`;
-                        break;
-                }
-                
-                if (format === 'csv') {
-                    downloadCSV(data, filename);
-                } else {
-                    downloadJSON(data, filename);
-                }
-                
-                updateActivityLog(`Exported ${type} data in ${format.toUpperCase()} format`);
-                
-            } catch (error) {
-                console.error('Export error:', error);
-                alert('Error exporting data. Please try again.');
-            }
-        }
-
-        // Advanced export with custom options
-        function advancedExport() {
-            const dataType = document.getElementById('exportDataType').value;
-            const format = document.getElementById('exportFormat').value;
-            exportData(dataType, format);
-        }
-
-        // Download as CSV
-        function downloadCSV(data, filename) {
-            let csv = '';
-            
-            if (Array.isArray(data)) {
-                if (data.length === 0) {
-                    alert('No data to export');
-                    return;
-                }
-                
-                // Get headers from first object
-                const headers = Object.keys(data[0]);
-                csv = headers.join(',') + '\n';
-                
-                // Add data rows
-                data.forEach(row => {
-                    const values = headers.map(header => {
-                        const value = row[header] || '';
-                        return `"${String(value).replace(/"/g, '""')}"`;
-                    });
-                    csv += values.join(',') + '\n';
-                });
-            } else {
-                // Handle object data
-                csv = 'Key,Value\n';
-                Object.entries(data).forEach(([key, value]) => {
-                    csv += `"${key}","${String(value).replace(/"/g, '""')}"\n`;
-                });
-            }
-            
-            downloadFile(csv, `${filename}.csv`, 'text/csv');
-        }
-
-        // Download as JSON
-        function downloadJSON(data, filename) {
-            const jsonStr = JSON.stringify(data, null, 2);
-            downloadFile(jsonStr, `${filename}.json`, 'application/json');
-        }
-
-        // Generic file download
-        function downloadFile(content, filename, contentType) {
-            const blob = new Blob([content], { type: contentType });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-        }
-
-        // Generate PDF report
-        function generateReport(type) {
-            try {
-                const reportData = gatherReportData();
-                const reportHTML = generateReportHTML(reportData);
-                
-                // Create a new window for printing
-                const printWindow = window.open('', '_blank');
-                printWindow.document.write(reportHTML);
-                printWindow.document.close();
-                printWindow.print();
-                
-                updateActivityLog('Generated PDF summary report');
-            } catch (error) {
-                console.error('Report generation error:', error);
-                alert('Error generating report. Please try again.');
-            }
-        }
-
-        // Gather data for report
-        function gatherReportData() {
-            return {
-                generatedDate: new Date().toLocaleString(),
-                user: currentUser?.name || 'System',
-                park: currentUser?.park || 'All Parks',
-                maintenanceRecords: JSON.parse(localStorage.getItem('safePark_maintenance_records') || '[]'),
-                totalIncidents: getIncidentCount(),
-                totalHotTubRecords: getHotTubRecords(),
-                totalActivities: JSON.parse(localStorage.getItem('safePark_activities') || '[]').length
-            };
-        }
-
-        // Generate HTML for report - COMPLETED FUNCTION
-        function generateReportHTML(data) {
-            return `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>SafePark.PRO Summary Report</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; margin: 20px; }
-                        .header { text-align: center; border-bottom: 2px solid #CC5500; padding-bottom: 20px; margin-bottom: 30px; }
-                        .section { margin-bottom: 30px; }
-                        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin: 20px 0; }
-                        .stat-box { border: 1px solid #ddd; padding: 15px; text-align: center; }
-                        .stat-number { font-size: 2rem; font-weight: bold; color: #CC5500; }
-                        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                        th { background-color: #f5f5f5; }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h1>SafePark.PRO System Report</h1>
-                        <p>Generated: ${data.generatedDate}</p>
-                        <p>User: ${data.user} | Park: ${data.park}</p>
-                    </div>
-                    
-                    <div class="section">
-                        <h2>System Overview</h2>
-                        <div class="stat-grid">
-                            <div class="stat-box">
-                                <div class="stat-number">${data.maintenanceRecords.length}</div>
-                                <div>Maintenance Records</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-number">${data.totalIncidents}</div>
-                                <div>Safety Incidents</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-number">${data.totalHotTubRecords}</div>
-                                <div>Hot Tub Records</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-number">${data.totalActivities}</div>
-                                <div>Total Activities</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="section">
-                        <h2>Recent Maintenance Records</h2>
-                        <table>
-                            <tr><th>Date</th><th>Title</th><th>Priority</th><th>Status</th><th>Created By</th></tr>
-                            ${data.maintenanceRecords.slice(0, 10).map(record => `
-                                <tr>
-                                    <td>${new Date(record.createdAt).toLocaleDateString()}</td>
-                                    <td>${record.title}</td>
-                                    <td>${record.priority}</td>
-                                    <td>${record.status}</td>
-                                    <td>${record.createdBy}</td>
-                                </tr>
-                            `).join('')}
-                        </table>
-                    </div>
-                    
-                    <div class="section">
-                        <h2>Summary</h2>
-                        <p>This report was generated on ${data.generatedDate} by ${data.user} from ${data.park}.</p>
-                        <p>The system is operating normally with ${data.maintenanceRecords.length} total maintenance records logged.</p>
-                        <p>For more detailed information, please access the SafePark.PRO dashboard directly.</p>
-                    </div>
-                    
-                    <div style="margin-top: 50px; text-align: center; color: #666; font-size: 0.9rem;">
-                        SafePark.PRO System Report - Generated by CQR365 Technology
-                    </div>
-                </body>
-                </html>
-            `;
-        }
-
-        // Data cleanup functions
-        function cleanupOldData() {
-            if (!confirm('This will remove records older than 90 days. Continue?')) return;
-            
-            try {
-                const cutoffDate = new Date();
-                cutoffDate.setDate(cutoffDate.getDate() - 90);
-                
-                // Clean maintenance records
-                let maintenanceRecords = JSON.parse(localStorage.getItem('safePark_maintenance_records') || '[]');
-                const originalCount = maintenanceRecords.length;
-                maintenanceRecords = maintenanceRecords.filter(record => 
-                    new Date(record.createdAt) > cutoffDate
-                );
-                localStorage.setItem('safePark_maintenance_records', JSON.stringify(maintenanceRecords));
-                
-                // Clean activities
-                let activities = JSON.parse(localStorage.getItem('safePark_activities') || '[]');
-                activities = activities.filter(activity => 
-                    new Date(activity.timestamp) > cutoffDate
-                );
-                localStorage.setItem('safePark_activities', JSON.stringify(activities));
-                
-                const removedCount = originalCount - maintenanceRecords.length;
-                alert(`Cleanup completed. Removed ${removedCount} old records.`);
-                updateAnalytics();
-                updateActivityLog(`Data cleanup completed: ${removedCount} records removed`);
-                
-            } catch (error) {
-                console.error('Cleanup error:', error);
-                alert('Error during cleanup. Please try again.');
-            }
-        }
-
-        // Archive completed tasks
-        function archiveCompleted() {
-            try {
-                const maintenanceRecords = JSON.parse(localStorage.getItem('safePark_maintenance_records') || '[]');
-                const completed = maintenanceRecords.filter(record => record.status === 'completed');
-                const active = maintenanceRecords.filter(record => record.status !== 'completed');
-                
-                if (completed.length === 0) {
-                    alert('No completed tasks to archive.');
-                    return;
-                }
-                
-                // Save archived tasks
-                const archived = JSON.parse(localStorage.getItem('safePark_archived_records') || '[]');
-                archived.push(...completed);
-                localStorage.setItem('safePark_archived_records', JSON.stringify(archived));
-                
-                // Keep only active tasks
-                localStorage.setItem('safePark_maintenance_records', JSON.stringify(active));
-                
-                alert(`Archived ${completed.length} completed tasks.`);
-                updateAnalytics();
-                updateActivityLog(`Archived ${completed.length} completed maintenance tasks`);
-                
-            } catch (error) {
-                console.error('Archive error:', error);
-                alert('Error archiving tasks. Please try again.');
-            }
-        }
-
-        // Clear system cache
-        function clearCache() {
-            if (!confirm('This will clear temporary cache data. Continue?')) return;
-            
-            try {
-                // Remove cache-related items but keep important data
-                const keysToRemove = [];
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key && (key.includes('cache') || key.includes('temp'))) {
-                        keysToRemove.push(key);
-                    }
-                }
-                
-                keysToRemove.forEach(key => localStorage.removeItem(key));
-                
-                alert(`Cache cleared. Removed ${keysToRemove.length} temporary items.`);
-                updateActivityLog('System cache cleared');
-                
-            } catch (error) {
-                console.error('Cache clear error:', error);
-                alert('Error clearing cache. Please try again.');
-            }
-        }
-
-        // Create backup
-        function createBackup() {
-            try {
-                const backupData = {
-                    version: '1.0',
-                    timestamp: new Date().toISOString(),
-                    user: currentUser?.name || 'System',
-                    data: {
-                        maintenance: JSON.parse(localStorage.getItem('safePark_maintenance_records') || '[]'),
-                        activities: JSON.parse(localStorage.getItem('safePark_activities') || '[]'),
-                        incidents: JSON.parse(localStorage.getItem('safePark_incidents') || '[]'),
-                        hotTub: JSON.parse(localStorage.getItem('hotTubRecords') || '[]'),
-                        equipment: JSON.parse(localStorage.getItem('equipmentInspections') || '[]'),
-                        archived: JSON.parse(localStorage.getItem('safePark_archived_records') || '[]')
-                    }
-                };
-                
-                const filename = `SafePark_PRO_Backup_${new Date().toISOString().split('T')[0]}`;
-                downloadJSON(backupData, filename);
-                
-                // Update last backup timestamp
-                localStorage.setItem('safePark_last_backup', new Date().toISOString());
-                updateSystemStatus();
-                updateActivityLog('Full system backup created');
-                
-            } catch (error) {
-                console.error('Backup error:', error);
-                alert('Error creating backup. Please try again.');
-            }
-        }
-
-        // Restore from file
-        function restoreFromFile(input) {
-            const file = input.files[0];
-            if (!file) return;
-            
-            if (!confirm('This will replace current data with backup data. Continue?')) {
-                input.value = '';
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const backupData = JSON.parse(e.target.result);
-                    
-                    if (backupData.data) {
-                        // Restore all data
-                        Object.entries(backupData.data).forEach(([key, value]) => {
-                            const storageKey = getStorageKeyForType(key);
-                            localStorage.setItem(storageKey, JSON.stringify(value));
-                        });
-                        
-                        alert('Data restored successfully!');
-                        updateAnalytics();
-                        updateActivityLog('System data restored from backup');
-                    } else {
-                        throw new Error('Invalid backup file format');
-                    }
-                    
-                } catch (error) {
-                    console.error('Restore error:', error);
-                    alert('Error restoring data. Please check the file format.');
-                }
-                input.value = '';
-            };
-            reader.readAsText(file);
-        }
-
-        // Get storage key for data type
-        function getStorageKeyForType(type) {
-            const keyMap = {
-                maintenance: 'safePark_maintenance_records',
-                activities: 'safePark_activities',
-                incidents: 'safePark_incidents',
-                hotTub: 'hotTubRecords',
-                equipment: 'equipmentInspections',
-                archived: 'safePark_archived_records'
-            };
-            return keyMap[type] || type;
-        }
-
-        // Update system status
-        function updateSystemStatus() {
-            try {
-                // Database status
-                document.getElementById('dbStatus').textContent = 'Online';
-                
-                // Last backup
-                const lastBackup = localStorage.getItem('safePark_last_backup');
-                if (lastBackup) {
-                    const date = new Date(lastBackup);
-                    document.getElementById('lastBackup').textContent = date.toLocaleDateString();
-                }
-                
-                // Total records
-                const maintenanceRecords = JSON.parse(localStorage.getItem('safePark_maintenance_records') || '[]');
-                const activities = JSON.parse(localStorage.getItem('safePark_activities') || '[]');
-                const total = maintenanceRecords.length + activities.length + getIncidentCount() + getHotTubRecords();
-                document.getElementById('totalRecords').textContent = total;
-                
-            } catch (error) {
-                console.error('Error updating system status:', error);
-            }
-        }
-
-        // Show data breakdown
-        function showDataBreakdown(type) {
-            let message = '';
-            
-            switch(type) {
-                case 'maintenance':
-                    const maintenance = JSON.parse(localStorage.getItem('safePark_maintenance_records') || '[]');
-                    const pending = maintenance.filter(r => r.status === 'pending').length;
-                    const inProgress = maintenance.filter(r => r.status === 'in-progress').length;
-                    const completed = maintenance.filter(r => r.status === 'completed').length;
-                    
-                    message = `Maintenance Records Breakdown:
-                    
-Total: ${maintenance.length}
-• Pending: ${pending}
-• In Progress: ${inProgress}
-• Completed: ${completed}`;
-                    break;
-                    
-                case 'incidents':
-                    message = `Incident Reports: ${getIncidentCount()}
-                    
-This includes all safety incidents reported through the system.`;
-                    break;
-                    
-                case 'users':
-                    message = `Active Users Today: ${getActiveUsersToday()}
-                    
-Users who have logged activity in the system today.`;
-                    break;
-                    
-                case 'storage':
-                    const allData = {
-                        maintenance: JSON.parse(localStorage.getItem('safePark_maintenance_records') || '[]'),
-                        activities: JSON.parse(localStorage.getItem('safePark_activities') || '[]')
-                    };
-                    const storageSize = new Blob([JSON.stringify(allData)]).size;
-                    
-                    message = `Storage Usage: ${formatBytes(storageSize)}
-                    
-This includes all stored maintenance records, activities, and system data.`;
-                    break;
-            }
-            
-            alert(message);
-        }
-
-        // Update chart (placeholder for now)
-        function updateChart() {
-            const chart = document.getElementById('activityChart');
-            const period = document.getElementById('chartPeriod').value;
-            
-            // Simple text-based chart for now
-            chart.innerHTML = `
-                <div style="text-align: center; color: #666;">
-                    <p>Activity Chart for ${period}</p>
-                    <p>Visual chart implementation coming soon...</p>
-                    <p>Data shows activity trends over selected period</p>
-                </div>
-            `;
-        }
-
-        // Refresh all data
-        function refreshAllData() {
-            updateAnalytics();
-            updateSystemStatus();
-            updateActivityBreakdown();
-            updateChart();
-            updateActivityLog('All data refreshed');
-            alert('Data refreshed successfully!');
-        }
-
-        // Schedule backup (placeholder)
-        function scheduleBackup() {
-            alert('Auto-backup scheduling will be available in a future update. For now, please create manual backups regularly.');
-        }
-
-        // Utility functions
-        function getStoredData(key) {
-            try {
-                const data = localStorage.getItem(key);
-                return data ? JSON.parse(data) : null;
-            } catch (error) {
-                console.error('Error getting stored data:', error);
-                return null;
-            }
-        }
-
-        // Dashboard Tile Click Functions
-        function openIncidentsModule() {
-            if (!isAuthenticated) {
-                alert('Please log in to access this feature.');
-                return;
-            }
-            updateActivityLog('Opened Incident Reporting module');
-            window.open('incidents.html', '_blank');
-        }
-
-        function openMaintenanceDashboard() {
-            if (!isAuthenticated) {
-                alert('Please log in to access this feature.');
-                return;
-            }
-            showSection('maintenance-dashboard');
-            updateActivityLog('Opened Maintenance Dashboard');
-        }
-
-        function openComplianceDetails() {
-            if (!isAuthenticated) {
-                alert('Please log in to access this feature.');
-                return;
-            }
-            
-            // For now, show compliance breakdown
-            const complianceInfo = `
-                🎯 COMPLIANCE SCORE BREAKDOWN
-
-                ✅ Safety Management: 100%
-                • Hot Tub Safety: Compliant
-                • Play Park Safety: Compliant  
-                • Incident Reporting: Active
-                
-                ✅ Operations: 100%
-                • Accommodation Checks: Current
-                • Equipment Maintenance: Up-to-date
-                • Food & Beverage Safety: Compliant
-                
-                ✅ Regulatory Compliance: 100%
-                • Gas Safety: Certified
-                • Electrical Safety: Current
-                • Fire Safety: Compliant
-                • COSHH: Up-to-date
-                • PUWER: Current
-                • LOLER: Certified
-                
-                📊 Overall Score: 100%
-                
-                Your park is maintaining excellent compliance across all areas. Continue using SafePark.PRO modules to maintain this high standard.
-            `;
-            
-            alert(complianceInfo);
-            updateActivityLog('Viewed compliance score breakdown');
-        }
-
-        // Daily Quick Check Functions
-        function openPlayParksInspection() {
-            if (!isAuthenticated) {
-                alert('Please log in to access this feature.');
-                return;
-            }
-            updateActivityLog('Opened Play Parks Daily Inspection');
-            window.open('play-parks.html#inspection', '_blank');
-        }
-
-        function openHotTubManagement() {
-            if (!isAuthenticated) {
-                alert('Please log in to access this feature.');
-                return;
-            }
-            updateActivityLog('Opened Hot Tub Daily Management');
-            window.open('hot-tub.html', '_blank');
-        }
-
-        function openAccommodationInspection() {
-            if (!isAuthenticated) {
-                alert('Please log in to access this feature.');
-                return;
-            }
-            updateActivityLog('Opened Accommodation Daily Inspection');
-            window.open('accommodation.html#inspection', '_blank');
-        }
-
-        function openEquipmentInspection() {
-            if (!isAuthenticated) {
-                alert('Please log in to access this feature.');
-                return;
-            }
-            updateActivityLog('Opened Equipment Daily Inspection');
-            window.open('grounds-equipment.html#inspection', '_blank');
-        }
-
-        // ========================================================================
-        // FIXED PAGE INITIALIZATION - THE KEY FIX FOR YOUR PROBLEM
-        // ========================================================================
-
-        // Page initialization - FIXED VERSION
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 SafePark.PRO initializing...');
-            console.log('Step 1: DOM loaded');
-            
-            try {
-                // Check authentication FIRST
-                const wasAuthenticated = checkExistingAuth();
-                console.log('Step 2: Authentication check complete -', wasAuthenticated ? '✅ AUTHENTICATED' : '❌ NOT AUTHENTICATED');
-                
-                if (wasAuthenticated) {
-                    // USER IS ALREADY LOGGED IN - SKIP LOADING SEQUENCE
-                    console.log('🎯 User already authenticated - skipping loading sequence');
-                    
-                    setTimeout(() => {
-                        // Hide loading overlay immediately
-                        const loadingOverlay = document.getElementById('loadingOverlay');
-                        const loginOverlay = document.getElementById('loginOverlay');
-                        
-                        if (loadingOverlay) {
-                            loadingOverlay.style.display = 'none';
-                            console.log('✅ Loading overlay hidden immediately');
-                        }
-                        if (loginOverlay) {
-                            loginOverlay.style.display = 'none';
-                            console.log('✅ Login overlay hidden');
-                        }
-                        
-                        // Show dashboard immediately
-                        showUserInfo();
-                        initializeMaintenanceIntegration();
-                        initMaintenanceRequestSystem();
-                        updateMaintenanceStatsEnhanced();
-                        updateActivityLog('User returned to dashboard (already authenticated)');
-                        console.log('✅ Dashboard shown immediately for authenticated user');
-                    }, 500); // Just a brief delay for smooth transition
-                    
-                } else {
-                    // USER NEEDS TO LOGIN - SHOW FULL LOADING SEQUENCE
-                    console.log('🔍 User needs authentication - showing loading sequence');
-                    
-                    setTimeout(() => {
-                        hideLoadingSequence(); // This will show login after loading
-                    }, 7000); // 7 second loading sequence for new users only
-                }
-                
-                initializationComplete = true;
-                console.log('✅ Initialization complete');
-                
-            } catch (error) {
-                console.error('❌ Error during initialization:', error);
-                // Emergency fallback - skip directly to login after 3 seconds
-                setTimeout(() => {
-                    document.getElementById('loadingOverlay').style.display = 'none';
-                    document.getElementById('loginOverlay').style.display = 'flex';
-                }, 3000);
-                handleURLParameters();
-            }
-        });
-
-        // Emergency fallback - if nothing happens after 10 seconds, force show login
-        setTimeout(() => {
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            if (loadingOverlay && loadingOverlay.style.display !== 'none') {
-                console.log('🚨 Emergency fallback activated');
-                loadingOverlay.style.display = 'none';
-                document.getElementById('loginOverlay').style.display = 'flex';
-            }
-        }, 10000);
-
-        // Make functions globally accessible
-        window.checkExistingAuth = checkExistingAuth;
-        window.authenticateUser = authenticateUser;
-        window.hideLoginOverlay = hideLoginOverlay;
-        window.hideLoadingSequence = hideLoadingSequence;
-        window.skipToApp = skipToApp;
-        window.handleLoginKeypress = handleLoginKeypress;
-        window.toggleSidebar = toggleSidebar;
-        window.showSection = showSection;
-        window.showUserInfo = showUserInfo;
-        window.updateActivityLog = updateActivityLog;
-        window.updateMaintenanceStats = updateMaintenanceStats;
-        window.loadMaintenanceDashboard = loadMaintenanceDashboard;
-        window.updateTaskStatus = updateTaskStatus;
-        window.refreshMaintenanceData = refreshMaintenanceData;
-        window.initializeDataManagement = initializeDataManagement;
-        window.openIncidentsModule = openIncidentsModule;
-        window.openMaintenanceDashboard = openMaintenanceDashboard;
-        window.openComplianceDetails = openComplianceDetails;
-        window.openPlayParksInspection = openPlayParksInspection;
-        window.openHotTubManagement = openHotTubManagement;
-        window.openAccommodationInspection = openAccommodationInspection;
-        window.openEquipmentInspection = openEquipmentInspection;
-
-        // Make maintenance request functions globally accessible
-        window.initMaintenanceRequestSystem = initMaintenanceRequestSystem;
-        window.submitMaintenanceRequest = submitMaintenanceRequest;
-        window.clearMaintenanceForm = clearMaintenanceForm;
-        window.showMaintenanceRequest = showMaintenanceRequest;
-        window.updateMaintenanceStatsEnhanced = updateMaintenanceStatsEnhanced;
-        window.navigateToMaintenance = navigateToMaintenance;
-
-        // Make data management functions globally accessible
-        window.updateAnalytics = updateAnalytics;
-        window.exportData = exportData;
-        window.advancedExport = advancedExport;
-        window.generateReport = generateReport;
-        window.cleanupOldData = cleanupOldData;
-        window.archiveCompleted = archiveCompleted;
-        window.clearCache = clearCache;
-        window.createBackup = createBackup;
-        window.restoreFromFile = restoreFromFile;
-        window.scheduleBackup = scheduleBackup;
-        window.refreshAllData = refreshAllData;
-        window.showDataBreakdown = showDataBreakdown;
-        window.updateChart = updateChart;
-               
-        // Create the SafeParkAuth object that other modules expect
-        window.SafeParkAuth = {
-            requireAuth: function() {
-                console.log('SafeParkAuth.requireAuth() called');
-                
-                try {
-                    const authData = getStoredData('safePark_auth');
-                    if (!authData || !authData.user || !authData.timestamp) {
-                        console.log('No valid auth data found');
-                        window.location.href = 'index.html';
-                        return false;
-                    }
-                    
-                    const now = Date.now();
-                    if (now - authData.timestamp > AUTH_DURATION) {
-                        console.log('Session expired');
-                        localStorage.removeItem('safePark_auth');
-                        window.location.href = 'index.html';
-                        return false;
-                    }
-                    
-                    console.log('Authentication valid for:', authData.user.name);
-                    return true;
-                    
-                } catch (error) {
-                    console.error('Authentication error:', error);
-                    window.location.href = 'index.html';
-                    return false;
-                }
-            },
-            
-            getCurrentUser: function() {
-                try {
-                    const authData = getStoredData('safePark_auth');
-                    return authData ? authData.user : null;
-                } catch (error) {
-                    console.error('Error getting current user:', error);
-                    return null;
-                }
-            },
-            
-            isAuthenticated: function() {
-                try {
-                    const authData = getStoredData('safePark_auth');
-                    if (!authData || !authData.user || !authData.timestamp) {
-                        return false;
-                    }
-                    
-                    const now = Date.now();
-                    return (now - authData.timestamp) < AUTH_DURATION;
-                } catch (error) {
-                    return false;
-                }
-            }
-        };
-
-        console.log('✅ SafeParkAuth object created and available globally');
-        // Handle URL parameters on page load - ADD THIS HERE
-function handleURLParameters() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const section = urlParams.get('section');
+function createSession(userCode) {
+    const user = ACCESS_CODES[userCode];
+    if (!user) return null;
     
-    if (section && document.getElementById(section)) {
-        setTimeout(() => {
-            if (isAuthenticated) {
-                showSection(section);
-                const navButton = document.querySelector(`button[onclick*="${section}"]`);
-                if (navButton) {
-                    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-                    navButton.classList.add('active');
-                }
-            }
-        }, 1000);
+    const session = {
+        sessionId: generateSessionId(),
+        user: user,
+        code: userCode,
+        created: Date.now(),
+        lastActivity: Date.now(),
+        expires: Date.now() + AUTH_CONFIG.SESSION_DURATION
+    };
+    
+    return session;
+}
+
+function saveSession(session) {
+    try {
+        localStorage.setItem(AUTH_CONFIG.SESSION_KEY, JSON.stringify(session));
+        localStorage.setItem(AUTH_CONFIG.BACKUP_KEY, JSON.stringify(session));
+        
+        authState = {
+            isAuthenticated: true,
+            currentUser: session.user,
+            sessionId: session.sessionId,
+            loginAttempts: 0,
+            lockedUntil: null
+        };
+        
+        console.log('Session saved successfully:', session.user.name);
+        return true;
+    } catch (error) {
+        console.error('Failed to save session:', error);
+        return false;
     }
 }
-        // Add this to your index.html script section
-document.addEventListener('DOMContentLoaded', function() {
-    // Populate contractor dropdown when department is set to contractor
-    const departmentSelect = document.querySelector('select[name*="department"], select[name*="category"]');
-    const locationInput = document.querySelector('input[name*="location"], input[name*="maintenanceLocation"]');
-    
-    if (departmentSelect) {
-        departmentSelect.addEventListener('change', function() {
-            if (this.value === 'contractor') {
-                // Add contractor selection dropdown
-                addContractorSelection();
-            }
-        });
-    }
-});
 
-function addContractorSelection() {
-    const container = document.querySelector('.maintenance-form, #maintenance-form-container');
-    if (!container || document.getElementById('contractor-select-group')) return;
+function loadSession() {
+    try {
+        let sessionData = localStorage.getItem(AUTH_CONFIG.SESSION_KEY);
+        
+        if (!sessionData) {
+            sessionData = localStorage.getItem(AUTH_CONFIG.BACKUP_KEY);
+        }
+        
+        if (!sessionData) {
+            return null;
+        }
+        
+        const session = JSON.parse(sessionData);
+        
+        if (!session.sessionId || !session.user || !session.expires) {
+            clearSession();
+            return null;
+        }
+        
+        if (Date.now() > session.expires) {
+            clearSession();
+            return null;
+        }
+        
+        session.lastActivity = Date.now();
+        saveSession(session);
+        
+        console.log('Session loaded successfully:', session.user.name);
+        return session;
+        
+    } catch (error) {
+        console.error('Failed to load session:', error);
+        clearSession();
+        return null;
+    }
+}
+
+function clearSession() {
+    try {
+        localStorage.removeItem(AUTH_CONFIG.SESSION_KEY);
+        localStorage.removeItem(AUTH_CONFIG.BACKUP_KEY);
+        
+        authState = {
+            isAuthenticated: false,
+            currentUser: null,
+            sessionId: null,
+            loginAttempts: 0,
+            lockedUntil: null
+        };
+        
+        console.log('Session cleared');
+    } catch (error) {
+        console.error('Failed to clear session:', error);
+    }
+}
+
+function validateSession() {
+    const session = loadSession();
+    if (!session) {
+        return false;
+    }
     
-    const contractorGroup = document.createElement('div');
-    contractorGroup.id = 'contractor-select-group';
-    contractorGroup.innerHTML = `
-        <div style="margin-bottom: 20px;">
-            <label style="color: var(--primary-orange); font-weight: 600; margin-bottom: 8px; display: block;">
-                Assign to Contractor
-            </label>
-            <select id="contractor-select" name="assignedContractor" 
-                    style="width: 100%; padding: 12px; border: 1px solid #666; border-radius: 5px; background: rgba(255,255,255,0.1); color: white;">
-                <option value="">Select contractor...</option>
-            </select>
-        </div>
+    if (!ACCESS_CODES[session.code]) {
+        clearSession();
+        return false;
+    }
+    
+    return true;
+}
+
+function isAccountLocked() {
+    if (!authState.lockedUntil) return false;
+    
+    if (Date.now() > authState.lockedUntil) {
+        authState.loginAttempts = 0;
+        authState.lockedUntil = null;
+        return false;
+    }
+    
+    return true;
+}
+
+function recordFailedLogin() {
+    authState.loginAttempts++;
+    
+    if (authState.loginAttempts >= AUTH_CONFIG.MAX_LOGIN_ATTEMPTS) {
+        authState.lockedUntil = Date.now() + AUTH_CONFIG.LOCKOUT_DURATION;
+        return true;
+    }
+    
+    return false;
+}
+
+function authenticateUser() {
+    console.log('Starting authentication...');
+    
+    if (isAccountLocked()) {
+        const remaining = Math.ceil((authState.lockedUntil - Date.now()) / 60000);
+        showError(`Account locked. Try again in ${remaining} minutes.`);
+        return false;
+    }
+    
+    const code = document.getElementById('loginCode').value.trim();
+    
+    if (!code) {
+        showError('Please enter an access code');
+        return false;
+    }
+    
+    if (!ACCESS_CODES[code]) {
+        const isLocked = recordFailedLogin();
+        if (isLocked) {
+            showError('Too many failed attempts. Account locked for 15 minutes.');
+        } else {
+            const remaining = AUTH_CONFIG.MAX_LOGIN_ATTEMPTS - authState.loginAttempts;
+            showError(`Invalid access code. ${remaining} attempts remaining.`);
+        }
+        
+        document.getElementById('loginCode').value = '';
+        shakeLoginContainer();
+        return false;
+    }
+    
+    const session = createSession(code);
+    if (!session || !saveSession(session)) {
+        showError('Login failed. Please try again.');
+        return false;
+    }
+    
+    showWelcomeMessage(session.user.message);
+    
+    setTimeout(() => {
+        hideLoginOverlay();
+        showDashboard();
+        logActivity('User authenticated: ' + session.user.name);
+    }, 2000);
+    
+    return true;
+}
+
+// ============================================================================
+// UI FUNCTIONS
+// ============================================================================
+
+function showError(message) {
+    const errorDiv = document.getElementById('loginError');
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.classList.add('show');
+        
+        setTimeout(() => {
+            errorDiv.classList.remove('show');
+        }, 5000);
+    }
+}
+
+function showWelcomeMessage(message) {
+    const welcomeDiv = document.getElementById('welcomeMessage');
+    if (welcomeDiv) {
+        welcomeDiv.textContent = message;
+        welcomeDiv.classList.add('show');
+    }
+}
+
+function shakeLoginContainer() {
+    const container = document.querySelector('.login-container');
+    if (container) {
+        container.style.animation = 'shake 0.5s ease-in-out';
+        setTimeout(() => {
+            container.style.animation = '';
+        }, 500);
+    }
+}
+
+function hideLoginOverlay() {
+    const overlay = document.getElementById('loginOverlay');
+    if (overlay) {
+        overlay.classList.add('hidden');
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 500);
+    }
+}
+
+function showDashboard() {
+    if (authState.currentUser) {
+        showUserInfo();
+        updateDashboardStats();
+    }
+}
+
+function showUserInfo() {
+    const userInfo = document.getElementById('userInfo');
+    const userPark = document.getElementById('userPark');
+    const userRole = document.getElementById('userRole');
+    
+    if (userInfo && userPark && userRole && authState.currentUser) {
+        userPark.textContent = authState.currentUser.park;
+        userRole.textContent = `${authState.currentUser.name} - ${authState.currentUser.role}`;
+        userInfo.style.display = 'block';
+    }
+}
+
+function requireAuth() {
+    if (!validateSession()) {
+        showLoginOverlay();
+        return false;
+    }
+    return true;
+}
+
+function showLoginOverlay() {
+    const loginOverlay = document.getElementById('loginOverlay');
+    if (loginOverlay) {
+        loginOverlay.style.display = 'flex';
+        loginOverlay.classList.remove('hidden');
+        
+        setTimeout(() => {
+            const loginInput = document.getElementById('loginCode');
+            if (loginInput) {
+                loginInput.focus();
+            }
+        }, 100);
+    }
+}
+
+function logActivity(message) {
+    try {
+        const activities = JSON.parse(localStorage.getItem('safePark_activities') || '[]');
+        activities.unshift({
+            timestamp: new Date().toISOString(),
+            description: message,
+            user: authState.currentUser?.name || 'System',
+            sessionId: authState.sessionId
+        });
+        
+        if (activities.length > 1000) {
+            activities.splice(1000);
+        }
+        
+        localStorage.setItem('safePark_activities', JSON.stringify(activities));
+        updateActivityDisplay(message);
+    } catch (error) {
+        console.error('Failed to log activity:', error);
+    }
+}
+
+function updateActivityDisplay(message) {
+    const activitiesList = document.getElementById('recentActivitiesList');
+    if (!activitiesList) return;
+    
+    const activityItem = document.createElement('div');
+    activityItem.className = 'activity-item success';
+    activityItem.innerHTML = `
+        <div class="activity-time">${new Date().toLocaleString()}</div>
+        <div class="activity-description">${message}</div>
     `;
     
-    // Insert after department selection
-    const departmentGroup = document.querySelector('select[name*="department"]').closest('div');
-    departmentGroup.parentNode.insertBefore(contractorGroup, departmentGroup.nextSibling);
+    activitiesList.insertBefore(activityItem, activitiesList.firstChild);
     
-    // Populate with contractors
-    if (window.populateContractorDropdown) {
-        const contractorSelect = document.getElementById('contractor-select');
-        window.populateContractorDropdown(contractorSelect);
+    const items = activitiesList.querySelectorAll('.activity-item');
+    if (items.length > 10) {
+        for (let i = 10; i < items.length; i++) {
+            items[i].remove();
+        }
     }
 }
-        // INCIDENT DASHBOARD INTEGRATION FUNCTIONS
-        function openIncidentReporting() {
-            if (!isAuthenticated) {
-                alert('Please log in to report incidents.');
-                return;
-            }
-            updateActivityLog('Opened Incident Reporting');
-            window.open('incidents.html#report', '_blank');
-        }
 
-        function openIncidentManagement() {
-            if (!isAuthenticated) {
-                alert('Please log in to view incident management.');
-                return;
-            }
-            updateActivityLog('Opened Incident Management');
-            window.open('incidents.html#management', '_blank');
+function updateDashboardStats() {
+    try {
+        const maintenanceRecords = JSON.parse(localStorage.getItem('safePark_maintenance_records') || '[]');
+        const pending = maintenanceRecords.filter(r => r.status === 'pending').length;
+        const inProgress = maintenanceRecords.filter(r => r.status === 'in-progress').length;
+        
+        const maintenanceEl = document.getElementById('maintenanceRecords');
+        if (maintenanceEl) {
+            maintenanceEl.textContent = pending + inProgress;
         }
+    } catch (error) {
+        console.error('Error updating maintenance stats:', error);
+    }
+    
+    try {
+        const incidents = JSON.parse(localStorage.getItem('safePark_incidents') || '[]');
+        const statsEl = document.getElementById('incidentStats');
+        if (statsEl) {
+            statsEl.textContent = incidents.length || '0';
+        }
+    } catch (error) {
+        console.error('Error updating incident stats:', error);
+    }
+}
 
-        // Enhanced incident statistics display
-        async function updateIncidentStatsDisplay() {
-            try {
-                const incidents = JSON.parse(localStorage.getItem('safePark_incidents_cache') || '[]');
-                
-                const stats = {
-                    total: incidents.length,
-                    open: incidents.filter(i => (i.status || 'open') === 'open').length,
-                    closed: incidents.filter(i => i.status === 'closed').length,
-                    investigation: incidents.filter(i => i.status === 'under-investigation').length
-                };
-                
-                const statsEl = document.getElementById('incidentStats');
-                if (statsEl) {
-                    if (stats.total === 0) {
-                        statsEl.textContent = '0';
-                    } else {
-                        statsEl.innerHTML = `
-                            <div style="font-size: 1.5rem;">${stats.total}</div>
-                            <div style="font-size: 0.7rem; line-height: 1;">
-                                ${stats.open} Open | ${stats.investigation} Investigating | ${stats.closed} Closed
-                            </div>
-                        `;
-                    }
-                }
-            } catch (error) {
-                console.error('Error updating incident stats:', error);
-                const statsEl = document.getElementById('incidentStats');
-                if (statsEl) statsEl.textContent = '0';
-            }
+function initializeAuthentication() {
+    console.log('Initializing reliable authentication system...');
+    
+    try {
+        const session = loadSession();
+        
+        if (session) {
+            console.log('Valid session found for:', session.user.name);
+            authState.isAuthenticated = true;
+            authState.currentUser = session.user;
+            authState.sessionId = session.sessionId;
+            return true;
+        } else {
+            console.log('No valid session, login required');
+            return false;
         }
-// INCIDENT DASHBOARD INTEGRATION FUNCTIONS
-        function openIncidentReporting() {
-            if (!isAuthenticated) {
-                alert('Please log in to report incidents.');
-                return;
-            }
-            updateActivityLog('Opened Incident Reporting');
-            window.open('incidents.html#report', '_blank');
-        }
+    } catch (error) {
+        console.error('Authentication initialization failed:', error);
+        clearSession();
+        return false;
+    }
+}
 
-        function openIncidentManagement() {
-            if (!isAuthenticated) {
-                alert('Please log in to view incident management.');
-                return;
-            }
-            updateActivityLog('Opened Incident Management');
-            window.open('incidents.html#management', '_blank');
-        }
+// ============================================================================
+// EVENT HANDLERS AND UTILITIES
+// ============================================================================
 
-        // Enhanced incident statistics display
-        async function updateIncidentStatsDisplay() {
-            try {
-                const incidents = JSON.parse(localStorage.getItem('safePark_incidents_cache') || '[]');
-                
-                const stats = {
-                    total: incidents.length,
-                    open: incidents.filter(i => (i.status || 'open') === 'open').length,
-                    closed: incidents.filter(i => i.status === 'closed').length,
-                    investigation: incidents.filter(i => i.status === 'under-investigation').length
-                };
-                
-                const statsEl = document.getElementById('incidentStats');
-                if (statsEl) {
-                    if (stats.total === 0) {
-                        statsEl.textContent = '0';
-                    } else {
-                        statsEl.innerHTML = `
-                            <div style="font-size: 1.5rem;">${stats.total}</div>
-                            <div style="font-size: 0.7rem; line-height: 1;">
-                                ${stats.open} Open | ${stats.investigation} Investigating | ${stats.closed} Closed
-                            </div>
-                        `;
-                    }
-                }
-            } catch (error) {
-                console.error('Error updating incident stats:', error);
-                const statsEl = document.getElementById('incidentStats');
-                if (statsEl) statsEl.textContent = '0';
-            }
+function handleLoginKeypress(event) {
+    if (event.key === 'Enter') {
+        authenticateUser();
+    }
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('active');
+}
+
+function showSection(sectionId) {
+    if (!requireAuth()) return;
+    
+    document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) {
+        targetSection.classList.add('active');
+    }
+    
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    event.target.classList.add('active');
+
+    if (window.innerWidth <= 768) {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.remove('active');
+    }
+
+    logActivity(`Navigated to ${sectionId.replace('-', ' ')} section`);
+}
+
+function skipToApp() {
+    document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+function openIncidentReporting() {
+    if (!requireAuth()) return;
+    logActivity('Opened Incident Reporting');
+    window.open('incidents.html#report', '_blank');
+}
+
+function openIncidentManagement() {
+    if (!requireAuth()) return;
+    logActivity('Opened Incident Management');
+    window.open('incidents.html#management', '_blank');
+}
+
+function openComplianceDetails() {
+    if (!requireAuth()) return;
+    
+    const complianceInfo = `Compliance Score Breakdown:
+
+Safety Management: 100%
+- Hot Tub Safety: Compliant
+- Play Park Safety: Compliant  
+- Incident Reporting: Active
+
+Operations: 100%
+- Accommodation Checks: Current
+- Equipment Maintenance: Up-to-date
+- Food & Beverage Safety: Compliant
+
+Regulatory Compliance: 100%
+- Gas Safety: Certified
+- Electrical Safety: Current
+- Fire Safety: Compliant
+- COSHH: Up-to-date
+
+Overall Score: 100%
+
+Your park is maintaining excellent compliance across all areas.`;
+    
+    alert(complianceInfo);
+    logActivity('Viewed compliance score breakdown');
+}
+
+// ============================================================================
+// GLOBAL AUTH OBJECT FOR OTHER MODULES
+// ============================================================================
+
+window.SafeParkAuth = {
+    requireAuth: requireAuth,
+    getCurrentUser: () => authState.currentUser,
+    isAuthenticated: () => authState.isAuthenticated && validateSession(),
+    logout: () => {
+        clearSession();
+        window.location.reload();
+    },
+    refreshSession: () => {
+        const session = loadSession();
+        if (session) {
+            session.lastActivity = Date.now();
+            saveSession(session);
+            return true;
         }
-        // Make incident functions globally accessible
-        window.openIncidentReporting = openIncidentReporting;
-        window.openIncidentManagement = openIncidentManagement;
-        window.updateIncidentStatsDisplay = updateIncidentStatsDisplay;
-    </script>
-</body>
-</html>
+        return false;
+    }
+};
+
+// ============================================================================
+// MAKE FUNCTIONS GLOBALLY ACCESSIBLE
+// ============================================================================
+
+window.authenticateUser = authenticateUser;
+window.handleLoginKeypress = handleLoginKeypress;
+window.requireAuth = requireAuth;
+window.initializeAuthentication = initializeAuthentication;
+window.toggleSidebar = toggleSidebar;
+window.showSection = showSection;
+window.skipToApp = skipToApp;
+window.openIncidentReporting = openIncidentReporting;
+window.openIncidentManagement = openIncidentManagement;
+window.openComplianceDetails = openComplianceDetails;
