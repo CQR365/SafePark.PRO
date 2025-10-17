@@ -2673,6 +2673,31 @@ window.skipToApp = skipToApp;
 window.openIncidentReporting = openIncidentReporting;
 window.openIncidentManagement = openIncidentManagement;
 window.openComplianceDetails = openComplianceDetails;
+        // ============================================================================
+// PAGE INITIALIZATION
+// ============================================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('SafePark.PRO starting...');
+    
+    const isLoggedIn = initializeAuthentication();
+    
+    setTimeout(() => {
+        document.getElementById('loadingOverlay').style.display = 'none';
+        if (isLoggedIn) {
+            showDashboard();
+        } else {
+            showLoginOverlay();
+        }
+    }, 3000);
+});
+
+// Placeholder functions to prevent errors
+function openMaintenanceDashboard() { alert('Feature coming soon'); }
+function showMaintenanceRequest() { alert('Feature coming soon'); }
+function submitMaintenanceRequest() { alert('Feature coming soon'); }
+function clearMaintenanceForm() { alert('Feature coming soon'); }
+function refreshMaintenanceData() { alert('Feature coming soon'); }
   </script>
 </body>
 </html>
