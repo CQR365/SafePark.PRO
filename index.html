@@ -1855,10 +1855,12 @@
         // SIMPLIFIED AUTHENTICATION SYSTEM WITH INDIVIDUAL CODES
         
         // Global variables
-        let isAuthenticated = false;
-        let currentUser = null;
-        let initializationComplete = false;
-        let maintenanceStatsListener = null;
+        // Authentication state - SINGLE SOURCE OF TRUTH
+   let authState = {
+       isAuthenticated: false,
+       currentUser: null,
+       sessionId: null
+   };
 
         // Individual Access Codes System
         const accessCodes = {
