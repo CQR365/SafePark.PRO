@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="theme-color" content="#CC5500">
+    <title>Fire Risk Assessment - SafePark.PRO</title>
+    
+    <style>
+        :root {
+            --primary-orange: #CC5500;
+            --dark-orange: #B8460C;
+            --light-orange: #E6672E;
+            --black: #000000;
+            --white: #FFFFFF;
+            --smart-dark-grey: #2A2A2A;
+            --content-background: #2F2F2F;
+            --light-gray: #F8F9FA;
+            --medium-gray: #6C757D;
+            --dark-gray: #343A40;
+            --border-color: #DEE2E6;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --shadow-light: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-medium: 0 4px 20px rgba(0,0,0,0.15);
+            --shadow-heavy: 0 8px 40px rgba(0,0,0,0.2);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+            color: #E8E8E8;
+            min-height: 100vh;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        /* Back to Dashboard Button */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(204, 85, 0, 0.4);
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        .back-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 30px rgba(204, 85, 0, 0.6);
+        }
+
+        /* Maintenance Button */
+        .maintenance-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(145deg, var(--medium-gray), var(--dark-gray));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            text-decoration: none;
+        }
+
+        .maintenance-button:hover {
+            transform: scale(1.1);
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+        }
+
+        /* V2 Professional 3D Texturing Implementation */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, transparent 50%, rgba(0, 0, 0, 0.12) 100%),
+                linear-gradient(145deg, #3a3a3a, #2f2f2f, #1f1f1f);
+            background-size: 25px 25px, 18px 18px, 100% 100%, 100% 100%;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 
+                        inset 0 8px 20px rgba(255, 255, 255, 0.1),
+                        inset 0 -8px 20px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 30%, transparent 70%, rgba(0, 0, 0, 0.1) 100%);
+            pointer-events: none;
+            border-radius: 15px;
+        }
+        
+        .header {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, transparent 50%, rgba(0, 0, 0, 0.12) 100%),
+                linear-gradient(135deg, #1a1a1a 0%, var(--smart-dark-grey) 100%);
+            color: var(--white);
+            text-align: center;
+            padding: 30px 20px;
+            position: relative;
+            box-shadow: inset 0 8px 20px rgba(255, 255, 255, 0.1),
+                        inset 0 -8px 20px rgba(0, 0, 0, 0.7);
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 30%, transparent 70%, rgba(0, 0, 0, 0.1) 100%);
+            pointer-events: none;
+        }
+        
+        .header h1 {
+            color: var(--primary-orange);
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            margin-bottom: 8px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .brand-line {
+            color: var(--light-orange);
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        .header .subtitle {
+            color: #999;
+            font-size: clamp(1rem, 2.5vw, 1.4rem);
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            color: #888;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+        }
+        
+        .form-content {
+            padding: 30px;
+        }
+        
+        .form-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%, rgba(0, 0, 0, 0.1) 100%),
+                linear-gradient(145deg, var(--content-background), #2a2a2a);
+            border-radius: 10px;
+            border: 2px solid #444;
+            position: relative;
+            box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.3),
+                        inset 0 -2px 4px rgba(255, 255, 255, 0.1);
+        }
+
+        .form-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 30%, transparent 70%, rgba(0, 0, 0, 0.05) 100%);
+            border-radius: 8px;
+            pointer-events: none;
+        }
+        
+        .section-title {
+            font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+            color: var(--primary-orange);
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid var(--primary-orange);
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            font-weight: 600;
+            color: var(--primary-orange);
+            margin-bottom: 8px;
+            font-size: clamp(0.85rem, 2vw, 0.95rem);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        input, select, textarea {
+            padding: 12px;
+            border: 2px solid #666;
+            border-radius: 6px;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+            transition: all 0.3s ease;
+            background: #3a3a3a;
+            color: #E8E8E8;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        select {
+            background: #3a3a3a;
+            color: #E8E8E8;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23E8E8E8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 20px;
+            cursor: pointer;
+        }
+
+        select option {
+            background: #3a3a3a;
+            color: #E8E8E8;
+            padding: 8px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            background: #424242;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4),
+                        0 0 0 2px rgba(204, 85, 0, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .legislation-info {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(0, 0, 0, 0.2) 100%),
+                linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 
+                        inset 0 8px 20px rgba(255, 255, 255, 0.1),
+                        inset 0 -8px 20px rgba(0, 0, 0, 0.7);
+            position: relative;
+        }
+
+        .legislation-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 30%, transparent 70%, rgba(0, 0, 0, 0.1) 100%);
+            border-radius: 8px;
+            pointer-events: none;
+        }
+        
+        .legislation-info h3 {
+            margin-bottom: 15px;
+            font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+            color: var(--white);
+        }
+        
+        .legislation-info ul {
+            list-style-position: inside;
+            margin-left: 10px;
+        }
+        
+        .legislation-info li {
+            margin-bottom: 8px;
+            font-size: clamp(0.85rem, 2vw, 0.95rem);
+        }
+        
+        .btn {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(0, 0, 0, 0.2) 100%),
+                linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 
+                        inset 0 8px 20px rgba(255, 255, 255, 0.1),
+                        inset 0 -8px 20px rgba(0, 0, 0, 0.7);
+            position: relative;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 30%, transparent 70%, rgba(0, 0, 0, 0.1) 100%);
+            border-radius: 6px;
+            pointer-events: none;
+        }
+        
+        .btn:hover {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 50%, rgba(0, 0, 0, 0.25) 100%),
+                linear-gradient(145deg, var(--dark-orange), var(--primary-orange));
+            transform: translateY(-2px);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9),
+                        inset 0 12px 30px rgba(255, 255, 255, 0.2),
+                        inset 0 -12px 30px rgba(0, 0, 0, 0.8);
+        }
+        
+        .btn-secondary {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(0, 0, 0, 0.2) 100%),
+                linear-gradient(145deg, var(--medium-gray), var(--dark-gray));
+        }
+        
+        .btn-secondary:hover {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 50%, rgba(0, 0, 0, 0.25) 100%),
+                linear-gradient(145deg, #7a7a7a, var(--medium-gray));
+        }
+        
+        .compliance-group {
+            padding: 15px;
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%, rgba(0, 0, 0, 0.1) 100%),
+                linear-gradient(145deg, var(--content-background), #2a2a2a);
+            border-radius: 8px;
+            border: 2px solid #444;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.3),
+                        inset 0 -2px 4px rgba(255, 255, 255, 0.1);
+        }
+
+        .compliance-group::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 30%, transparent 70%, rgba(0, 0, 0, 0.05) 100%);
+            border-radius: 6px;
+            pointer-events: none;
+        }
+        
+        .compliance-question {
+            color: #E8E8E8;
+            font-weight: 600;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+            margin-bottom: 12px;
+        }
+        
+        .compliance-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .compliance-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%, rgba(0, 0, 0, 0.1) 100%),
+                linear-gradient(145deg, #4a4a4a, #3a3a3a);
+            border-radius: 6px;
+            border: 2px solid #444;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3),
+                        inset 0 -1px 2px rgba(255, 255, 255, 0.1);
+        }
+        
+        .compliance-option:hover {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 50%, rgba(0, 0, 0, 0.15) 100%),
+                linear-gradient(145deg, #525252, #424242);
+            border-color: var(--primary-orange);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4),
+                        inset 0 -1px 2px rgba(255, 255, 255, 0.15),
+                        0 0 0 1px rgba(204, 85, 0, 0.2);
+        }
+        
+        .compliance-option input[type="radio"] {
+            margin: 0;
+            accent-color: var(--primary-orange);
+            cursor: pointer;
+        }
+        
+        .compliance-option label {
+            margin: 0;
+            font-size: clamp(0.85rem, 2vw, 0.9rem);
+            color: #E8E8E8;
+            cursor: pointer;
+        }
+        
+        .non-compliant {
+            border-color: var(--danger) !important;
+            background: 
+                linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, transparent 50%, rgba(220, 53, 69, 0.05) 100%),
+                linear-gradient(145deg, #4a2a2a, #3a2020) !important;
+        }
+        
+        .recommendations-section {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: 
+                linear-gradient(135deg, rgba(220, 53, 69, 0.15) 0%, transparent 50%, rgba(220, 53, 69, 0.08) 100%),
+                rgba(231, 76, 60, 0.1);
+            border: 2px solid var(--danger);
+            border-radius: 8px;
+            position: relative;
+            box-shadow: inset 0 4px 8px rgba(220, 53, 69, 0.2);
+        }
+        
+        .recommendations-section.visible {
+            display: block;
+        }
+        
+        .recommendation-item {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 12px;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+            flex-wrap: wrap;
+        }
+        
+        .recommendation-text {
+            flex: 1;
+            min-width: 200px;
+            color: #E8E8E8;
+            font-size: clamp(0.85rem, 2vw, 0.9rem);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .priority-select {
+            padding: 6px 10px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background: #3a3a3a;
+            color: #E8E8E8;
+            font-size: 0.85rem;
+            min-width: 120px;
+        }
+        
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #3a3a3a;
+            border-radius: 6px;
+            border: 1px solid #444;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .checkbox-item:hover {
+            background: #424242;
+            border-color: var(--primary-orange);
+        }
+        
+        .checkbox-item input[type="checkbox"] {
+            margin: 0;
+            accent-color: var(--primary-orange);
+            cursor: pointer;
+        }
+        
+        .checkbox-item label {
+            margin: 0;
+            font-size: clamp(0.85rem, 2vw, 0.9rem);
+            color: #E8E8E8;
+            cursor: pointer;
+        }
+        
+        .risk-matrix {
+            display: grid;
+            grid-template-columns: auto repeat(5, 1fr);
+            gap: 2px;
+            margin: 20px 0;
+            background: #444;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .risk-cell {
+            padding: 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+            color: var(--white);
+            min-height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .risk-header {
+            background: var(--dark-gray);
+            color: var(--white);
+        }
+        
+        .risk-low { background: var(--success); }
+        .risk-medium { background: var(--warning); color: var(--black); }
+        .risk-high { background: var(--light-orange); }
+        .risk-very-high { background: var(--danger); }
+        
+        .action-plan-summary {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%, rgba(0, 0, 0, 0.1) 100%),
+                rgba(204, 85, 0, 0.1);
+            border: 2px solid rgba(204, 85, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            position: relative;
+            box-shadow: inset 0 4px 8px rgba(204, 85, 0, 0.2);
+        }
+        
+        .action-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border-left: 4px solid;
+            background: rgba(0,0,0,0.3);
+            font-size: clamp(0.85rem, 2vw, 0.9rem);
+            color: #E8E8E8;
+        }
+        
+        .action-item.immediate {
+            border-left-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+        }
+        
+        .action-item.short-term {
+            border-left-color: #f39c12;
+            background: rgba(243, 156, 18, 0.1);
+        }
+        
+        .action-item.long-term {
+            border-left-color: #3498db;
+            background: rgba(52, 152, 219, 0.1);
+        }
+        
+        h3, h4 {
+            color: var(--primary-orange);
+            margin: 15px 0 10px 0;
+            font-size: clamp(1rem, 2.2vw, 1.2rem);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .button-container {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .footer {
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%, rgba(0, 0, 0, 0.1) 100%),
+                linear-gradient(145deg, var(--smart-dark-grey), #0a0a0a);
+            color: var(--medium-gray);
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9rem;
+            border-top: 1px solid #444;
+            box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .back-button, .maintenance-button {
+                width: 50px;
+                height: 50px;
+                font-size: 12px;
+            }
+
+            .back-button {
+                top: 15px;
+                left: 15px;
+            }
+
+            .maintenance-button {
+                bottom: 15px;
+                right: 15px;
+            }
+            
+            .form-content {
+                padding: 15px;
+            }
+            
+            .form-section {
+                padding: 15px;
+            }
+            
+            .header {
+                padding: 20px 15px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .compliance-options {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .compliance-option {
+                justify-content: flex-start;
+            }
+            
+            .button-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Back to Dashboard Button -->
+    <a href="index.html" class="back-button" title="Back to Dashboard">PRO</a>
+
+    <!-- Maintenance Button -->
+    <a href="maintenance-integration.html" class="maintenance-button" title="Maintenance System">🔧</a>
+
+    <div class="container">
+        <div class="header">
+            <h1>Fire Risk Assessment</h1>
+            <div class="brand-line">SafePark.PRO Module</div>
+            <div class="subtitle">Enhanced Fire Safety Compliance & BS 5306 Management</div>
+            <p>Comprehensive fire safety assessment with integrated maintenance reporting</p>
+        </div>
+        
+        <div class="form-content">
+            <div class="legislation-info">
+                <h3>Applicable Legislation & Standards</h3>
+                <ul>
+                    <li><strong>England & Wales:</strong> Regulatory Reform (Fire Safety) Order 2005, Fire Safety (England) Regulations 2022</li>
+                    <li><strong>Scotland (SFRS):</strong> Fire (Scotland) Act 2005, Fire Safety (Scotland) Regulations 2006</li>
+                    <li><strong>Northern Ireland:</strong> Fire Safety (Northern Ireland) Order 2006, Building Regulations (NI) 2024</li>
+                    <li><strong>Holiday Parks:</strong> BS 3632:2015 (Static Caravans), Caravan Sites Act 1968, Model Standards 2008</li>
+                    <li><strong>Standards:</strong> BS 9991:2024, BS 5839 (Fire Detection), BS 5306 (Fire Extinguishers)</li>
+                </ul>
+            </div>
+
+            <form id="fireRiskAssessment">
+                <!-- Property Information Section -->
+                <div class="form-section">
+                    <h2 class="section-title">Property Information</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="propertyName">Property/Unit Name <span style="color: var(--danger);">*</span></label>
+                            <input type="text" id="propertyName" name="property_name" required placeholder="e.g., Main Building, Unit 42A, Reception Area">
+                        </div>
+                        <div class="form-group">
+                            <label for="propertyType">Property Type <span style="color: var(--danger);">*</span></label>
+                            <select id="propertyType" name="property_type" required>
+                                <option value="">Select Property Type</option>
+                                <option value="accommodation">Guest Accommodation</option>
+                                <option value="static-caravan">Static Caravan</option>
+                                <option value="lodge">Lodge/Chalet</option>
+                                <option value="office">Office Space</option>
+                                <option value="clubhouse">Clubhouse/Entertainment</option>
+                                <option value="restaurant">Restaurant/Bar/Kitchen</option>
+                                <option value="reception">Reception/Public Area</option>
+                                <option value="maintenance">Maintenance/Storage</option>
+                                <option value="toilet-block">Toilet/Shower Block</option>
+                                <option value="shop">Shop/Retail</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="assessorName">Assessor Name <span style="color: var(--danger);">*</span></label>
+                            <input type="text" id="assessorName" name="assessor_name" required placeholder="Enter assessor name">
+                        </div>
+                        <div class="form-group">
+                            <label for="assessmentDate">Assessment Date <span style="color: var(--danger);">*</span></label>
+                            <input type="date" id="assessmentDate" name="assessment_date" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fire Safety Compliance Assessment -->
+                <div class="form-section">
+                    <h2 class="section-title">Fire Safety Compliance Assessment</h2>
+                    
+                    <div class="compliance-group" data-category="detection">
+                        <div class="compliance-question">Are adequate fire detection systems installed and maintained?</div>
+                        <div class="compliance-options">
+                            <div class="compliance-option">
+                                <input type="radio" id="detection-yes" name="detection-compliance" value="yes" onchange="handleComplianceChange('detection', 'yes')">
+                                <label for="detection-yes">Yes</label>
+                            </div>
+                            <div class="compliance-option">
+                                <input type="radio" id="detection-partial" name="detection-compliance" value="partial" onchange="handleComplianceChange('detection', 'partial')">
+                                <label for="detection-partial">Partially</label>
+                            </div>
+                            <div class="compliance-option">
+                                <input type="radio" id="detection-no" name="detection-compliance" value="no" onchange="handleComplianceChange('detection', 'no')">
+                                <label for="detection-no">No</label>
+                            </div>
+                        </div>
+                        <div id="detection-recommendations" class="recommendations-section">
+                            <h4 style="color: var(--danger); margin-bottom: 15px;">Fire Detection Improvements Required</h4>
+                            <div class="recommendation-item">
+                                <div class="recommendation-text">
+                                    <input type="checkbox" name="recommendations[]" value="Install smoke detectors in all rooms">
+                                    Install smoke detectors in all rooms and corridors
+                                </div>
+                                <select class="priority-select" onchange="updateActionPlan()">
+                                    <option value="immediate">Immediate</option>
+                                    <option value="short-term">Short-term</option>
+                                    <option value="long-term">Long-term</option>
+                                </select>
+                            </div>
+                            <div class="recommendation-item">
+                                <div class="recommendation-text">
+                                    <input type="checkbox" name="recommendations[]" value="Test all existing smoke alarms">
+                                    Test all existing smoke alarms and replace batteries
+                                </div>
+                                <select class="priority-select" onchange="updateActionPlan()">
+                                    <option value="immediate">Immediate</option>
+                                    <option value="short-term">Short-term</option>
+                                    <option value="long-term">Long-term</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="compliance-group" data-category="escape">
+                        <div class="compliance-question">Are fire escape routes clearly marked and unobstructed?</div>
+                        <div class="compliance-options">
+                            <div class="compliance-option">
+                                <input type="radio" id="escape-yes" name="escape-compliance" value="yes" onchange="handleComplianceChange('escape', 'yes')">
+                                <label for="escape-yes">Yes</label>
+                            </div>
+                            <div class="compliance-option">
+                                <input type="radio" id="escape-partial" name="escape-compliance" value="partial" onchange="handleComplianceChange('escape', 'partial')">
+                                <label for="escape-partial">Partially</label>
+                            </div>
+                            <div class="compliance-option">
+                                <input type="radio" id="escape-no" name="escape-compliance" value="no" onchange="handleComplianceChange('escape', 'no')">
+                                <label for="escape-no">No</label>
+                            </div>
+                        </div>
+                        <div id="escape-recommendations" class="recommendations-section">
+                            <h4 style="color: var(--danger); margin-bottom: 15px;">Fire Escape Improvements Required</h4>
+                            <div class="recommendation-item">
+                                <div class="recommendation-text">
+                                    <input type="checkbox" name="recommendations[]" value="Clear all escape routes">
+                                    Clear all escape routes of obstructions immediately
+                                </div>
+                                <select class="priority-select" onchange="updateActionPlan()">
+                                    <option value="immediate">Immediate</option>
+                                    <option value="short-term">Short-term</option>
+                                    <option value="long-term">Long-term</option>
+                                </select>
+                            </div>
+                            <div class="recommendation-item">
+                                <div class="recommendation-text">
+                                    <input type="checkbox" name="recommendations[]" value="Install emergency exit signage">
+                                    Install or improve emergency exit signage
+                                </div>
+                                <select class="priority-select" onchange="updateActionPlan()">
+                                    <option value="immediate">Immediate</option>
+                                    <option value="short-term">Short-term</option>
+                                    <option value="long-term">Long-term</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="compliance-group" data-category="extinguishers">
+                        <div class="compliance-question">Are appropriate fire extinguishers installed and regularly maintained?</div>
+                        <div class="compliance-options">
+                            <div class="compliance-option">
+                                <input type="radio" id="extinguishers-yes" name="extinguishers-compliance" value="yes" onchange="handleComplianceChange('extinguishers', 'yes')">
+                                <label for="extinguishers-yes">Yes</label>
+                            </div>
+                            <div class="compliance-option">
+                                <input type="radio" id="extinguishers-partial" name="extinguishers-compliance" value="partial" onchange="handleComplianceChange('extinguishers', 'partial')">
+                                <label for="extinguishers-partial">Partially</label>
+                            </div>
+                            <div class="compliance-option">
+                                <input type="radio" id="extinguishers-no" name="extinguishers-compliance" value="no" onchange="handleComplianceChange('extinguishers', 'no')">
+                                <label for="extinguishers-no">No</label>
+                            </div>
+                        </div>
+                        <div id="extinguishers-recommendations" class="recommendations-section">
+                            <h4 style="color: var(--danger); margin-bottom: 15px;">Fire Extinguisher Improvements Required</h4>
+                            <div class="recommendation-item">
+                                <div class="recommendation-text">
+                                    <input type="checkbox" name="recommendations[]" value="Install appropriate fire extinguishers">
+                                    Install appropriate type and number of fire extinguishers
+                                </div>
+                                <select class="priority-select" onchange="updateActionPlan()">
+                                    <option value="immediate">Immediate</option>
+                                    <option value="short-term">Short-term</option>
+                                    <option value="long-term">Long-term</option>
+                                </select>
+                            </div>
+                            <div class="recommendation-item">
+                                <div class="recommendation-text">
+                                    <input type="checkbox" name="recommendations[]" value="Schedule annual extinguisher service">
+                                    Schedule annual service for all fire extinguishers
+                                </div>
+                                <select class="priority-select" onchange="updateActionPlan()">
+                                    <option value="immediate">Immediate</option>
+                                    <option value="short-term">Short-term</option>
+                                    <option value="long-term">Long-term</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="compliance-group" data-category="electrical">
+                        <div class="compliance-question">Is electrical installation safe and compliant with current standards?</div>
+                        <div class="compliance-options">
+                            <div class="compliance-option">
+                                <input type="radio" id="electrical-yes" name="electrical-compliance" value="yes" onchange="handleComplianceChange('electrical', 'yes')">
+                                <label for="electrical-yes">Yes</label>
+                            </div>
+                            <div class="compliance-option">
+                                <input type="radio" id="electrical-partial" name="electrical-compliance" value="partial" onchange="handleComplianceChange('electrical', 'partial')">
+                                <label for="electrical-partial">Partially</label>
+                            </div>
+                            <div class="compliance-option">
+                                <input type="radio" id="electrical-no" name="electrical-compliance" value="no" onchange="handleComplianceChange('electrical', 'no')">
+                                <label for="electrical-no">No</label>
+                            </div>
+                        </div>
+                        <div id="electrical-recommendations" class="recommendations-section">
+                            <h4 style="color: var(--danger); margin-bottom: 15px;">Electrical Safety Improvements Required</h4>
+                            <div class="recommendation-item">
+                                <div class="recommendation-text">
+                                    <input type="checkbox" name="recommendations[]" value="Obtain electrical installation certificate">
+                                    Obtain current electrical installation certificate (EICR)
+                                </div>
+                                <select class="priority-select" onchange="updateActionPlan()">
+                                    <option value="immediate">Immediate</option>
+                                    <option value="short-term">Short-term</option>
+                                    <option value="long-term">Long-term</option>
+                                </select>
+                            </div>
+                            <div class="recommendation-item">
+                                <div class="recommendation-text">
+                                    <input type="checkbox" name="recommendations[]" value="Replace faulty electrical equipment">
+                                    Replace any faulty or damaged electrical equipment
+                                </div>
+                                <select class="priority-select" onchange="updateActionPlan()">
+                                    <option value="immediate">Immediate</option>
+                                    <option value="short-term">Short-term</option>
+                                    <option value="long-term">Long-term</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fire Hazards Identification -->
+                <div class="form-section">
+                    <h2 class="section-title">Fire Hazards Identification</h2>
+                    <label>Identify all potential fire hazards present (check all that apply):</label>
+                    <div class="checkbox-grid">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="electrical-equipment" name="hazards[]" value="electrical-equipment">
+                            <label for="electrical-equipment">Electrical equipment/wiring</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="heating" name="hazards[]" value="heating">
+                            <label for="heating">Heating equipment</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="cooking" name="hazards[]" value="cooking">
+                            <label for="cooking">Cooking equipment</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="smoking" name="hazards[]" value="smoking">
+                            <label for="smoking">Smoking materials</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="flammable-liquids" name="hazards[]" value="flammable-liquids">
+                            <label for="flammable-liquids">Flammable liquids</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="combustible-materials" name="hazards[]" value="combustible-materials">
+                            <label for="combustible-materials">Combustible materials</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Risk Assessment -->
+                <div class="form-section">
+                    <h2 class="section-title">Risk Assessment</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="likelihood">Likelihood of Fire</label>
+                            <select id="likelihood" name="likelihood" onchange="calculateRisk()">
+                                <option value="">Select Likelihood</option>
+                                <option value="1">Very Low</option>
+                                <option value="2">Low</option>
+                                <option value="3">Medium</option>
+                                <option value="4">High</option>
+                                <option value="5">Very High</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="consequence">Potential Consequence</label>
+                            <select id="consequence" name="consequence" onchange="calculateRisk()">
+                                <option value="">Select Consequence</option>
+                                <option value="1">Minimal</option>
+                                <option value="2">Minor</option>
+                                <option value="3">Moderate</option>
+                                <option value="4">Major</option>
+                                <option value="5">Catastrophic</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Overall Risk Level:</label>
+                        <div id="riskResult" class="risk-cell" style="display:none; margin-top: 10px; max-width: 300px;"></div>
+                        <input type="hidden" id="riskLevel" name="risk_level">
+                    </div>
+                </div>
+
+                <!-- Additional Notes -->
+                <div class="form-section">
+                    <h2 class="section-title">Additional Information</h2>
+                    <div class="form-group">
+                        <label for="additionalNotes">Additional Notes/Comments</label>
+                        <textarea id="additionalNotes" name="additional_notes" rows="4" placeholder="Any additional observations, comments, or specific concerns..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Action Plan Summary -->
+                <div class="action-plan-summary" id="actionPlanSummary">
+                    <h3>Action Plan Summary</h3>
+                    <p style="color: #888; margin-bottom: 15px;">Based on compliance assessment responses</p>
+                    <input type="hidden" id="actionPlanData" name="action_plan_data">
+                    <div id="immediateActions" style="display: none;">
+                        <h4 style="color: #e74c3c; margin-bottom: 10px;">Immediate Actions Required</h4>
+                        <div id="immediateActionsList"></div>
+                    </div>
+                    <div id="shortTermActions" style="display: none;">
+                        <h4 style="color: #f39c12; margin-bottom: 10px;">Short-term Actions (within 3 months)</h4>
+                        <div id="shortTermActionsList"></div>
+                    </div>
+                    <div id="longTermActions" style="display: none;">
+                        <h4 style="color: #3498db; margin-bottom: 10px;">Long-term Actions (3-12 months)</h4>
+                        <div id="longTermActionsList"></div>
+                    </div>
+                </div>
+
+                <div class="button-container">
+                    <button type="submit" class="btn">Complete Assessment</button>
+                    <button type="button" class="btn btn-secondary" onclick="saveFormData()">Save Draft</button>
+                    <button type="button" class="btn btn-secondary" onclick="window.print()">Print Assessment</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="footer">
+            SafePark.PRO - Fire Risk Assessment Module - Integrated with Main Dashboard
+        </div>
+    </div>
+
+    <script>
+        // Check authentication on page load
+        function checkAuthentication() {
+            const authData = localStorage.getItem('safePark_session');
+            if (!authData) {
+                alert('Please log in through the main dashboard first.');
+                window.location.href = 'index.html';
+                return false;
+            }
+            return true;
+        }
+
+        // Global variables
+        let actionPlanItems = {
+            immediate: [],
+            'short-term': [],
+            'long-term': []
+        };
+
+        // Initialize system
+        function initializeSystem() {
+            // Check authentication first
+            if (!checkAuthentication()) return;
+
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('assessmentDate').value = today;
+            
+            console.log('Fire Risk Assessment Module initialized');
+        }
+
+        // Compliance handling functions
+        function handleComplianceChange(category, value) {
+            const group = document.querySelector(`[data-category="${category}"]`);
+            const recommendations = document.getElementById(`${category}-recommendations`);
+            
+            if (value === 'no' || value === 'partial') {
+                group.classList.add('non-compliant');
+                recommendations.classList.add('visible');
+                
+                // Auto-check the first recommendation as immediate priority
+                const firstCheckbox = recommendations.querySelector('input[type="checkbox"]');
+                const firstPriority = recommendations.querySelector('.priority-select');
+                if (firstCheckbox && firstPriority) {
+                    firstCheckbox.checked = true;
+                    firstPriority.value = value === 'no' ? 'immediate' : 'short-term';
+                }
+            } else {
+                group.classList.remove('non-compliant');
+                recommendations.classList.remove('visible');
+                
+                // Uncheck all recommendations in this category
+                const checkboxes = recommendations.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(cb => cb.checked = false);
+            }
+            
+            updateActionPlan();
+        }
+
+        // Action plan management
+        function updateActionPlan() {
+            actionPlanItems = {
+                immediate: [],
+                'short-term': [],
+                'long-term': []
+            };
+            
+            // Gather checked recommendations
+            document.querySelectorAll('.recommendations-section.visible').forEach(section => {
+                section.querySelectorAll('.recommendation-item').forEach(item => {
+                    const checkbox = item.querySelector('input[type="checkbox"]');
+                    const prioritySelect = item.querySelector('.priority-select');
+                    
+                    if (checkbox && checkbox.checked && prioritySelect) {
+                        const priority = prioritySelect.value;
+                        actionPlanItems[priority].push(checkbox.value);
+                    }
+                });
+            });
+            
+            updateActionPlanDisplay();
+        }
+
+        function updateActionPlanDisplay() {
+            const categories = ['immediate', 'short-term', 'long-term'];
+            
+            categories.forEach(category => {
+                const container = document.getElementById(`${category.replace('-', '')}Actions`);
+                const list = document.getElementById(`${category.replace('-', '')}ActionsList`);
+                
+                if (actionPlanItems[category].length > 0) {
+                    container.style.display = 'block';
+                    list.innerHTML = actionPlanItems[category].map(action => 
+                        `<div class="action-item ${category}">${action}</div>`
+                    ).join('');
+                } else {
+                    container.style.display = 'none';
+                }
+            });
+            
+            // Store action plan data
+            document.getElementById('actionPlanData').value = JSON.stringify(actionPlanItems);
+        }
+
+        // Risk calculation
+        function calculateRisk() {
+            const likelihood = parseInt(document.getElementById('likelihood').value);
+            const consequence = parseInt(document.getElementById('consequence').value);
+            
+            if (!likelihood || !consequence) {
+                document.getElementById('riskResult').style.display = 'none';
+                document.getElementById('riskLevel').value = '';
+                return;
+            }
+            
+            const riskScore = likelihood * consequence;
+            let riskLevel, riskClass, riskText;
+            
+            if (riskScore <= 4) {
+                riskLevel = 'Low';
+                riskClass = 'risk-low';
+                riskText = 'Low Risk - Monitor and maintain current controls';
+            } else if (riskScore <= 9) {
+                riskLevel = 'Medium';
+                riskClass = 'risk-medium';
+                riskText = 'Medium Risk - Additional controls may be required';
+            } else if (riskScore <= 16) {
+                riskLevel = 'High';
+                riskClass = 'risk-high';
+                riskText = 'High Risk - Immediate action required';
+            } else {
+                riskLevel = 'Very High';
+                riskClass = 'risk-very-high';
+                riskText = 'Very High Risk - Stop activity until risk is reduced';
+            }
+            
+            const resultDiv = document.getElementById('riskResult');
+            resultDiv.className = `risk-cell ${riskClass}`;
+            resultDiv.textContent = `${riskLevel} (${riskScore}) - ${riskText}`;
+            resultDiv.style.display = 'flex';
+            
+            document.getElementById('riskLevel').value = riskLevel;
+        }
+
+        // Form data management
+        function saveFormData() {
+            try {
+                const formData = new FormData(document.getElementById('fireRiskAssessment'));
+                const data = {};
+                
+                for (let [key, value] of formData.entries()) {
+                    if (data[key]) {
+                        if (Array.isArray(data[key])) {
+                            data[key].push(value);
+                        } else {
+                            data[key] = [data[key], value];
+                        }
+                    } else {
+                        data[key] = value;
+                    }
+                }
+                
+                data.actionPlan = actionPlanItems;
+                data.saveDate = new Date().toISOString();
+                
+                localStorage.setItem('fire_assessment_draft', JSON.stringify(data));
+                alert('Fire assessment draft saved successfully!');
+                
+            } catch (error) {
+                console.warn('Error saving form data:', error);
+                alert('Error saving draft. Please try again.');
+            }
+        }
+
+        // Report activity to main dashboard
+        function reportToMainDashboard(action, data = {}) {
+            try {
+                const activities = JSON.parse(localStorage.getItem('safePark_activities') || '[]');
+                activities.unshift({
+                    timestamp: new Date().toISOString(),
+                    description: `Fire Safety: ${action}`,
+                    module: 'Fire Risk Assessment',
+                    data: data
+                });
+                localStorage.setItem('safePark_activities', JSON.stringify(activities));
+            } catch (error) {
+                console.warn('Error reporting to dashboard:', error);
+            }
+        }
+
+        // Form submission
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSystem();
+            
+            document.getElementById('fireRiskAssessment').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Validate required fields
+                const requiredFields = document.querySelectorAll('[required]');
+                let isValid = true;
+                
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        isValid = false;
+                        field.style.borderColor = 'var(--danger)';
+                    } else {
+                        field.style.borderColor = '#666';
+                    }
+                });
+                
+                if (!isValid) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+
+                // Create assessment record
+                const assessmentData = {
+                    id: 'FIRE_ASSESS_' + Date.now(),
+                    propertyName: document.getElementById('propertyName').value,
+                    propertyType: document.getElementById('propertyType').value,
+                    assessorName: document.getElementById('assessorName').value,
+                    assessmentDate: document.getElementById('assessmentDate').value,
+                    riskLevel: document.getElementById('riskLevel').value,
+                    actionPlan: actionPlanItems,
+                    timestamp: new Date().toISOString()
+                };
+
+                // Save to records
+                try {
+                    const records = JSON.parse(localStorage.getItem('fire_assessment_records') || '[]');
+                    records.unshift(assessmentData);
+                    localStorage.setItem('fire_assessment_records', JSON.stringify(records));
+                } catch (error) {
+                    console.warn('Error saving assessment record:', error);
+                }
+
+                // Report to dashboard
+                reportToMainDashboard('Fire risk assessment completed', {
+                    property: assessmentData.propertyName,
+                    riskLevel: assessmentData.riskLevel,
+                    assessor: assessmentData.assessorName
+                });
+                
+                alert('Fire risk assessment completed successfully!\n\nAssessment has been recorded and reported to the main dashboard.');
+                
+                // Clear draft
+                localStorage.removeItem('fire_assessment_draft');
+                
+                // Return to dashboard
+                window.location.href = 'index.html';
+            });
+        });
+
+        // Initialize when page loads
+        window.onload = function() {
+            initializeSystem();
+        };
+    </script>
+</body>
+</html>
