@@ -1,0 +1,3094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>SafePark.PRO - Professional Safety Management System</title>
+    
+    <!-- Progressive Web App Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#CC5500">
+    <link rel="apple-touch-icon" href="icon-192-maskable.png">
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+
+    <style>
+        :root {
+            --primary-orange: #CC5500;
+            --dark-orange: #B8460C;
+            --light-orange: #E6672E;
+            --black: #000000;
+            --white: #FFFFFF;
+            --smart-dark-grey: #2A2A2A;
+            --content-background: #2F2F2F;
+            --light-gray: #F8F9FA;
+            --medium-gray: #6C757D;
+            --dark-gray: #343A40;
+            --border-color: #DEE2E6;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --shadow-light: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-medium: 0 4px 20px rgba(0,0,0,0.15);
+            --shadow-heavy: 0 8px 40px rgba(0,0,0,0.2);
+            --darker-bg: #1a1a1a;
+            --tile-bg: #252525;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+            color: #E8E8E8;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* AMAZING 7-SECOND OPENING SEQUENCE STYLES */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+            z-index: 50000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+            overflow: hidden;
+        }
+
+        .loading-overlay.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loading-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--primary-orange);
+            border-radius: 50%;
+            animation: floatParticles 4s infinite ease-in-out;
+        }
+
+        .particle:nth-child(1) { left: 10%; top: 20%; animation-delay: 0s; }
+        .particle:nth-child(2) { left: 80%; top: 30%; animation-delay: 0.5s; }
+        .particle:nth-child(3) { left: 60%; top: 70%; animation-delay: 1s; }
+        .particle:nth-child(4) { left: 20%; top: 80%; animation-delay: 1.5s; }
+        .particle:nth-child(5) { left: 90%; top: 60%; animation-delay: 2s; }
+        .particle:nth-child(6) { left: 40%; top: 10%; animation-delay: 2.5s; }
+
+        @keyframes floatParticles {
+            0%, 100% { 
+                transform: translateY(0px) scale(0.8); 
+                opacity: 0.6; 
+            }
+            50% { 
+                transform: translateY(-20px) scale(1.2); 
+                opacity: 1; 
+                box-shadow: 0 0 20px var(--primary-orange);
+            }
+        }
+
+        .main-circle {
+            position: absolute;
+            width: 225px;
+            height: 225px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, var(--light-orange), var(--primary-orange), var(--dark-orange));
+            box-shadow: 
+                0 0 60px rgba(204, 85, 0, 0.8),
+                0 0 120px rgba(204, 85, 0, 0.6),
+                0 0 180px rgba(204, 85, 0, 0.4),
+                inset 0 0 40px rgba(255, 255, 255, 0.2);
+            animation: pulseMainCircle 2s ease-in-out, fadeOutOrangeCircle 1s ease-in-out;
+            animation-delay: 0s, 3.5s;
+            animation-fill-mode: forwards, forwards;
+            transform: scale(0);
+        }
+
+        @keyframes pulseMainCircle {
+            0% { 
+                transform: scale(0); 
+                filter: brightness(1); 
+            }
+            50% { 
+                transform: scale(1.1); 
+                filter: brightness(1.5);
+                box-shadow: 
+                    0 0 80px rgba(204, 85, 0, 1),
+                    0 0 160px rgba(204, 85, 0, 0.8),
+                    0 0 240px rgba(204, 85, 0, 0.6);
+            }
+            100% { 
+                transform: scale(1); 
+                filter: brightness(1.2);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOutOrangeCircle {
+            0% { 
+                opacity: 1; 
+                transform: scale(1);
+            }
+            100% { 
+                opacity: 0; 
+                transform: scale(0.8);
+            }
+        }
+
+        .accent-circle {
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #000000, #1a1a1a);
+            border: 3px solid var(--primary-orange);
+            box-shadow: 
+                inset 0 0 30px rgba(204, 85, 0, 0.3),
+                0 0 40px rgba(0, 0, 0, 0.8);
+            animation: slideInAccent 1.5s ease-out;
+            animation-delay: 2.2s;
+            transform: translateX(-300px);
+            animation-fill-mode: forwards;
+        }
+
+        @keyframes slideInAccent {
+            0% { 
+                transform: translateX(-300px) rotate(-180deg); 
+                opacity: 0; 
+            }
+            70% { 
+                transform: translateX(0) rotate(0deg); 
+                opacity: 0.9; 
+            }
+            100% { 
+                transform: translateX(0) rotate(0deg); 
+                opacity: 1; 
+            }
+        }
+
+        .pro-text {
+            position: absolute;
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--white);
+            text-shadow: 
+                0 0 20px var(--primary-orange),
+                0 0 40px var(--primary-orange),
+                0 0 60px var(--primary-orange),
+                2px 2px 4px rgba(0, 0, 0, 0.8);
+            letter-spacing: 3px;
+            animation: proTextEntrance 2s ease-out;
+            animation-delay: 3.5s;
+            transform: scale(0) rotateY(180deg);
+            animation-fill-mode: forwards;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pro-text:hover {
+            transform: scale(1.08);
+            text-shadow: 
+                0 0 25px var(--primary-orange),
+                0 0 50px var(--primary-orange),
+                0 0 75px var(--primary-orange),
+                0 0 100px var(--light-orange),
+                2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        @keyframes proTextEntrance {
+            0% { 
+                transform: scale(0) rotateY(180deg); 
+                opacity: 0; 
+                filter: blur(20px);
+            }
+            60% { 
+                transform: scale(1.3) rotateY(0deg); 
+                opacity: 0.8; 
+                filter: blur(5px);
+            }
+            80% { 
+                transform: scale(0.9) rotateY(0deg); 
+                opacity: 1; 
+                filter: blur(0px);
+            }
+            100% { 
+                transform: scale(1) rotateY(0deg); 
+                opacity: 1; 
+                filter: blur(0px);
+                animation: pulsePro 1.5s ease-in-out infinite;
+            }
+        }
+
+        @keyframes pulsePro {
+            0%, 100% { 
+                transform: scale(1); 
+                text-shadow: 
+                    0 0 20px var(--primary-orange),
+                    0 0 40px var(--primary-orange),
+                    0 0 60px var(--primary-orange),
+                    2px 2px 4px rgba(0, 0, 0, 0.8);
+            }
+            50% { 
+                transform: scale(1.05); 
+                text-shadow: 
+                    0 0 30px var(--primary-orange),
+                    0 0 60px var(--primary-orange),
+                    0 0 90px var(--primary-orange),
+                    0 0 120px var(--light-orange),
+                    2px 2px 4px rgba(0, 0, 0, 0.8);
+            }
+        }
+
+        .trail {
+            position: absolute;
+            width: 220px;
+            height: 220px;
+            border: 2px solid transparent;
+            border-top: 2px solid var(--primary-orange);
+            border-radius: 50%;
+            animation: rotateTrail 3s linear infinite;
+            animation-delay: 4s;
+            opacity: 0;
+            animation-fill-mode: forwards;
+        }
+
+        .trail:nth-child(2) {
+            width: 240px;
+            height: 240px;
+            border-top: 2px solid var(--light-orange);
+            animation-delay: 4.2s;
+            animation-duration: 2.5s;
+        }
+
+        .trail:nth-child(3) {
+            width: 180px;
+            height: 180px;
+            border-top: 2px solid var(--dark-orange);
+            animation-delay: 4.4s;
+            animation-duration: 3.5s;
+            animation-direction: reverse;
+        }
+
+        .trail:nth-child(4) {
+            width: 260px;
+            height: 260px;
+            border-top: 2px solid rgba(204, 85, 0, 0.6);
+            animation-delay: 4.6s;
+            animation-duration: 3s;
+        }
+
+        .trail:nth-child(5) {
+            width: 160px;
+            height: 160px;
+            border-top: 2px solid rgba(230, 103, 46, 0.8);
+            animation-delay: 4.8s;
+            animation-duration: 4s;
+            animation-direction: reverse;
+        }
+
+        .trail:nth-child(6) {
+            width: 280px;
+            height: 280px;
+            border-top: 2px solid rgba(184, 70, 12, 0.5);
+            animation-delay: 5s;
+            animation-duration: 2.8s;
+        }
+
+        @keyframes rotateTrail {
+            0% { 
+                transform: rotate(0deg); 
+                opacity: 0; 
+            }
+            10% { 
+                opacity: 0.8; 
+            }
+            90% { 
+                opacity: 0.6; 
+            }
+            100% { 
+                transform: rotate(360deg); 
+                opacity: 0; 
+            }
+        }
+
+        .brand-subtitle {
+            position: absolute;
+            bottom: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.1rem;
+            color: var(--medium-gray);
+            font-weight: 600;
+            letter-spacing: 2px;
+            animation: fadeInSubtitle 1s ease-out;
+            animation-delay: 5s;
+            opacity: 0;
+            animation-fill-mode: forwards;
+        }
+
+        @keyframes fadeInSubtitle {
+            0% { 
+                opacity: 0; 
+                transform: translateX(-50%) translateY(20px); 
+            }
+            100% { 
+                opacity: 0.7; 
+                transform: translateX(-50%) translateY(0); 
+            }
+        }
+
+        .loading-progress {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            animation: showProgress 1s ease-out;
+            animation-delay: 5.5s;
+            opacity: 0;
+            animation-fill-mode: forwards;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-orange), var(--light-orange));
+            border-radius: 2px;
+            animation: loadProgress 1.5s ease-out;
+            animation-delay: 5.5s;
+            transform: translateX(-100%);
+            animation-fill-mode: forwards;
+            box-shadow: 0 0 10px var(--primary-orange);
+        }
+
+        @keyframes showProgress {
+            to { opacity: 1; }
+        }
+
+        @keyframes loadProgress {
+            to { transform: translateX(0); }
+        }
+
+        /* Main Layout */
+        .main-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Enhanced Sidebar with 3D darker effect */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, var(--darker-bg) 0%, #111 100%);
+            padding: 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            border-right: 3px solid var(--primary-orange);
+            box-shadow: 
+                var(--shadow-heavy),
+                inset -5px 0 15px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        /* Enhanced 3D Sidebar Header */
+        .sidebar-header {
+            background: 
+                linear-gradient(145deg, var(--darker-bg), #0f0f0f),
+                repeating-linear-gradient(45deg, 
+                    transparent 0px, 
+                    rgba(255, 255, 255, 0.01) 1px, 
+                    transparent 3px),
+                radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.03), transparent 60%);
+            padding: 30px 20px;
+            text-align: center;
+            color: white;
+            border-bottom: 3px solid var(--dark-orange);
+            box-shadow: 
+                inset 0 8px 20px rgba(255, 255, 255, 0.1),
+                inset 0 -8px 20px rgba(0, 0, 0, 0.7),
+                0 5px 15px rgba(0, 0, 0, 0.5);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .sidebar-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 30%, transparent 70%, rgba(0, 0, 0, 0.2) 100%),
+                repeating-linear-gradient(30deg, 
+                    transparent 0px, 
+                    rgba(255, 255, 255, 0.015) 1px, 
+                    transparent 2px, 
+                    rgba(80, 80, 80, 0.01) 3px,
+                    transparent 4px);
+            pointer-events: none;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            color: var(--white);
+            position: relative;
+            z-index: 1;
+        }
+
+        .tagline {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            font-weight: 500;
+            color: #ccc;
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-section {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+        }
+
+        .nav-section-title {
+            color: var(--primary-orange);
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            padding-left: 5px;
+        }
+
+        /* Enhanced 3D Navigation Buttons */
+        .nav-btn {
+            width: 100%;
+            background: 
+                linear-gradient(145deg, #1f1f1f, #141414, #0a0a0a),
+                linear-gradient(65deg, transparent 40%, rgba(255,255,255,0.02) 42%, transparent 44%),
+                radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.03), transparent 50%);
+            border: 2px solid var(--medium-gray);
+            color: #E8E8E8;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 
+                0 4px 8px rgba(0, 0, 0, 0.3),
+                inset 0 2px 4px rgba(255, 255, 255, 0.1),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.5),
+                inset 2px 2px 6px rgba(255, 255, 255, 0.03),
+                inset -2px -2px 6px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                repeating-linear-gradient(30deg, 
+                    transparent 0px, 
+                    rgba(255, 255, 255, 0.015) 1px, 
+                    transparent 2px, 
+                    rgba(80, 80, 80, 0.01) 3px,
+                    transparent 4px),
+                repeating-linear-gradient(120deg, 
+                    transparent 0px, 
+                    rgba(255, 255, 255, 0.008) 1px, 
+                    transparent 3px),
+                radial-gradient(circle at 70% 30%, rgba(120, 120, 120, 0.025) 0%, transparent 30%);
+            border-radius: 8px;
+            pointer-events: none;
+        }
+
+        .nav-btn:hover {
+            background: 
+                linear-gradient(145deg, rgba(204, 85, 0, 0.3), rgba(204, 85, 0, 0.1)),
+                linear-gradient(65deg, transparent 40%, rgba(255,255,255,0.03) 42%, transparent 44%),
+                radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.04), transparent 50%);
+            border-color: var(--primary-orange);
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 12px rgba(0, 0, 0, 0.4),
+                0 0 15px rgba(204, 85, 0, 0.3),
+                inset 0 2px 4px rgba(255, 255, 255, 0.2),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.3),
+                inset 2px 2px 8px rgba(255, 255, 255, 0.05),
+                inset -2px -2px 8px rgba(0, 0, 0, 0.6);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            border-color: var(--light-orange);
+            color: white;
+            box-shadow: 
+                0 6px 12px rgba(0, 0, 0, 0.4),
+                0 0 20px rgba(204, 85, 0, 0.5),
+                inset 0 2px 4px rgba(255, 255, 255, 0.3),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* Enhanced 3D Header */
+        .header {
+            background: 
+                linear-gradient(145deg, var(--darker-bg), #111, #0a0a0a),
+                repeating-linear-gradient(45deg, 
+                    transparent 0px, 
+                    rgba(255, 255, 255, 0.01) 1px, 
+                    transparent 3px),
+                radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.03), transparent 60%),
+                linear-gradient(135deg, rgba(100, 100, 100, 0.05), transparent 70%);
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            box-shadow: 
+                0 15px 35px rgba(0, 0, 0, 0.8),
+                inset 0 8px 20px rgba(255, 255, 255, 0.1),
+                inset 0 -8px 20px rgba(0, 0, 0, 0.7);
+            border: 3px solid var(--primary-orange);
+            border-radius: 15px;
+            margin-bottom: 40px;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                repeating-linear-gradient(45deg, 
+                    transparent 0px, 
+                    rgba(255, 255, 255, 0.01) 1px, 
+                    transparent 3px),
+                radial-gradient(circle at 15% 85%, rgba(100, 100, 100, 0.03) 0%, transparent 40%),
+                radial-gradient(circle at 85% 15%, rgba(80, 80, 80, 0.02) 0%, transparent 40%),
+                linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+            border-radius: 15px;
+            pointer-events: none;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            color: var(--primary-orange);
+            margin-bottom: 10px;
+            font-weight: 800;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5),
+                         0 0 10px rgba(204, 85, 0, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .brand-line {
+            font-size: 1.5rem;
+            color: var(--light-orange);
+            margin-bottom: 15px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #B8B8B8;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* User Info */
+        .user-info {
+            background: 
+                linear-gradient(145deg, #1f1f1f, #141414, #0a0a0a),
+                linear-gradient(65deg, transparent 40%, rgba(255,255,255,0.02) 42%, transparent 44%),
+                radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.03), transparent 50%);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid var(--primary-orange);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 
+                0 8px 20px rgba(0, 0, 0, 0.5),
+                inset 0 4px 10px rgba(255, 255, 255, 0.1),
+                inset 0 -4px 10px rgba(0, 0, 0, 0.5),
+                inset 2px 2px 6px rgba(255, 255, 255, 0.03),
+                inset -2px -2px 6px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .user-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                repeating-linear-gradient(30deg, 
+                    transparent 0px, 
+                    rgba(255, 255, 255, 0.015) 1px, 
+                    transparent 2px, 
+                    rgba(80, 80, 80, 0.01) 3px,
+                    transparent 4px),
+                radial-gradient(circle at 70% 30%, rgba(120, 120, 120, 0.025) 0%, transparent 30%);
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .user-welcome {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary-orange);
+            position: relative;
+            z-index: 1;
+        }
+
+        .user-details {
+            text-align: right;
+            position: relative;
+            z-index: 1;
+        }
+
+        .user-park {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .user-role {
+            font-size: 0.9rem;
+            color: var(--medium-gray);
+        }
+
+        /* Enhanced Daily Checks Dashboard */
+        .daily-checks-dashboard {
+            background: 
+                linear-gradient(145deg, #1f1f1f, #141414, #0a0a0a),
+                linear-gradient(65deg, transparent 40%, rgba(255,255,255,0.02) 42%, transparent 44%),
+                radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.03), transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(100, 100, 100, 0.02), transparent 40%);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 
+                0 15px 35px rgba(0, 0, 0, 0.8), 
+                inset 0 8px 20px rgba(255, 255, 255, 0.1),
+                inset 0 -8px 20px rgba(0, 0, 0, 0.7),
+                inset 2px 2px 6px rgba(255, 255, 255, 0.03),
+                inset -2px -2px 6px rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--primary-orange);
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .daily-checks-dashboard::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                repeating-linear-gradient(30deg, 
+                    transparent 0px, 
+                    rgba(255, 255, 255, 0.015) 1px, 
+                    transparent 2px, 
+                    rgba(80, 80, 80, 0.01) 3px,
+                    transparent 4px),
+                repeating-linear-gradient(120deg, 
+                    transparent 0px, 
+                    rgba(255, 255, 255, 0.008) 1px, 
+                    transparent 3px),
+                linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.02) 100%),
+                radial-gradient(circle at 70% 30%, rgba(120, 120, 120, 0.025) 0%, transparent 30%),
+                radial-gradient(circle at 20% 80%, rgba(160, 160, 160, 0.015) 0%, transparent 25%);
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .dashboard-section-title {
+            color: var(--primary-orange);
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Enhanced 3D Progress Cards */
+        .progress-card {
+            background: 
+                linear-gradient(145deg, #1f1f1f, #141414, #0a0a0a),
+                linear-gradient(65deg, transparent 40%, rgba(255,255,255,0.02) 42%, transparent 44%),
+                radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.03), transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(100, 100, 100, 0.02), transparent 40%);
+            border: 2px solid var(--primary-orange);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 
+                0 8px 20px rgba(0, 0, 0, 0.5),
+                inset 0 4px 10px rgba(255, 255, 255, 0.1),
+                inset 0 -4px 10px rgba(0, 0, 0, 0.5),
+                inset 2px 2px 6px rgba(255, 255, 255, 0.03),
+                inset -2px -2px 6px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        .progress-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                repeating-linear-gradient(30deg, 
+                    transparent 0px, 
+                    rgba(255, 255, 255, 0.015) 1px, 
+                    transparent 2px, 
+                    rgba(80, 80, 80, 0.01) 3px,
+                    transparent 4px),
+                repeating-linear-gradient(120deg, 
+                    transparent 0px, 
+                    rgba(255, 255, 255, 0.008) 1px, 
+                    transparent 3px),
+                linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.02) 100%),
+                radial-gradient(circle at 70% 30%, rgba(120, 120, 120, 0.025) 0%, transparent 30%),
+                radial-gradient(circle at 20% 80%, rgba(160, 160, 160, 0.015) 0%, transparent 25%);
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .progress-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 15px 30px rgba(0, 0, 0, 0.6),
+                0 0 25px rgba(204, 85, 0, 0.3),
+                inset 0 4px 10px rgba(255, 255, 255, 0.2),
+                inset 0 -4px 10px rgba(0, 0, 0, 0.3),
+                inset 2px 2px 8px rgba(255, 255, 255, 0.05),
+                inset -2px -2px 8px rgba(0, 0, 0, 0.6);
+        }
+
+        .progress-card h3 {
+            color: var(--white);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: conic-gradient(var(--primary-orange) 0deg, var(--dark-gray) 0deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            position: relative;
+            transition: all 0.5s ease;
+            border: 3px solid var(--primary-orange);
+        }
+
+        .progress-circle::before {
+            content: '';
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--content-background);
+            position: absolute;
+            z-index: 1;
+        }
+
+        .progress-text {
+            color: var(--white);
+            font-weight: 700;
+            font-size: 0.9rem;
+            z-index: 2;
+            position: relative;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .progress-status {
+            color: var(--medium-gray);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .quick-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        .pending-checks-preview {
+            background: 
+                linear-gradient(145deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)),
+                repeating-linear-gradient(30deg, 
+                    transparent 0px, 
+                    rgba(255, 255, 255, 0.01) 1px, 
+                    transparent 2px, 
+                    rgba(80, 80, 80, 0.005) 3px,
+                    transparent 4px);
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+            border: 1px solid var(--primary-orange);
+            box-shadow: 
+                inset 0 4px 10px rgba(0, 0, 0, 0.5),
+                inset 0 -4px 10px rgba(255, 255, 255, 0.1);
+        }
+
+        .pending-checks-preview h4 {
+            color: var(--primary-orange);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .pending-check-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #444;
+            transition: all 0.3s ease;
+        }
+
+        .pending-check-item:last-child {
+            border-bottom: none;
+        }
+
+        .pending-check-item:hover {
+            background: rgba(204, 85, 0, 0.1);
+            border-radius: 6px;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        .pending-check-title {
+            color: var(--white);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .pending-check-module {
+            color: var(--medium-gray);
+            font-size: 0.85rem;
+            margin-top: 3px;
+        }
+
+        .pending-check-status {
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pending {
+            background: rgba(255, 193, 7, 0.2);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .status-overdue {
+            background: rgba(220, 53, 69, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .status-completed {
+            background: rgba(40, 167, 69, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .all-checks-complete {
+            text-align: center;
+            color: var(--success);
+            padding: 30px 20px;
+            background: rgba(40, 167, 69, 0.1);
+            border-radius: 12px;
+            border: 2px solid var(--success);
+        }
+
+        .all-checks-complete h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: var(--success);
+        }
+
+        .all-checks-complete p {
+            color: #B8B8B8;
+            font-size: 1rem;
+        }
+
+        /* Enhanced 3D Stats Container */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: 
+                linear-gradient(145deg, #1f1f1f, #141414, #0a0a0a),
+                linear-gradient(65deg, transparent 40%, rgba(255,255,255,0.02) 42%, transparent 44%),
+                radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.03), transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(100, 100, 100, 0.02), transparent 40%);
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid var(--primary-orange);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 8px 20px rgba(0, 0, 0, 0.5),
+                inset 0 4px 10px rgba(255, 255, 255, 0.1),
+                inset 0 -4px 10px rgba(0, 0, 0, 0.5),
+                inset 2px 2px 6px rgba(255, 255, 255, 0.03),
+                inset -2px -2px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                repeating-linear-gradient(30deg, 
+                    transparent 0px, 
+                    rgba(255, 255, 255, 0.015) 1px, 
+                    transparent 2px, 
+                    rgba(80, 80, 80, 0.01) 3px,
+                    transparent 4px),
+                repeating-linear-gradient(120deg, 
+                    transparent 0px, 
+                    rgba(255, 255, 255, 0.008) 1px, 
+                    transparent 3px),
+                linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.02) 100%),
+                radial-gradient(circle at 70% 30%, rgba(120, 120, 120, 0.025) 0%, transparent 30%),
+                radial-gradient(circle at 20% 80%, rgba(160, 160, 160, 0.015) 0%, transparent 25%);
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 15px 35px rgba(0, 0, 0, 0.6),
+                0 0 25px rgba(204, 85, 0, 0.3),
+                inset 0 4px 10px rgba(255, 255, 255, 0.2),
+                inset 0 -4px 10px rgba(0, 0, 0, 0.3),
+                inset 2px 2px 8px rgba(255, 255, 255, 0.05),
+                inset -2px -2px 8px rgba(0, 0, 0, 0.6);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary-orange);
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-label {
+            color: #B8B8B8;
+            font-size: 1rem;
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Daily Checks Tiles */
+        .daily-checks {
+            margin-bottom: 40px;
+        }
+
+        .daily-checks h3 {
+            color: var(--primary-orange);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .daily-tiles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        /* Enhanced 3D Module Tiles */
+        .module-tile {
+            background: 
+                linear-gradient(145deg, #1f1f1f, #141414, #0a0a0a),
+                linear-gradient(65deg, transparent 40%, rgba(255,255,255,0.02) 42%, transparent 44%),
+                radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.03), transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(100, 100, 100, 0.02), transparent 40%);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid var(--medium-gray);
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 6px 15px rgba(0, 0, 0, 0.4),
+                inset 0 3px 8px rgba(255, 255, 255, 0.1),
+                inset 0 -3px 8px rgba(0, 0, 0, 0.5),
+                inset 2px 2px 6px rgba(255, 255, 255, 0.03),
+                inset -2px -2px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        .module-tile::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                repeating-linear-gradient(30deg, 
+                    transparent 0px, 
+                    rgba(255, 255, 255, 0.015) 1px, 
+                    transparent 2px, 
+                    rgba(80, 80, 80, 0.01) 3px,
+                    transparent 4px),
+                repeating-linear-gradient(120deg, 
+                    transparent 0px, 
+                    rgba(255, 255, 255, 0.008) 1px, 
+                    transparent 3px),
+                linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.02) 100%),
+                radial-gradient(circle at 70% 30%, rgba(120, 120, 120, 0.025) 0%, transparent 30%),
+                radial-gradient(circle at 20% 80%, rgba(160, 160, 160, 0.015) 0%, transparent 25%);
+            border-radius: 8px;
+            pointer-events: none;
+        }
+
+        .module-tile::after {
+            content: '';
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            right: 1px;
+            bottom: 1px;
+            background: 
+                repeating-conic-gradient(from 45deg at 50% 50%, 
+                    transparent 0deg, 
+                    rgba(255,255,255,0.005) 2deg, 
+                    transparent 4deg,
+                    rgba(100,100,100,0.003) 6deg,
+                    transparent 8deg),
+                linear-gradient(45deg, 
+                    rgba(255,255,255,0.01) 0%, 
+                    transparent 15%, 
+                    transparent 85%, 
+                    rgba(255,255,255,0.005) 100%);
+            border-radius: 7px;
+            pointer-events: none;
+        }
+
+        .module-tile:hover {
+            border-color: var(--primary-orange);
+            transform: translateY(-3px);
+            box-shadow: 
+                0 10px 25px rgba(0, 0, 0, 0.5),
+                0 0 20px rgba(204, 85, 0, 0.2),
+                inset 0 3px 8px rgba(255, 255, 255, 0.2),
+                inset 0 -3px 8px rgba(0, 0, 0, 0.3),
+                inset 2px 2px 8px rgba(255, 255, 255, 0.05),
+                inset -2px -2px 8px rgba(0, 0, 0, 0.6);
+        }
+
+        .module-tile:hover::before {
+            background: 
+                repeating-linear-gradient(30deg, 
+                    transparent 0px, 
+                    rgba(255, 255, 255, 0.02) 1px, 
+                    transparent 2px, 
+                    rgba(120, 120, 120, 0.015) 3px,
+                    transparent 4px),
+                repeating-linear-gradient(120deg, 
+                    transparent 0px, 
+                    rgba(255, 255, 255, 0.012) 1px, 
+                    transparent 3px),
+                linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.02) 100%),
+                radial-gradient(circle at 70% 30%, rgba(140, 140, 140, 0.03) 0%, transparent 30%),
+                radial-gradient(circle at 20% 80%, rgba(180, 180, 180, 0.02) 0%, transparent 25%);
+        }
+
+        .module-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Enhanced Recent Activity with Expandable Feature */
+        .recent-activity {
+            background: 
+                linear-gradient(145deg, #1f1f1f, #141414, #0a0a0a),
+                linear-gradient(65deg, transparent 40%, rgba(255,255,255,0.02) 42%, transparent 44%),
+                radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.03), transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(100, 100, 100, 0.02), transparent 40%);
+            padding: 25px;
+            border-radius: 12px;
+            border: 2px solid var(--primary-orange);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 15px 35px rgba(0, 0, 0, 0.8),
+                inset 0 8px 20px rgba(255, 255, 255, 0.1),
+                inset 0 -8px 20px rgba(0, 0, 0, 0.7),
+                inset 2px 2px 6px rgba(255, 255, 255, 0.03),
+                inset -2px -2px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        .recent-activity::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                repeating-linear-gradient(30deg, 
+                    transparent 0px, 
+                    rgba(255, 255, 255, 0.015) 1px, 
+                    transparent 2px, 
+                    rgba(80, 80, 80, 0.01) 3px,
+                    transparent 4px),
+                repeating-linear-gradient(120deg, 
+                    transparent 0px, 
+                    rgba(255, 255, 255, 0.008) 1px, 
+                    transparent 3px),
+                linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.02) 100%),
+                radial-gradient(circle at 70% 30%, rgba(120, 120, 120, 0.025) 0%, transparent 30%),
+                radial-gradient(circle at 20% 80%, rgba(160, 160, 160, 0.015) 0%, transparent 25%);
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .activity-header {
+            color: var(--primary-orange);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .expand-toggle {
+            background: none;
+            border: 1px solid var(--primary-orange);
+            color: var(--primary-orange);
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .expand-toggle:hover {
+            background: var(--primary-orange);
+            color: white;
+        }
+
+        .activity-list {
+            position: relative;
+            z-index: 1;
+            max-height: 200px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .activity-list.expanded {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #444;
+            position: relative;
+            z-index: 1;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-time {
+            color: var(--medium-gray);
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+        }
+
+        .activity-description {
+            color: white;
+            font-size: 0.95rem;
+        }
+
+        /* Enhanced Buttons with 3D Effect */
+        .btn {
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
+            color: var(--white);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 
+                0 6px 15px rgba(0,0,0,0.4),
+                inset 0 2px 4px rgba(255, 255, 255, 0.2),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 10px 25px rgba(0,0,0,0.5),
+                0 0 20px rgba(204, 85, 0, 0.3),
+                inset 0 2px 4px rgba(255, 255, 255, 0.3),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(135deg, var(--light-orange) 0%, var(--primary-orange) 100%);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--medium-gray), var(--dark-gray));
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #7a7a7a, var(--medium-gray));
+        }
+
+        /* Logout Button */
+        .logout-btn {
+            background: linear-gradient(135deg, var(--danger), #b02a37);
+            margin-top: 10px;
+        }
+
+        .logout-btn:hover {
+            background: linear-gradient(135deg, #dc3545, var(--danger));
+        }
+
+        /* Login Screen Positioning Fix */
+        .login-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+            z-index: 15000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .login-container.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .login-form-container {
+            background: linear-gradient(145deg, var(--content-background), var(--black));
+            border: 4px solid var(--primary-orange);
+            border-radius: 20px;
+            padding: 50px;
+            text-align: center;
+            box-shadow: 
+                0 25px 60px rgba(0, 0, 0, 0.9),
+                inset 0 12px 30px rgba(255, 255, 255, 0.3),
+                inset 0 -12px 30px rgba(0, 0, 0, 0.8);
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+        }
+
+        .login-title {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--primary-orange);
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .login-subtitle {
+            font-size: 1.1rem;
+            color: #B8B8B8;
+            margin-bottom: 20px;
+        }
+
+        .login-powered {
+            font-size: 0.9rem;
+            color: var(--medium-gray);
+            margin-bottom: 40px;
+            font-weight: 600;
+        }
+
+        .login-form {
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--primary-orange);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .login-input, .login-select {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--medium-gray);
+            border-radius: 10px;
+            color: var(--white);
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .login-input:focus, .login-select:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 3px rgba(204, 85, 0, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .login-select {
+            cursor: pointer;
+        }
+
+        .login-select option {
+            background: var(--content-background);
+            color: var(--white);
+            padding: 10px;
+        }
+
+        .login-input::placeholder {
+            color: var(--medium-gray);
+            font-weight: normal;
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
+            color: var(--white);
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-medium);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-heavy);
+            background: linear-gradient(135deg, var(--light-orange) 0%, var(--primary-orange) 100%);
+        }
+
+        .login-error {
+            color: var(--danger);
+            font-size: 0.9rem;
+            margin-top: 15px;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .login-error.show {
+            opacity: 1;
+        }
+
+        /* Mobile Menu Toggle */
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        /* Message Styles */
+        .message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            z-index: 10000;
+            max-width: 400px;
+            box-shadow: var(--shadow-medium);
+            animation: slideIn 0.3s ease;
+        }
+
+        .message.success {
+            background: var(--success);
+            color: white;
+        }
+
+        .message.error {
+            background: var(--danger);
+            color: white;
+        }
+
+        .message.warning {
+            background: var(--warning);
+            color: var(--black);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 1002;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .content-area {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .header .brand-line {
+                font-size: 1.2rem;
+            }
+
+            .daily-checks-dashboard {
+                padding: 20px;
+                margin-bottom: 30px;
+            }
+
+            .dashboard-section-title {
+                font-size: 1.5rem;
+            }
+
+            .progress-overview {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+
+            .progress-card {
+                padding: 15px;
+            }
+
+            .progress-circle {
+                width: 70px;
+                height: 70px;
+            }
+
+            .progress-circle::before {
+                width: 50px;
+                height: 50px;
+            }
+
+            .progress-text {
+                font-size: 0.8rem;
+            }
+
+            .quick-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .quick-actions .btn {
+                width: 100%;
+                max-width: 300px;
+                margin: 5px 0;
+            }
+
+            .pending-check-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .pending-checks-preview {
+                padding: 15px;
+            }
+
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .daily-tiles {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- AMAZING 7-SECOND OPENING SEQUENCE -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="particles">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+        </div>
+        <div class="loading-container">
+            <div class="trail"></div>
+            <div class="trail"></div>
+            <div class="trail"></div>
+            <div class="trail"></div>
+            <div class="trail"></div>
+            <div class="trail"></div>
+            <div class="main-circle"></div>
+            <div class="accent-circle"></div>
+            <div class="pro-text" onclick="skipToApp()">PRO</div>
+            <div class="brand-subtitle">
+                SafePark.PRO<br>
+                <span style="font-size: 0.65rem; opacity: 0.7;">Powered by CQR365 Technology©</span>
+            </div>
+        </div>
+        <div class="loading-progress">
+            <div class="progress-bar"></div>
+        </div>
+    </div>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
+
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container" style="display: none;">
+        <div class="login-form-container">
+            <h1 class="login-title">SafePark.PRO</h1>
+            <div class="login-subtitle">Holiday Park Safety & Compliance Platform</div>
+            <div class="login-powered">Powered by CQR365</div>
+            
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="location">Select Your Location</label>
+                    <select id="location" name="location" class="login-select" required>
+                        <option value="">Choose Your Park</option>
+                        <option value="overburns">Overburns Farm</option>
+                        <option value="ben-nevis">Ben Nevis Holiday Park</option>
+                        <option value="oban">Oban Holiday Park</option>
+                        <option value="tyndrum">Tyndrum Holiday Park</option>
+                        <option value="all">All Highland Holidays Parks</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="role">Select Your Role</label>
+                    <select id="role" name="role" class="login-select" required>
+                        <option value="">Choose Your Role</option>
+                        <option value="manager">Park Manager</option>
+                        <option value="assistant-manager">Assistant Manager</option>
+                        <option value="grounds-maintenance">Grounds & Maintenance Manager</option>
+                        <option value="maintenance-supervisor">Maintenance Supervisor</option>
+                        <option value="reception-manager">Reception Manager</option>
+                        <option value="team-member">Team Member</option>
+                        <option value="groundskeeper">Groundskeeper</option>
+                        <option value="cleaner">Cleaner</option>
+                        <option value="security">Security</option>
+                        <option value="chef">Chef</option>
+                        <option value="system-admin">System Administrator</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="accessCode">Enter Your Access Code</label>
+                    <input 
+                        type="password" 
+                        class="login-input" 
+                        id="accessCode" 
+                        name="accessCode"
+                        placeholder="Your personal access code"
+                        maxlength="15"
+                        required
+                        autocomplete="off"
+                    >
+                </div>
+                
+                <button type="submit" class="login-btn">Access SafePark.PRO</button>
+                <div class="login-error" id="loginError">Please check your details and try again.</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" class="main-container" style="display: none;">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header" onclick="returnToDashboard()">
+                <div class="logo">SafePark.PRO</div>
+                <div class="tagline">for Highland Holidays</div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Dashboard</div>
+                <button class="nav-btn active" onclick="showSection('dashboard')">
+                    Main Dashboard
+                </button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Safety Management</div>
+                <button class="nav-btn" data-module="play-parks.html">
+                    Play Park Safety
+                </button>
+                <button class="nav-btn" data-module="incidents.html">
+                    Incident Reporting
+                </button>
+                <button class="nav-btn" data-module="hot-tub.html">
+                    Hot Tub Management
+                </button>
+                <button class="nav-btn" data-module="swimming-pools.html">
+                    Swimming Pool Safety
+                </button>
+                <button class="nav-btn" data-module="hpgs.html">
+                    HPGS Check
+                </button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Compliance & Safety</div>
+                <button class="nav-btn" data-module="fire.html">
+                    Fire Safety
+                </button>
+                <button class="nav-btn" data-module="gas.html">
+                    Gas Safety
+                </button>
+                <button class="nav-btn" data-module="electric.html">
+                    Electrical Safety
+                </button>
+                <button class="nav-btn" data-module="coshh.html">
+                    COSHH Management
+                </button>
+                <button class="nav-btn" data-module="loler.html">
+                    LOLER Compliance
+                </button>
+                <button class="nav-btn" data-module="puwer.html">
+                    PUWER Compliance
+                </button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Operations</div>
+                <button class="nav-btn" data-module="vehicle.html">
+                    Vehicle Management
+                </button>
+                <button class="nav-btn" data-module="food-beverage.html">
+                    Food & Beverage
+                </button>
+                <button class="nav-btn" data-module="contractors.html">
+                    Contractor Management
+                </button>
+                <button class="nav-btn" data-module="accommodation.html">
+                    Accommodation Safety
+                </button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">System</div>
+                <button class="nav-btn logout-btn" onclick="logout()">
+                    Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="content-section active">
+                <div class="header">
+                    <h1>CQR365</h1>
+                    <div class="brand-line">SafePark.PRO</div>
+                    <p>Comprehensive Safety & Compliance Management System</p>
+                </div>
+
+                <!-- User Info -->
+                <div class="user-info" id="userInfo" style="display: none;">
+                    <div class="user-welcome">Welcome!</div>
+                    <div class="user-details">
+                        <div class="user-park" id="userPark"></div>
+                        <div class="user-role" id="userRole"></div>
+                    </div>
+                </div>
+
+                <!-- Enhanced Daily Checks Dashboard -->
+                <div class="daily-checks-dashboard">
+                    <h2 class="dashboard-section-title">Daily Safety Checks Dashboard</h2>
+                    
+                    <!-- Progress Overview -->
+                    <div class="progress-overview">
+                        <div class="progress-card">
+                            <h3>Today's Checks</h3>
+                            <div class="progress-circle" data-progress="0" id="todayProgress">
+                                <span class="progress-text">0/0</span>
+                            </div>
+                            <div class="progress-status" id="todayStatus">Loading...</div>
+                        </div>
+                        
+                        <div class="progress-card">
+                            <h3>This Week</h3>
+                            <div class="progress-circle" data-progress="0" id="weekProgress">
+                                <span class="progress-text">0/0</span>
+                            </div>
+                            <div class="progress-status" id="weekStatus">Loading...</div>
+                        </div>
+                        
+                        <div class="progress-card">
+                            <h3>This Month</h3>
+                            <div class="progress-circle" data-progress="0" id="monthProgress">
+                                <span class="progress-text">0/0</span>
+                            </div>
+                            <div class="progress-status" id="monthStatus">Loading...</div>
+                        </div>
+                        
+                        <div class="progress-card">
+                            <h3>This Year</h3>
+                            <div class="progress-circle" data-progress="0" id="yearProgress">
+                                <span class="progress-text">0/0</span>
+                            </div>
+                            <div class="progress-status" id="yearStatus">Loading...</div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="quick-actions">
+                        <button class="btn" onclick="markAllChecksComplete()" id="completeAllBtn">Mark All Today's Checks Complete</button>
+                        <button class="btn btn-secondary" onclick="refreshDashboardChecks()">Refresh Checks</button>
+                        <button class="btn btn-secondary" onclick="viewCheckHistory()">View Check History</button>
+                    </div>
+
+                    <!-- Today's Pending Checks Preview -->
+                    <div class="pending-checks-preview" id="pendingChecksPreview">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Interactive Stats Overview -->
+                <div class="stats-container">
+                    <div class="stat-card" title="Click to report new incident" onclick="openIncidentReporting()">
+                        <div class="stat-number">Report</div>
+                        <div class="stat-label">Incident</div>
+                    </div>
+
+                    <div class="stat-card" title="Click to view incident management" onclick="openIncidentManagement()">
+                        <div class="stat-number" id="incidentStats">0</div>
+                        <div class="stat-label">Incidents Overview</div>
+                    </div>
+                    
+                    <div class="stat-card" title="Click to view maintenance dashboard" onclick="openMaintenanceDashboard()">
+                        <div class="stat-number" id="maintenanceRecords">0</div>
+                        <div class="stat-label">Pending Maintenance</div>
+                    </div>
+                    
+                    <div class="stat-card" title="Click to view compliance details" onclick="openComplianceDetails()">
+                        <div class="stat-number" id="complianceScore">100%</div>
+                        <div class="stat-label">Compliance Score</div>
+                    </div>
+                </div>
+
+                <!-- Daily Checks Quick Access Tiles -->
+                <div class="daily-checks">
+                    <h3>Daily "Quick" Checks</h3>
+                    <div class="daily-tiles">
+                        <a href="play-parks.html?section=inspection" class="module-tile">
+                            <div class="module-name">Play Parks</div>
+                        </a>
+
+                        <a href="hot-tub.html" class="module-tile">
+                            <div class="module-name">Hot Tubs</div>
+                        </a>
+
+                        <a href="swimming-pools.html" class="module-tile">
+                            <div class="module-name">Swimming Pools</div>
+                        </a>
+
+                        <a href="accommodation.html" class="module-tile">
+                            <div class="module-name">Property</div>
+                        </a>
+
+                        <a href="grounds-equipment.html" class="module-tile">
+                            <div class="module-name">Equipment</div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Enhanced Recent Activity with Expandable Feature -->
+                <div class="recent-activity">
+                    <div class="activity-header">
+                        Recent Activity
+                        <button class="expand-toggle" onclick="toggleActivityExpand()" id="expandToggle">Show More</button>
+                    </div>
+                    <div class="activity-list" id="activityList">
+                        <div id="recentActivitiesList">
+                            <div class="activity-item">
+                                <div class="activity-time">Welcome to SafePark.PRO</div>
+                                <div class="activity-description">System initialized and ready for use</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+            authDomain: "safepark-pro.firebaseapp.com",
+            projectId: "safepark-pro",
+            storageBucket: "safepark-pro.firebasestorage.app",
+            messagingSenderId: "511221743341",
+            appId: "1:511221743341:web:95bcc7e83d4861578016e4",
+            measurementId: "G-R1L16F7JJG"
+        };
+
+        // Initialize Firebase
+        let firebaseApp;
+        let db;
+        let auth;
+        let isFirebaseReady = false;
+        let isOnline = navigator.onLine;
+
+        try {
+            firebaseApp = firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            auth = firebase.auth();
+            isFirebaseReady = true;
+            console.log('Firebase initialized successfully');
+        } catch (error) {
+            console.error('Firebase initialization failed:', error);
+            isFirebaseReady = false;
+        }
+
+        // Online/Offline Detection
+        window.addEventListener('online', () => {
+            isOnline = true;
+            console.log('Connection restored - syncing with Firebase');
+            if (authState.isAuthenticated && dataManager) {
+                dataManager.processOfflineQueue();
+            }
+        });
+
+        window.addEventListener('offline', () => {
+            isOnline = false;
+            console.log('Offline mode - using localStorage backup');
+        });
+
+        // Application State with Access Codes
+        let authState = {
+            isAuthenticated: false,
+            currentUser: null,
+            sessionExpiry: null
+        };
+
+        // Access codes
+        const ACCESS_CODES = {
+            // Park Management Codes
+            '365': {
+                type: 'park',
+                name: 'Overburns Farm Manager',
+                park: 'Overburns Farm',
+                role: 'Manager',
+                message: 'Welcome Overburns Farm'
+            },
+            '1010': {
+                type: 'park',
+                name: 'Lesleyanne',
+                park: 'Ben Nevis Holiday Park',
+                role: 'Park Manager',
+                message: 'Welcome Lesleyanne'
+            },
+            '1020': {
+                type: 'park',
+                name: 'Siobhan',
+                park: 'Oban Holiday Park',
+                role: 'Park Manager',
+                message: 'Welcome Siobhan'
+            },
+            '1030': {
+                type: 'park',
+                name: 'Tyndrum Holiday Park Manager',
+                park: 'Tyndrum Holiday Park',
+                role: 'Park Manager',
+                message: 'Welcome Tyndrum Holiday Park Manager'
+            },
+            // Individual Team Member Codes - Overburns Farm (365xxx)
+            '365001': {
+                type: 'individual',
+                name: 'John Smith',
+                park: 'Overburns Farm',
+                role: 'Maintenance Supervisor',
+                message: 'Welcome John Smith - Maintenance Supervisor....lets get this done!!!'
+            },
+            '365002': {
+                type: 'individual',
+                name: 'Sarah Wilson',
+                park: 'Overburns Farm',
+                role: 'Reception Manager',
+                message: 'Welcome Sarah Wilson - Reception Manager....lets get this done!!!'
+            },
+            // Individual Team Member Codes - Ben Nevis (1010xxx)
+            '1010001': {
+                type: 'individual',
+                name: 'David',
+                park: 'Ben Nevis Holiday Park',
+                role: 'Grounds & Maintenance Manager',
+                message: 'Welcome David'
+            },
+            '1010002': {
+                type: 'individual',
+                name: 'Kelly',
+                park: 'Ben Nevis Holiday Park',
+                role: 'Team BN',
+                message: 'Welcome Kelly'
+            },
+            // Individual Team Member Codes - Oban (1020xxx)
+            '1020001': {
+                type: 'individual',
+                name: 'Murray',
+                park: 'Oban Holiday Park',
+                role: 'Grounds & Maintenance Manager',
+                message: 'Welcome Murray'
+            },
+            // Individual Team Member Codes - Tyndrum (1030xxx)
+            '1030001': {
+                type: 'individual',
+                name: 'Alasdair Fraser',
+                park: 'Tyndrum Holiday Park',
+                role: 'Assistant Manager',
+                message: 'Welcome Alasdair Fraser - Assistant Manager....lets get this done!!!'
+            },
+            // Master Access
+            'CQR365SPP25': {
+                type: 'master',
+                name: 'SafePark.PRO System Administrator',
+                park: 'All Highland Holidays Parks',
+                role: 'System Administrator',
+                message: 'Welcome SafePark.PRO Administrator'
+            }
+        };
+
+        // Firebase Data Management Class - FIXED VERSION
+        class FirebaseDataManager {
+            constructor() {
+                this.localStoragePrefix = 'safePark_';
+                this.offlineQueue = [];
+                this.connectionStatus = 'unknown';
+                this.maxRetries = 3;
+                this.initializeOfflineHandling();
+            }
+
+            // Enhanced offline handling
+            initializeOfflineHandling() {
+                const savedQueue = this.loadFromLocalStorage('_offlineQueue');
+                if (savedQueue && Array.isArray(savedQueue)) {
+                    this.offlineQueue = savedQueue;
+                }
+                
+                window.addEventListener('online', () => {
+                    this.connectionStatus = 'online';
+                    this.processOfflineQueue();
+                });
+                
+                window.addEventListener('offline', () => {
+                    this.connectionStatus = 'offline';
+                    if (window.showMessage) {
+                        window.showMessage('Working offline - changes will sync when connected', 'warning');
+                    }
+                });
+            }
+
+            // Save to both Firebase and localStorage
+            async saveData(collection, docId, data) {
+                // Always save to localStorage first
+                this.saveToLocalStorage(collection + '_' + docId, data);
+
+                // Try Firebase if online and ready
+                if (isOnline && isFirebaseReady && db) {
+                    try {
+                        await db.collection(collection).doc(docId).set({
+                            ...data,
+                            lastSynced: new Date().toISOString(),
+                            source: 'firebase'
+                        });
+                        console.log(`Data saved to Firebase: ${collection}/${docId}`);
+                        return true;
+                    } catch (error) {
+                        console.error(`Firebase save failed: ${collection}/${docId}`, error);
+                        if (this.isRetryableError(error)) {
+                            this.addToOfflineQueue({
+                                type: 'save',
+                                collection: collection,
+                                docId: docId,
+                                data: data
+                            });
+                        }
+                        return false;
+                    }
+                }
+                return false;
+            }
+
+            // Load from Firebase with localStorage fallback
+            async loadData(collection, docId) {
+                // Try Firebase first if online and ready
+                if (isOnline && isFirebaseReady && db) {
+                    try {
+                        const doc = await db.collection(collection).doc(docId).get();
+                        if (doc.exists) {
+                            const firebaseData = doc.data();
+                            // Also update localStorage with fresh data
+                            this.saveToLocalStorage(collection + '_' + docId, firebaseData);
+                            console.log(`Data loaded from Firebase: ${collection}/${docId}`);
+                            return firebaseData;
+                        }
+                    } catch (error) {
+                        console.error(`Firebase load failed: ${collection}/${docId}`, error);
+                    }
+                }
+
+                // Fallback to localStorage
+                const localData = this.loadFromLocalStorage(collection + '_' + docId);
+                if (localData) {
+                    console.log(`Data loaded from localStorage: ${collection}/${docId}`);
+                    return localData;
+                }
+
+                return null;
+            }
+
+            // Save to localStorage
+            saveToLocalStorage(key, data) {
+                try {
+                    localStorage.setItem(this.localStoragePrefix + key, JSON.stringify(data));
+                } catch (error) {
+                    console.error(`localStorage save failed: ${key}`, error);
+                }
+            }
+
+            // Load from localStorage
+            loadFromLocalStorage(key) {
+                try {
+                    const data = localStorage.getItem(this.localStoragePrefix + key);
+                    return data ? JSON.parse(data) : null;
+                } catch (error) {
+                    console.error(`localStorage load failed: ${key}`, error);
+                    return null;
+                }
+            }
+
+            // Sync all localStorage data to Firebase
+            async syncToFirebase() {
+                if (!isOnline || !isFirebaseReady || !db) return;
+
+                const keys = Object.keys(localStorage).filter(key => 
+                    key.startsWith(this.localStoragePrefix)
+                );
+
+                for (const key of keys) {
+                    try {
+                        const cleanKey = key.replace(this.localStoragePrefix, '');
+                        const [collection, docId] = cleanKey.split('_');
+                        
+                        if (collection && docId) {
+                            const data = this.loadFromLocalStorage(cleanKey);
+                            if (data) {
+                                await this.saveData(collection, docId, data);
+                            }
+                        }
+                    } catch (error) {
+                        console.error(`Sync failed for ${key}:`, error);
+                    }
+                }
+            }
+
+            // Helper methods for enhanced offline handling
+            isRetryableError(error) {
+                const retryableErrors = ['unavailable', 'deadline-exceeded', 'resource-exhausted'];
+                return retryableErrors.some(errorType => 
+                    error.code === errorType || error.message.includes(errorType)
+                );
+            }
+
+            addToOfflineQueue(operation) {
+                this.offlineQueue = this.offlineQueue.filter(
+                    op => !(op.collection === operation.collection && op.docId === operation.docId)
+                );
+                
+                this.offlineQueue.push(operation);
+                this.saveToLocalStorage('_offlineQueue', this.offlineQueue);
+                console.log(`Added to offline queue: ${operation.collection}/${operation.docId}`);
+            }
+
+            async processOfflineQueue() {
+                if (this.offlineQueue.length === 0) return;
+                
+                console.log(`Processing ${this.offlineQueue.length} offline operations...`);
+                const processed = [];
+                
+                for (const operation of this.offlineQueue) {
+                    try {
+                        if (operation.type === 'save') {
+                            await db.collection(operation.collection).doc(operation.docId).set({
+                                ...operation.data,
+                                lastSynced: new Date().toISOString(),
+                                source: 'firebase'
+                            });
+                            processed.push(operation);
+                        }
+                    } catch (error) {
+                        console.error('Failed to process offline operation:', error);
+                    }
+                }
+                
+                this.offlineQueue = this.offlineQueue.filter(op => !processed.includes(op));
+                this.saveToLocalStorage('_offlineQueue', this.offlineQueue);
+                
+                if (processed.length > 0 && window.showMessage) {
+                    window.showMessage(`Synced ${processed.length} offline changes`, 'success');
+                }
+            }
+
+            getStatus() {
+                return {
+                    connection: this.connectionStatus,
+                    queueLength: this.offlineQueue.length,
+                    isOnline: isOnline,
+                    isFirebaseReady: isFirebaseReady
+                };
+            }
+        }
+
+        // Data Validation System
+        class SafeParkDataValidator {
+            constructor() {
+                this.validationErrors = [];
+            }
+
+            validate(data, schemaName) {
+                this.validationErrors = [];
+                
+                if (!data || typeof data !== 'object') {
+                    this.addError('Data must be a valid object');
+                    return this.getValidationResult();
+                }
+
+                switch (schemaName) {
+                    case 'userSession':
+                        this.validateUserSession(data);
+                        break;
+                    case 'dashboardChecks':
+                        this.validateDashboardChecks(data);
+                        break;
+                    case 'recentActivities':
+                        this.validateRecentActivities(data);
+                        break;
+                    default:
+                        this.validateBasic(data);
+                }
+
+                return this.getValidationResult();
+            }
+
+            validateUserSession(data) {
+                const required = ['user', 'expires', 'loginTime'];
+                this.checkRequired(data, required);
+                
+                if (data.user && typeof data.user === 'object') {
+                    const userRequired = ['name', 'role', 'park', 'location'];
+                    this.checkRequired(data.user, userRequired, 'user.');
+                }
+            }
+
+            validateDashboardChecks(data) {
+                const required = ['checks', 'lastUpdated'];
+                this.checkRequired(data, required);
+                
+                if (data.checks && !Array.isArray(data.checks)) {
+                    this.addError('checks must be an array');
+                }
+            }
+
+            validateRecentActivities(data) {
+                const required = ['activities', 'lastUpdated'];
+                this.checkRequired(data, required);
+                
+                if (data.activities && !Array.isArray(data.activities)) {
+                    this.addError('activities must be an array');
+                }
+            }
+
+            validateBasic(data) {
+                if (!data.timestamp && !data.lastUpdated) {
+                    this.addError('Missing timestamp or lastUpdated field');
+                }
+            }
+
+            checkRequired(obj, fields, prefix = '') {
+                fields.forEach(field => {
+                    if (!(field in obj) || obj[field] === null || obj[field] === undefined) {
+                        this.addError(`Missing required field: ${prefix}${field}`);
+                    }
+                });
+            }
+
+            addError(message) {
+                this.validationErrors.push({ message, timestamp: new Date().toISOString() });
+            }
+
+            getValidationResult() {
+                return {
+                    isValid: this.validationErrors.length === 0,
+                    errors: this.validationErrors
+                };
+            }
+
+            sanitize(data) {
+                if (!data || typeof data !== 'object') return data;
+                
+                const sanitized = { ...data };
+                
+                // Remove undefined values
+                Object.keys(sanitized).forEach(key => {
+                    if (sanitized[key] === undefined) {
+                        delete sanitized[key];
+                    }
+                });
+
+                // Add validation timestamp
+                sanitized._validatedAt = new Date().toISOString();
+                
+                return sanitized;
+            }
+        }
+
+        // Global instances
+        const safeParkValidator = new SafeParkDataValidator();
+        const dataManager = new FirebaseDataManager();
+
+        // Helper functions
+        function validateBeforeSave(data, schemaName) {
+            const result = safeParkValidator.validate(data, schemaName);
+            
+            if (!result.isValid) {
+                console.error(`Validation failed for ${schemaName}:`, result.errors);
+                throw new Error(`Invalid data for ${schemaName}`);
+            }
+            
+            return true;
+        }
+
+        function sanitizeBeforeSave(data, schemaName) {
+            return safeParkValidator.sanitize(data);
+        }
+
+        // Daily Checks Management
+        let dashboardChecks = [];
+
+        // Sample daily checks data
+        const sampleDashboardChecks = [
+            {
+                id: 'hot-tub-daily',
+                title: 'Hot Tub Water Quality',
+                module: 'Hot Tub',
+                dueDate: new Date().toISOString().split('T')[0],
+                status: 'pending',
+                priority: 'high'
+            },
+            {
+                id: 'playground-visual',
+                title: 'Playground Safety Check',
+                module: 'Play Parks',
+                dueDate: new Date().toISOString().split('T')[0],
+                status: 'pending',
+                priority: 'high'
+            },
+            {
+                id: 'swimming-pool-chemicals',
+                title: 'Pool Chemical Balance',
+                module: 'Swimming Pools',
+                dueDate: new Date().toISOString().split('T')[0],
+                status: 'pending',
+                priority: 'high'
+            },
+            {
+                id: 'fire-escape-routes',
+                title: 'Fire Escape Routes',
+                module: 'Fire Safety',
+                dueDate: new Date().toISOString().split('T')[0],
+                status: 'pending',
+                priority: 'high'
+            }
+        ];
+
+        // Initialize Application with 7-Second Dynamic Opening
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('SafePark.PRO starting amazing 7-second opening...');
+            
+            // Check existing session
+            checkExistingSession();
+            
+            // The amazing opening runs for exactly 7 seconds
+            setTimeout(() => {
+                completeOpeningSequence();
+            }, 7000);
+        });
+
+        // Complete the opening sequence and transition to app
+        function completeOpeningSequence() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            
+            // Add fade-out class for smooth transition
+            loadingOverlay.classList.add('fade-out');
+            
+            // Wait for fade animation to complete
+            setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+                
+                if (authState.isAuthenticated) {
+                    showMainApp();
+                } else {
+                    showLoginScreen();
+                }
+            }, 800);
+        }
+
+        // Skip to app function (activated by clicking PRO)
+        function skipToApp() {
+            completeOpeningSequence();
+        }
+
+        // Check for existing session
+        async function checkExistingSession() {
+            // Try to load session from Firebase/localStorage
+            const sessionData = await dataManager.loadData('userSessions', 'current');
+            
+            if (sessionData && sessionData.expires && Date.now() < sessionData.expires) {
+                authState.isAuthenticated = true;
+                authState.currentUser = sessionData.user;
+                authState.sessionExpiry = sessionData.expires;
+                return true;
+            } else {
+                // Clean up expired session
+                await dataManager.saveData('userSessions', 'current', null);
+            }
+            return false;
+        }
+
+        // Enhanced Show Main App with Staggered Animations
+        function showMainApp() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'flex';
+            
+            // Add entrance animations
+            setTimeout(() => {
+                updateUserInfo();
+                animateContentEntry();
+                initializeDashboardChecks();
+                loadRecentActivity();
+            }, 100);
+        }
+
+        // Staggered content entry animations
+        function animateContentEntry() {
+            const elements = [
+                '.header',
+                '.user-info',
+                '.daily-checks-dashboard',
+                '.stats-container',
+                '.daily-checks',
+                '.recent-activity'
+            ];
+            
+            elements.forEach((selector, index) => {
+                const element = document.querySelector(selector);
+                if (element) {
+                    element.style.opacity = '0';
+                    element.style.transform = 'translateY(30px)';
+                    element.style.transition = 'all 0.6s ease';
+                    
+                    setTimeout(() => {
+                        element.style.opacity = '1';
+                        element.style.transform = 'translateY(0)';
+                    }, index * 150);
+                }
+            });
+        }
+
+        // Enhanced Show Login Screen with smooth transition
+        function showLoginScreen() {
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('mainApp').style.display = 'none';
+            
+            // Animate login form entry
+            const loginForm = document.querySelector('.login-form');
+            if (loginForm) {
+                loginForm.style.opacity = '0';
+                loginForm.style.transform = 'scale(0.9) translateY(20px)';
+                loginForm.style.transition = 'all 0.5s ease';
+                
+                setTimeout(() => {
+                    loginForm.style.opacity = '1';
+                    loginForm.style.transform = 'scale(1) translateY(0)';
+                }, 100);
+            }
+            
+            // Setup login form
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+        }
+
+        // Handle Login with Access Codes and Firebase Integration
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const location = formData.get('location');
+            const role = formData.get('role');
+            const accessCode = formData.get('accessCode');
+            
+            if (!location || !role || !accessCode) {
+                showLoginError('Please fill in all fields');
+                return;
+            }
+            
+            // Check access code
+            const userInfo = ACCESS_CODES[accessCode];
+            if (!userInfo) {
+                showLoginError('Invalid access code');
+                return;
+            }
+            
+            // Create and validate session data
+            const sessionExpiry = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
+            const sessionData = {
+                user: {
+                    name: userInfo.name,
+                    role: userInfo.role,
+                    park: userInfo.park,
+                    location: location,
+                    accessCode: accessCode
+                },
+                expires: sessionExpiry,
+                loginTime: new Date().toISOString()
+            };
+            
+            // Validate session data structure
+            try {
+                validateBeforeSave(sessionData, 'userSession');
+                
+                // Save session
+                await dataManager.saveData('userSessions', 'current', sessionData);
+                
+                // Update auth state
+                authState.isAuthenticated = true;
+                authState.currentUser = sessionData.user;
+                authState.sessionExpiry = sessionExpiry;
+                
+                showMessage(userInfo.message, 'success');
+                setTimeout(() => {
+                    showMainApp();
+                }, 1000);
+                
+            } catch (error) {
+                showLoginError('Invalid session data - please try again');
+                console.error('Session validation failed:', error);
+                return;
+            }
+        }
+
+        // Show Login Error
+        function showLoginError(message) {
+            const errorElement = document.getElementById('loginError');
+            errorElement.textContent = message;
+            errorElement.classList.add('show');
+            
+            setTimeout(() => {
+                errorElement.classList.remove('show');
+            }, 3000);
+        }
+
+        // Update User Info
+        function updateUserInfo() {
+            if (authState.currentUser) {
+                const userInfo = document.getElementById('userInfo');
+                const userPark = document.getElementById('userPark');
+                const userRole = document.getElementById('userRole');
+                
+                if (userInfo && userPark && userRole) {
+                    userInfo.style.display = 'flex';
+                    userPark.textContent = authState.currentUser.park;
+                    userRole.textContent = `${authState.currentUser.name} - ${authState.currentUser.role}`;
+                }
+            }
+        }
+
+        // Initialize Dashboard Checks with Firebase Integration
+        async function initializeDashboardChecks() {
+            try {
+                // Try to load from Firebase/localStorage
+                const stored = await dataManager.loadData('dashboardChecks', 'current');
+                if (stored && stored.checks) {
+                    dashboardChecks = stored.checks;
+                } else {
+                    dashboardChecks = [...sampleDashboardChecks];
+                    await saveDashboardChecks();
+                }
+            } catch (error) {
+                console.error('Error loading dashboard checks:', error);
+                dashboardChecks = [...sampleDashboardChecks];
+            }
+            
+            updateDashboardProgress();
+            updatePendingChecksPreview();
+        }
+
+        // Save Dashboard Checks with Firebase Integration
+        async function saveDashboardChecks() {
+            try {
+                const checksData = {
+                    checks: dashboardChecks,
+                    lastUpdated: new Date().toISOString(),
+                    updatedBy: authState.currentUser?.name || 'Unknown User'
+                };
+                await dataManager.saveData('dashboardChecks', 'current', checksData);
+            } catch (error) {
+                console.error('Error saving dashboard checks:', error);
+            }
+        }
+
+        // Update Dashboard Progress
+        function updateDashboardProgress() {
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Today's progress
+            const todayChecks = dashboardChecks.filter(check => check.dueDate === today);
+            const todayCompleted = todayChecks.filter(check => check.status === 'completed');
+            updateProgressCircle('todayProgress', todayCompleted.length, todayChecks.length);
+            document.getElementById('todayStatus').textContent = `${todayCompleted.length} of ${todayChecks.length} completed`;
+
+            // Simplified calculations for week/month/year
+            const allCompleted = dashboardChecks.filter(check => check.status === 'completed');
+            updateProgressCircle('weekProgress', allCompleted.length, dashboardChecks.length);
+            updateProgressCircle('monthProgress', allCompleted.length, dashboardChecks.length);
+            updateProgressCircle('yearProgress', allCompleted.length, dashboardChecks.length);
+            
+            document.getElementById('weekStatus').textContent = `${allCompleted.length} completed`;
+            document.getElementById('monthStatus').textContent = `${allCompleted.length} completed`;
+            document.getElementById('yearStatus').textContent = `${allCompleted.length} completed`;
+        }
+
+        // Update Progress Circle
+        function updateProgressCircle(elementId, completed, total) {
+            const circle = document.getElementById(elementId);
+            if (!circle) return;
+            
+            const percentage = total > 0 ? (completed / total) * 100 : 0;
+            
+            circle.style.background = `conic-gradient(var(--primary-orange) ${percentage * 3.6}deg, var(--dark-gray) 0deg)`;
+            const textElement = circle.querySelector('.progress-text');
+            if (textElement) {
+                textElement.textContent = `${completed}/${total}`;
+            }
+        }
+
+        // Update Pending Checks Preview
+        function updatePendingChecksPreview() {
+            const preview = document.getElementById('pendingChecksPreview');
+            if (!preview) return;
+            
+            const today = new Date().toISOString().split('T')[0];
+            const pendingChecks = dashboardChecks.filter(check => 
+                check.dueDate === today && check.status === 'pending'
+            );
+            
+            if (pendingChecks.length === 0) {
+                preview.innerHTML = `
+                    <div class="all-checks-complete">
+                        <h3>All Daily Checks Complete!</h3>
+                        <p>Great job! All safety checks are up to date.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <h4>Today's Pending Checks (${pendingChecks.length})</h4>
+            `;
+            
+            pendingChecks.forEach(check => {
+                html += `
+                    <div class="pending-check-item">
+                        <div>
+                            <div class="pending-check-title">${check.title}</div>
+                            <div class="pending-check-module">${check.module}</div>
+                        </div>
+                        <div class="pending-check-status status-pending">Pending</div>
+                    </div>
+                `;
+            });
+            
+            preview.innerHTML = html;
+        }
+
+        // Mark All Checks Complete with Firebase Integration
+        async function markAllChecksComplete() {
+            const today = new Date().toISOString().split('T')[0];
+            const pendingChecks = dashboardChecks.filter(check => 
+                check.dueDate === today && check.status === 'pending'
+            );
+            
+            if (pendingChecks.length === 0) {
+                showMessage('All daily checks are already completed!', 'success');
+                return;
+            }
+            
+            if (!confirm(`Mark all ${pendingChecks.length} pending checks as completed?`)) {
+                return;
+            }
+            
+            pendingChecks.forEach(check => {
+                check.status = 'completed';
+                check.completedAt = new Date().toISOString();
+                check.completedBy = authState.currentUser?.name || 'User';
+            });
+            
+            await saveDashboardChecks();
+            updateDashboardProgress();
+            updatePendingChecksPreview();
+            
+            await logActivity(`Marked ${pendingChecks.length} daily checks as completed`);
+            showMessage(`${pendingChecks.length} checks marked as completed!`, 'success');
+        }
+
+        // Refresh Dashboard Checks
+        async function refreshDashboardChecks() {
+            await initializeDashboardChecks();
+            showMessage('Dashboard checks refreshed!', 'success');
+        }
+
+        // View Check History
+        function viewCheckHistory() {
+            showMessage('Check history feature coming soon!', 'warning');
+        }
+
+        // Toggle Activity Expand
+        function toggleActivityExpand() {
+            const activityList = document.getElementById('activityList');
+            const expandToggle = document.getElementById('expandToggle');
+            
+            if (activityList.classList.contains('expanded')) {
+                activityList.classList.remove('expanded');
+                expandToggle.textContent = 'Show More';
+            } else {
+                activityList.classList.add('expanded');
+                expandToggle.textContent = 'Show Less';
+            }
+        }
+
+        // Return to Dashboard (PRO button function)
+        function returnToDashboard() {
+            showSection('dashboard');
+            // On mobile, close sidebar
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
+        }
+
+        // Navigation Functions
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected section
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            
+            // Update nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Find and activate corresponding nav button
+            const navButton = Array.from(document.querySelectorAll('.nav-btn')).find(btn => 
+                btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(sectionId)
+            );
+            if (navButton) {
+                navButton.classList.add('active');
+            }
+            
+            // Close mobile menu
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
+        }
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            if (window.innerWidth <= 768 && 
+                !sidebar.contains(e.target) && 
+                !toggle.contains(e.target) && 
+                sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        // Stat Card Functions
+        function openIncidentReporting() {
+            window.open('incidents.html', '_blank');
+        }
+
+        function openIncidentManagement() {
+            window.open('incidents.html?view=management', '_blank');
+        }
+
+        function openMaintenanceDashboard() {
+            showMessage('Maintenance dashboard coming soon!', 'warning');
+        }
+
+        function openComplianceDetails() {
+            showMessage('Compliance details coming soon!', 'warning');
+        }
+
+        // Activity Logging with Firebase Integration and Validation
+        async function logActivity(description) {
+            try {
+                const activity = {
+                    timestamp: new Date().toISOString(),
+                    description: description,
+                    user: authState.currentUser?.name || 'Unknown User',
+                    park: authState.currentUser?.park || 'Unknown Park'
+                };
+
+                // Validate the activity data
+                if (!description || typeof description !== 'string' || description.trim().length === 0) {
+                    console.error('Invalid activity description');
+                    return;
+                }
+
+                // Load existing activities
+                const activitiesData = await dataManager.loadData('recentActivities', 'current');
+                const activities = activitiesData ? activitiesData.activities || [] : [];
+                
+                activities.unshift(activity);
+                
+                // Keep only last 50 activities
+                if (activities.length > 50) {
+                    activities.splice(50);
+                }
+                
+                const updatedData = {
+                    activities: activities,
+                    lastUpdated: new Date().toISOString()
+                };
+
+                // Validate complete data structure
+                try {
+                    validateBeforeSave(updatedData, 'recentActivities');
+                } catch (validationError) {
+                    console.warn('Activity validation failed, using sanitized data:', validationError.message);
+                    // Use sanitized data if validation fails
+                    updatedData.activities = activities.filter(act => 
+                        act.timestamp && act.description && act.user
+                    );
+                }
+
+                await dataManager.saveData('recentActivities', 'current', updatedData);
+                loadRecentActivity();
+            } catch (error) {
+                console.error('Error logging activity:', error);
+            }
+        }
+
+        // Load Recent Activity with Firebase Integration
+        async function loadRecentActivity() {
+            try {
+                const activitiesData = await dataManager.loadData('recentActivities', 'current');
+                const activities = activitiesData ? activitiesData.activities || [] : [];
+                const container = document.getElementById('recentActivitiesList');
+                
+                if (activities.length === 0) {
+                    container.innerHTML = `
+                        <div class="activity-item">
+                            <div class="activity-time">Welcome to SafePark.PRO</div>
+                            <div class="activity-description">System initialized and ready for use</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = '';
+                activities.slice(0, 10).forEach(activity => {
+                    const time = new Date(activity.timestamp).toLocaleString();
+                    html += `
+                        <div class="activity-item">
+                            <div class="activity-time">${time}</div>
+                            <div class="activity-description">${activity.description}</div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading recent activity:', error);
+            }
+        }
+
+        // Show Message
+        function showMessage(message, type = 'success') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = message;
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => {
+                    if (messageDiv.parentNode) {
+                        messageDiv.parentNode.removeChild(messageDiv);
+                    }
+                }, 300);
+            }, 5000);
+        }
+
+        // Logout with Firebase Integration
+        async function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Clear session from Firebase/localStorage
+                await dataManager.saveData('userSessions', 'current', null);
+                
+                authState.isAuthenticated = false;
+                authState.currentUser = null;
+                authState.sessionExpiry = null;
+                
+                showMessage('Logged out successfully', 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            }
+        }
+
+        // Safe Navigation System
+        function initializeSafeNavigation() {
+            const navButtons = document.querySelectorAll('.nav-btn[data-module]');
+            navButtons.forEach(button => {
+                const moduleUrl = button.getAttribute('data-module');
+                
+                button.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    
+                    try {
+                        // Check if module exists by trying to fetch it
+                        const response = await fetch(moduleUrl, { method: 'HEAD' });
+                        if (response.ok) {
+                            window.open(moduleUrl, '_blank');
+                            if (window.logActivity) {
+                                window.logActivity(`Opened ${moduleUrl}`);
+                            }
+                        } else {
+                            showMessage(`${moduleUrl} is currently unavailable`, 'error');
+                        }
+                    } catch (error) {
+                        showMessage(`Unable to access ${moduleUrl}`, 'error');
+                        console.error('Navigation error:', error);
+                    }
+                });
+            });
+        }
+
+        // Export functions for global access
+        window.showSection = showSection;
+        window.toggleMobileMenu = toggleMobileMenu;
+        window.markAllChecksComplete = markAllChecksComplete;
+        window.refreshDashboardChecks = refreshDashboardChecks;
+        window.viewCheckHistory = viewCheckHistory;
+        window.toggleActivityExpand = toggleActivityExpand;
+        window.returnToDashboard = returnToDashboard;
+        window.openIncidentReporting = openIncidentReporting;
+        window.openIncidentManagement = openIncidentManagement;
+        window.openMaintenanceDashboard = openMaintenanceDashboard;
+        window.openComplianceDetails = openComplianceDetails;
+        window.logout = logout;
+        window.showMessage = showMessage;
+        window.logActivity = logActivity;
+        window.skipToApp = skipToApp;
+
+        // Initialize everything when page loads
+        setTimeout(() => {
+            initializeSafeNavigation();
+        }, 1000);
+
+        console.log('SafePark.PRO Firebase-Integrated Dashboard initialized successfully');
+    </script>
+</body>
+</html>
