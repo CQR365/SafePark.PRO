@@ -3693,31 +3693,33 @@ async saveData(collection, docId, data)
                 return;
             }
             
-            // Create session
-            const sessionExpiry = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
-            const sessionData = {
-                user: {
-                    name: userInfo.name,
-                    role: userInfo.role,
-                    park: userInfo.park,
-                    location: location,
-                    accessCode: accessCode
-                },
-                expires: sessionExpiry,
-                loginTime: new Date().toISOString()
-            };
-            
-            // Save session to Firebase/localStorage
-            await dataManager.saveData('userSessions', 'current', sessionData);
-            
-            authState.isAuthenticated = true;
-            authState.currentUser = sessionData.user;
-            authState.sessionExpiry = sessionExpiry;
-            
-            showMainApp();
-            showMessage(userInfo.message, 'success');
-            
-            await logActivity(`${userInfo.name} logged in as ${userInfo.role} at ${userInfo.park}`);
+         // Create and validate session data
+        const sessionExpiry = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
+        const sessionData = {
+            user: {
+                name: userInfo.name,
+                role: userInfo.role,
+                park: userInfo.park,
+                location: location,
+                accessCode: accessCode
+            },
+            expires: sessionExpiry,
+            loginTime: new Date().toISOString()
+        };
+        
+        // Validate access code format
+        if (!accessCode || accessCode.length < 3) {
+            showLoginError('Invalid access code format');
+            return;
+        }
+        
+        // Validate session data structure
+        try {
+            validateBeforeSave(sessionData, 'userSession');
+        } catch (error) {
+            showLoginError('Invalid session data - please try again');
+            console.error('Session validation failed:', error);
+            return;
         }
 
         // Show Login Error
