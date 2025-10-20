@@ -197,7 +197,7 @@
             };
                     localStorage.setItem('safePark_auth', JSON.stringify(maintenanceCompatAuth));
                     console.log('Authentication compatibility established for:', authData.user.name);
-                } else {
+                }
                     // Clean up expired or invalid sessions
                     localStorage.removeItem('safePark_userSessions_current');
                     localStorage.removeItem('safePark_auth');
