@@ -1939,13 +1939,10 @@
         let parkRegistry = {};
 
         // Initialize with dashboard integration
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check authentication first
-            const authData = JSON.parse(localStorage.getItem('safePark_userSessions_current') || '{}');
-            if (!authData || !authData.user || !authData.expires || Date.now() > authData.expires) {
-              //  alert('Session expired. Please log in again.');
-                window.location.href = 'index.html';
-             //   return;
+      if (!authData || !authData.user || !authData.expires || Date.now() > authData.expires) {
+    alert('Session expired. Please log in again.');
+    window.location.href = 'index.html';
+    return;
             }
             
             console.log('User authenticated:', authData.user.name);
