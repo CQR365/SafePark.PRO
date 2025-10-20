@@ -4490,7 +4490,7 @@ END OF REPORT
                         // Check if module exists by trying to fetch it
                         const response = await fetch(moduleUrl, { method: 'HEAD' });
                         if (response.ok) {
-                            window.open(moduleUrl, '_blank');
+                            window.location.href = moduleUrl;
                             if (window.logActivity) {
                                 window.logActivity(`Opened ${moduleUrl}`);
                             }
