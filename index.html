@@ -3990,6 +3990,7 @@ async saveData(collection, docId, data)
         }
 
         // Activity Logging with Firebase Integration
+       // Activity Logging with Firebase Integration and Validation
         async function logActivity(description) {
             try {
                 const activity = {
@@ -3998,6 +3999,12 @@ async saveData(collection, docId, data)
                     user: authState.currentUser?.name || 'Unknown User',
                     park: authState.currentUser?.park || 'Unknown Park'
                 };
+
+                // Validate the activity data
+                if (!description || typeof description !== 'string' || description.trim().length === 0) {
+                    console.error('Invalid activity description');
+                    return;
+                }
 
                 // Load existing activities
                 const activitiesData = await dataManager.loadData('recentActivities', 'current');
@@ -4014,6 +4021,17 @@ async saveData(collection, docId, data)
                     activities: activities,
                     lastUpdated: new Date().toISOString()
                 };
+
+                // Validate complete data structure
+                try {
+                    validateBeforeSave(updatedData, 'recentActivities');
+                } catch (validationError) {
+                    console.warn('Activity validation failed, using sanitized data:', validationError.message);
+                    // Use sanitized data if validation fails
+                    updatedData.activities = activities.filter(act => 
+                        act.timestamp && act.description && act.user
+                    );
+                }
 
                 await dataManager.saveData('recentActivities', 'current', updatedData);
                 loadRecentActivity();
