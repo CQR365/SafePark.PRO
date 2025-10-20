@@ -39,18 +39,18 @@
     
     <!-- Wait for Firebase to load, then load config -->
     <script>
-        // Ensure Firebase loads before config
-        window.addEventListener('load', function() {
-            if (typeof firebase !== 'undefined') {
-                console.log('Firebase compat loaded, loading config...');
-                const script = document.createElement('script');
-                script.src = 'firebase-config.js';
-                document.head.appendChild(script);
-            } else {
-                console.error('Firebase compat failed to load');
-            }
-        });
-    </script>
+    // Ensure Firebase loads before config
+    window.addEventListener('load', function() {
+        if (typeof firebase !== 'undefined') {
+            console.log('Firebase compat loaded, loading config...');
+            const script = document.createElement('script');
+            script.src = 'firebase-config.js';
+            document.head.appendChild(script);
+        } else {
+            console.error('Firebase compat failed to load');
+        }
+    });
+</script>
 
     <!-- Maintenance Integration Module - FIXED FILENAME -->
     <script src="maintenance-intergration.js"></script>
