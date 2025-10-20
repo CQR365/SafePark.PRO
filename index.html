@@ -3329,8 +3329,7 @@
                     }
                 }
             }
-        }
-        // Helper methods for enhanced offline handling
+               // Helper methods for enhanced offline handling
         isRetryableError(error) {
             const retryableErrors = ['unavailable', 'deadline-exceeded', 'resource-exhausted'];
             return retryableErrors.some(errorType => 
@@ -3376,7 +3375,8 @@
                 window.showMessage(`Synced ${processed.length} offline changes`, 'success');
             }
         }
-
+        }
+     
         getStatus() {
             return {
                 connection: this.connectionStatus,
