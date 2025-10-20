@@ -3210,6 +3210,35 @@
             constructor() {
                 this.localStoragePrefix = 'safePark_';
             }
+            // Enhanced offline handling
+    initializeOfflineHandling() {
+        this.offlineQueue = [];
+        this.connectionStatus = 'unknown';
+        this.maxRetries = 3;
+        
+        const savedQueue = this.loadFromLocalStorage('_offlineQueue');
+        if (savedQueue && Array.isArray(savedQueue)) {
+            this.offlineQueue = savedQueue;
+        }
+        
+        window.addEventListener('online', () => {
+            this.connectionStatus = 'online';
+            this.processOfflineQueue();
+        });
+        
+        window.addEventListener('offline', () => {
+            this.connectionStatus = 'offline';
+            if (window.showMessage) {
+                window.showMessage('Working offline - changes will sync when connected', 'warning');
+            }
+        });
+    }
+```
+
+**Step 4: Find your saveData method**
+Search for:
+```
+async saveData(collection, docId, data)
 
             // Save to both Firebase and localStorage
             async saveData(collection, docId, data) {
@@ -3306,6 +3335,182 @@
                     }
                 }
             }
+        }
+        // Helper methods for enhanced offline handling
+        isRetryableError(error) {
+            const retryableErrors = ['unavailable', 'deadline-exceeded', 'resource-exhausted'];
+            return retryableErrors.some(errorType => 
+                error.code === errorType || error.message.includes(errorType)
+            );
+        }
+
+        addToOfflineQueue(operation) {
+            this.offlineQueue = this.offlineQueue.filter(
+                op => !(op.collection === operation.collection && op.docId === operation.docId)
+            );
+            
+            this.offlineQueue.push(operation);
+            this.saveToLocalStorage('_offlineQueue', this.offlineQueue);
+            console.log(`Added to offline queue: ${operation.collection}/${operation.docId}`);
+        }
+
+        async processOfflineQueue() {
+            if (this.offlineQueue.length === 0) return;
+            
+            console.log(`Processing ${this.offlineQueue.length} offline operations...`);
+            const processed = [];
+            
+            for (const operation of this.offlineQueue) {
+                try {
+                    if (operation.type === 'save') {
+                        await db.collection(operation.collection).doc(operation.docId).set({
+                            ...operation.data,
+                            lastSynced: new Date().toISOString(),
+                            source: 'firebase'
+                        });
+                        processed.push(operation);
+                    }
+                } catch (error) {
+                    console.error('Failed to process offline operation:', error);
+                }
+            }
+            
+            this.offlineQueue = this.offlineQueue.filter(op => !processed.includes(op));
+            this.saveToLocalStorage('_offlineQueue', this.offlineQueue);
+            
+            if (processed.length > 0 && window.showMessage) {
+                window.showMessage(`Synced ${processed.length} offline changes`, 'success');
+            }
+        }
+
+        getStatus() {
+            return {
+                connection: this.connectionStatus,
+                queueLength: this.offlineQueue.length,
+                isOnline: isOnline,
+                isFirebaseReady: isFirebaseReady
+            };
+        }
+        // Data Validation System
+        class SafeParkDataValidator {
+            constructor() {
+                this.validationErrors = [];
+            }
+
+            validate(data, schemaName) {
+                this.validationErrors = [];
+                
+                if (!data || typeof data !== 'object') {
+                    this.addError('Data must be a valid object');
+                    return this.getValidationResult();
+                }
+
+                switch (schemaName) {
+                    case 'userSession':
+                        this.validateUserSession(data);
+                        break;
+                    case 'dashboardChecks':
+                        this.validateDashboardChecks(data);
+                        break;
+                    case 'recentActivities':
+                        this.validateRecentActivities(data);
+                        break;
+                    default:
+                        this.validateBasic(data);
+                }
+
+                return this.getValidationResult();
+            }
+
+            validateUserSession(data) {
+                const required = ['user', 'expires', 'loginTime'];
+                this.checkRequired(data, required);
+                
+                if (data.user && typeof data.user === 'object') {
+                    const userRequired = ['name', 'role', 'park', 'location'];
+                    this.checkRequired(data.user, userRequired, 'user.');
+                }
+            }
+
+            validateDashboardChecks(data) {
+                const required = ['checks', 'lastUpdated'];
+                this.checkRequired(data, required);
+                
+                if (data.checks && !Array.isArray(data.checks)) {
+                    this.addError('checks must be an array');
+                }
+            }
+
+            validateRecentActivities(data) {
+                const required = ['activities', 'lastUpdated'];
+                this.checkRequired(data, required);
+                
+                if (data.activities && !Array.isArray(data.activities)) {
+                    this.addError('activities must be an array');
+                }
+            }
+
+            validateBasic(data) {
+                if (!data.timestamp && !data.lastUpdated) {
+                    this.addError('Missing timestamp or lastUpdated field');
+                }
+            }
+
+            checkRequired(obj, fields, prefix = '') {
+                fields.forEach(field => {
+                    if (!(field in obj) || obj[field] === null || obj[field] === undefined) {
+                        this.addError(`Missing required field: ${prefix}${field}`);
+                    }
+                });
+            }
+
+            addError(message) {
+                this.validationErrors.push({ message, timestamp: new Date().toISOString() });
+            }
+
+            getValidationResult() {
+                return {
+                    isValid: this.validationErrors.length === 0,
+                    errors: this.validationErrors
+                };
+            }
+
+            sanitize(data) {
+                if (!data || typeof data !== 'object') return data;
+                
+                const sanitized = { ...data };
+                
+                // Remove undefined values
+                Object.keys(sanitized).forEach(key => {
+                    if (sanitized[key] === undefined) {
+                        delete sanitized[key];
+                    }
+                });
+
+                // Add validation timestamp
+                sanitized._validatedAt = new Date().toISOString();
+                
+                return sanitized;
+            }
+        }
+
+        // Global validator instance
+        const safeParkValidator = new SafeParkDataValidator();
+
+        // Helper functions
+        function validateBeforeSave(data, schemaName) {
+            const result = safeParkValidator.validate(data, schemaName);
+            
+            if (!result.isValid) {
+                console.error(`Validation failed for ${schemaName}:`, result.errors);
+                throw new Error(`Invalid data for ${schemaName}`);
+            }
+            
+            return true;
+        }
+
+        function sanitizeBeforeSave(data, schemaName) {
+            return safeParkValidator.sanitize(data);
         }
 
         // Initialize Firebase Data Manager
