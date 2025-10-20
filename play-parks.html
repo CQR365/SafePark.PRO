@@ -1943,9 +1943,9 @@
             // Check authentication first
             const authData = JSON.parse(localStorage.getItem('safePark_userSessions_current') || '{}');
             if (!authData || !authData.user || !authData.expires || Date.now() > authData.expires) {
-                alert('Session expired. Please log in again.');
+              //  alert('Session expired. Please log in again.');
                 window.location.href = 'index.html';
-                return;
+             //   return;
             }
             
             console.log('User authenticated:', authData.user.name);
