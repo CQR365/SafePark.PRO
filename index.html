@@ -4517,5 +4517,80 @@ END OF REPORT
 
         console.log('SafePark.PRO Firebase-Integrated Dashboard initialized successfully');
     </script>
+    // Safe Navigation System
+        function initializeSafeNavigation() {
+            const navButtons = document.querySelectorAll('.nav-btn[data-module]');
+            navButtons.forEach(button => {
+                const moduleUrl = button.getAttribute('data-module');
+                
+                button.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    
+                    try {
+                        // Check if module exists by trying to fetch it
+                        const response = await fetch(moduleUrl, { method: 'HEAD' });
+                        if (response.ok) {
+                            window.open(moduleUrl, '_blank');
+                            if (window.logActivity) {
+                                window.logActivity(`Opened ${moduleUrl}`);
+                            }
+                        } else {
+                            showMessage(`${moduleUrl} is currently unavailable`, 'error');
+                        }
+                    } catch (error) {
+                        showMessage(`Unable to access ${moduleUrl}`, 'error');
+                        console.error('Navigation error:', error);
+                    }
+                });
+            });
+        }
+
+        // Connection Status Display
+        function updateConnectionStatus() {
+            const status = dataManager.getStatus();
+            let statusEl = document.getElementById('connectionStatus');
+            
+            if (!statusEl) {
+                statusEl = document.createElement('div');
+                statusEl.id = 'connectionStatus';
+                statusEl.style.cssText = `
+                    position: fixed;
+                    top: 10px;
+                    right: 10px;
+                    padding: 8px 12px;
+                    border-radius: 15px;
+                    font-size: 0.8rem;
+                    z-index: 1001;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    color: white;
+                    font-weight: 600;
+                `;
+                document.body.appendChild(statusEl);
+            }
+            
+            const indicator = status.connection === 'online' && status.queueLength === 0 ? '🟢' : 
+                             status.connection === 'offline' ? '🔴' : '🟡';
+            
+            const text = status.connection === 'online' && status.queueLength === 0 ? 'Connected' :
+                         status.connection === 'offline' ? 'Offline' : `Syncing (${status.queueLength})`;
+            
+            statusEl.innerHTML = `${indicator} ${text}`;
+            statusEl.style.background = status.connection === 'online' && status.queueLength === 0 ? 
+                'rgba(40, 167, 69, 0.9)' : 
+                status.connection === 'offline' ? 'rgba(220, 53, 69, 0.9)' : 'rgba(255, 193, 7, 0.9)';
+        }
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                initializeSafeNavigation();
+                updateConnectionStatus();
+                
+                // Update status every 30 seconds
+                setInterval(updateConnectionStatus, 30000);
+            }, 1000);
+        });
 </body>
 </html>
