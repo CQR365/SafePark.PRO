@@ -3226,20 +3226,7 @@
             ]
         };
 
-        // Initialize Application with 7-Second Dynamic Opening
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('SafePark.PRO starting amazing 7-second opening...');
-    
-    // Check existing session
-    checkExistingSession();
-    
-    // The amazing opening runs for exactly 7 seconds
-    setTimeout(() => {
-        completeOpeningSequence();
-    }, 7000);
-});
-
-        // Staggered content entry animations
+               // Staggered content entry animations
         function animateContentEntry() {
             const elements = [
                 '.header',
@@ -4328,58 +4315,20 @@ END OF REPORT
         window.scheduleAutomaticReset = scheduleAutomaticReset;
 
         console.log('SafePark.PRO Firebase-Integrated Dashboard initialized successfully');
-    </script>
-</body>
-</html>
+
+        // Initialize Application with 7-Second Dynamic Opening
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('SafePark.PRO starting amazing 7-second opening...');
+            
+            // Check existing session
+            checkExistingSession();
+            
+            // The amazing opening runs for exactly 7 seconds
+            setTimeout(() => {
                 completeOpeningSequence();
             }, 7000);
         });
 
-        // Complete the opening sequence and transition to app
-        function completeOpeningSequence() {
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            
-            // Add fade-out class for smooth transition
-            loadingOverlay.classList.add('fade-out');
-            
-            // Wait for fade animation to complete
-            setTimeout(() => {
-                loadingOverlay.style.display = 'none';
-                
-                if (authState.isAuthenticated) {
-                    showMainApp();
-                } else {
-                    showLoginScreen();
-                }
-            }, 800);
-        }
-
-        // Skip to app function (activated by clicking PRO)
-        function skipToApp() {
-            completeOpeningSequence();
-        }
-
-        // Check for existing session
-        async function checkExistingSession() {
-            // Try to load session from Firebase/localStorage
-            const sessionData = await dataManager.loadData('userSessions', 'current');
-            
-            if (sessionData && sessionData.expires && Date.now() < sessionData.expires) {
-                authState.isAuthenticated = true;
-                authState.currentUser = sessionData.user;
-                authState.sessionExpiry = sessionData.expires;
-                return true;
-            } else {
-                // Clean up expired session
-                await dataManager.saveData('userSessions', 'current', null);
-            }
-            return false;
-        }
-
-        // Enhanced Show Main App with Staggered Animations
-        function showMainApp() {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'flex';
-            
-            // Add entrance animations
-            
+    </script>
+</body>
+</html>
