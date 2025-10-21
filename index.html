@@ -3517,7 +3517,8 @@
         }
 
         function openMaintenanceDashboard() {
-            showMessage('Maintenance dashboard coming soon!', 'warning');
+    window.open('maintenance.html', '_blank');
+}
         }
 
         function openComplianceDetails() {
@@ -3525,7 +3526,9 @@
         }
 
         function showMaintenanceRequest() {
-            showSection('maintenance-request');
+    // Open the maintenance system in a new tab
+    window.open('maintenance.html', '_blank');
+}
         }
 
         // Activity Logging with Firebase Integration
