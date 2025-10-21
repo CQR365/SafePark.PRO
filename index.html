@@ -3227,20 +3227,18 @@
         };
 
         // Initialize Application with 7-Second Dynamic Opening
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('SafePark.PRO starting amazing 7-second opening...');
-            
-            // Check existing session
-            checkExistingSession();
-            
-            // The amazing opening runs for exactly 7 seconds
-            setTimeout(() => {
-                updateUserInfo();
-                animateContentEntry();
-                initializeDashboardChecks();
-                loadRecentActivity();
-            }, 7000);
-        }
+       // Initialize Application with 7-Second Dynamic Opening
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('SafePark.PRO starting amazing 7-second opening...');
+    
+    // Check existing session
+    checkExistingSession();
+    
+    // The amazing opening runs for exactly 7 seconds
+    setTimeout(() => {
+        completeOpeningSequence();
+    }, 7000);
+});
 
         // Staggered content entry animations
         function animateContentEntry() {
