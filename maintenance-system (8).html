@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafePark.PRO - Maintenance Management</title>
+    
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+
+    <style>
+        :root {
+            --primary-orange: #CC5500;
+            --dark-orange: #B8460C;
+            --light-orange: #E6672E;
+            --black: #000000;
+            --white: #FFFFFF;
+            --smart-dark-grey: #2A2A2A;
+            --content-background: #2F2F2F;
+            --light-gray: #F8F9FA;
+            --medium-gray: #6C757D;
+            --dark-gray: #343A40;
+            --border-color: #DEE2E6;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --shadow-light: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-medium: 0 4px 20px rgba(0,0,0,0.15);
+            --shadow-heavy: 0 8px 40px rgba(0,0,0,0.2);
+            --darker-bg: #1a1a1a;
+            --tile-bg: #252525;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+            color: #E8E8E8;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(145deg, var(--darker-bg), #111, #0a0a0a);
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+            box-shadow: 
+                0 15px 35px rgba(0, 0, 0, 0.8),
+                inset 0 8px 20px rgba(255, 255, 255, 0.1),
+                inset 0 -8px 20px rgba(0, 0, 0, 0.7);
+            border: 3px solid var(--primary-orange);
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: var(--primary-orange);
+            margin-bottom: 10px;
+            font-weight: 800;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .header .brand-line {
+            font-size: 1.2rem;
+            color: var(--light-orange);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
+            color: var(--white);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            box-shadow: 
+                0 6px 15px rgba(0,0,0,0.4),
+                inset 0 2px 4px rgba(255, 255, 255, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 10px 25px rgba(0,0,0,0.5),
+                0 0 20px rgba(204, 85, 0, 0.3);
+        }
+
+        .btn.active {
+            background: linear-gradient(135deg, var(--light-orange), var(--primary-orange));
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--medium-gray), var(--dark-gray));
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #1e7e34);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #c82333);
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .card {
+            background: linear-gradient(145deg, var(--tile-bg), #1a1a1a);
+            border: 2px solid var(--primary-orange);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 
+                0 8px 20px rgba(0, 0, 0, 0.5),
+                inset 0 4px 10px rgba(255, 255, 255, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--primary-orange);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 1rem;
+            background: var(--content-background);
+            border: 2px solid var(--medium-gray);
+            border-radius: 8px;
+            color: var(--white);
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 3px rgba(204, 85, 0, 0.3);
+            background: var(--content-background);
+        }
+
+        /* Specific fixes for select dropdowns */
+        .form-select {
+            background: var(--content-background) !important;
+            color: var(--white) !important;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .priority-high {
+            background: rgba(220, 53, 69, 0.1);
+            border-left: 4px solid var(--danger);
+        }
+
+        .priority-medium {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid var(--warning);
+        }
+
+        .priority-low {
+            background: rgba(40, 167, 69, 0.1);
+            border-left: 4px solid var(--success);
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: rgba(255, 193, 7, 0.2);
+            color: var(--warning);
+        }
+
+        .status-in-progress {
+            background: rgba(204, 85, 0, 0.2);
+            color: var(--primary-orange);
+        }
+
+        .status-completed {
+            background: rgba(40, 167, 69, 0.2);
+            color: var(--success);
+        }
+
+        .maintenance-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+        }
+
+        .maintenance-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .maintenance-header {
+            display: flex;
+            justify-content: between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            gap: 15px;
+        }
+
+        .maintenance-title {
+            color: var(--white);
+            font-size: 1.1rem;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .maintenance-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: var(--medium-gray);
+        }
+
+        .maintenance-description {
+            color: #B8B8B8;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+        }
+
+        .maintenance-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(145deg, var(--tile-bg), #1a1a1a);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid var(--primary-orange);
+            box-shadow: 
+                0 8px 20px rgba(0, 0, 0, 0.5),
+                inset 0 4px 10px rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-orange);
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: #B8B8B8;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .search-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-filters input,
+        .search-filters select {
+            max-width: 200px;
+        }
+
+        .message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            z-index: 10000;
+            max-width: 400px;
+            box-shadow: var(--shadow-medium);
+            animation: slideIn 0.3s ease;
+        }
+
+        .message.success {
+            background: var(--success);
+            color: white;
+        }
+
+        .message.error {
+            background: var(--danger);
+            color: white;
+        }
+
+        .message.warning {
+            background: var(--warning);
+            color: var(--black);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .maintenance-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .maintenance-meta {
+                grid-template-columns: 1fr;
+            }
+
+            .search-filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-filters input,
+            .search-filters select {
+                max-width: none;
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Maintenance Management</h1>
+            <div class="brand-line">SafePark.PRO</div>
+            <p>Comprehensive maintenance request and tracking system</p>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="btn active" onclick="showSection('dashboard')">Dashboard</button>
+            <button class="btn" onclick="showSection('new-request')">New Request</button>
+            <button class="btn" onclick="showSection('all-requests')">All Requests</button>
+            <button class="btn" onclick="showSection('reports')">Reports</button>
+            <button class="btn btn-secondary" onclick="window.close()">Back to Main</button>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="section active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalRequests">0</div>
+                    <div class="stat-label">Total Requests</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="pendingRequests">0</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="inProgressRequests">0</div>
+                    <div class="stat-label">In Progress</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="completedRequests">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="color: var(--primary-orange); margin-bottom: 20px;">Recent Maintenance Requests</h3>
+                <div id="recentRequests">
+                    <p style="text-align: center; color: var(--medium-gray); padding: 20px;">
+                        No maintenance requests found. Click "New Request" to submit your first request.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Request Section -->
+        <div id="new-request" class="section">
+            <div class="card">
+                <h3 style="color: var(--primary-orange); margin-bottom: 20px;">Submit New Maintenance Request</h3>
+                <form id="maintenanceForm">
+                    <div class="form-group">
+                        <label for="requestTitle">Request Title</label>
+                        <input type="text" id="requestTitle" class="form-input" required 
+                               placeholder="Brief description of the issue">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="requestCategory">Category</label>
+                        <select id="requestCategory" class="form-select" required>
+                            <option value="">Select Category</option>
+                            <option value="electrical">Electrical</option>
+                            <option value="plumbing">Plumbing</option>
+                            <option value="heating">Heating/HVAC</option>
+                            <option value="grounds">Grounds & Landscaping</option>
+                            <option value="building">Building Structure</option>
+                            <option value="safety">Safety Equipment</option>
+                            <option value="cleaning">Cleaning</option>
+                            <option value="equipment">Equipment Repair</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="requestLocation">Location</label>
+                        <select id="requestLocation" class="form-select" required>
+                            <option value="">Select Location</option>
+                            <option value="reception">Reception</option>
+                            <option value="restaurant">Restaurant/Bar</option>
+                            <option value="pool-area">Pool Area</option>
+                            <option value="play-park">Play Park</option>
+                            <option value="toilet-blocks">Toilet Blocks</option>
+                            <option value="caravan-pitch">Caravan Pitch</option>
+                            <option value="static-accommodation">Static Accommodation</option>
+                            <option value="maintenance-shed">Maintenance Shed</option>
+                            <option value="car-park">Car Park</option>
+                            <option value="roadways">Site Roadways</option>
+                            <option value="other">Other Location</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="requestPriority">Priority Level</label>
+                        <select id="requestPriority" class="form-select" required>
+                            <option value="">Select Priority</option>
+                            <option value="low">Low - Routine maintenance</option>
+                            <option value="medium">Medium - Non-urgent repair</option>
+                            <option value="high">High - Urgent/Safety issue</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="requestDescription">Detailed Description</label>
+                        <textarea id="requestDescription" class="form-textarea" required 
+                                  placeholder="Please provide detailed information about the maintenance issue, including any safety concerns, specific location details, and steps already taken."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="requestReporter">Reported By</label>
+                        <input type="text" id="requestReporter" class="form-input" required 
+                               placeholder="Your name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="requestContact">Contact Information</label>
+                        <input type="text" id="requestContact" class="form-input" 
+                               placeholder="Phone/email for follow-up (optional)">
+                    </div>
+
+                    <button type="submit" class="btn" style="width: 100%; margin-top: 20px;">
+                        Submit Maintenance Request
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- All Requests Section -->
+        <div id="all-requests" class="section">
+            <div class="search-filters">
+                <input type="text" id="searchInput" class="form-input" placeholder="Search requests...">
+                <select id="filterStatus" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                </select>
+                <select id="filterPriority" class="form-select">
+                    <option value="">All Priorities</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+                <button class="btn btn-secondary" onclick="clearFilters()">Clear Filters</button>
+            </div>
+
+            <div class="card">
+                <h3 style="color: var(--primary-orange); margin-bottom: 20px;">All Maintenance Requests</h3>
+                <div id="allRequestsList">
+                    <p style="text-align: center; color: var(--medium-gray); padding: 20px;">
+                        Loading maintenance requests...
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Section -->
+        <div id="reports" class="section">
+            <div class="card">
+                <h3 style="color: var(--primary-orange); margin-bottom: 20px;">Maintenance Reports</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    <button class="btn" onclick="generateReport('summary')">Generate Summary Report</button>
+                    <button class="btn" onclick="generateReport('by-category')">Report by Category</button>
+                    <button class="btn" onclick="generateReport('by-location')">Report by Location</button>
+                    <button class="btn" onclick="generateReport('overdue')">Overdue Items Report</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration (same as main app)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+            authDomain: "safepark-pro.firebaseapp.com",
+            projectId: "safepark-pro",
+            storageBucket: "safepark-pro.firebasestorage.app",
+            messagingSenderId: "511221743341",
+            appId: "1:511221743341:web:95bcc7e83d4861578016e4"
+        };
+
+        // Initialize Firebase
+        let db;
+        let auth;
+        let isFirebaseReady = false;
+        let currentUser = null;
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            auth = firebase.auth();
+            isFirebaseReady = true;
+            console.log('Maintenance system: Firebase initialized');
+        } catch (error) {
+            console.error('Firebase initialization failed:', error);
+        }
+
+        let maintenanceRequests = [];
+        let filteredRequests = [];
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthenticationStatus();
+            setupEventListeners();
+        });
+
+        // Check authentication status and load user session
+        async function checkAuthenticationStatus() {
+            try {
+                // Try to load session from main app
+                const sessionData = localStorage.getItem('safePark_userSessions_current');
+                if (sessionData) {
+                    const session = JSON.parse(sessionData);
+                    if (session && session.expires && Date.now() < session.expires) {
+                        currentUser = session.user;
+                        console.log('User session loaded:', currentUser.name);
+                        
+                        // Sign in anonymously for Firebase Auth (using session as authentication)
+                        if (isFirebaseReady && auth) {
+                            try {
+                                await auth.signInAnonymously();
+                                console.log('Firebase Auth: Signed in anonymously');
+                            } catch (error) {
+                                console.error('Firebase Auth error:', error);
+                            }
+                        }
+                        
+                        loadMaintenanceRequests();
+                        updateDashboardStats();
+                        return;
+                    }
+                }
+                
+                // No valid session found
+                showAuthenticationError();
+            } catch (error) {
+                console.error('Error checking authentication:', error);
+                showAuthenticationError();
+            }
+        }
+
+        // Show authentication error
+        function showAuthenticationError() {
+            document.querySelector('.container').innerHTML = `
+                <div class="header">
+                    <h1>Authentication Required</h1>
+                    <div class="brand-line">SafePark.PRO</div>
+                    <p>Please log in to the main SafePark.PRO system first</p>
+                </div>
+                <div class="card" style="text-align: center; margin-top: 50px;">
+                    <h3 style="color: var(--primary-orange); margin-bottom: 20px;">Access Denied</h3>
+                    <p style="margin-bottom: 30px; color: #B8B8B8;">
+                        You need to be logged in to access the maintenance system.
+                    </p>
+                    <button class="btn" onclick="window.close()" style="margin: 10px;">
+                        Return to Main System
+                    </button>
+                    <button class="btn btn-secondary" onclick="location.reload()" style="margin: 10px;">
+                        Retry
+                    </button>
+                </div>
+            `;
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('maintenanceForm').addEventListener('submit', submitMaintenanceRequest);
+            document.getElementById('searchInput').addEventListener('input', filterRequests);
+            document.getElementById('filterStatus').addEventListener('change', filterRequests);
+            document.getElementById('filterPriority').addEventListener('change', filterRequests);
+            
+            // Pre-fill form with user information
+            if (currentUser) {
+                document.getElementById('requestReporter').value = currentUser.name;
+                // You can add more pre-filling here if needed
+            }
+        }
+
+        // Load maintenance requests from Firebase/localStorage
+        async function loadMaintenanceRequests() {
+            try {
+                if (isFirebaseReady && db && auth.currentUser) {
+                    const snapshot = await db.collection('maintenanceRecords').orderBy('dateSubmitted', 'desc').get();
+                    maintenanceRequests = [];
+                    snapshot.forEach(doc => {
+                        maintenanceRequests.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
+                    });
+                    console.log('Loaded maintenance records from Firebase:', maintenanceRequests.length);
+                } else {
+                    // Fallback to localStorage
+                    const stored = localStorage.getItem('safePark_maintenanceRecords');
+                    maintenanceRequests = stored ? JSON.parse(stored) : [];
+                    console.log('Loaded maintenance records from localStorage:', maintenanceRequests.length);
+                }
+            } catch (error) {
+                console.error('Error loading maintenance requests:', error);
+                // Try localStorage as fallback
+                const stored = localStorage.getItem('safePark_maintenanceRecords');
+                maintenanceRequests = stored ? JSON.parse(stored) : [];
+            }
+
+            filteredRequests = [...maintenanceRequests];
+            updateDashboardStats();
+            displayRecentRequests();
+            displayAllRequests();
+        }
+
+        // Save to Firebase and localStorage
+        async function saveMaintenanceRequests() {
+            try {
+                // Save to localStorage
+                localStorage.setItem('safePark_maintenanceRecords', JSON.stringify(maintenanceRequests));
+
+                // Save to Firebase if available and authenticated
+                if (isFirebaseReady && db && auth.currentUser) {
+                    // Note: Individual requests are saved in submitMaintenanceRequest function
+                    console.log('Maintenance records saved to localStorage and Firebase');
+                }
+            } catch (error) {
+                console.error('Error saving maintenance requests:', error);
+            }
+        }
+
+        // Submit new maintenance request
+        async function submitMaintenanceRequest(e) {
+            e.preventDefault();
+
+            if (!currentUser) {
+                showMessage('Authentication required. Please log in to the main system first.', 'error');
+                return;
+            }
+
+            const formData = new FormData(e.target);
+            const request = {
+                id: Date.now().toString(),
+                title: formData.get('requestTitle') || document.getElementById('requestTitle').value,
+                category: document.getElementById('requestCategory').value,
+                location: document.getElementById('requestLocation').value,
+                priority: document.getElementById('requestPriority').value,
+                description: document.getElementById('requestDescription').value,
+                reporter: document.getElementById('requestReporter').value || currentUser.name,
+                contact: document.getElementById('requestContact').value,
+                status: 'pending',
+                dateSubmitted: new Date().toISOString(),
+                dateCompleted: null,
+                assignedTo: null,
+                notes: [],
+                // Add user context from main app
+                submittedBy: {
+                    name: currentUser.name,
+                    role: currentUser.role,
+                    park: currentUser.park,
+                    accessCode: currentUser.accessCode
+                },
+                parkLocation: currentUser.park
+            };
+
+            try {
+                // Save to Firebase if available and authenticated
+                if (isFirebaseReady && db && auth.currentUser) {
+                    await db.collection('maintenanceRecords').doc(request.id).set(request);
+                    console.log('Maintenance request saved to Firebase');
+                }
+
+                maintenanceRequests.unshift(request);
+                await saveMaintenanceRequests();
+
+                showMessage('Maintenance request submitted successfully!', 'success');
+                document.getElementById('maintenanceForm').reset();
+                
+                // Pre-fill reporter name for next request
+                document.getElementById('requestReporter').value = currentUser.name;
+                
+                updateDashboardStats();
+                displayRecentRequests();
+                displayAllRequests();
+                
+                showSection('dashboard');
+                
+                // Log activity to main app if possible
+                logActivityToMainApp(`Submitted maintenance request: ${request.title}`);
+            } catch (error) {
+                console.error('Error submitting request:', error);
+                showMessage('Error submitting request. Saved locally, will sync when connection is restored.', 'warning');
+                
+                // Still save locally even if Firebase fails
+                maintenanceRequests.unshift(request);
+                await saveMaintenanceRequests();
+                document.getElementById('maintenanceForm').reset();
+                updateDashboardStats();
+                displayRecentRequests();
+                displayAllRequests();
+                showSection('dashboard');
+            }
+        }
+
+        // Update dashboard statistics
+        function updateDashboardStats() {
+            const total = maintenanceRequests.length;
+            const pending = maintenanceRequests.filter(r => r.status === 'pending').length;
+            const inProgress = maintenanceRequests.filter(r => r.status === 'in-progress').length;
+            const completed = maintenanceRequests.filter(r => r.status === 'completed').length;
+
+            document.getElementById('totalRequests').textContent = total;
+            document.getElementById('pendingRequests').textContent = pending;
+            document.getElementById('inProgressRequests').textContent = inProgress;
+            document.getElementById('completedRequests').textContent = completed;
+        }
+
+        // Display recent requests on dashboard
+        function displayRecentRequests() {
+            const container = document.getElementById('recentRequests');
+            const recent = maintenanceRequests.slice(0, 5);
+
+            if (recent.length === 0) {
+                container.innerHTML = `
+                    <p style="text-align: center; color: var(--medium-gray); padding: 20px;">
+                        No maintenance requests found. Click "New Request" to submit your first request.
+                    </p>
+                `;
+                return;
+            }
+
+            let html = '';
+            recent.forEach(request => {
+                html += createRequestHTML(request, false);
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Display all requests with filters
+        function displayAllRequests() {
+            const container = document.getElementById('allRequestsList');
+
+            if (filteredRequests.length === 0) {
+                container.innerHTML = `
+                    <p style="text-align: center; color: var(--medium-gray); padding: 20px;">
+                        No maintenance requests match your current filters.
+                    </p>
+                `;
+                return;
+            }
+
+            let html = '';
+            filteredRequests.forEach(request => {
+                html += createRequestHTML(request, true);
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Create HTML for a maintenance request
+        function createRequestHTML(request, showActions) {
+            const priorityClass = `priority-${request.priority}`;
+            const statusClass = `status-${request.status}`;
+            const date = new Date(request.dateSubmitted).toLocaleDateString();
+
+            return `
+                <div class="maintenance-item ${priorityClass}">
+                    <div class="maintenance-header">
+                        <div class="maintenance-title">${request.title}</div>
+                        <span class="status-badge ${statusClass}">${request.status.replace('-', ' ')}</span>
+                    </div>
+                    <div class="maintenance-meta">
+                        <div><strong>Category:</strong> ${request.category}</div>
+                        <div><strong>Location:</strong> ${request.location}</div>
+                        <div><strong>Priority:</strong> ${request.priority}</div>
+                        <div><strong>Reporter:</strong> ${request.reporter}</div>
+                        <div><strong>Date:</strong> ${date}</div>
+                    </div>
+                    <div class="maintenance-description">${request.description}</div>
+                    ${showActions ? `
+                        <div class="maintenance-actions">
+                            <button class="btn btn-secondary" onclick="updateRequestStatus('${request.id}', 'in-progress')">
+                                Start Work
+                            </button>
+                            <button class="btn btn-success" onclick="updateRequestStatus('${request.id}', 'completed')">
+                                Mark Complete
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteRequest('${request.id}')">
+                                Delete
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        // Update request status
+        async function updateRequestStatus(requestId, newStatus) {
+            if (!currentUser) {
+                showMessage('Authentication required to update requests.', 'error');
+                return;
+            }
+
+            try {
+                const requestIndex = maintenanceRequests.findIndex(r => r.id === requestId);
+                if (requestIndex === -1) return;
+
+                maintenanceRequests[requestIndex].status = newStatus;
+                if (newStatus === 'completed') {
+                    maintenanceRequests[requestIndex].dateCompleted = new Date().toISOString();
+                    maintenanceRequests[requestIndex].completedBy = currentUser.name;
+                }
+
+                // Update in Firebase if available and authenticated
+                if (isFirebaseReady && db && auth.currentUser) {
+                    const updateData = {
+                        status: newStatus,
+                        lastUpdated: new Date().toISOString(),
+                        updatedBy: currentUser.name
+                    };
+                    
+                    if (newStatus === 'completed') {
+                        updateData.dateCompleted = new Date().toISOString();
+                        updateData.completedBy = currentUser.name;
+                    }
+                    
+                    await db.collection('maintenanceRecords').doc(requestId).update(updateData);
+                }
+
+                await saveMaintenanceRequests();
+                updateDashboardStats();
+                displayAllRequests();
+                filterRequests();
+
+                showMessage(`Request marked as ${newStatus.replace('-', ' ')}!`, 'success');
+                
+                // Log activity to main app
+                logActivityToMainApp(`Updated maintenance request status to ${newStatus}: ${maintenanceRequests[requestIndex].title}`);
+            } catch (error) {
+                console.error('Error updating request status:', error);
+                showMessage('Error updating request status. Changes saved locally.', 'warning');
+            }
+        }
+
+        // Delete request
+        async function deleteRequest(requestId) {
+            if (!currentUser) {
+                showMessage('Authentication required to delete requests.', 'error');
+                return;
+            }
+
+            if (!confirm('Are you sure you want to delete this maintenance request?')) return;
+
+            try {
+                const requestToDelete = maintenanceRequests.find(r => r.id === requestId);
+                maintenanceRequests = maintenanceRequests.filter(r => r.id !== requestId);
+
+                // Delete from Firebase if available and authenticated
+                if (isFirebaseReady && db && auth.currentUser) {
+                    await db.collection('maintenanceRecords').doc(requestId).delete();
+                }
+
+                await saveMaintenanceRequests();
+                updateDashboardStats();
+                displayAllRequests();
+                filterRequests();
+
+                showMessage('Request deleted successfully!', 'success');
+                
+                // Log activity to main app
+                if (requestToDelete) {
+                    logActivityToMainApp(`Deleted maintenance request: ${requestToDelete.title}`);
+                }
+            } catch (error) {
+                console.error('Error deleting request:', error);
+                showMessage('Error deleting request. Changes saved locally.', 'warning');
+            }
+        }
+
+        // Log activity to main app (if possible)
+        function logActivityToMainApp(description) {
+            try {
+                // Try to add activity to main app's recent activities
+                const activitiesData = localStorage.getItem('safePark_recentActivities_current');
+                let activities = [];
+                
+                if (activitiesData) {
+                    const parsed = JSON.parse(activitiesData);
+                    activities = parsed.activities || [];
+                }
+
+                const activity = {
+                    timestamp: new Date().toISOString(),
+                    description: `[Maintenance] ${description}`,
+                    user: currentUser.name,
+                    park: currentUser.park
+                };
+
+                activities.unshift(activity);
+                
+                // Keep only last 50 activities
+                if (activities.length > 50) {
+                    activities.splice(50);
+                }
+
+                const updatedData = {
+                    activities: activities,
+                    lastUpdated: new Date().toISOString()
+                };
+
+                localStorage.setItem('safePark_recentActivities_current', JSON.stringify(updatedData));
+            } catch (error) {
+                console.log('Could not log activity to main app:', error);
+            }
+        }
+
+        // Filter requests
+        function filterRequests() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('filterStatus').value;
+            const priorityFilter = document.getElementById('filterPriority').value;
+
+            filteredRequests = maintenanceRequests.filter(request => {
+                const matchesSearch = !searchTerm || 
+                    request.title.toLowerCase().includes(searchTerm) ||
+                    request.description.toLowerCase().includes(searchTerm) ||
+                    request.category.toLowerCase().includes(searchTerm) ||
+                    request.location.toLowerCase().includes(searchTerm);
+
+                const matchesStatus = !statusFilter || request.status === statusFilter;
+                const matchesPriority = !priorityFilter || request.priority === priorityFilter;
+
+                return matchesSearch && matchesStatus && matchesPriority;
+            });
+
+            displayAllRequests();
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('filterStatus').value = '';
+            document.getElementById('filterPriority').value = '';
+            filterRequests();
+        }
+
+        // Generate reports
+        function generateReport(type) {
+            const currentDate = new Date().toLocaleDateString();
+            let reportContent = '';
+
+            switch (type) {
+                case 'summary':
+                    reportContent = generateSummaryReport();
+                    break;
+                case 'by-category':
+                    reportContent = generateCategoryReport();
+                    break;
+                case 'by-location':
+                    reportContent = generateLocationReport();
+                    break;
+                case 'overdue':
+                    reportContent = generateOverdueReport();
+                    break;
+            }
+
+            const blob = new Blob([reportContent], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Maintenance_Report_${type}_${currentDate.replace(/\//g, '-')}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            showMessage(`${type} report downloaded successfully!`, 'success');
+        }
+
+        // Generate summary report
+        function generateSummaryReport() {
+            const total = maintenanceRequests.length;
+            const pending = maintenanceRequests.filter(r => r.status === 'pending').length;
+            const inProgress = maintenanceRequests.filter(r => r.status === 'in-progress').length;
+            const completed = maintenanceRequests.filter(r => r.status === 'completed').length;
+
+            return `
+SAFEPARK.PRO MAINTENANCE SUMMARY REPORT
+========================================
+
+Generated: ${new Date().toLocaleString()}
+
+OVERVIEW
+========
+Total Requests: ${total}
+Pending: ${pending}
+In Progress: ${inProgress}
+Completed: ${completed}
+
+COMPLETION RATE: ${total > 0 ? ((completed / total) * 100).toFixed(1) : 0}%
+
+RECENT REQUESTS (Last 10)
+=========================
+${maintenanceRequests.slice(0, 10).map(r => 
+    `- ${r.title} (${r.status}) - ${new Date(r.dateSubmitted).toLocaleDateString()}`
+).join('\n')}
+
+END OF REPORT
+            `;
+        }
+
+        // Generate category report
+        function generateCategoryReport() {
+            const categories = {};
+            maintenanceRequests.forEach(r => {
+                if (!categories[r.category]) {
+                    categories[r.category] = { total: 0, pending: 0, completed: 0 };
+                }
+                categories[r.category].total++;
+                if (r.status === 'pending') categories[r.category].pending++;
+                if (r.status === 'completed') categories[r.category].completed++;
+            });
+
+            let content = `
+MAINTENANCE REQUESTS BY CATEGORY
+================================
+
+Generated: ${new Date().toLocaleString()}
+
+`;
+
+            Object.entries(categories).forEach(([category, stats]) => {
+                content += `
+${category.toUpperCase()}
+${'-'.repeat(category.length)}
+Total: ${stats.total}
+Pending: ${stats.pending}
+Completed: ${stats.completed}
+Completion Rate: ${stats.total > 0 ? ((stats.completed / stats.total) * 100).toFixed(1) : 0}%
+
+`;
+            });
+
+            return content;
+        }
+
+        // Generate location report
+        function generateLocationReport() {
+            const locations = {};
+            maintenanceRequests.forEach(r => {
+                if (!locations[r.location]) {
+                    locations[r.location] = { total: 0, pending: 0, completed: 0 };
+                }
+                locations[r.location].total++;
+                if (r.status === 'pending') locations[r.location].pending++;
+                if (r.status === 'completed') locations[r.location].completed++;
+            });
+
+            let content = `
+MAINTENANCE REQUESTS BY LOCATION
+===============================
+
+Generated: ${new Date().toLocaleString()}
+
+`;
+
+            Object.entries(locations).forEach(([location, stats]) => {
+                content += `
+${location.toUpperCase()}
+${'-'.repeat(location.length)}
+Total: ${stats.total}
+Pending: ${stats.pending}
+Completed: ${stats.completed}
+Completion Rate: ${stats.total > 0 ? ((stats.completed / stats.total) * 100).toFixed(1) : 0}%
+
+`;
+            });
+
+            return content;
+        }
+
+        // Generate overdue report
+        function generateOverdueReport() {
+            const now = new Date();
+            const overdue = maintenanceRequests.filter(r => {
+                if (r.status === 'completed') return false;
+                const submitted = new Date(r.dateSubmitted);
+                const daysOld = (now - submitted) / (1000 * 60 * 60 * 24);
+                return daysOld > 7; // Consider overdue if older than 7 days
+            });
+
+            let content = `
+OVERDUE MAINTENANCE REQUESTS
+============================
+
+Generated: ${new Date().toLocaleString()}
+
+Total Overdue Items: ${overdue.length}
+
+`;
+
+            overdue.forEach(r => {
+                const submitted = new Date(r.dateSubmitted);
+                const daysOld = Math.floor((now - submitted) / (1000 * 60 * 60 * 24));
+                content += `
+Title: ${r.title}
+Priority: ${r.priority}
+Days Overdue: ${daysOld}
+Location: ${r.location}
+Reporter: ${r.reporter}
+Description: ${r.description}
+${'='.repeat(50)}
+`;
+            });
+
+            return content;
+        }
+
+        // Show section
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+
+            document.querySelectorAll('.nav-buttons .btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            if (sectionId === 'all-requests') {
+                filterRequests();
+            }
+        }
+
+        // Show message
+        function showMessage(message, type = 'success') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = message;
+            document.body.appendChild(messageDiv);
+
+            setTimeout(() => {
+                messageDiv.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => {
+                    if (messageDiv.parentNode) {
+                        messageDiv.parentNode.removeChild(messageDiv);
+                    }
+                }, 300);
+            }, 5000);
+        }
+
+        // Export functions for global access
+        window.showSection = showSection;
+        window.updateRequestStatus = updateRequestStatus;
+        window.deleteRequest = deleteRequest;
+        window.clearFilters = clearFilters;
+        window.generateReport = generateReport;
+
+        console.log('SafePark.PRO Maintenance System initialized successfully');
+    </script>
+</body>
+</html>
