@@ -3273,6 +3273,19 @@
             // Setup login form
             document.getElementById('loginForm').addEventListener('submit', handleLogin);
         }
+        // Show Main App
+        function showMainApp() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            
+            // Initialize dashboard and user info
+            updateUserInfo();
+            loadRecentActivity();
+            initializeDashboardChecks();
+            
+            // Log successful login
+            console.log('Main app displayed successfully');
+        }
 
         // Handle Login with Access Codes and Firebase Integration
         async function handleLogin(e) {
