@@ -4316,22 +4316,14 @@ END OF REPORT
         console.log('SafePark.PRO Firebase-Integrated Dashboard initialized successfully');
 
         // Initialize Application with 7-Second Dynamic Opening
-// Simple login screen function
-function showLoginScreen() {
-    document.getElementById('loginScreen').style.display = 'flex';
-    document.getElementById('mainApp').style.display = 'none';
-    
-    // Setup login form handler
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            // For now, just go to main app
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'flex';
-        });
-    }
-}
+document.addEventListener('DOMContentLoaded', function() {
+    // Hide loading overlay immediately and show login
+    setTimeout(() => {
+        document.getElementById('loadingOverlay').style.display = 'none';
+        document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('mainApp').style.display = 'none';
+    }, 7000);
+});
 
     </script>
 </body>
