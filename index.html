@@ -3322,17 +3322,20 @@
                 loginTime: new Date().toISOString()
             };
             
-            // Save session to Firebase/localStorage
-            await dataManager.saveData('userSessions', 'current', sessionData);
-            
-            authState.isAuthenticated = true;
+           authState.isAuthenticated = true;
             authState.currentUser = sessionData.user;
             authState.sessionExpiry = sessionExpiry;
             
             showMainApp();
             showMessage(userInfo.message, 'success');
             
-            await logActivity(`${userInfo.name} logged in as ${userInfo.role} at ${userInfo.park}`);
+            // Save session to Firebase/localStorage (after login works)
+            try {
+                await dataManager.saveData('userSessions', 'current', sessionData);
+                await logActivity(`${userInfo.name} logged in as ${userInfo.role} at ${userInfo.park}`);
+            } catch (error) {
+                console.log('Failed to save session data, but login still works');
+            }
         }
 
         // Show Login Error
