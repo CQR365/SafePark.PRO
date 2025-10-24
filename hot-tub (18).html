@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- PREVENT SEARCH ENGINE INDEXING - COMPLETE PRIVACY PROTECTION -->
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex, nocache">
+    <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet, noimageindex, nocache">
+    <meta name="bingbot" content="noindex, nofollow, noarchive, nosnippet, noimageindex, nocache">
+    <meta name="yandexbot" content="noindex, nofollow, noarchive, nosnippet, noimageindex, nocache">
+    <meta name="slurp" content="noindex, nofollow, noarchive, nosnippet, noimageindex, nocache">
+    <meta name="duckduckbot" content="noindex, nofollow, noarchive, nosnippet, noimageindex, nocache">
+    
+    <title>SafePark.PRO Hot Tub Management</title>
+    
+    <!-- CRITICAL: Authentication Compatibility Fix - Must run BEFORE any other scripts -->
+    <script>
+        // Fix authentication compatibility immediately on page load
+        (function() {
+            try {
+                const authData = JSON.parse(localStorage.getItem('safePark_userSessions_current') || '{}');
+                if (authData && authData.user && authData.expires && Date.now() <= authData.expires) {
+                    // Create compatibility for maintenance system and other scripts
+                    const maintenanceCompatAuth = {
+                        user: authData.user,
+                        timestamp: Date.now()
+                    };
+                    localStorage.setItem('safePark_auth', JSON.stringify(maintenanceCompatAuth));
+                    console.log('Authentication compatibility established for:', authData.user.name);
+                } else {
+                    // Clean up expired or invalid sessions
+                    localStorage.removeItem('safePark_userSessions_current');
+                    localStorage.removeItem('safePark_auth');
+                    console.log('No valid authentication found, will redirect to login');
+                }
+            } catch (error) {
+                console.error('Authentication compatibility error:', error);
+            }
+        })();
+    </script>
+    
+    <!-- Firebase Scripts - Load in correct order -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Wait for Firebase to load, then load config -->
+    <script>
+        // Ensure Firebase loads before config
+        window.addEventListener('load', function() {
+            if (typeof firebase !== 'undefined') {
+                console.log('Firebase compat loaded, loading config...');
+                const script = document.createElement('script');
+                script.src = 'firebase-config.js';
+                document.head.appendChild(script);
+            } else {
+                console.error('Firebase compat failed to load');
+            }
+        });
+    </script>
+
+    <!-- Integration Modules -->
+    <script src="maintenance-integration.js"></script>
+    <script src="hot-tub-integration.js"></script>
+    
+    <script type="module" src="safepark-core.js"></script>
+    <script src="auth-handler.js"></script>
+
+    <style>
+        /* SafePark.PRO CSS Variables - EXACT SPECIFICATION */
+        :root {
+            --primary-orange: #CC5500;
+            --dark-orange: #B8460C;
+            --light-orange: #E6672E;
+            --black: #000000;
+            --white: #FFFFFF;
+            --smart-dark-grey: #2A2A2A;
+            --content-background: #2F2F2F;
+            --light-gray: #F8F9FA;
+            --medium-gray: #6C757D;
+            --dark-gray: #343A40;
+            --border-color: #DEE2E6;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --shadow-light: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-medium: 0 4px 20px rgba(0,0,0,0.15);
+            --shadow-heavy: 0 8px 40px rgba(0,0,0,0.2);
+            --darker-bg: #1a1a1a;
+            --tile-bg: #252525;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+            color: #E8E8E8;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Back to Dashboard Button */
+        .back-to-dashboard {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-medium);
+            margin-bottom: 20px;
+        }
+
+        .back-to-dashboard:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-heavy);
+            background: linear-gradient(145deg, var(--light-orange), var(--primary-orange));
+        }
+
+        .back-to-dashboard:active {
+            transform: translateY(0);
+        }
+
+        /* Status Indicators */
+        .status-indicator {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .status-indicator.show {
+            opacity: 1;
+        }
+
+        .status-indicator.success {
+            background: var(--success);
+            color: var(--white);
+        }
+
+        .status-indicator.error {
+            background: var(--danger);
+            color: var(--white);
+        }
+
+        .status-indicator.warning {
+            background: var(--warning);
+            color: var(--black);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(145deg, #3a3a3a, #1a1a1a);
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 
+                        inset 0 8px 20px rgba(255, 255, 255, 0.1),
+                        inset 0 -8px 20px rgba(0, 0, 0, 0.7);
+            border: 3px solid var(--primary-orange);
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.1) 0%, 
+                transparent 30%, 
+                transparent 70%, 
+                rgba(0, 0, 0, 0.2) 100%);
+            border-radius: 9px;
+            pointer-events: none;
+        }
+
+        h1 {
+            color: var(--primary-orange);
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5),
+                         0 0 10px rgba(204, 85, 0, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-line {
+            color: var(--light-orange);
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            color: #E8E8E8;
+            font-size: 1.1rem;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Navigation Buttons */
+        .nav-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+            padding: 0 20px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+            border: none;
+            padding: 15px 25px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(204, 85, 0, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover:before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, var(--light-orange), var(--primary-orange));
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(204, 85, 0, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #555, #333);
+            box-shadow: 0 4px 15px rgba(85, 85, 85, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #666, #444);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #c82333);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #e04354, var(--danger));
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #218838);
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #34ce57, var(--success));
+        }
+
+        /* Form Sections */
+        .form-section {
+            background: var(--content-background);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-medium);
+            border: 1px solid rgba(204, 85, 0, 0.2);
+        }
+
+        .form-section h2 {
+            color: var(--primary-orange);
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .form-section h3 {
+            color: var(--light-orange);
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #E8E8E8;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #444;
+            border-radius: 6px;
+            background: #1a1a1a;
+            color: var(--white);
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 3px rgba(204, 85, 0, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Hot Tub Management Section */
+        .hot-tub-management {
+            background: var(--content-background);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-medium);
+            border: 1px solid rgba(204, 85, 0, 0.2);
+        }
+
+        .hot-tub-list {
+            margin-top: 20px;
+        }
+
+        .hot-tub-item {
+            background: var(--tile-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid #444;
+            transition: all 0.3s ease;
+        }
+
+        .hot-tub-item:hover {
+            border-color: var(--primary-orange);
+            box-shadow: var(--shadow-light);
+        }
+
+        .hot-tub-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .hot-tub-title {
+            color: var(--primary-orange);
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .hot-tub-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .hot-tub-detail {
+            color: #ccc;
+        }
+
+        .hot-tub-detail strong {
+            color: var(--white);
+        }
+
+        .hot-tub-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .brand-line {
+                font-size: 1.2rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .hot-tub-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .hot-tub-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .form-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Status Indicator -->
+    <div id="statusIndicator" class="status-indicator"></div>
+
+    <div class="main-container">
+        <!-- Back to Dashboard Button -->
+        <a href="dashboard.html" class="back-to-dashboard">
+            ← Back to Dashboard
+        </a>
+
+        <!-- Header -->
+        <div class="header">
+            <h1>Hot Tub Management</h1>
+            <div class="brand-line">SafePark.PRO</div>
+            <p>Complete hot tub registration, inspection, and maintenance system</p>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="nav-buttons">
+            <button class="btn" onclick="showSection('management')">Manage Hot Tubs</button>
+            <button class="btn" onclick="showSection('add')">Add New Hot Tub</button>
+            <button class="btn" onclick="showSection('inspection')">Inspection</button>
+            <button class="btn" onclick="showSection('risk')">Risk Assessment</button>
+            <button class="btn" onclick="showSection('procedures')">Procedures</button>
+        </div>
+
+        <!-- Hot Tub Management Section -->
+        <div id="management-section" class="hot-tub-management">
+            <h2>Hot Tub Management</h2>
+            <p>View, edit, and manage existing hot tubs.</p>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="filter-location">Filter by Location</label>
+                    <select id="filter-location" onchange="filterHotTubs()">
+                        <option value="">All Locations</option>
+                        <option value="andrassy_tesco">Andrássy Tesco</option>
+                        <option value="heathcote_house">Heathcote House</option>
+                        <option value="beverley_hills">Beverley Hills</option>
+                        <option value="golden_palm">Golden Palm</option>
+                        <option value="riverside">Riverside</option>
+                        <option value="waterside">Waterside</option>
+                        <option value="woodland">Woodland</option>
+                        <option value="lakeside">Lakeside</option>
+                        <option value="coastal_view">Coastal View</option>
+                        <option value="mountain_retreat">Mountain Retreat</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button class="btn" onclick="loadHotTubs()">Refresh List</button>
+                </div>
+            </div>
+
+            <div id="hot-tub-list" class="hot-tub-list">
+                <!-- Hot tub list will be populated here -->
+            </div>
+        </div>
+
+        <!-- Add Hot Tub Section -->
+        <div id="add-section" class="form-section" style="display: none;">
+            <h2>Add New Hot Tub</h2>
+            
+            <form id="addHotTubForm">
+                <!-- Basic Information -->
+                <h3>Basic Information</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="hot_tub_name">Hot Tub Name *</label>
+                        <input type="text" id="hot_tub_name" name="hot_tub_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="location">Location *</label>
+                        <select id="location" name="location" required>
+                            <option value="">Select location...</option>
+                            <option value="andrassy_tesco">Andrássy Tesco</option>
+                            <option value="heathcote_house">Heathcote House</option>
+                            <option value="beverley_hills">Beverley Hills</option>
+                            <option value="golden_palm">Golden Palm</option>
+                            <option value="riverside">Riverside</option>
+                            <option value="waterside">Waterside</option>
+                            <option value="woodland">Woodland</option>
+                            <option value="lakeside">Lakeside</option>
+                            <option value="coastal_view">Coastal View</option>
+                            <option value="mountain_retreat">Mountain Retreat</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="hot_tub_number">Hot Tub Number</label>
+                        <input type="text" id="hot_tub_number" name="hot_tub_number">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="manufacturer">Manufacturer</label>
+                        <input type="text" id="manufacturer" name="manufacturer">
+                    </div>
+                    <div class="form-group">
+                        <label for="model">Model</label>
+                        <input type="text" id="model" name="model">
+                    </div>
+                    <div class="form-group">
+                        <label for="serial_number">Serial Number</label>
+                        <input type="text" id="serial_number" name="serial_number">
+                    </div>
+                    <div class="form-group">
+                        <label for="installation_date">Installation Date</label>
+                        <input type="date" id="installation_date" name="installation_date">
+                    </div>
+                </div>
+
+                <!-- Technical Specifications -->
+                <h3>Technical Specifications</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="capacity">Capacity (persons)</label>
+                        <input type="number" id="capacity" name="capacity" min="1" max="20">
+                    </div>
+                    <div class="form-group">
+                        <label for="length">Length (m)</label>
+                        <input type="number" id="length" name="length" step="0.1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="width">Width (m)</label>
+                        <input type="number" id="width" name="width" step="0.1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="depth">Depth (m)</label>
+                        <input type="number" id="depth" name="depth" step="0.1" min="0">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="water_capacity">Water Capacity (litres)</label>
+                        <input type="number" id="water_capacity" name="water_capacity" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="heating_system">Heating System</label>
+                        <select id="heating_system" name="heating_system">
+                            <option value="">Select heating system...</option>
+                            <option value="electric">Electric</option>
+                            <option value="gas">Gas</option>
+                            <option value="heat_pump">Heat Pump</option>
+                            <option value="solar">Solar</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filtration_system">Filtration System</label>
+                        <select id="filtration_system" name="filtration_system">
+                            <option value="">Select filtration system...</option>
+                            <option value="cartridge">Cartridge</option>
+                            <option value="sand">Sand</option>
+                            <option value="diatomaceous_earth">Diatomaceous Earth</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Equipment Details -->
+                <h3>Equipment Details</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="jet_type">Jet Type</label>
+                        <select id="jet_type" name="jet_type">
+                            <option value="">Select jet type...</option>
+                            <option value="therapy">Therapy Jets</option>
+                            <option value="massage">Massage Jets</option>
+                            <option value="directional">Directional Jets</option>
+                            <option value="mixed">Mixed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="jet_count">Number of Jets</label>
+                        <input type="number" id="jet_count" name="jet_count" min="0">
+                    </div>
+                </div>
+
+                <!-- Safety Features -->
+                <h3>Safety Features</h3>
+                <div class="form-group">
+                    <label>Safety Features (select all that apply)</label>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px;">
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="safety_features" value="emergency_stop"> Emergency Stop
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="safety_features" value="non_slip_surface"> Non-Slip Surface
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="safety_features" value="handrails"> Handrails
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="safety_features" value="safety_cover"> Safety Cover
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="safety_features" value="temperature_control"> Temperature Control
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="safety_features" value="gfci_protection"> GFCI Protection
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Operational Details -->
+                <h3>Operational Details</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="operating_hours">Operating Hours</label>
+                        <input type="text" id="operating_hours" name="operating_hours" placeholder="e.g., 6:00 AM - 10:00 PM">
+                    </div>
+                    <div class="form-group">
+                        <label for="maintenance_schedule">Maintenance Schedule</label>
+                        <select id="maintenance_schedule" name="maintenance_schedule">
+                            <option value="">Select schedule...</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="bi_weekly">Bi-weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">Additional Notes</label>
+                    <textarea id="notes" name="notes" placeholder="Any additional information about this hot tub..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="created_by">Created By *</label>
+                    <input type="text" id="created_by" name="created_by" required placeholder="Your name">
+                </div>
+
+                <button type="submit" class="btn btn-success">Add Hot Tub</button>
+            </form>
+        </div>
+
+        <!-- Inspection Section -->
+        <div id="inspection-section" class="form-section" style="display: none;">
+            <h2>Hot Tub Inspection</h2>
+            
+            <form id="hotTubForm">
+                <!-- Basic Information -->
+                <h3>Inspection Details</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="ht-site-select">Holiday Park Location *</label>
+                        <select id="ht-site-select" name="park_name" required>
+                            <option value="">Select location...</option>
+                            <option value="andrassy_tesco">Andrássy Tesco</option>
+                            <option value="heathcote_house">Heathcote House</option>
+                            <option value="beverley_hills">Beverley Hills</option>
+                            <option value="golden_palm">Golden Palm</option>
+                            <option value="riverside">Riverside</option>
+                            <option value="waterside">Waterside</option>
+                            <option value="woodland">Woodland</option>
+                            <option value="lakeside">Lakeside</option>
+                            <option value="coastal_view">Coastal View</option>
+                            <option value="mountain_retreat">Mountain Retreat</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="hottub-select">Hot Tub *</label>
+                        <select id="hottub-select" name="hottub_id" required>
+                            <option value="">Select hot tub...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="inspection-date">Inspection Date *</label>
+                        <input type="date" id="inspection-date" name="inspection_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="inspection-time">Time *</label>
+                        <input type="time" id="inspection-time" name="inspection_time" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="team-member">Team Member *</label>
+                        <select id="team-member" name="team_member" required>
+                            <option value="">Select team member...</option>
+                            <option value="manager">Manager</option>
+                            <option value="maintenance">Maintenance Staff</option>
+                            <option value="housekeeping">Housekeeping</option>
+                            <option value="grounds">Grounds Staff</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Water Quality -->
+                <h3>Water Quality Testing</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="water-temp">Water Temperature (°C)</label>
+                        <input type="number" id="water-temp" name="water_temp" step="0.1" min="30" max="45">
+                    </div>
+                    <div class="form-group">
+                        <label for="ph-level">pH Level</label>
+                        <input type="number" id="ph-level" name="ph_level" step="0.1" min="6.8" max="7.8">
+                    </div>
+                    <div class="form-group">
+                        <label for="chlorine-level">Chlorine Level (ppm)</label>
+                        <input type="number" id="chlorine-level" name="chlorine_level" step="0.1" min="0" max="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="total-alkalinity">Total Alkalinity (ppm)</label>
+                        <input type="number" id="total-alkalinity" name="total_alkalinity" min="80" max="120">
+                    </div>
+                </div>
+
+                <!-- Issues and Assessment -->
+                <h3>Issues and Assessment</h3>
+                <div class="form-group">
+                    <label for="issues-identified">Issues Identified</label>
+                    <textarea id="issues-identified" name="issues_identified" placeholder="Describe any issues found during inspection..."></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="priority-level">Priority Level</label>
+                        <select id="priority-level" name="priority_level">
+                            <option value="">Select priority...</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="overall-assessment">Overall Assessment</label>
+                        <select id="overall-assessment" name="overall_assessment">
+                            <option value="">Select assessment...</option>
+                            <option value="safe">Safe for Use</option>
+                            <option value="unsafe">Unsafe - Requires Attention</option>
+                            <option value="closed">Closed for Maintenance</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success">Submit Inspection</button>
+            </form>
+        </div>
+
+        <!-- Risk Assessment Section -->
+        <div id="risk-section" class="form-section" style="display: none;">
+            <h2>Risk Assessment</h2>
+            
+            <form id="riskAssessmentForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="risk-park-name">Holiday Park Location *</label>
+                        <select id="risk-park-name" name="park_name" required>
+                            <option value="">Select location...</option>
+                            <option value="andrassy_tesco">Andrássy Tesco</option>
+                            <option value="heathcote_house">Heathcote House</option>
+                            <option value="beverley_hills">Beverley Hills</option>
+                            <option value="golden_palm">Golden Palm</option>
+                            <option value="riverside">Riverside</option>
+                            <option value="waterside">Waterside</option>
+                            <option value="woodland">Woodland</option>
+                            <option value="lakeside">Lakeside</option>
+                            <option value="coastal_view">Coastal View</option>
+                            <option value="mountain_retreat">Mountain Retreat</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="risk-area-name">Area Name *</label>
+                        <input type="text" id="risk-area-name" name="area_name" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="risk-level">Risk Level *</label>
+                        <select id="risk-level" name="risk_level" required>
+                            <option value="">Select risk level...</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="assessor">Assessor *</label>
+                        <input type="text" id="assessor" name="assessor" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="mitigation-measures">Mitigation Measures *</label>
+                    <textarea id="mitigation-measures" name="mitigation_measures" required placeholder="Describe measures to mitigate identified risks..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-success">Save Risk Assessment</button>
+            </form>
+        </div>
+
+        <!-- Procedures Section -->
+        <div id="procedures-section" class="form-section" style="display: none;">
+            <h2>Hot Tub Procedures</h2>
+            
+            <form id="proceduresForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="proc-park-name">Holiday Park Location *</label>
+                        <select id="proc-park-name" name="park_name" required>
+                            <option value="">Select location...</option>
+                            <option value="andrassy_tesco">Andrássy Tesco</option>
+                            <option value="heathcote_house">Heathcote House</option>
+                            <option value="beverley_hills">Beverley Hills</option>
+                            <option value="golden_palm">Golden Palm</option>
+                            <option value="riverside">Riverside</option>
+                            <option value="waterside">Waterside</option>
+                            <option value="woodland">Woodland</option>
+                            <option value="lakeside">Lakeside</option>
+                            <option value="coastal_view">Coastal View</option>
+                            <option value="mountain_retreat">Mountain Retreat</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="proc-author">Author *</label>
+                        <input type="text" id="proc-author" name="author" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="emergency-procedures">Emergency Procedures *</label>
+                    <textarea id="emergency-procedures" name="emergency_procedures" required placeholder="Describe emergency procedures for hot tub incidents..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-success">Save Procedures</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let isOnline = navigator.onLine;
+
+        // Authentication check
+        function checkAuthentication() {
+            try {
+                const authData = JSON.parse(localStorage.getItem('safePark_userSessions_current') || '{}');
+                if (authData && authData.user && authData.expires && Date.now() <= authData.expires) {
+                    currentUser = authData.user;
+                    window.currentUser = currentUser;
+                    console.log('User authenticated:', currentUser.name);
+                    return true;
+                } else {
+                    console.log('No valid authentication found, redirecting to login');
+                    if (confirm('Authentication required. Redirect to login?')) {
+                        window.location.href = 'index.html';
+                    }
+                    return false;
+                }
+            } catch (error) {
+                console.error('Authentication check error:', error);
+                return false;
+            }
+        }
+
+        // Show status messages
+        function showStatus(message, isError = false) {
+            const indicator = document.getElementById('statusIndicator');
+            indicator.textContent = message;
+            indicator.className = `status-indicator show ${isError ? 'error' : 'success'}`;
+            
+            setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 5000);
+        }
+
+        // Show/hide sections
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.form-section, .hot-tub-management').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show selected section
+            const section = document.getElementById(`${sectionName}-section`);
+            if (section) {
+                section.style.display = 'block';
+            }
+
+            // Load hot tubs when showing management section
+            if (sectionName === 'management') {
+                loadHotTubs();
+            }
+        }
+
+        // Hot tub management functions
+        async function loadHotTubs() {
+            try {
+                showStatus('Loading hot tubs...', false);
+                
+                const filters = {
+                    location: document.getElementById('filter-location')?.value || ''
+                };
+
+                // Remove empty filters
+                Object.keys(filters).forEach(key => {
+                    if (!filters[key]) delete filters[key];
+                });
+
+                const hotTubs = await window.HotTubSystem.loadAllHotTubs(filters);
+                displayHotTubs(hotTubs);
+                
+                showStatus(`Loaded ${hotTubs.length} hot tubs`);
+            } catch (error) {
+                console.error('Error loading hot tubs:', error);
+                showStatus('Error loading hot tubs', true);
+            }
+        }
+
+        function displayHotTubs(hotTubs) {
+            const container = document.getElementById('hot-tub-list');
+            
+            if (hotTubs.length === 0) {
+                container.innerHTML = '<p style="color: #ccc; text-align: center;">No hot tubs found</p>';
+                return;
+            }
+
+            container.innerHTML = hotTubs.map(hotTub => `
+                <div class="hot-tub-item">
+                    <div class="hot-tub-header">
+                        <div class="hot-tub-title">${hotTub.name || 'Unnamed Hot Tub'}</div>
+                        <div class="hot-tub-status ${hotTub.status === 'active' ? 'status-active' : 'status-inactive'}">
+                            ${hotTub.status || 'active'}
+                        </div>
+                    </div>
+                    <div class="hot-tub-details">
+                        <div class="hot-tub-detail"><strong>Location:</strong> ${hotTub.location || 'Not specified'}</div>
+                        <div class="hot-tub-detail"><strong>Number:</strong> ${hotTub.hotTubNumber || 'Not specified'}</div>
+                        <div class="hot-tub-detail"><strong>Manufacturer:</strong> ${hotTub.manufacturer || 'Not specified'}</div>
+                        <div class="hot-tub-detail"><strong>Model:</strong> ${hotTub.model || 'Not specified'}</div>
+                        <div class="hot-tub-detail"><strong>Capacity:</strong> ${hotTub.capacity || 'Not specified'} persons</div>
+                        <div class="hot-tub-detail"><strong>Created:</strong> ${hotTub.createdDate ? new Date(hotTub.createdDate).toLocaleDateString() : 'Unknown'}</div>
+                    </div>
+                    <div class="hot-tub-actions">
+                        <button class="btn btn-secondary" onclick="editHotTub('${hotTub.id}')">Edit</button>
+                        <button class="btn btn-danger" onclick="removeHotTub('${hotTub.id}')">Remove</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterHotTubs() {
+            loadHotTubs();
+        }
+
+        async function editHotTub(hotTubId) {
+            try {
+                const hotTub = await window.HotTubSystem.loadHotTub(hotTubId);
+                if (!hotTub) {
+                    showStatus('Hot tub not found', true);
+                    return;
+                }
+
+                // Populate form with hot tub data
+                Object.keys(hotTub).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        if (element.type === 'checkbox') {
+                            element.checked = hotTub[key];
+                        } else {
+                            element.value = hotTub[key] || '';
+                        }
+                    }
+                });
+
+                // Handle nested properties
+                if (hotTub.dimensions) {
+                    if (document.getElementById('length')) document.getElementById('length').value = hotTub.dimensions.length || '';
+                    if (document.getElementById('width')) document.getElementById('width').value = hotTub.dimensions.width || '';
+                    if (document.getElementById('depth')) document.getElementById('depth').value = hotTub.dimensions.depth || '';
+                }
+
+                // Handle safety features checkboxes
+                if (hotTub.safetyFeatures && Array.isArray(hotTub.safetyFeatures)) {
+                    document.querySelectorAll('input[name="safety_features"]').forEach(checkbox => {
+                        checkbox.checked = hotTub.safetyFeatures.includes(checkbox.value);
+                    });
+                }
+
+                // Show add section for editing
+                showSection('add');
+                
+                // Store hot tub ID for update
+                document.getElementById('addHotTubForm').dataset.editingId = hotTubId;
+                
+                showStatus('Hot tub loaded for editing');
+            } catch (error) {
+                console.error('Error loading hot tub for edit:', error);
+                showStatus('Error loading hot tub', true);
+            }
+        }
+
+        async function removeHotTub(hotTubId) {
+            if (!confirm('Are you sure you want to remove this hot tub? This action cannot be undone.')) {
+                return;
+            }
+
+            try {
+                await window.HotTubSystem.removeHotTub(hotTubId);
+                showStatus('Hot tub removed successfully');
+                loadHotTubs(); // Refresh the list
+            } catch (error) {
+                console.error('Error removing hot tub:', error);
+                showStatus('Error removing hot tub', true);
+            }
+        }
+
+        // Form submission handlers
+        function setupFormSubmission() {
+            // Add Hot Tub Form
+            const addForm = document.getElementById('addHotTubForm');
+            if (addForm) {
+                addForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    if (!currentUser) {
+                        showStatus('Authentication required', true);
+                        return;
+                    }
+                    
+                    try {
+                        showStatus('Saving hot tub...', false);
+                        
+                        // Collect form data
+                        const formData = new FormData(this);
+                        
+                        // Check if this is an edit or new hot tub
+                        const editingId = this.dataset.editingId;
+                        
+                        if (editingId) {
+                            // Update existing hot tub
+                            const updateData = {};
+                            for (let [key, value] of formData.entries()) {
+                                updateData[key] = value;
+                            }
+                            
+                            await window.HotTubSystem.updateHotTub(editingId, updateData);
+                            showStatus('Hot tub updated successfully');
+                            delete this.dataset.editingId;
+                        } else {
+                            // Create new hot tub
+                            await window.HotTubSystem.createHotTub(formData);
+                            showStatus('Hot tub added successfully');
+                        }
+                        
+                        // Reset form
+                        this.reset();
+                        
+                        // Go back to management section
+                        showSection('management');
+                        
+                    } catch (error) {
+                        console.error('Error saving hot tub:', error);
+                        showStatus('Error saving hot tub: ' + error.message, true);
+                    }
+                });
+            }
+
+            // Risk Assessment Form
+            const riskForm = document.getElementById('riskAssessmentForm');
+            if (riskForm) {
+                riskForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    showStatus('Risk assessment saved successfully!');
+                    // Save to hot-tub integration system
+                    if (window.HotTubSystem && window.HotTubSystem.createRiskAssessment) {
+                        const formData = new FormData(this);
+                        window.HotTubSystem.createRiskAssessment(formData);
+                    }
+                });
+            }
+            
+            // Procedures Form
+            const procForm = document.getElementById('proceduresForm');
+            if (procForm) {
+                procForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    showStatus('Procedures saved successfully!');
+                    // Save to hot-tub integration system
+                    if (window.HotTubSystem && window.HotTubSystem.createProcedures) {
+                        const formData = new FormData(this);
+                        window.HotTubSystem.createProcedures(formData);
+                    }
+                });
+            }
+            
+            // Main Hot Tub Inspection Form
+            const hotTubForm = document.getElementById('hotTubForm');
+            if (hotTubForm) {
+                hotTubForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    if (!window.currentUser) {
+                        showStatus('Authentication required', true);
+                        return;
+                    }
+                    
+                    showStatus('Submitting hot tub inspection...');
+                    
+                    try {
+                        const formData = new FormData(this);
+                        const site = document.getElementById('ht-site-select').value;
+                        const hotTubId = document.getElementById('hottub-select').value;
+                        const issues = document.querySelector('textarea[name="issues_identified"]').value;
+                        const priority = document.querySelector('select[name="priority_level"]').value;
+                        const teamMember = document.querySelector('select[name="team_member"]').value;
+
+                        // Validation
+                        if (!site) {
+                            throw new Error('Please select a holiday park location');
+                        }
+                        if (!teamMember) {
+                            throw new Error('Please select a team member');
+                        }
+
+                        // Firebase integration for maintenance requests
+                        if (window.MaintenanceSystem && window.MaintenanceSystem.createMaintenanceRequest && issues && issues.trim()) {
+                            await window.MaintenanceSystem.createMaintenanceRequest({
+                                title: `Hot Tub Management: ${hotTubId || 'Multiple Units'} - ${issues.substring(0, 50)}...`,
+                                description: `Hot tub maintenance issue at ${site}: ${issues.trim()}. Priority: ${priority || 'medium'}.`,
+                                priority: priority || 'medium',
+                                category: window.MaintenanceSystem.config.categories.HOT_TUB_MANAGEMENT,
+                                location: site,
+                                dueDate: null,
+                                authenticated_user: window.currentUser ? {
+                                    name: window.currentUser.name,
+                                    role: window.currentUser.role,
+                                    park: window.currentUser.park,
+                                    accessCode: window.currentUser.accessCode ? window.currentUser.accessCode.substring(0, 3) + '***' : 'unknown'
+                                } : null,
+                                submission_source: 'authenticated_user',
+                                submission_timestamp: new Date().toISOString()
+                            });
+                        }
+
+                        // Save to hot-tub integration system
+                        if (window.HotTubSystem && window.HotTubSystem.createInspection) {
+                            await window.HotTubSystem.createInspection(formData);
+                        }
+
+                        showStatus('Hot tub inspection submitted successfully!');
+                        this.reset();
+                        setInitialDates();
+                        
+                    } catch (error) {
+                        console.error('Error submitting hot tub inspection:', error);
+                        showStatus(`Error: ${error.message}`, true);
+                    }
+                });
+            }
+        }
+
+        // Initialize dates
+        function setInitialDates() {
+            const today = new Date().toISOString().split('T')[0];
+            const now = new Date().toTimeString().slice(0, 5);
+            
+            const dateInput = document.getElementById('inspection-date');
+            const timeInput = document.getElementById('inspection-time');
+            
+            if (dateInput) dateInput.value = today;
+            if (timeInput) timeInput.value = now;
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication
+            if (!checkAuthentication()) {
+                return;
+            }
+            
+            // Set initial dates
+            setInitialDates();
+            
+            // Setup form submissions
+            setupFormSubmission();
+            
+            // Show management section by default
+            showSection('management');
+            
+            console.log('Hot Tub Management System initialized');
+        });
+
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('sw.js')
+                    .then(function(registration) {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(function(registrationError) {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
