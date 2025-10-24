@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holiday Park Risk Assessment & Safety Documentation Suite</title>
+    
+    <!-- Firebase Scripts - Using existing configuration -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <style>
+        :root {
+            --primary-orange: #CC5500;
+            --dark-orange: #B8460C;
+            --light-orange: #E6672E;
+            --black: #000000;
+            --white: #FFFFFF;
+            --smart-dark-grey: #2A2A2A;
+            --content-background: #2F2F2F;
+            --light-gray: #F8F9FA;
+            --medium-gray: #6C757D;
+            --dark-gray: #343A40;
+            --border-color: #DEE2E6;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --shadow-light: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-medium: 0 4px 20px rgba(0,0,0,0.15);
+            --shadow-heavy: 0 8px 40px rgba(0,0,0,0.2);
+            --darker-bg: #1a1a1a;
+            --tile-bg: #252525;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+            color: #E8E8E8;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: none; /* Hidden until authentication verified */
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--black) 0%, var(--smart-dark-grey) 100%);
+            color: #E8E8E8;
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow-medium);
+            border-bottom: 2px solid var(--primary-orange);
+            position: relative;
+        }
+        
+        .mobile-menu-toggle {
+            display: none;
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary-orange);
+            color: var(--white);
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            z-index: 1001;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: var(--white);
+            font-weight: 600;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            color: var(--light-orange);
+        }
+        
+        .container {
+            display: flex;
+            min-height: calc(100vh - 120px);
+        }
+        
+        .sidebar {
+            width: 350px;
+            background: linear-gradient(180deg, var(--tile-bg) 0%, var(--content-background) 100%);
+            box-shadow: var(--shadow-medium);
+            overflow-y: auto;
+            position: fixed;
+            height: calc(100vh - 120px);
+            border-right: 1px solid #404040;
+        }
+        
+        .sidebar-header {
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
+            color: var(--white);
+            padding: 20px;
+            font-weight: 600;
+            font-size: 1.2rem;
+            text-align: center;
+            box-shadow: var(--shadow-light);
+        }
+        
+        .nav-section {
+            margin-bottom: 2px;
+        }
+        
+        .nav-section-title {
+            background: linear-gradient(135deg, var(--tile-bg) 0%, var(--content-background) 100%);
+            padding: 15px 20px;
+            font-weight: 600;
+            color: #E8E8E8;
+            border-left: 4px solid var(--primary-orange);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #404040;
+        }
+        
+        .nav-section-title:hover {
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--light-orange) 100%);
+            color: var(--white);
+        }
+        
+        .nav-section-title.active {
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
+            color: var(--white);
+            border-left: 4px solid var(--light-orange);
+        }
+        
+        .nav-subsections {
+            display: none;
+            background: var(--darker-bg);
+        }
+        
+        .nav-subsections.active {
+            display: block;
+        }
+        
+        .nav-item {
+            padding: 12px 40px;
+            cursor: pointer;
+            border-bottom: 1px solid #404040;
+            transition: all 0.3s ease;
+            position: relative;
+            color: #C8C8C8;
+            background: var(--darker-bg);
+        }
+        
+        .nav-item:hover {
+            background: linear-gradient(90deg, var(--tile-bg) 0%, var(--content-background) 100%);
+            padding-left: 50px;
+            color: #E8E8E8;
+        }
+        
+        .nav-item.active {
+            background: linear-gradient(90deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
+            color: var(--white);
+        }
+        
+        .acknowledgment-status {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--danger);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--white);
+            font-weight: bold;
+        }
+        
+        .acknowledgment-status.acknowledged {
+            background: var(--success);
+        }
+        
+        .content {
+            margin-left: 350px;
+            padding: 30px;
+            background: var(--content-background);
+            min-height: calc(100vh - 120px);
+            width: calc(100vw - 350px);
+        }
+        
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section-header {
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
+            color: var(--white);
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-medium);
+        }
+        
+        .section-header h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .section-content {
+            line-height: 1.6;
+            font-size: 1.05rem;
+            color: #E8E8E8;
+        }
+        
+        .section-content h3 {
+            color: var(--white);
+            margin: 25px 0 15px 0;
+            font-size: 1.5rem;
+            border-bottom: 2px solid var(--primary-orange);
+            padding-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .section-content h4 {
+            color: var(--light-orange);
+            margin: 20px 0 10px 0;
+            font-size: 1.3rem;
+            font-weight: 500;
+        }
+        
+        .section-content ul, .section-content ol {
+            margin: 15px 0 15px 30px;
+        }
+        
+        .section-content li {
+            margin-bottom: 8px;
+            color: #D8D8D8;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: var(--shadow-medium);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--tile-bg);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #404040;
+        }
+        
+        th {
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
+            color: var(--white);
+            font-weight: 600;
+        }
+        
+        td {
+            color: #E8E8E8;
+        }
+        
+        tr:nth-child(even) td {
+            background: var(--content-background);
+        }
+        
+        .risk-level {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .risk-high {
+            background: var(--danger);
+            color: var(--white);
+        }
+        
+        .risk-medium {
+            background: var(--warning);
+            color: var(--black);
+        }
+        
+        .risk-low {
+            background: var(--success);
+            color: var(--white);
+        }
+        
+        .acknowledgment-panel {
+            background: linear-gradient(135deg, var(--tile-bg) 0%, var(--content-background) 100%);
+            border: 2px solid var(--primary-orange);
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 30px;
+            text-align: center;
+            box-shadow: var(--shadow-medium);
+        }
+        
+        .acknowledgment-panel h3 {
+            color: var(--white);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .acknowledgment-checkbox {
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .acknowledgment-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--primary-orange);
+        }
+        
+        .acknowledgment-checkbox label {
+            font-weight: 500;
+            cursor: pointer;
+            color: #E8E8E8;
+        }
+        
+        .acknowledge-btn {
+            background: linear-gradient(135deg, var(--success) 0%, #1e7e34 100%);
+            color: var(--white);
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .acknowledge-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+        }
+        
+        .acknowledge-btn:disabled {
+            background: var(--medium-gray);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .progress-bar {
+            background: var(--darker-bg);
+            height: 10px;
+            border-radius: 5px;
+            margin: 20px;
+            overflow: hidden;
+            border: 1px solid #404040;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, var(--primary-orange), var(--light-orange));
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .footer {
+            background: linear-gradient(135deg, var(--black) 0%, var(--smart-dark-grey) 100%);
+            color: #E8E8E8;
+            text-align: center;
+            padding: 20px;
+            margin-top: auto;
+            border-top: 2px solid var(--primary-orange);
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, var(--tile-bg) 0%, var(--content-background) 100%);
+            border: 1px solid var(--warning);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: var(--shadow-light);
+        }
+        
+        .warning-box {
+            background: linear-gradient(135deg, #4a1e1e 0%, #3a1818 100%);
+            border: 1px solid var(--danger);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: var(--shadow-light);
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, var(--tile-bg) 0%, var(--content-background) 100%);
+            border: 1px solid var(--primary-orange);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: var(--shadow-light);
+        }
+        
+        .phase-container {
+            background: linear-gradient(135deg, var(--tile-bg) 0%, var(--content-background) 100%);
+            border-left: 4px solid var(--primary-orange);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+            box-shadow: var(--shadow-light);
+        }
+        
+        .legislation-item {
+            background: linear-gradient(135deg, var(--tile-bg) 0%, var(--content-background) 100%);
+            border: 1px solid #404040;
+            border-radius: 5px;
+            padding: 10px 15px;
+            margin: 5px 0;
+            box-shadow: var(--shadow-light);
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block !important;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 1000;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .content {
+                margin-left: 0;
+                width: 100vw;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .library-trigger {
+                bottom: 20px;
+                right: 20px;
+                top: auto;
+                transform: none;
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                writing-mode: initial;
+                text-orientation: initial;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+    
+    <!-- Integration with SafePark.PRO Firebase Configuration -->
+    <script>
+        // Check if Firebase is already initialized from parent system
+        let db, auth, currentUser = null, userCompletionData = {};
+        
+        // Function to initialize training system with existing Firebase
+        function initializeWithExistingFirebase() {
+            if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
+                // Firebase already initialized from main SafePark.PRO system
+                db = firebase.firestore();
+                auth = firebase.auth();
+                console.log('Using existing Firebase configuration from SafePark.PRO');
+            } else {
+                // Fallback: Initialize Firebase if not already done
+                const firebaseConfig = {
+                    apiKey: "your-api-key",
+                    authDomain: "your-project.firebaseapp.com",
+                    projectId: "your-project-id",
+                    storageBucket: "your-project.appspot.com",
+                    messagingSenderId: "123456789",
+                    appId: "your-app-id"
+                };
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                auth = firebase.auth();
+                console.log('Initialized Firebase for training system');
+            }
+        }
+        
+        // Check for existing user session from SafePark.PRO
+        function checkExistingAuth() {
+            // Check for stored user session from main system
+            const storedUser = localStorage.getItem('safePark_currentUser');
+            const storedSession = localStorage.getItem('safePark_userSession');
+            
+            if (storedUser && storedSession) {
+                try {
+                    currentUser = JSON.parse(storedUser);
+                    const sessionData = JSON.parse(storedSession);
+                    
+                    // Verify session is still valid
+                    if (sessionData.expiry && new Date(sessionData.expiry) > new Date()) {
+                        console.log('Found existing SafePark.PRO user session:', currentUser.employeeId || currentUser.id);
+                        loadUserTrainingData();
+                        return true;
+                    }
+                } catch (error) {
+                    console.error('Error parsing stored user data:', error);
+                }
+            }
+            
+            // Check Firebase auth state
+            if (auth.currentUser) {
+                currentUser = {
+                    id: auth.currentUser.uid,
+                    name: auth.currentUser.displayName || auth.currentUser.email,
+                    email: auth.currentUser.email
+                };
+                console.log('Found existing Firebase user:', currentUser.id);
+                loadUserTrainingData();
+                return true;
+            }
+            
+            return false;
+        }
+        
+        // Load user's training completion data
+        async function loadUserTrainingData() {
+            if (!currentUser) return;
+            
+            try {
+                const userId = currentUser.employeeId || currentUser.id || currentUser.email;
+                userCompletionData = await dataManager.getUserAcknowledgments(userId);
+                
+                // Initialize the training application
+                initializeTrainingApplication();
+                
+            } catch (error) {
+                console.error('Error loading user training data:', error);
+                showAccessDeniedMessage();
+            }
+        }
+        
+        // Show access denied message if no valid session
+        function showAccessDeniedMessage() {
+            document.body.innerHTML = `
+                <div style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    height: 100vh;
+                    background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+                    color: #E8E8E8;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                ">
+                    <div style="
+                        background: linear-gradient(135deg, var(--tile-bg) 0%, var(--content-background) 100%);
+                        padding: 40px;
+                        border-radius: 15px;
+                        box-shadow: var(--shadow-heavy);
+                        border: 2px solid var(--danger);
+                        text-align: center;
+                        max-width: 500px;
+                    ">
+                        <h2 style="color: var(--danger); margin-bottom: 20px;">Access Denied</h2>
+                        <p style="margin-bottom: 20px;">You must be logged into the SafePark.PRO system to access the training documentation.</p>
+                        <button onclick="window.location.href='index.html'" style="
+                            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
+                            color: var(--white);
+                            border: none;
+                            padding: 15px 30px;
+                            border-radius: 8px;
+                            font-size: 1.1rem;
+                            font-weight: 600;
+                            cursor: pointer;
+                        ">
+                            Return to SafePark.PRO Login
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Firebase Data Manager for Training System
+        class FirebaseDataManager {
+            async saveUserAcknowledgment(userId, sectionId, userName, timestamp) {
+                try {
+                    await db.collection('trainingAcknowledgments').doc(`${userId}_${sectionId}`).set({
+                        userId: userId,
+                        sectionId: sectionId,
+                        userName: userName,
+                        timestamp: timestamp,
+                        completed: true,
+                        systemSource: 'holiday-park-training'
+                    });
+                    
+                    // Also log to main system activity if available
+                    if (window.logActivity && typeof window.logActivity === 'function') {
+                        window.logActivity(`Training section acknowledged: ${sectionId}`, 'training');
+                    }
+                    
+                    console.log('Training acknowledgment saved to Firebase');
+                } catch (error) {
+                    console.error('Error saving training acknowledgment:', error);
+                    throw error;
+                }
+            }
+            
+            async getUserAcknowledgments(userId) {
+                try {
+                    const snapshot = await db.collection('trainingAcknowledgments')
+                        .where('userId', '==', userId)
+                        .get();
+                    
+                    const acknowledgments = {};
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        acknowledgments[data.sectionId] = data;
+                    });
+                    
+                    return acknowledgments;
+                } catch (error) {
+                    console.error('Error getting user training acknowledgments:', error);
+                    return {};
+                }
+            }
+            
+            async getAllCompletionStats() {
+                try {
+                    const snapshot = await db.collection('trainingAcknowledgments').get();
+                    const userStats = {};
+                    
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        if (!userStats[data.userId]) {
+                            userStats[data.userId] = {
+                                userName: data.userName,
+                                completedSections: []
+                            };
+                        }
+                        userStats[data.userId].completedSections.push(data.sectionId);
+                    });
+                    
+                    return userStats;
+                } catch (error) {
+                    console.error('Error getting completion stats:', error);
+                    return {};
+                }
+            }
+        }
+        
+        const dataManager = new FirebaseDataManager();
+    </script>
+</head>
+<body>
+    <div class="header">
+        <div class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</div>
+        <h1>Holiday Park Risk Assessment & Safety Documentation Suite</h1>
+        <p>Prepared by: Omnibosh CQR 365 | Document Version: 2.1 | January 2025</p>
+    </div>
+    
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+    
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                Documentation Navigator
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title" onclick="toggleSection('overview')">
+                    Overview & Compliance
+                </div>
+                <div class="nav-subsections" id="overview-subsections">
+                    <div class="nav-item" onclick="showContent('legislative-framework')">
+                        Legislative Framework
+                        <div class="acknowledgment-status" id="ack-legislative-framework">✗</div>
+                    </div>
+                    <div class="nav-item" onclick="showContent('table-of-contents')">
+                        Table of Contents
+                        <div class="acknowledgment-status" id="ack-table-of-contents">✗</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title" onclick="toggleSection('training')">
+                    Training & Induction
+                </div>
+                <div class="nav-subsections" id="training-subsections">
+                    <div class="nav-item" onclick="showContent('team-induction')">
+                        Team Induction Training Plan
+                        <div class="acknowledgment-status" id="ack-team-induction">✗</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title" onclick="toggleSection('risk-assessments')">
+                    Risk Assessments
+                </div>
+                <div class="nav-subsections" id="risk-assessments-subsections">
+                    <div class="nav-item" onclick="showContent('personal-safety')">
+                        Personal Safety Risk Assessment
+                        <div class="acknowledgment-status" id="ack-personal-safety">✗</div>
+                    </div>
+                    <div class="nav-item" onclick="showContent('hot-tub')">
+                        Hot Tub Risk Assessment
+                        <div class="acknowledgment-status" id="ack-hot-tub">✗</div>
+                    </div>
+                    <div class="nav-item" onclick="showContent('water-supply')">
+                        Private Water Supply Risk Assessment
+                        <div class="acknowledgment-status" id="ack-water-supply">✗</div>
+                    </div>
+                    <div class="nav-item" onclick="showContent('hand-tools')">
+                        Hand Tools Risk Assessment
+                        <div class="acknowledgment-status" id="ack-hand-tools">✗</div>
+                    </div>
+                    <div class="nav-item" onclick="showContent('power-tools')">
+                        Power Tools Risk Assessment
+                        <div class="acknowledgment-status" id="ack-power-tools">✗</div>
+                    </div>
+                    <div class="nav-item" onclick="showContent('ride-on-mowers')">
+                        Ride-on Mowers Risk Assessment
+                        <div class="acknowledgment-status" id="ack-ride-on-mowers">✗</div>
+                    </div>
+                    <div class="nav-item" onclick="showContent('grass-strimmers')">
+                        Grass Strimmers Risk Assessment
+                        <div class="acknowledgment-status" id="ack-grass-strimmers">✗</div>
+                    </div>
+                    <div class="nav-item" onclick="showContent('waste-management')">
+                        Human Waste Management Risk Assessment
+                        <div class="acknowledgment-status" id="ack-waste-management">✗</div>
+                    </div>
+                    <div class="nav-item" onclick="showContent('legionella')">
+                        Legionella Risk Assessment
+                        <div class="acknowledgment-status" id="ack-legionella">✗</div>
+                    </div>
+                    <div class="nav-item" onclick="showContent('fire-safety')">
+                        Fire Safety Risk Assessment
+                        <div class="acknowledgment-status" id="ack-fire-safety">✗</div>
+                    </div>
+                    <div class="nav-item" onclick="showContent('electrical-safety')">
+                        Electrical Safety Risk Assessment
+                        <div class="acknowledgment-status" id="ack-electrical-safety">✗</div>
+                    </div>
+                    <div class="nav-item" onclick="showContent('chemical-storage')">
+                        Chemical Storage & Handling Risk Assessment
+                        <div class="acknowledgment-status" id="ack-chemical-storage">✗</div>
+                    </div>
+                    <div class="nav-item" onclick="showContent('manual-handling')">
+                        Manual Handling Risk Assessment
+                        <div class="acknowledgment-status" id="ack-manual-handling">✗</div>
+                    </div>
+                    <div class="nav-item" onclick="showContent('rental-units')">
+                        Rental Units Risk Assessment
+                        <div class="acknowledgment-status" id="ack-rental-units">✗</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title" onclick="toggleSection('procedures')">
+                    Safe Work Procedures
+                </div>
+                <div class="nav-subsections" id="procedures-subsections">
+                    <div class="nav-item" onclick="showContent('safe-work-procedures')">
+                        Safe Work Procedures
+                        <div class="acknowledgment-status" id="ack-safe-work-procedures">✗</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title" onclick="toggleSection('support')">
+                    Professional Support
+                </div>
+                <div class="nav-subsections" id="support-subsections">
+                    <div class="nav-item" onclick="showContent('professional-support')">
+                        Professional Support & Industry Liaison
+                        <div class="acknowledgment-status" id="ack-professional-support">✗</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- Welcome Screen -->
+            <div class="content-section active" id="welcome">
+                <div class="section-header">
+                    <h2>Welcome to the Holiday Park Safety Documentation Suite</h2>
+                    <p>Comprehensive Risk Assessment & Training System</p>
+                </div>
+                
+                <div class="info-box">
+                    <h3>Document Overview</h3>
+                    <p>This interactive documentation suite provides comprehensive safety and compliance information for Holiday Park operations. Each section contains detailed risk assessments, procedures, and training materials that must be acknowledged by all staff members.</p>
+                </div>
+                
+                <div class="highlight-box">
+                    <h3>How to Use This System</h3>
+                    <ol>
+                        <li><strong>Navigate:</strong> Use the sidebar to select different documentation sections</li>
+                        <li><strong>Review:</strong> Read through each section thoroughly</li>
+                        <li><strong>Acknowledge:</strong> Complete the acknowledgment for each section</li>
+                        <li><strong>Track Progress:</strong> Monitor your completion status with the progress bar</li>
+                    </ol>
+                </div>
+                
+                <div class="warning-box">
+                    <h3>Important Notice</h3>
+                    <p><strong>All staff members must complete acknowledgment of ALL sections before beginning work.</strong> This documentation ensures compliance with Health and Safety at Work etc. Act 1974 and related regulations.</p>
+                </div>
+                
+                <div class="phase-container">
+                    <h3>Your Progress</h3>
+                    <p>Complete all sections to achieve 100% compliance. Your progress is automatically saved and tracked.</p>
+                    <div id="progress-summary">
+                        <p><strong>Sections Completed:</strong> <span id="completed-count">0</span> / <span id="total-count">16</span></p>
+                        <p><strong>Completion Percentage:</strong> <span id="completion-percentage">0%</span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Legislative Framework Section -->
+            <div class="content-section" id="legislative-framework">
+                <div class="section-header">
+                    <h2>Legislative Framework & Compliance</h2>
+                    <p>Legal requirements and regulatory compliance framework</p>
+                </div>
+                
+                <div class="section-content">
+                    <h3>Legal Compliance Overview</h3>
+                    <p>This documentation suite ensures compliance with all relevant UK health and safety legislation. Understanding these legal requirements is fundamental to safe operations and legal compliance.</p>
+                    
+                    <h3>Primary Legislation</h3>
+                    <div class="legislation-item">
+                        <strong>Health and Safety at Work etc. Act 1974</strong>
+                        <p>The primary piece of legislation covering occupational health and safety in the United Kingdom.</p>
+                    </div>
+                    
+                    <div class="legislation-item">
+                        <strong>Management of Health and Safety at Work Regulations 1999</strong>
+                        <p>Sets out requirements for risk assessment, health surveillance, and safety management systems.</p>
+                    </div>
+                    
+                    <div class="legislation-item">
+                        <strong>Control of Substances Hazardous to Health Regulations 2002 (COSHH)</strong>
+                        <p>Requires employers to control exposure to hazardous substances to prevent ill health.</p>
+                    </div>
+                    
+                    <h3>Equipment and Workplace Safety</h3>
+                    <div class="legislation-item">
+                        <strong>Personal Protective Equipment at Work Regulations 1992</strong>
+                        <p>Sets requirements for provision, use, and maintenance of personal protective equipment.</p>
+                    </div>
+                    
+                    <div class="legislation-item">
+                        <strong>Manual Handling Operations Regulations 1992</strong>
+                        <p>Requires assessment and control of manual handling risks to prevent musculoskeletal injuries.</p>
+                    </div>
+                    
+                    <div class="legislation-item">
+                        <strong>Provision and Use of Work Equipment Regulations 1998 (PUWER)</strong>
+                        <p>Ensures work equipment is suitable, properly maintained, and used safely.</p>
+                    </div>
+                    
+                    <div class="legislation-item">
+                        <strong>Lifting Operations and Lifting Equipment Regulations 1998 (LOLER)</strong>
+                        <p>Requires thorough examination and safe use of lifting equipment.</p>
+                    </div>
+                    
+                    <h3>Water Safety and Quality</h3>
+                    <div class="legislation-item">
+                        <strong>Water Supply (Water Quality) Regulations 2016</strong>
+                        <p>Sets standards for water quality and safety in supply systems.</p>
+                    </div>
+                    
+                    <div class="legislation-item">
+                        <strong>Private Water Supplies Regulations 2016</strong>
+                        <p>Regulates private water supplies including risk assessment requirements.</p>
+                    </div>
+                    
+                    <div class="legislation-item">
+                        <strong>Legionnaires' Disease - The Control of Legionella Bacteria in Water Systems L8</strong>
+                        <p>HSE Approved Code of Practice for preventing legionella in water systems.</p>
+                    </div>
+                    
+                    <h3>Fire and Electrical Safety</h3>
+                    <div class="legislation-item">
+                        <strong>Regulatory Reform (Fire Safety) Order 2005</strong>
+                        <p>Places duties on responsible persons to carry out fire risk assessments.</p>
+                    </div>
+                    
+                    <div class="legislation-item">
+                        <strong>Electricity at Work Regulations 1989</strong>
+                        <p>Requires electrical systems to be maintained to prevent danger.</p>
+                    </div>
+                    
+                    <h3>Construction and Environmental</h3>
+                    <div class="legislation-item">
+                        <strong>Construction (Design and Management) Regulations 2015</strong>
+                        <p>Applies to construction work including maintenance and repair activities.</p>
+                    </div>
+                    
+                    <div class="legislation-item">
+                        <strong>Environmental Protection Act 1990</strong>
+                        <p>Controls environmental pollution and waste management.</p>
+                    </div>
+                    
+                    <div class="legislation-item">
+                        <strong>Reporting of Injuries, Diseases and Dangerous Occurrences Regulations 2013 (RIDDOR)</strong>
+                        <p>Requires reporting of serious workplace accidents, occupational diseases and dangerous occurrences.</p>
+                    </div>
+                </div>
+                
+                <div class="acknowledgment-panel">
+                    <h3>Section Acknowledgment</h3>
+                    <p>I confirm that I have read and understood the Legislative Framework & Compliance requirements.</p>
+                    
+                    <div style="margin: 20px 0;">
+                        <label for="user-name-legislative-framework" style="display: block; margin-bottom: 8px; font-weight: 500; color: #E8E8E8;">
+                            Your Full Name:
+                        </label>
+                        <input type="text" id="user-name-legislative-framework" placeholder="Enter your full name" required style="
+                            width: 100%;
+                            padding: 12px;
+                            border: 2px solid #404040;
+                            border-radius: 5px;
+                            background: var(--darker-bg);
+                            color: #E8E8E8;
+                            font-size: 1rem;
+                        ">
+                    </div>
+                    
+                    <div class="acknowledgment-checkbox">
+                        <input type="checkbox" id="ack-checkbox-legislative-framework" onchange="updateAcknowledgment('legislative-framework')">
+                        <label for="ack-checkbox-legislative-framework">I acknowledge reading this section</label>
+                    </div>
+                    <button class="acknowledge-btn" id="ack-btn-legislative-framework" onclick="submitAcknowledgment('legislative-framework')" disabled>
+                        Complete Acknowledgment
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Additional sections will be dynamically loaded here -->
+            <!-- Due to length constraints, I'll create a JavaScript system to load content -->
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>&copy; 2025 Omnibosh CQR 365 - Safety & Compliance Solutions</p>
+    </div>
+    
+    </div> <!-- Closing main app div -->
+    
+    <script src="content-manager.js"></script>
+    <script src="library-integration.js"></script>
+    <script>
+        // Initialize Firebase integration and check authentication
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeWithExistingFirebase();
+            
+            // Check if user is already authenticated
+            if (!checkExistingAuth()) {
+                showAccessDeniedMessage();
+                return;
+            }
+            
+            // If authenticated, show training system content
+            document.body.style.display = 'block';
+        });
+        
+        function initializeTrainingApplication() {
+            // Load saved acknowledgments for current user
+            Object.keys(userCompletionData).forEach(sectionId => {
+                const statusElement = document.getElementById(`ack-${sectionId}`);
+                if (statusElement) {
+                    statusElement.textContent = '✓';
+                    statusElement.classList.add('acknowledged');
+                }
+                
+                // Pre-fill the name field if it exists
+                const nameField = document.getElementById(`user-name-${sectionId}`);
+                if (nameField && userCompletionData[sectionId].userName) {
+                    nameField.value = userCompletionData[sectionId].userName;
+                }
+            });
+            
+            updateProgress();
+            updateCompletionStats();
+        }
+        
+        async function updateCompletionStats() {
+            try {
+                const allStats = await dataManager.getAllCompletionStats();
+                const totalUsers = Object.keys(allStats).length;
+                const completedUsers = Object.values(allStats).filter(user => 
+                    user.completedSections.length >= 16
+                ).length;
+                
+                if (window.library && window.library.updateStats) {
+                    window.library.updateStats(completedUsers, totalUsers);
+                }
+            } catch (error) {
+                console.error('Error updating completion stats:', error);
+            }
+        }
+        
+        // Core navigation and acknowledgment system
+        let acknowledgedSections = new Set();
+        
+        function toggleSection(sectionId) {
+            const subsections = document.getElementById(sectionId + '-subsections');
+            const title = document.querySelector(`[onclick="toggleSection('${sectionId}')"]`);
+            
+            if (subsections.classList.contains('active')) {
+                subsections.classList.remove('active');
+                title.classList.remove('active');
+            } else {
+                document.querySelectorAll('.nav-subsections').forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.querySelectorAll('.nav-section-title').forEach(title => {
+                    title.classList.remove('active');
+                });
+                
+                subsections.classList.add('active');
+                title.classList.add('active');
+            }
+        }
+        
+        function toggleMobileMenu() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('open');
+        }
+        
+        document.addEventListener('click', function(e) {
+            const sidebar = document.querySelector('.sidebar');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            if (window.innerWidth <= 768 && 
+                !sidebar.contains(e.target) && 
+                !toggle.contains(e.target) && 
+                sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+            }
+        });
+        
+        function showContent(contentId) {
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            const contentSection = document.getElementById(contentId);
+            if (contentSection) {
+                contentSection.classList.add('active');
+            } else {
+                loadContentDynamically(contentId);
+            }
+            
+            event.target.classList.add('active');
+            
+            if (window.innerWidth <= 768) {
+                document.querySelector('.sidebar').classList.remove('open');
+            }
+        }
+        
+        function updateAcknowledgment(sectionId) {
+            const checkbox = document.getElementById(`ack-checkbox-${sectionId}`);
+            const nameField = document.getElementById(`user-name-${sectionId}`);
+            const button = document.getElementById(`ack-btn-${sectionId}`);
+            
+            if (checkbox && nameField && button) {
+                if (checkbox.checked && nameField.value.trim()) {
+                    button.disabled = false;
+                } else {
+                    button.disabled = true;
+                }
+            }
+        }
+        
+        async function submitAcknowledgment(sectionId) {
+            const nameField = document.getElementById(`user-name-${sectionId}`);
+            const userName = nameField.value.trim();
+            
+            if (!userName) {
+                alert('Please enter your full name before acknowledging this section.');
+                return;
+            }
+            
+            if (!currentUser) {
+                alert('Authentication error. Please refresh and try again.');
+                return;
+            }
+            
+            try {
+                const userId = currentUser.employeeId || currentUser.id || currentUser.email;
+                
+                await dataManager.saveUserAcknowledgment(
+                    userId,
+                    sectionId,
+                    userName,
+                    new Date().toISOString()
+                );
+                
+                acknowledgedSections.add(sectionId);
+                userCompletionData[sectionId] = {
+                    userId: userId,
+                    sectionId: sectionId,
+                    userName: userName,
+                    timestamp: new Date().toISOString(),
+                    completed: true
+                };
+                
+                const statusElement = document.getElementById(`ack-${sectionId}`);
+                statusElement.textContent = '✓';
+                statusElement.classList.add('acknowledged');
+                
+                updateProgress();
+                updateCompletionStats();
+                
+                alert(`Section acknowledged successfully by ${userName}!`);
+                
+            } catch (error) {
+                console.error('Error submitting acknowledgment:', error);
+                alert('Error saving acknowledgment. Please try again.');
+            }
+        }
+        
+        function updateProgress() {
+            const totalSections = 16;
+            const completedCount = acknowledgedSections.size;
+            const percentage = Math.round((completedCount / totalSections) * 100);
+            
+            const progressFill = document.getElementById('progressFill');
+            const completedCountElement = document.getElementById('completed-count');
+            const totalCountElement = document.getElementById('total-count');
+            const completionPercentageElement = document.getElementById('completion-percentage');
+            
+            if (progressFill) progressFill.style.width = percentage + '%';
+            if (completedCountElement) completedCountElement.textContent = completedCount;
+            if (totalCountElement) totalCountElement.textContent = totalSections;
+            if (completionPercentageElement) completionPercentageElement.textContent = percentage + '%';
+        }
+        
+        function loadContentDynamically(contentId) {
+            const content = getContentForSection(contentId);
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'content-section active';
+            contentDiv.id = contentId;
+            contentDiv.innerHTML = content;
+            
+            document.querySelector('.content').appendChild(contentDiv);
+        }
+        
+        function getContentForSection(sectionId) {
+            const sectionContent = {
+                'table-of-contents': `
+                    <div class="section-header">
+                        <h2>Table of Contents</h2>
+                        <p>Complete documentation overview and navigation guide</p>
+                    </div>
+                    <div class="section-content">
+                        <h3>Documentation Structure</h3>
+                        <ol>
+                            <li><strong>Team Induction Training Plan</strong> - Comprehensive 5-phase training program</li>
+                            <li><strong>Personal Safety Risk Assessment</strong> - Individual risk factors and controls</li>
+                            <li><strong>Hot Tub Risk Assessment</strong> - Water safety and maintenance procedures</li>
+                            <li><strong>Private Water Supply Risk Assessment</strong> - Water quality and safety management</li>
+                            <li><strong>Hand Tools Risk Assessment</strong> - Safe use and maintenance of hand tools</li>
+                            <li><strong>Power Tools Risk Assessment</strong> - Electrical tool safety and operations</li>
+                            <li><strong>Ride-on Mowers Risk Assessment</strong> - Grounds maintenance equipment safety</li>
+                            <li><strong>Grass Strimmers Risk Assessment</strong> - Handheld cutting equipment safety</li>
+                            <li><strong>Human Waste Management Risk Assessment</strong> - Sanitation and hygiene procedures</li>
+                            <li><strong>Legionella Risk Assessment</strong> - Water system bacteria control</li>
+                            <li><strong>Fire Safety Risk Assessment</strong> - Fire prevention and emergency procedures</li>
+                            <li><strong>Electrical Safety Risk Assessment</strong> - Electrical systems and equipment safety</li>
+                            <li><strong>Chemical Storage & Handling Risk Assessment</strong> - COSHH compliance and safety</li>
+                            <li><strong>Manual Handling Risk Assessment</strong> - Safe lifting and moving techniques</li>
+                            <li><strong>Rental Units Risk Assessment</strong> - Guest accommodation safety</li>
+                            <li><strong>Safe Work Procedures</strong> - Standard operating procedures</li>
+                        </ol>
+                        
+                        <div class="info-box">
+                            <h3>Navigation Instructions</h3>
+                            <p>Each section contains detailed information that must be reviewed and acknowledged. Use the sidebar navigation to move between sections. Your progress is tracked automatically.</p>
+                        </div>
+                    </div>
+                    <div class="acknowledgment-panel">
+                        <h3>Section Acknowledgment</h3>
+                        <p>I confirm that I have reviewed the Table of Contents and understand the documentation structure.</p>
+                        
+                        <div style="margin: 20px 0;">
+                            <label for="user-name-table-of-contents" style="display: block; margin-bottom: 8px; font-weight: 500; color: #E8E8E8;">
+                                Your Full Name:
+                            </label>
+                            <input type="text" id="user-name-table-of-contents" placeholder="Enter your full name" required style="
+                                width: 100%;
+                                padding: 12px;
+                                border: 2px solid #404040;
+                                border-radius: 5px;
+                                background: var(--darker-bg);
+                                color: #E8E8E8;
+                                font-size: 1rem;
+                            ">
+                        </div>
+                        
+                        <div class="acknowledgment-checkbox">
+                            <input type="checkbox" id="ack-checkbox-table-of-contents" onchange="updateAcknowledgment('table-of-contents')">
+                            <label for="ack-checkbox-table-of-contents">I acknowledge reading this section</label>
+                        </div>
+                        <button class="acknowledge-btn" id="ack-btn-table-of-contents" onclick="submitAcknowledgment('table-of-contents')" disabled>
+                            Complete Acknowledgment
+                        </button>
+                    </div>
+                `
+            };
+            
+            return sectionContent[sectionId] || '<div class="section-content"><p>Content loading...</p></div>';
+        }
+        
+        // Make functions globally available
+        window.toggleMobileMenu = toggleMobileMenu;
+        window.toggleSection = toggleSection;
+        window.showContent = showContent;
+        window.updateAcknowledgment = updateAcknowledgment;
+        window.submitAcknowledgment = submitAcknowledgment;
+        
+        console.log('Holiday Park Training System with SafePark.PRO Integration initialized');
+    </script>
+</body>
+</html>
