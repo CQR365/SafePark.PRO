@@ -1,0 +1,3338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Highland Holidays, Oban Holiday Park - Comprehensive Private Water Supply Risk Assessment</title>
+    <style>
+        /* Professional styling for comprehensive water supply documentation */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #1e3a8a;
+            --secondary-blue: #3b82f6;
+            --accent-green: #059669;
+            --warning-amber: #d97706;
+            --danger-red: #dc2626;
+            --success-green: #16a34a;
+            --light-bg: #f8fafc;
+            --white: #ffffff;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border-light: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--light-bg);
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header Styles */
+        .document-header {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+            color: var(--white);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+        }
+
+        .document-title {
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
+        }
+
+        .document-subtitle {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+
+        .company-branding {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+            font-weight: 600;
+        }
+
+        /* Navigation */
+        .nav-container {
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .nav-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .nav-tab {
+            flex: 1;
+            min-width: 150px;
+            padding: 1rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .nav-tab:hover {
+            background: #f3f4f6;
+            color: var(--primary-blue);
+        }
+
+        .nav-tab.active {
+            color: var(--primary-blue);
+            border-bottom-color: var(--primary-blue);
+            background: #f9fafb;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 2rem;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Content Styles */
+        .section {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+            border-left: 4px solid var(--primary-blue);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--border-light);
+            padding-bottom: 0.5rem;
+        }
+
+        .subsection {
+            margin-bottom: 1.5rem;
+        }
+
+        .subsection-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+        }
+
+        /* Risk Assessment Specific Styles */
+        .risk-matrix {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .risk-item {
+            background: var(--white);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: transform 0.2s ease;
+        }
+
+        .risk-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .risk-high {
+            border-left: 5px solid var(--danger-red);
+            background: #fef2f2;
+        }
+
+        .risk-medium {
+            border-left: 5px solid var(--warning-amber);
+            background: #fffbeb;
+        }
+
+        .risk-low {
+            border-left: 5px solid var(--success-green);
+            background: #f0fdf4;
+        }
+
+        .risk-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .risk-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .risk-level {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .risk-level.high {
+            background: var(--danger-red);
+            color: var(--white);
+        }
+
+        .risk-level.medium {
+            background: var(--warning-amber);
+            color: var(--white);
+        }
+
+        .risk-level.low {
+            background: var(--success-green);
+            color: var(--white);
+        }
+
+        /* Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: var(--white);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .data-table th {
+            background: var(--primary-blue);
+            color: var(--white);
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .data-table tr:nth-child(even) {
+            background: #f9fafb;
+        }
+
+        .data-table tr:hover {
+            background: #f3f4f6;
+        }
+
+        /* System Flow Diagram */
+        .system-flow {
+            background: linear-gradient(135deg, #e0f2fe 0%, #b3e5fc 100%);
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            border: 2px solid var(--secondary-blue);
+        }
+
+        .flow-title {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-blue);
+            margin-bottom: 2rem;
+        }
+
+        .flow-chain {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .flow-step {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow-md);
+            text-align: center;
+            min-width: 180px;
+            border: 2px solid var(--secondary-blue);
+            transition: all 0.3s ease;
+        }
+
+        .flow-step:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .flow-step.critical {
+            border-color: var(--danger-red);
+            background: #fef2f2;
+        }
+
+        .flow-step.treatment {
+            border-color: var(--accent-green);
+            background: #f0fdf4;
+        }
+
+        .flow-arrow {
+            font-size: 1.5rem;
+            color: var(--primary-blue);
+            font-weight: bold;
+        }
+
+        /* Alert Boxes */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background: #eff6ff;
+            border-left-color: var(--secondary-blue);
+            color: #1e40af;
+        }
+
+        .alert-warning {
+            background: #fffbeb;
+            border-left-color: var(--warning-amber);
+            color: #92400e;
+        }
+
+        .alert-danger {
+            background: #fef2f2;
+            border-left-color: var(--danger-red);
+            color: #991b1b;
+        }
+
+        .alert-success {
+            background: #f0fdf4;
+            border-left-color: var(--success-green);
+            color: #166534;
+        }
+
+        /* Lists */
+        .checklist {
+            list-style: none;
+        }
+
+        .checklist li {
+            position: relative;
+            padding-left: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .checklist li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--success-green);
+            font-weight: bold;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            margin: 0.25rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: #1e40af;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: var(--white);
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .document-title {
+                font-size: 1.75rem;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .flow-chain {
+                flex-direction: column;
+            }
+            
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+            
+            .risk-matrix {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            .nav-tabs, .btn {
+                display: none !important;
+            }
+            
+            .tab-content {
+                display: block !important;
+            }
+            
+            .container {
+                max-width: none;
+                padding: 0;
+            }
+            
+            .section {
+                page-break-inside: avoid;
+            }
+        }
+
+        /* Utility Classes */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .font-bold { font-weight: 700; }
+        .font-semibold { font-weight: 600; }
+        .text-sm { font-size: 0.875rem; }
+        .text-lg { font-size: 1.125rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Document Header -->
+        <header class="document-header">
+            <h1 class="document-title">Private Water Supply Risk Assessment</h1>
+            <div class="document-subtitle">Highland Holidays, Oban Holiday Park</div>
+            <div class="company-branding">
+                <div>Prepared by: safewater.pro</div>
+                <div>|</div>
+                <div>Omnibosh CQR365</div>
+            </div>
+            <div style="margin-top: 1rem; font-size: 0.875rem; opacity: 0.8;">
+                Document Date: 12 Jan 25 | Version: 3.0 | Status: ACTIVE | Review Due: Jan 2026
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <div class="alert alert-danger" style="margin-bottom: 2rem; text-align: center; font-size: 1.1rem;">
+            <h3 style="margin-bottom: 0.5rem;">⚠️ CURRENT SYSTEM STATUS ⚠️</h3>
+            <p><strong>BOIL WATER NOTICE ACTIVE</strong></p>
+            <p>All drinking water must be boiled for minimum 3 minutes before consumption</p>
+            <p>FREE BOTTLED WATER available at reception for all guests</p>
+            <p>System operates by gravity feed only - Operating pressure: 2.0-2.5 bar</p>
+            <p><strong>Document Status:</strong> Updated for current emergency conditions</p>
+        </div>
+
+        <div class="nav-container">
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showTab('executive-summary')">Executive Summary</button>
+                <button class="nav-tab" onclick="showTab('legislation')">Legislation & Compliance</button>
+                <button class="nav-tab" onclick="showTab('system-description')">System Description</button>
+                <button class="nav-tab" onclick="showTab('risk-assessment')">Risk Assessment</button>
+                <button class="nav-tab" onclick="showTab('safe-working')">Safe Working Procedures</button>
+                <button class="nav-tab" onclick="showTab('monitoring')">Monitoring & Testing</button>
+                <button class="nav-tab" onclick="showTab('emergency')">Emergency Procedures</button>
+                <button class="nav-tab" onclick="showTab('continuity')">Business Continuity</button>
+                <button class="nav-tab" onclick="showTab('documentation')">Documentation</button>
+            </div>
+
+            <!-- Executive Summary Tab -->
+            <div id="executive-summary" class="tab-content active">
+                <div class="section">
+                    <h2 class="section-title">Executive Summary</h2>
+                    
+                    <div class="alert alert-info">
+                        <strong>Document Purpose:</strong> This comprehensive risk assessment, safe working procedures, and continuity management plan has been prepared for Highland Holidays, Oban Holiday Park's private water supply system in accordance with The Private Water Supplies (Scotland) Regulations 2006 and all applicable Scottish legislation.
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Facility Overview</h3>
+                        <p><strong>Facility Name:</strong> Highland Holidays, Oban Holiday Park</p>
+                        <p><strong>Location:</strong> Oban, Argyll and Bute, Scotland</p>
+                        <p><strong>Supply Type:</strong> Private Water Supply - Surface Water/Natural Spring (Gravity Fed)</p>
+                        <p><strong>Risk Category:</strong> Type A - Commercial Supply</p>
+                        <p><strong>Population Served:</strong> Up to 500 persons (holiday park guests and staff)</p>
+                        <p><strong>Daily Water Demand:</strong> Approximately 50,000 - 75,000 litres</p>
+                        <p><strong>Current Status:</strong> <span style="color: var(--danger-red); font-weight: bold;">BOIL WATER NOTICE ACTIVE</span></p>
+                        <p><strong>System Pressure:</strong> 2.0 - 2.5 bar (gravity fed with pressure vessels)</p>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">System Overview</h3>
+                        <div class="system-flow">
+                            <div class="flow-title">Highland Holidays Gravity-Fed Water Treatment Process</div>
+                            
+                            <div class="alert alert-danger" style="margin-bottom: 1rem;">
+                                <strong>CURRENT STATUS: BOIL WATER NOTICE ACTIVE</strong><br>
+                                All drinking water must be boiled for minimum 3 minutes before consumption<br>
+                                FREE BOTTLED WATER available at reception for all guests
+                            </div>
+                            
+                            <div class="flow-chain">
+                                <div class="flow-step critical">
+                                    <strong>Hill Source</strong><br>
+                                    Surface Water/<br>Natural Spring<br>
+                                    <small>Elevated catchment - gravity fed</small>
+                                </div>
+                                <div class="flow-arrow">→</div>
+                                <div class="flow-step">
+                                    <strong>Collection Pond</strong><br>
+                                    Primary Settlement<br>
+                                    <small>Natural storage</small>
+                                </div>
+                                <div class="flow-arrow">→</div>
+                                <div class="flow-step">
+                                    <strong>Storage Tank 1</strong><br>
+                                    7,000L Capacity<br>
+                                    <small>Gravity fed intake</small>
+                                </div>
+                                <div class="flow-arrow">→</div>
+                                <div class="flow-step">
+                                    <strong>Storage Tanks 2-3</strong><br>
+                                    2 × 15,000L<br>
+                                    <small>Intermediate storage</small>
+                                </div>
+                                <div class="flow-arrow">→</div>
+                                <div class="flow-step">
+                                    <strong>Storage Tanks 4-7</strong><br>
+                                    4 × 30,000L<br>
+                                    <small>Main reservoir</small>
+                                </div>
+                                <div class="flow-arrow">→</div>
+                                <div class="flow-step treatment">
+                                    <strong>Treatment Plant</strong><br>
+                                    Pressure Vessels<br>
+                                    Turbidex & Silica Sand<br>
+                                    <small>Gravity fed filtration</small>
+                                </div>
+                                <div class="flow-arrow">→</div>
+                                <div class="flow-step treatment">
+                                    <strong>Fine Filtration</strong><br>
+                                    20" × 5 Micron<br>
+                                    <small>Gravity pressure</small>
+                                </div>
+                                <div class="flow-arrow">→</div>
+                                <div class="flow-step critical">
+                                    <strong>UV Disinfection</strong><br>
+                                    1950mm × 75W<br>
+                                    <small>Operating at 2.0-2.5 bar</small>
+                                </div>
+                                <div class="flow-arrow">→</div>
+                                <div class="flow-step">
+                                    <strong>Pressure Vessels</strong><br>
+                                    Pressure Maintenance<br>
+                                    <small>2.0-2.5 bar system</small>
+                                </div>
+                                <div class="flow-arrow">→</div>
+                                <div class="flow-step critical">
+                                    <strong>Distribution</strong><br>
+                                    Holiday Park<br>
+                                    <small>⚠️ BOIL WATER NOTICE</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Key Findings & Recommendations</h3>
+                        
+                        <div class="alert alert-danger">
+                            <strong>URGENT - Current Water Quality Status:</strong>
+                            <ul>
+                                <li>Boil water notice currently in effect due to microbiological quality concerns</li>
+                                <li>UV disinfection system requires enhanced monitoring and potential upgrade</li>
+                                <li>Source water protection measures need immediate strengthening</li>
+                                <li>FREE bottled water being provided to all guests at reception</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="alert alert-success">
+                            <strong>System Strengths:</strong>
+                            <ul>
+                                <li>Excellent storage capacity (187,000L total) providing operational resilience</li>
+                                <li>Gravity-fed system reduces mechanical failure risks</li>
+                                <li>Multi-barrier treatment approach with filtration and UV disinfection</li>
+                                <li>Good system pressure maintained (2.0-2.5 bar) through gravity and pressure vessels</li>
+                                <li>Professional monitoring and maintenance protocols in place</li>
+                                <li>Comprehensive documentation and record-keeping systems</li>
+                            </ul>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <strong>Critical Priority Recommendations:</strong>
+                            <ul>
+                                <li><strong>IMMEDIATE:</strong> Investigate and resolve current boil water notice causes</li>
+                                <li><strong>IMMEDIATE:</strong> Enhanced source protection around natural spring/surface water intake</li>
+                                <li><strong>URGENT:</strong> Install secondary UV system for redundancy (gravity-fed compatible)</li>
+                                <li><strong>URGENT:</strong> Implement real-time turbidity monitoring at treatment plant inlet</li>
+                                <li><strong>HIGH:</strong> Establish formal water safety plan with appointed Water Safety Coordinator</li>
+                                <li><strong>HIGH:</strong> Install pressure monitoring throughout gravity-fed distribution system</li>
+                                <li><strong>MEDIUM:</strong> Develop alternative supply arrangements for emergency situations</li>
+                                <li><strong>MEDIUM:</strong> Consider chlorination backup system for extended UV failures</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <strong>Gravity System Specific Considerations:</strong>
+                            <ul>
+                                <li>System relies entirely on gravity head - no pumping capability for pressure boost</li>
+                                <li>Pressure vessels maintain distribution pressure at 2.0-2.5 bar</li>
+                                <li>Flow rates limited by available gravity head and pipe sizing</li>
+                                <li>Emergency response limited to gravity-fed alternatives</li>
+                                <li>Treatment plant must operate within gravity pressure constraints</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Compliance Status</h3>
+                        <div class="data-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Regulatory Requirement</th>
+                                        <th>Status</th>
+                                        <th>Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Private Water Supplies (Scotland) Regulations 2006</td>
+                                        <td style="color: var(--warning-amber); font-weight: 600;">PARTIAL COMPLIANCE</td>
+                                        <td>Risk assessment current, boil water notice active, monitoring program active</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Water Supply (Water Quality) Regulations 2001</td>
+                                        <td style="color: var(--danger-red); font-weight: 600;">NON-COMPLIANT</td>
+                                        <td>Quality parameters currently failing - boil water notice in effect</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Food Safety Act 1990</td>
+                                        <td style="color: var(--warning-amber); font-weight: 600;">CONDITIONAL</td>
+                                        <td>HACCP principles applied, boil water precautions active for food service</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Health and Safety at Work Act 1974</td>
+                                        <td style="color: var(--success-green); font-weight: 600;">COMPLIANT</td>
+                                        <td>Safe working procedures documented and implemented</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Building Standards (Scotland) Regulations</td>
+                                        <td style="color: var(--warning-amber); font-weight: 600;">REVIEW REQUIRED</td>
+                                        <td>Gravity-fed system compliance check needed, storage tank assessment required</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Guest Duty of Care</td>
+                                        <td style="color: var(--success-green); font-weight: 600;">COMPLIANT</td>
+                                        <td>Free bottled water provided, clear boil water notices posted</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="alert alert-danger">
+                            <strong>Immediate Compliance Actions Required:</strong>
+                            <ul>
+                                <li>Resolve water quality issues to lift boil water notice</li>
+                                <li>Submit daily monitoring reports to Argyll & Bute Environmental Health</li>
+                                <li>Maintain guest safety through continued bottled water provision</li>
+                                <li>Document all corrective actions taken</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Legislation & Compliance Tab -->
+            <div id="legislation" class="tab-content">
+                <div class="section">
+                    <h2 class="section-title">Legislative Framework & Compliance Requirements</h2>
+                    
+                    <div class="subsection">
+                        <h3 class="subsection-title">Primary Legislation</h3>
+                        
+                        <div class="alert alert-info">
+                            <strong>The Private Water Supplies (Scotland) Regulations 2006</strong><br>
+                            These regulations are the primary legislation governing private water supplies in Scotland, requiring risk assessments, monitoring, and compliance with quality standards.
+                        </div>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Key Requirements:</h4>
+                        <ul class="checklist">
+                            <li>Risk assessment must be undertaken and regularly reviewed</li>
+                            <li>Water quality monitoring program must be established</li>
+                            <li>Records must be maintained for minimum 5 years</li>
+                            <li>Local authority must be notified of supply</li>
+                            <li>Remedial action required if quality standards not met</li>
+                            <li>Annual sampling required for Type A supplies</li>
+                            <li>Treatment systems must be appropriate for source water quality</li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Supporting Legislation</h3>
+                        
+                        <div class="data-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Legislation</th>
+                                        <th>Relevance</th>
+                                        <th>Key Requirements</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Water (Scotland) Act 1980</strong></td>
+                                        <td>Water supply duties</td>
+                                        <td>Duty to provide wholesome water, prevention of contamination</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Food Safety Act 1990</strong></td>
+                                        <td>Food business compliance</td>
+                                        <td>Water used in food businesses must be wholesome, HACCP principles</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Health and Safety at Work Act 1974</strong></td>
+                                        <td>Workplace safety</td>
+                                        <td>Safe systems of work, risk assessments, training, PPE</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Water Supply (Water Quality) Regulations 2001</strong></td>
+                                        <td>Quality standards</td>
+                                        <td>Specific quality parameters and limits for drinking water</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Building Standards (Scotland) Regulations</strong></td>
+                                        <td>Construction standards</td>
+                                        <td>Water supply systems design, backflow prevention, materials</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Town and Country Planning (Scotland) Act</strong></td>
+                                        <td>Planning consent</td>
+                                        <td>Planning permission for water supply infrastructure</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Water Environment (Controlled Activities) (Scotland) Regulations</strong></td>
+                                        <td>Abstraction licensing</td>
+                                        <td>CAR licence requirements for water abstraction</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Control of Substances Hazardous to Health Regulations (COSHH)</strong></td>
+                                        <td>Chemical safety</td>
+                                        <td>Assessment and control of chemical hazards in water treatment</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Guidance Documents & Standards</h3>
+                        <ul>
+                            <li><strong>WHO Guidelines for Drinking-water Quality (4th Edition)</strong> - International best practice standards</li>
+                            <li><strong>Water Supply (Water Quality) (Scotland) Regulations 2001</strong> - Scottish specific quality parameters</li>
+                            <li><strong>Scottish Government Guidance on Private Water Supplies</strong> - Implementation guidance</li>
+                            <li><strong>BS EN 806 Specifications for installations inside buildings conveying water for human consumption</strong></li>
+                            <li><strong>BS 8558:2015 Guide to the design, installation, testing and maintenance of services supplying water for domestic use within buildings and their curtilages</strong></li>
+                            <li><strong>WRAS (Water Regulations Advisory Scheme) Guidance</strong> - Materials and fittings approval</li>
+                            <li><strong>DEFRA/EA UV Disinfection Guidance</strong> - UV system design and operation</li>
+                            <li><strong>HSE Guidance HSG274 Legionella Technical Guidance</strong> - Legionella prevention</li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Local Authority Requirements</h3>
+                        
+                        <div class="alert alert-warning">
+                            <strong>Argyll and Bute Council Environmental Health Requirements:</strong>
+                        </div>
+                        
+                        <ul class="checklist">
+                            <li>Annual notification of private water supply status</li>
+                            <li>Risk assessment review every 5 years or when changes occur</li>
+                            <li>Monitoring results submission as per approved schedule</li>
+                            <li>Incident reporting within 24 hours of detection</li>
+                            <li>Access provision for authorized officers</li>
+                            <li>Compliance with any improvement notices</li>
+                            <li>Emergency contact details maintained</li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Water Quality Standards</h3>
+                        
+                        <div class="data-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Parameter</th>
+                                        <th>Unit</th>
+                                        <th>Maximum Allowable Value</th>
+                                        <th>Monitoring Frequency</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>E. coli</td>
+                                        <td>Number/100ml</td>
+                                        <td>0</td>
+                                        <td>Monthly</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Enterococci</td>
+                                        <td>Number/100ml</td>
+                                        <td>0</td>
+                                        <td>Monthly</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Coliform bacteria</td>
+                                        <td>Number/100ml</td>
+                                        <td>0</td>
+                                        <td>Monthly</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Turbidity</td>
+                                        <td>NTU</td>
+                                        <td>4</td>
+                                        <td>Daily (operational)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>pH</td>
+                                        <td>pH units</td>
+                                        <td>6.5 - 9.5</td>
+                                        <td>Monthly</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Nitrate</td>
+                                        <td>mg/l</td>
+                                        <td>50</td>
+                                        <td>Quarterly</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Nitrite</td>
+                                        <td>mg/l</td>
+                                        <td>0.5</td>
+                                        <td>Quarterly</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Lead</td>
+                                        <td>μg/l</td>
+                                        <td>10</td>
+                                        <td>Annually</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Iron</td>
+                                        <td>μg/l</td>
+                                        <td>200</td>
+                                        <td>Annually</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Manganese</td>
+                                        <td>μg/l</td>
+                                        <td>50</td>
+                                        <td>Annually</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Description Tab -->
+            <div id="system-description" class="tab-content">
+                <div class="section">
+                    <h2 class="section-title">Comprehensive System Description</h2>
+                    
+                    <div class="subsection">
+                        <h3 class="subsection-title">Water Source Characteristics</h3>
+                        
+                        <div class="alert alert-info">
+                            <strong>Source Type:</strong> Surface Water/Natural Spring<br>
+                            <strong>Location:</strong> Hill-based catchment area<br>
+                            <strong>Source Classification:</strong> Vulnerable to surface contamination
+                        </div>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Source Water Quality Characteristics:</h4>
+                        <ul>
+                            <li><strong>Typical pH:</strong> 6.8 - 7.2 (slightly acidic to neutral)</li>
+                            <li><strong>Turbidity:</strong> Variable (2-25 NTU depending on weather)</li>
+                            <li><strong>Iron content:</strong> Elevated (150-300 μg/L)</li>
+                            <li><strong>Manganese content:</strong> Moderate (20-40 μg/L)</li>
+                            <li><strong>Microbiological quality:</strong> Variable, requires disinfection</li>
+                            <li><strong>Seasonal variation:</strong> Higher turbidity during autumn/winter</li>
+                            <li><strong>Flow rate:</strong> Adequate for demand (minimum 10 m³/day)</li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Source Protection Measures:</h4>
+                        <ul class="checklist">
+                            <li>Intake structure with screening to prevent debris entry</li>
+                            <li>Fencing around immediate catchment area</li>
+                            <li>Regular inspection of catchment for contamination sources</li>
+                            <li>Livestock access prevention measures</li>
+                            <li>Monitoring of upstream activities</li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Storage System</h3>
+                        
+                        <div class="data-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Tank ID</th>
+                                        <th>Capacity (Litres)</th>
+                                        <th>Material</th>
+                                        <th>Function</th>
+                                        <th>Location</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>ST-01</td>
+                                        <td>7,000</td>
+                                        <td>Food-grade polyethylene</td>
+                                        <td>Initial collection storage</td>
+                                        <td>Near source intake</td>
+                                    </tr>
+                                    <tr>
+                                        <td>ST-02</td>
+                                        <td>15,000</td>
+                                        <td>Food-grade polyethylene</td>
+                                        <td>Secondary storage</td>
+                                        <td>Treatment plant area</td>
+                                    </tr>
+                                    <tr>
+                                        <td>ST-03</td>
+                                        <td>15,000</td>
+                                        <td>Food-grade polyethylene</td>
+                                        <td>Secondary storage</td>
+                                        <td>Treatment plant area</td>
+                                    </tr>
+                                    <tr>
+                                        <td>ST-04</td>
+                                        <td>30,000</td>
+                                        <td>Food-grade polyethylene</td>
+                                        <td>Main storage reservoir</td>
+                                        <td>Central compound</td>
+                                    </tr>
+                                    <tr>
+                                        <td>ST-05</td>
+                                        <td>30,000</td>
+                                        <td>Food-grade polyethylene</td>
+                                        <td>Main storage reservoir</td>
+                                        <td>Central compound</td>
+                                    </tr>
+                                    <tr>
+                                        <td>ST-06</td>
+                                        <td>30,000</td>
+                                        <td>Food-grade polyethylene</td>
+                                        <td>Main storage reservoir</td>
+                                        <td>Central compound</td>
+                                    </tr>
+                                    <tr>
+                                        <td>ST-07</td>
+                                        <td>30,000</td>
+                                        <td>Food-grade polyethylene</td>
+                                        <td>Main storage reservoir</td>
+                                        <td>Central compound</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="alert alert-success">
+                            <strong>Total Storage Capacity:</strong> 187,000 Litres<br>
+                            <strong>Operational Reserve:</strong> Approximately 2.5 days at peak demand<br>
+                            <strong>Emergency Reserve:</strong> Minimum 1 day consumption maintained
+                        </div>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Storage Tank Specifications:</h4>
+                        <ul>
+                            <li><strong>Material:</strong> Food-grade polyethylene, UV stabilized</li>
+                            <li><strong>Design:</strong> Cylindrical with conical base for complete drainage</li>
+                            <li><strong>Inlet:</strong> Top entry with internal diffuser to prevent turbulence</li>
+                            <li><strong>Outlet:</strong> Bottom outlet with isolation valve</li>
+                            <li><strong>Overflow:</strong> Screened overflow with appropriate discharge</li>
+                            <li><strong>Access:</strong> Lockable inspection covers, fall protection</li>
+                            <li><strong>Ventilation:</strong> Filtered vent pipes to prevent contamination</li>
+                            <li><strong>Level indication:</strong> External level gauges</li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Treatment System</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Primary Treatment - Pressure Vessel Filtration</h4>
+                        <div class="alert alert-info">
+                            <strong>System Type:</strong> Dual-media pressure filtration<br>
+                            <strong>Configuration:</strong> Two pressure vessels in parallel operation<br>
+                            <strong>Design Flow Rate:</strong> 15 m³/hour per vessel
+                        </div>
+
+                        <ul>
+                            <li><strong>Vessel 1 - Turbidex Filtration:</strong>
+                                <ul>
+                                    <li>Media: Turbidex (iron oxide-coated sand)</li>
+                                    <li>Depth: 1.2m filter bed</li>
+                                    <li>Function: Iron/manganese removal, turbidity reduction</li>
+                                    <li>Backwash: Automatic based on differential pressure</li>
+                                </ul>
+                            </li>
+                            <li><strong>Vessel 2 - Silica Sand Filtration:</strong>
+                                <ul>
+                                    <li>Media: Graded silica sand (0.5-1.2mm)</li>
+                                    <li>Depth: 1.0m filter bed</li>
+                                    <li>Function: Suspended solids removal, polishing</li>
+                                    <li>Backwash: Automatic based on differential pressure</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Secondary Treatment - Cartridge Filtration</h4>
+                        <ul>
+                            <li><strong>Filter Type:</strong> 20" polypropylene pleated cartridge</li>
+                            <li><strong>Micron Rating:</strong> 5 micron absolute</li>
+                            <li><strong>Configuration:</strong> Single housing with bypass</li>
+                            <li><strong>Flow Rate:</strong> 20 m³/hour maximum</li>
+                            <li><strong>Replacement Frequency:</strong> Monthly or based on differential pressure</li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Disinfection System - UV Treatment</h4>
+                        <div class="alert alert-warning">
+                            <strong>Critical Treatment Step:</strong> Primary disinfection barrier for pathogen inactivation
+                        </div>
+
+                        <ul>
+                            <li><strong>UV System Specifications:</strong>
+                                <ul>
+                                    <li>Chamber Length: 1950mm</li>
+                                    <li>Lamp Power: 75W low-pressure mercury vapour</li>
+                                    <li>Design Dose: 40 mJ/cm² (400 J/m²)</li>
+                                    <li>Flow Rate: 15 m³/hour maximum</li>
+                                    <li>Quartz Sleeve: High transmission borosilicate</li>
+                                    <li>UV Sensor: Photodiode with digital display</li>
+                                </ul>
+                            </li>
+                            <li><strong>Performance Monitoring:</strong>
+                                <ul>
+                                    <li>UV intensity monitoring with alarm</li>
+                                    <li>Lamp hours counter</li>
+                                    <li>Flow rate monitoring</li>
+                                    <li>UV transmittance measurement (quarterly)</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Distribution System</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Gravity-Fed Operation with Pressure Management</h4>
+                        
+                        <div class="alert alert-info">
+                            <strong>System Type:</strong> Gravity-fed distribution with pressure vessel support<br>
+                            <strong>Operating Pressure:</strong> 2.0 - 2.5 bar maintained through gravity head and pressure vessels<br>
+                            <strong>No Pumping:</strong> System operates entirely on gravity flow and stored pressure
+                        </div>
+                        
+                        <ul>
+                            <li><strong>Gravity Head:</strong> Natural elevation difference provides primary driving force</li>
+                            <li><strong>Pressure Vessels:</strong> Accumulator tanks maintain consistent pressure</li>
+                            <li><strong>Operating Range:</strong> 2.0 - 2.5 bar throughout distribution system</li>
+                            <li><strong>Flow Capacity:</strong> Limited by available gravity head and pipe sizing</li>
+                            <li><strong>Pressure Control:</strong> Pressure reducing valves and vessels for regulation</li>
+                            <li><strong>No Backup Pumps:</strong> System relies entirely on gravity operation</li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Distribution Network</h4>
+                        <ul>
+                            <li><strong>Main Distribution:</strong> 110mm MDPE main from treatment plant</li>
+                            <li><strong>Branch Connections:</strong> 63mm and 32mm MDPE to park areas</li>
+                            <li><strong>Service Connections:</strong> 25mm MDPE to individual accommodation units</li>
+                            <li><strong>Total Network Length:</strong> Approximately 2.5km</li>
+                            <li><strong>Maximum Head Loss:</strong> Critical factor in gravity-fed system design</li>
+                            <li><strong>Isolation Valves:</strong> Strategically located for maintenance and emergency isolation</li>
+                            <li><strong>Pressure Monitoring:</strong> Key points monitored to ensure adequate pressure</li>
+                        </ul>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Gravity System Limitations</h4>
+                        <div class="alert alert-warning">
+                            <strong>Critical Constraints:</strong>
+                        </div>
+                        <ul>
+                            <li><strong>Flow Rate Limitations:</strong> Cannot exceed gravity-fed capacity</li>
+                            <li><strong>Pressure Recovery:</strong> No pumping capability to boost pressure</li>
+                            <li><strong>High Demand Issues:</strong> Pressure may drop during peak usage</li>
+                            <li><strong>Elevation Dependencies:</strong> Higher elevations may have reduced pressure</li>
+                            <li><strong>Emergency Response:</strong> Limited to gravity-fed backup options</li>
+                            <li><strong>Treatment Constraints:</strong> Filtration and UV must operate within pressure limits</li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Control and Monitoring Systems</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Automated Control System</h4>
+                        <ul class="checklist">
+                            <li>Control system monitoring gravity flow rates and pressures</li>
+                            <li>Remote monitoring capability via GSM/internet connection</li>
+                            <li>Automated filter backwash based on pressure differential</li>
+                            <li>UV system monitoring with automatic shutdown on failure</li>
+                            <li>Tank level monitoring with high/low alarms</li>
+                            <li>Pressure vessel monitoring throughout distribution system</li>
+                            <li>Flow totalisation and logging for gravity-fed system</li>
+                            <li>Event logging and alarm history for all critical parameters</li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Critical Alarm Systems</h4>
+                        <ul>
+                            <li><strong>Critical Alarms (Immediate Action Required):</strong>
+                                <ul>
+                                    <li>UV system failure or low intensity</li>
+                                    <li>High turbidity at UV inlet affecting disinfection</li>
+                                    <li>Low water level in main storage tanks</li>
+                                    <li>Low system pressure below 2.0 bar</li>
+                                    <li>Loss of gravity flow from source</li>
+                                </ul>
+                            </li>
+                            <li><strong>Warning Alarms (Action Required Within 24 Hours):</strong>
+                                <ul>
+                                    <li>High differential pressure across filters</li>
+                                    <li>High water level approaching overflow</li>
+                                    <li>Pressure vessel pre-charge pressure low</li>
+                                    <li>Equipment service due reminders</li>
+                                    <li>Source flow rate declining</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Gravity System Specific Monitoring</h4>
+                        <div class="alert alert-info">
+                            <strong>Enhanced monitoring required for gravity-fed systems due to limited operational flexibility</strong>
+                        </div>
+                        <ul class="checklist">
+                            <li>Continuous source flow rate monitoring</li>
+                            <li>Multiple tank level monitoring for system balancing</li>
+                            <li>Pressure monitoring at critical distribution points</li>
+                            <li>Weather monitoring affecting source yield</li>
+                            <li>Treatment plant pressure differential monitoring</li>
+                            <li>Distribution system pressure mapping</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Assessment Tab -->
+            <div id="risk-assessment" class="tab-content">
+                <div class="section">
+                    <h2 class="section-title">Comprehensive Risk Assessment</h2>
+                    
+                    <div class="alert alert-info">
+                        <strong>Risk Assessment Methodology:</strong> This assessment follows the WHO Water Safety Plan approach and Scottish regulatory requirements, considering all potential hazards from source to consumer.
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Risk Matrix Classification</h3>
+                        <div class="data-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Risk Level</th>
+                                        <th>Likelihood</th>
+                                        <th>Consequence</th>
+                                        <th>Action Required</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="background: #fef2f2;">
+                                        <td><span class="risk-level high">HIGH</span></td>
+                                        <td>Likely to occur</td>
+                                        <td>Severe health impact</td>
+                                        <td>Immediate action required</td>
+                                    </tr>
+                                    <tr style="background: #fffbeb;">
+                                        <td><span class="risk-level medium">MEDIUM</span></td>
+                                        <td>Possible to occur</td>
+                                        <td>Moderate health impact</td>
+                                        <td>Action required within 30 days</td>
+                                    </tr>
+                                    <tr style="background: #f0fdf4;">
+                                        <td><span class="risk-level low">LOW</span></td>
+                                        <td>Unlikely to occur</td>
+                                        <td>Minor health impact</td>
+                                        <td>Monitor and review annually</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Source Water Risks</h3>
+                        <div class="risk-matrix">
+                            <div class="risk-item risk-high">
+                                <div class="risk-header">
+                                    <div class="risk-title">Surface Water Contamination</div>
+                                    <span class="risk-level high">HIGH</span>
+                                </div>
+                                <p><strong>Hazard:</strong> Microbiological contamination from livestock, wildlife, surface runoff</p>
+                                <p><strong>Control Measures:</strong> Source protection, UV disinfection, regular testing</p>
+                                <p><strong>Monitoring:</strong> Weekly visual inspection, monthly microbiological testing</p>
+                                <p><strong>Action:</strong> Enhanced catchment protection measures required</p>
+                            </div>
+
+                            <div class="risk-item risk-medium">
+                                <div class="risk-header">
+                                    <div class="risk-title">Seasonal Quality Variation</div>
+                                    <span class="risk-level medium">MEDIUM</span>
+                                </div>
+                                <p><strong>Hazard:</strong> High turbidity and organic matter during storms/autumn</p>
+                                <p><strong>Control Measures:</strong> Multi-barrier filtration, automated backwashing</p>
+                                <p><strong>Monitoring:</strong> Continuous turbidity monitoring, filter performance</p>
+                                <p><strong>Action:</strong> Install real-time turbidity monitoring at intake</p>
+                            </div>
+
+                            <div class="risk-item risk-medium">
+                                <div class="risk-header">
+                                    <div class="risk-title">Chemical Contamination</div>
+                                    <span class="risk-level medium">MEDIUM</span>
+                                </div>
+                                <p><strong>Hazard:</strong> Agricultural chemicals, pesticides from upland activities</p>
+                                <p><strong>Control Measures:</strong> Source monitoring, liaison with land users</p>
+                                <p><strong>Monitoring:</strong> Annual chemical analysis, source inspection</p>
+                                <p><strong>Action:</strong> Establish formal agreements with upstream land users</p>
+                            </div>
+
+                            <div class="risk-item risk-low">
+                                <div class="risk-header">
+                                    <div class="risk-title">Natural Mineral Content</div>
+                                    <span class="risk-level low">LOW</span>
+                                </div>
+                                <p><strong>Hazard:</strong> Elevated iron/manganese affecting taste and appearance</p>
+                                <p><strong>Control Measures:</strong> Turbidex filtration system</p>
+                                <p><strong>Monitoring:</strong> Monthly chemical testing</p>
+                                <p><strong>Action:</strong> Continue current treatment regime</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Storage System Risks</h3>
+                        <div class="risk-matrix">
+                            <div class="risk-item risk-medium">
+                                <div class="risk-header">
+                                    <div class="risk-title">Storage Tank Contamination</div>
+                                    <span class="risk-level medium">MEDIUM</span>
+                                </div>
+                                <p><strong>Hazard:</strong> Cross-contamination through inadequate tank maintenance</p>
+                                <p><strong>Control Measures:</strong> Locked covers, scheduled cleaning, access control</p>
+                                <p><strong>Monitoring:</strong> Monthly visual inspection, annual cleaning</p>
+                                <p><strong>Action:</strong> Implement tank rotation cleaning schedule</p>
+                            </div>
+
+                            <div class="risk-item risk-medium">
+                                <div class="risk-header">
+                                    <div class="risk-title">Vermin Access</div>
+                                    <span class="risk-level medium">MEDIUM</span>
+                                </div>
+                                <p><strong>Hazard:</strong> Rodents, birds, insects gaining access to storage tanks</p>
+                                <p><strong>Control Measures:</strong> Screened vents, sealed covers, perimeter control</p>
+                                <p><strong>Monitoring:</strong> Weekly inspection for signs of vermin</p>
+                                <p><strong>Action:</strong> Upgrade vent screening and pest control measures</p>
+                            </div>
+
+                            <div class="risk-item risk-low">
+                                <div class="risk-header">
+                                    <div class="risk-title">Structural Failure</div>
+                                    <span class="risk-level low">LOW</span>
+                                </div>
+                                <p><strong>Hazard:</strong> Tank structural failure causing supply interruption</p>
+                                <p><strong>Control Measures:</strong> Multiple tank configuration, structural inspections</p>
+                                <p><strong>Monitoring:</strong> Annual structural assessment</p>
+                                <p><strong>Action:</strong> Continue current inspection regime</p>
+                            </div>
+
+                            <div class="risk-item risk-low">
+                                <div class="risk-header">
+                                    <div class="risk-title">Water Stagnation</div>
+                                    <span class="risk-level low">LOW</span>
+                                </div>
+                                <p><strong>Hazard:</strong> Biofilm growth in storage tanks during low demand periods</p>
+                                <p><strong>Control Measures:</strong> Tank turnover management, regular flushing</p>
+                                <p><strong>Monitoring:</strong> Residence time calculation, chlorine residual testing</p>
+                                <p><strong>Action:</strong> Consider secondary disinfection for storage tanks</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Treatment System Risks</h3>
+                        <div class="risk-matrix">
+                            <div class="risk-item risk-high">
+                                <div class="risk-header">
+                                    <div class="risk-title">UV System Failure</div>
+                                    <span class="risk-level high">HIGH</span>
+                                </div>
+                                <p><strong>Hazard:</strong> Complete loss of disinfection capability</p>
+                                <p><strong>Control Measures:</strong> UV monitoring, automatic shutdown, emergency procedures</p>
+                                <p><strong>Monitoring:</strong> Continuous UV intensity monitoring, lamp hour tracking</p>
+                                <p><strong>Action:</strong> Install backup UV system, maintain spare lamp inventory</p>
+                            </div>
+
+                            <div class="risk-item risk-medium">
+                                <div class="risk-header">
+                                    <div class="risk-title">Filter System Malfunction</div>
+                                    <span class="risk-level medium">MEDIUM</span>
+                                </div>
+                                <p><strong>Hazard:</strong> High turbidity bypassing UV system, reducing effectiveness</p>
+                                <p><strong>Control Measures:</strong> Pressure differential monitoring, automated backwash</p>
+                                <p><strong>Monitoring:</strong> Daily filter performance checks, turbidity measurement</p>
+                                <p><strong>Action:</strong> Install turbidity monitoring upstream of UV system</p>
+                            </div>
+
+                            <div class="risk-item risk-medium">
+                                <div class="risk-header">
+                                    <div class="risk-title">Power Supply Interruption</div>
+                                    <span class="risk-level medium">MEDIUM</span>
+                                </div>
+                                <p><strong>Hazard:</strong> Loss of treatment system operation</p>
+                                <p><strong>Control Measures:</strong> Generator backup, gravity distribution capability</p>
+                                <p><strong>Monitoring:</strong> Power supply monitoring, generator testing</p>
+                                <p><strong>Action:</strong> Install automatic generator start system</p>
+                            </div>
+
+                            <div class="risk-item risk-low">
+                                <div class="risk-header">
+                                    <div class="risk-title">Control System Failure</div>
+                                    <span class="risk-level low">LOW</span>
+                                </div>
+                                <p><strong>Hazard:</strong> Loss of automated control and monitoring</p>
+                                <p><strong>Control Measures:</strong> Manual operation capability, alarm systems</p>
+                                <p><strong>Monitoring:</strong> Daily control system health checks</p>
+                                <p><strong>Action:</strong> Maintain manual operation procedures</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Distribution System Risks</h3>
+                        <div class="risk-matrix">
+                            <div class="risk-item risk-high">
+                                <div class="risk-header">
+                                    <div class="risk-title">Gravity System Pressure Loss</div>
+                                    <span class="risk-level high">HIGH</span>
+                                </div>
+                                <p><strong>Hazard:</strong> Loss of adequate pressure (below 2.0 bar) affecting water availability</p>
+                                <p><strong>Control Measures:</strong> Pressure monitoring, tank level management, flow control</p>
+                                <p><strong>Monitoring:</strong> Continuous pressure monitoring at key distribution points</p>
+                                <p><strong>Action:</strong> Install pressure booster pumps for emergency backup</p>
+                            </div>
+
+                            <div class="risk-item risk-medium">
+                                <div class="risk-header">
+                                    <div class="risk-title">Cross-Connection Contamination</div>
+                                    <span class="risk-level medium">MEDIUM</span>
+                                </div>
+                                <p><strong>Hazard:</strong> Backflow from contaminated sources during low pressure periods</p>
+                                <p><strong>Control Measures:</strong> Backflow prevention devices, pressure maintenance</p>
+                                <p><strong>Monitoring:</strong> Annual backflow device testing, pressure monitoring</p>
+                                <p><strong>Action:</strong> Survey all connections for backflow protection</p>
+                            </div>
+
+                            <div class="risk-item risk-medium">
+                                <div class="risk-header">
+                                    <div class="risk-title">Pipeline Damage</div>
+                                    <span class="risk-level medium">MEDIUM</span>
+                                </div>
+                                <p><strong>Hazard:</strong> External damage causing contamination or supply interruption</p>
+                                <p><strong>Control Measures:</strong> Protected routing, marking, isolation valves</p>
+                                <p><strong>Monitoring:</strong> Regular pipeline inspection, pressure monitoring</p>
+                                <p><strong>Action:</strong> Maintain pipeline location records and emergency repair kit</p>
+                            </div>
+
+                            <div class="risk-item risk-medium">
+                                <div class="risk-header">
+                                    <div class="risk-title">High Demand Flow Limitation</div>
+                                    <span class="risk-level medium">MEDIUM</span>
+                                </div>
+                                <p><strong>Hazard:</strong> Inadequate flow during peak demand affecting guest services</p>
+                                <p><strong>Control Measures:</strong> Demand monitoring, pressure vessel sizing, flow management</p>
+                                <p><strong>Monitoring:</strong> Peak demand analysis, pressure trends during high usage</p>
+                                <p><strong>Action:</strong> Install additional pressure vessels and demand management</p>
+                            </div>
+
+                            <div class="risk-item risk-low">
+                                <div class="risk-header">
+                                    <div class="risk-title">Legionella Growth</div>
+                                    <span class="risk-level low">LOW</span>
+                                </div>
+                                <p><strong>Hazard:</strong> Legionella growth in warm water systems</p>
+                                <p><strong>Control Measures:</strong> Temperature management, system flushing</p>
+                                <p><strong>Monitoring:</strong> Temperature monitoring, legionella testing</p>
+                                <p><strong>Action:</strong> Continue current legionella management procedures</p>
+                            </div>
+
+                            <div class="risk-item risk-low">
+                                <div class="risk-header">
+                                    <div class="risk-title">Dead End Stagnation</div>
+                                    <span class="risk-level low">LOW</span>
+                                </div>
+                                <p><strong>Hazard:</strong> Water quality deterioration in dead-end branches</p>
+                                <p><strong>Control Measures:</strong> Regular flushing, loop configuration where possible</p>
+                                <p><strong>Monitoring:</strong> Residual disinfectant testing, customer complaints</p>
+                                <p><strong>Action:</strong> Implement systematic flushing program</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Risk Assessment Summary & Action Plan</h3>
+                        
+                        <div class="alert alert-danger">
+                            <strong>CURRENT EMERGENCY STATUS:</strong> Boil Water Notice Active - All drinking water must be boiled for minimum 3 minutes
+                        </div>
+                        
+                        <div class="data-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Priority</th>
+                                        <th>Risk</th>
+                                        <th>Action Required</th>
+                                        <th>Target Date</th>
+                                        <th>Responsible Person</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="background: #fef2f2;">
+                                        <td><span class="risk-level high">1</span></td>
+                                        <td>Current boil water notice</td>
+                                        <td>Investigate and resolve microbiological contamination</td>
+                                        <td>IMMEDIATE</td>
+                                        <td>Site Manager + safewater.pro</td>
+                                    </tr>
+                                    <tr style="background: #fef2f2;">
+                                        <td><span class="risk-level high">2</span></td>
+                                        <td>Surface water contamination</td>
+                                        <td>Enhanced source protection measures</td>
+                                        <td>Within 7 days</td>
+                                        <td>Site Manager</td>
+                                    </tr>
+                                    <tr style="background: #fef2f2;">
+                                        <td><span class="risk-level high">3</span></td>
+                                        <td>UV system failure</td>
+                                        <td>Install backup UV system (gravity-fed compatible)</td>
+                                        <td>Within 30 days</td>
+                                        <td>Technical Manager</td>
+                                    </tr>
+                                    <tr style="background: #fef2f2;">
+                                        <td><span class="risk-level high">4</span></td>
+                                        <td>Gravity system pressure loss</td>
+                                        <td>Install emergency pressure booster system</td>
+                                        <td>Within 60 days</td>
+                                        <td>Technical Manager</td>
+                                    </tr>
+                                    <tr style="background: #fffbeb;">
+                                        <td><span class="risk-level medium">5</span></td>
+                                        <td>Seasonal quality variation</td>
+                                        <td>Install real-time turbidity monitoring</td>
+                                        <td>Within 45 days</td>
+                                        <td>Technical Manager</td>
+                                    </tr>
+                                    <tr style="background: #fffbeb;">
+                                        <td><span class="risk-level medium">6</span></td>
+                                        <td>Filter system malfunction</td>
+                                        <td>Install turbidity monitoring upstream of UV</td>
+                                        <td>Within 45 days</td>
+                                        <td>Technical Manager</td>
+                                    </tr>
+                                    <tr style="background: #fffbeb;">
+                                        <td><span class="risk-level medium">7</span></td>
+                                        <td>High demand flow limitation</td>
+                                        <td>Install additional pressure vessels</td>
+                                        <td>Within 90 days</td>
+                                        <td>Technical Manager</td>
+                                    </tr>
+                                    <tr style="background: #fffbeb;">
+                                        <td><span class="risk-level medium">8</span></td>
+                                        <td>Storage tank contamination</td>
+                                        <td>Implement tank rotation cleaning schedule</td>
+                                        <td>Within 45 days</td>
+                                        <td>Maintenance Supervisor</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <strong>Gravity System Specific Actions:</strong>
+                            <ul>
+                                <li>Emergency pressure booster pump installation for backup</li>
+                                <li>Enhanced pressure monitoring throughout distribution system</li>
+                                <li>Demand management procedures for peak usage periods</li>
+                                <li>Alternative supply arrangements that work with gravity feed</li>
+                                <li>Training for staff on gravity system limitations and emergency procedures</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Safe Working Procedures Tab -->
+            <div id="safe-working" class="tab-content">
+                <div class="section">
+                    <h2 class="section-title">Safe Working Procedures</h2>
+                    
+                    <div class="alert alert-warning">
+                        <strong>Health and Safety Compliance:</strong> All procedures comply with Health and Safety at Work Act 1974, COSHH Regulations, and industry best practices.
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">General Safety Requirements</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Personal Protective Equipment (PPE)</h4>
+                        <ul class="checklist">
+                            <li>Safety helmet with chin strap for all site work</li>
+                            <li>High-visibility vest or jacket (Class 2 minimum)</li>
+                            <li>Safety footwear with slip-resistant soles and ankle protection</li>
+                            <li>Nitrile gloves for water system contact</li>
+                            <li>Eye protection when working with chemicals or UV systems</li>
+                            <li>Respiratory protection for confined space entry</li>
+                            <li>Waterproof clothing for wet weather operations</li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Risk Assessment Requirements</h4>
+                        <ul class="checklist">
+                            <li>Site-specific risk assessment before commencing work</li>
+                            <li>Method statement for non-routine activities</li>
+                            <li>Permit to work system for high-risk activities</li>
+                            <li>Emergency contact information readily available</li>
+                            <li>First aid facilities and trained first aider on site</li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Daily Operational Procedures</h3>
+                        
+                        <div class="alert alert-info">
+                            <strong>Daily Check Frequency:</strong> Every 24 hours including weekends and holidays<br>
+                            <strong>Responsible Person:</strong> Duty Site Supervisor or nominated deputy
+                        </div>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Morning System Check (08:00 - 09:00)</h4>
+                        
+                        <div class="alert alert-danger">
+                            <strong>PRIORITY CHECK:</strong> Boil water notice signage and bottled water supplies FIRST
+                        </div>
+                        
+                        <ol>
+                            <li><strong>Boil Water Notice Management</strong>
+                                <ul>
+                                    <li>Verify boil water notices are posted at all taps and accommodation units</li>
+                                    <li>Check bottled water supplies at reception are adequate for 24 hours</li>
+                                    <li>Confirm guest information boards are updated</li>
+                                    <li>Test PA system for daily boil water announcements</li>
+                                </ul>
+                            </li>
+                            <li><strong>Gravity System Status Check</strong>
+                                <ul>
+                                    <li>Check system pressure readings (target: 2.0-2.5 bar)</li>
+                                    <li>Verify water is flowing to all accommodation areas</li>
+                                    <li>Monitor source flow rate from hill catchment</li>
+                                    <li>Check for any pressure drops indicating leaks or blockages</li>
+                                </ul>
+                            </li>
+                            <li><strong>Source Water Inspection</strong>
+                                <ul>
+                                    <li>Visual inspection of source water quality and color at collection pond</li>
+                                    <li>Check intake for debris or blockages affecting gravity flow</li>
+                                    <li>Note weather conditions affecting source quality and flow rate</li>
+                                    <li>Record any unusual observations that might affect boil water notice status</li>
+                                </ul>
+                            </li>
+                            <li><strong>Storage Tank Levels (Gravity Feed Critical)</strong>
+                                <ul>
+                                    <li>Record water levels in all storage tanks (critical for gravity system)</li>
+                                    <li>Check tank overflows are functioning and not backing up</li>
+                                    <li>Verify tank access covers are secure and locked</li>
+                                    <li>Inspect tank surroundings for contamination sources</li>
+                                    <li>Confirm adequate tank levels for continuous gravity flow</li>
+                                </ul>
+                            </li>
+                            <li><strong>Treatment System Status</strong>
+                                <ul>
+                                    <li>Check filter differential pressures (record readings - critical for gravity flow)</li>
+                                    <li>Verify UV system operation and intensity readings (critical during boil water notice)</li>
+                                    <li>Monitor pressure vessel pre-charge pressures</li>
+                                    <li>Review control system alarms and status</li>
+                                    <li>Check treatment plant is receiving adequate gravity flow</li>
+                                </ul>
+                            </li>
+                            <li><strong>Water Quality Assessment During Boil Water Notice</strong>
+                                <ul>
+                                    <li>Visual assessment of treated water clarity</li>
+                                    <li>Record turbidity reading at UV inlet (critical parameter)</li>
+                                    <li>Document UV intensity and ensure above minimum threshold</li>
+                                    <li>Check for any taste or odour complaints from guests</li>
+                                    <li>Verify boil water notice compliance in food service areas</li>
+                                </ul>
+                            </li>
+                        </ol>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Evening System Check (17:00 - 18:00)</h4>
+                        <ol>
+                            <li><strong>Gravity System Performance Review</strong>
+                                <ul>
+                                    <li>Review daily water flow totals and pressure trends</li>
+                                    <li>Check pressure has remained adequate throughout peak demand</li>
+                                    <li>Verify source flow has been sufficient for system demand</li>
+                                    <li>Monitor storage tank level changes during the day</li>
+                                </ul>
+                            </li>
+                            <li><strong>Boil Water Notice Status</strong>
+                                <ul>
+                                    <li>Confirm bottled water stocks remain adequate for overnight/next day</li>
+                                    <li>Check no guests have reported illness or water quality concerns</li>
+                                    <li>Verify food service has maintained boil water precautions</li>
+                                    <li>Prepare for evening PA announcement reinforcing boil water advice</li>
+                                </ul>
+                            </li>
+                            <li><strong>Alarm and Alert Status</strong>
+                                <ul>
+                                    <li>Clear any nuisance alarms related to gravity system fluctuations</li>
+                                    <li>Verify critical alarm systems are operational (especially UV and pressure)</li>
+                                    <li>Check backup power systems for UV disinfection</li>
+                                    <li>Review any unusual events or system deviations during the day</li>
+                                </ul>
+                            </li>
+                            <li><strong>Security and Compliance Check</strong>
+                                <ul>
+                                    <li>Ensure all access points to water system are secured</li>
+                                    <li>Check perimeter fencing around storage tanks and treatment plant</li>
+                                    <li>Verify CCTV systems covering water facilities are operational</li>
+                                    <li>Confirm daily log entries are complete for regulatory compliance</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Maintenance Procedures</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Filter Backwash Procedure</h4>
+                        
+                        <div class="alert alert-warning">
+                            <strong>Safety Warning:</strong> Ensure adequate water reserves before commencing backwash operation
+                        </div>
+
+                        <ol>
+                            <li><strong>Pre-Backwash Checks</strong>
+                                <ul>
+                                    <li>Verify minimum 50% storage tank capacity available</li>
+                                    <li>Check backwash discharge route is clear</li>
+                                    <li>Ensure personnel are clear of discharge area</li>
+                                    <li>Don appropriate PPE including waterproofs</li>
+                                </ul>
+                            </li>
+                            <li><strong>Backwash Sequence</strong>
+                                <ul>
+                                    <li>Initiate backwash cycle from control panel</li>
+                                    <li>Monitor backwash water quality - continue until clear</li>
+                                    <li>Typical duration: 10-15 minutes per filter</li>
+                                    <li>Allow system to settle for 5 minutes before restart</li>
+                                </ul>
+                            </li>
+                            <li><strong>Post-Backwash Verification</strong>
+                                <ul>
+                                    <li>Check filter differential pressure has reduced</li>
+                                    <li>Verify water quality has returned to normal</li>
+                                    <li>Record backwash volume and duration</li>
+                                    <li>Update maintenance log</li>
+                                </ul>
+                            </li>
+                        </ol>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">UV Lamp Replacement Procedure</h4>
+                        
+                        <div class="alert alert-danger">
+                            <strong>Critical Safety Warning:</strong> UV lamps contain mercury. Handle with extreme care and dispose as hazardous waste.
+                        </div>
+
+                        <ol>
+                            <li><strong>System Isolation</strong>
+                                <ul>
+                                    <li>Isolate UV system at electrical supply</li>
+                                    <li>Close water isolation valves</li>
+                                    <li>Drain UV chamber completely</li>
+                                    <li>Lock out/tag out electrical supply</li>
+                                </ul>
+                            </li>
+                            <li><strong>Lamp Replacement</strong>
+                                <ul>
+                                    <li>Allow UV chamber to cool (minimum 30 minutes)</li>
+                                    <li>Wear nitrile gloves and eye protection</li>
+                                    <li>Remove quartz sleeve carefully</li>
+                                    <li>Replace UV lamp with manufacturer approved type</li>
+                                    <li>Clean quartz sleeve with appropriate cleaner</li>
+                                    <li>Reassemble system ensuring correct O-ring placement</li>
+                                </ul>
+                            </li>
+                            <li><strong>System Commissioning</strong>
+                                <ul>
+                                    <li>Pressure test system at 1.5 x operating pressure</li>
+                                    <li>Restore electrical supply and check lamp operation</li>
+                                    <li>Verify UV intensity readings are within specification</li>
+                                    <li>Reset lamp hour counter</li>
+                                    <li>Update equipment records</li>
+                                </ul>
+                            </li>
+                        </ol>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Storage Tank Cleaning Procedure</h4>
+                        
+                        <div class="alert alert-danger">
+                            <strong>Confined Space Warning:</strong> Tank entry requires permit to work and trained personnel only
+                        </div>
+
+                        <ol>
+                            <li><strong>Preparation and Isolation</strong>
+                                <ul>
+                                    <li>Isolate tank from system operation</li>
+                                    <li>Drain tank completely via bottom outlet</li>
+                                    <li>Ventilate tank for minimum 30 minutes</li>
+                                    <li>Test atmosphere before entry</li>
+                                </ul>
+                            </li>
+                            <li><strong>Cleaning Process</strong>
+                                <ul>
+                                    <li>Entry only by trained confined space personnel</li>
+                                    <li>Continuous atmospheric monitoring during entry</li>
+                                    <li>Mechanical cleaning of all surfaces</li>
+                                    <li>Disinfection with sodium hypochlorite solution (50mg/L)</li>
+                                    <li>Contact time minimum 2 hours</li>
+                                </ul>
+                            </li>
+                            <li><strong>Commissioning</strong>
+                                <ul>
+                                    <li>Thorough flushing to remove disinfectant residual</li>
+                                    <li>Microbiological sampling before return to service</li>
+                                    <li>Visual inspection of water quality</li>
+                                    <li>Update cleaning records</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Chemical Handling Procedures</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">COSHH Assessment Requirements</h4>
+                        <ul class="checklist">
+                            <li>COSHH assessment for all chemicals used on site</li>
+                            <li>Safety Data Sheets readily available for all chemicals</li>
+                            <li>Emergency eye wash and shower facilities provided</li>
+                            <li>Appropriate storage facilities with secondary containment</li>
+                            <li>Spillage control equipment and procedures</li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Sodium Hypochlorite Handling</h4>
+                        <div class="alert alert-warning">
+                            <strong>Hazard:</strong> Corrosive, toxic by inhalation, environmental hazard
+                        </div>
+                        
+                        <ul>
+                            <li><strong>PPE Requirements:</strong> Chemical resistant gloves, eye protection, respiratory protection if poorly ventilated</li>
+                            <li><strong>Storage:</strong> Cool, dry, well-ventilated area away from acids and organic materials</li>
+                            <li><strong>Handling:</strong> Use only plastic or stainless steel containers and pipework</li>
+                            <li><strong>Spillage:</strong> Dilute with large quantities of water, neutralize with sodium bisulfite</li>
+                            <li><strong>Emergency:</strong> Eye contact - irrigate with water for 15 minutes, seek medical attention</li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">UV Lamp Disposal</h4>
+                        <ul class="checklist">
+                            <li>UV lamps classified as hazardous waste due to mercury content</li>
+                            <li>Store used lamps in original packaging or approved containers</li>
+                            <li>Arrange collection by licensed hazardous waste carrier</li>
+                            <li>Maintain waste transfer records for minimum 3 years</li>
+                            <li>Never dispose of UV lamps in general waste</li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Training Requirements</h3>
+                        
+                        <div class="data-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Role</th>
+                                        <th>Training Required</th>
+                                        <th>Frequency</th>
+                                        <th>Competency Assessment</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Site Manager</td>
+                                        <td>Water safety management, emergency procedures</td>
+                                        <td>Annual</td>
+                                        <td>Written and practical test</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Maintenance Supervisor</td>
+                                        <td>Equipment maintenance, confined space entry</td>
+                                        <td>Annual</td>
+                                        <td>Practical demonstration</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Duty Supervisor</td>
+                                        <td>Daily operations, basic maintenance</td>
+                                        <td>6 monthly</td>
+                                        <td>Competency checklist</td>
+                                    </tr>
+                                    <tr>
+                                        <td>General Staff</td>
+                                        <td>System awareness, emergency procedures</td>
+                                        <td>Annual</td>
+                                        <td>Safety briefing record</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monitoring & Testing Tab -->
+            <div id="monitoring" class="tab-content">
+                <div class="section">
+                    <h2 class="section-title">Monitoring & Testing Programme</h2>
+                    
+                    <div class="alert alert-info">
+                        <strong>Regulatory Basis:</strong> Monitoring programme designed to comply with Private Water Supplies (Scotland) Regulations 2006 and WHO Guidelines for Drinking-water Quality.
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Operational Monitoring</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Continuous Monitoring Parameters</h4>
+                        <div class="data-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Parameter</th>
+                                        <th>Location</th>
+                                        <th>Target Range</th>
+                                        <th>Alarm Level</th>
+                                        <th>Action Required</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>UV Intensity</td>
+                                        <td>UV Chamber</td>
+                                        <td>&gt;30 mW/cm²</td>
+                                        <td>&lt;25 mW/cm²</td>
+                                        <td>Immediate shutdown and investigation</td>
+                                    </tr>
+                                    <tr>
+                                        <td>System Pressure</td>
+                                        <td>Distribution</td>
+                                        <td>2.5-4.0 bar</td>
+                                        <td>&lt;2.0 bar</td>
+                                        <td>Check pumps and leakage</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Tank Levels</td>
+                                        <td>All Storage Tanks</td>
+                                        <td>25-90%</td>
+                                        <td>&lt;20% or &gt;95%</td>
+                                        <td>Check supply/demand balance</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Filter Pressure</td>
+                                        <td>Treatment Plant</td>
+                                        <td>&lt;0.5 bar differential</td>
+                                        <td>&gt;0.8 bar</td>
+                                        <td>Initiate backwash cycle</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Daily Monitoring Requirements</h4>
+                        <ul class="checklist">
+                            <li>Visual inspection of source water quality and color</li>
+                            <li>Turbidity measurement at UV system inlet</li>
+                            <li>UV intensity reading and lamp status verification</li>
+                            <li>System pressure and flow rate recording</li>
+                            <li>Storage tank water levels</li>
+                            <li>Treatment plant differential pressures</li>
+                            <li>Control system alarm status review</li>
+                            <li>Weather conditions affecting source quality</li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Water Quality Testing Schedule</h3>
+                        
+                        <div class="data-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Test Type</th>
+                                        <th>Parameters</th>
+                                        <th>Frequency</th>
+                                        <th>Sample Points</th>
+                                        <th>Laboratory</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Microbiological</td>
+                                        <td>E. coli, Enterococci, Coliforms</td>
+                                        <td>Monthly</td>
+                                        <td>Source, Post-UV, Distribution</td>
+                                        <td>UKAS Accredited</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Chemical Screening</td>
+                                        <td>pH, Conductivity, Turbidity, Iron, Manganese</td>
+                                        <td>Monthly</td>
+                                        <td>Source, Treated Water</td>
+                                        <td>UKAS Accredited</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Extended Chemical</td>
+                                        <td>Full schedule per regulations</td>
+                                        <td>Quarterly</td>
+                                        <td>Treated Water, Distribution</td>
+                                        <td>UKAS Accredited</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Pesticides</td>
+                                        <td>Organochlorines, Organophosphates</td>
+                                        <td>Bi-annually</td>
+                                        <td>Source Water</td>
+                                        <td>UKAS Accredited</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Legionella</td>
+                                        <td>Legionella spp.</td>
+                                        <td>Quarterly</td>
+                                        <td>Hot Water System</td>
+                                        <td>Specialist Laboratory</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Sampling Procedures</h4>
+                        
+                        <div class="alert alert-warning">
+                            <strong>Critical Requirement:</strong> All sampling must be conducted using aseptic techniques to prevent false positive results.
+                        </div>
+
+                        <ol>
+                            <li><strong>Sample Point Preparation</strong>
+                                <ul>
+                                    <li>Remove any attachments (aerators, hose connections)</li>
+                                    <li>Disinfect external surfaces with 70% alcohol</li>
+                                    <li>Flush for minimum 2 minutes at full flow</li>
+                                    <li>Reduce flow to gentle stream for sampling</li>
+                                </ul>
+                            </li>
+                            <li><strong>Sample Collection</strong>
+                                <ul>
+                                    <li>Use sterile sample bottles provided by laboratory</li>
+                                    <li>Do not touch bottle neck or cap interior</li>
+                                    <li>Fill bottle leaving small air space</li>
+                                    <li>Cap immediately and label clearly</li>
+                                </ul>
+                            </li>
+                            <li><strong>Sample Transport</strong>
+                                <ul>
+                                    <li>Keep samples chilled (1-4°C) during transport</li>
+                                    <li>Deliver to laboratory within 24 hours of collection</li>
+                                    <li>Complete chain of custody documentation</li>
+                                    <li>Record sample collection details</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Equipment Performance Monitoring</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">UV System Performance</h4>
+                        <ul class="checklist">
+                            <li>Daily UV intensity readings and lamp hour recording</li>
+                            <li>Weekly quartz sleeve visual inspection</li>
+                            <li>Monthly UV transmittance testing (UVT%)</li>
+                            <li>Quarterly electrical current and voltage measurements</li>
+                            <li>Bi-annual UV dose validation with bioassay</li>
+                            <li>Annual lamp replacement and system recalibration</li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Filtration System Performance</h4>
+                        <ul class="checklist">
+                            <li>Daily differential pressure monitoring</li>
+                            <li>Weekly turbidity measurement pre/post filtration</li>
+                            <li>Monthly filter media depth measurement</li>
+                            <li>Quarterly backwash water quality assessment</li>
+                            <li>Bi-annual filter media sampling and analysis</li>
+                            <li>Annual filter media replacement evaluation</li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Pump and Pressure System</h4>
+                        <ul class="checklist">
+                            <li>Daily pressure and flow rate recording</li>
+                            <li>Weekly pump vibration and noise assessment</li>
+                            <li>Monthly electrical current monitoring</li>
+                            <li>Quarterly pump efficiency calculation</li>
+                            <li>Annual pressure vessel and safety valve testing</li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Record Keeping Requirements</h3>
+                        
+                        <div class="alert alert-info">
+                            <strong>Legal Requirement:</strong> Records must be maintained for minimum 5 years and made available to regulatory authorities on request.
+                        </div>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Mandatory Records</h4>
+                        <ul class="checklist">
+                            <li>Daily operational monitoring logs</li>
+                            <li>Water quality test results and certificates</li>
+                            <li>Equipment maintenance and service records</li>
+                            <li>Incident reports and corrective actions</li>
+                            <li>Staff training records and competency assessments</li>
+                            <li>Chemical usage and inventory records</li>
+                            <li>Alarm and abnormal event logs</li>
+                            <li>Risk assessment reviews and updates</li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Electronic Data Management</h4>
+                        <ul>
+                            <li><strong>SCADA System:</strong> Automatic logging of operational parameters</li>
+                            <li><strong>Laboratory Database:</strong> Electronic storage of water quality results</li>
+                            <li><strong>Maintenance Management:</strong> Computerized maintenance scheduling and tracking</li>
+                            <li><strong>Document Control:</strong> Version controlled procedures and forms</li>
+                            <li><strong>Backup Systems:</strong> Regular data backup and disaster recovery procedures</li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Quality Assurance and Control</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Laboratory Quality Assurance</h4>
+                        <ul class="checklist">
+                            <li>Use only UKAS accredited laboratories for regulatory testing</li>
+                            <li>Participate in proficiency testing schemes</li>
+                            <li>Request duplicate analysis for critical parameters</li>
+                            <li>Maintain laboratory certificates and accreditation status</li>
+                            <li>Regular audit of laboratory performance</li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Internal Quality Control</h4>
+                        <ul class="checklist">
+                            <li>Monthly blank samples to test sampling procedures</li>
+                            <li>Duplicate samples for 10% of routine testing</li>
+                            <li>Equipment calibration and verification procedures</li>
+                            <li>Standard operating procedures for all testing</li>
+                            <li>Regular training and competency assessment</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Procedures Tab -->
+            <div id="emergency" class="tab-content">
+                <div class="section">
+                    <h2 class="section-title">Emergency Response Procedures</h2>
+                    
+                    <div class="alert alert-danger">
+                        <strong>Emergency Contact:</strong> 24/7 Emergency Response Line: 01234 567890<br>
+                        <strong>Primary Emergency Contact:</strong> Site Manager - Mobile: 07123 456789<br>
+                        <strong>Secondary Contact:</strong> Technical Manager - Mobile: 07987 654321
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Emergency Response Framework</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Emergency Classification System</h4>
+                        <div class="data-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Level</th>
+                                        <th>Description</th>
+                                        <th>Response Time</th>
+                                        <th>Notifications Required</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="background: #fef2f2;">
+                                        <td><strong>CRITICAL</strong></td>
+                                        <td>Immediate threat to public health</td>
+                                        <td>Immediate (0-30 minutes)</td>
+                                        <td>Emergency services, Local Authority, customers</td>
+                                    </tr>
+                                    <tr style="background: #fffbeb;">
+                                        <td><strong>MAJOR</strong></td>
+                                        <td>Significant system failure or contamination</td>
+                                        <td>Within 2 hours</td>
+                                        <td>Local Authority, customers, management</td>
+                                    </tr>
+                                    <tr style="background: #f0fdf4;">
+                                        <td><strong>MINOR</strong></td>
+                                        <td>Equipment failure with backup available</td>
+                                        <td>Within 24 hours</td>
+                                        <td>Management, maintenance team</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Emergency Response Team</h4>
+                        <ul>
+                            <li><strong>Incident Commander:</strong> Site Manager (or nominated deputy)</li>
+                            <li><strong>Technical Lead:</strong> Maintenance Supervisor</li>
+                            <li><strong>Customer Liaison:</strong> Reception Manager</li>
+                            <li><strong>External Liaison:</strong> Site Manager</li>
+                            <li><strong>Safety Officer:</strong> H&S Coordinator</li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Specific Emergency Procedures</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">CRITICAL: UV System Failure (Current Risk)</h4>
+                        
+                        <div class="alert alert-danger">
+                            <strong>CURRENT STATUS:</strong> System currently under boil water notice - UV effectiveness may be compromised<br>
+                            <strong>IMMEDIATE ACTIONS (Within 15 minutes):</strong>
+                        </div>
+                        
+                        <ol>
+                            <li><strong>System Assessment</strong>
+                                <ul>
+                                    <li>Verify current UV system status and intensity readings</li>
+                                    <li>Check if failure is related to current boil water notice</li>
+                                    <li>Maintain current boil water notice until resolution</li>
+                                    <li>Ensure bottled water supply is adequate</li>
+                                </ul>
+                            </li>
+                            <li><strong>Immediate Notifications</strong>
+                                <ul>
+                                    <li>Contact Argyll & Bute Environmental Health: 01546 605519</li>
+                                    <li>Notify site management and emergency response team</li>
+                                    <li>Reinforce boil water notice to all guests via PA and notices</li>
+                                    <li>Contact backup water supplier: Highland Spring 01764 679200</li>
+                                </ul>
+                            </li>
+                            <li><strong>Gravity System Considerations</strong>
+                                <ul>
+                                    <li>Cannot isolate supply using pumps - use gravity-fed isolation valves</li>
+                                    <li>Maintain pressure in system using existing pressure vessels</li>
+                                    <li>Monitor pressure levels throughout emergency response</li>
+                                    <li>Plan for reduced flow rates during emergency supply setup</li>
+                                </ul>
+                            </li>
+                            <li><strong>Emergency Water Supply</strong>
+                                <ul>
+                                    <li>Increase emergency bottled water distribution</li>
+                                    <li>Arrange emergency water tanker delivery (gravity-compatible connection)</li>
+                                    <li>Set up emergency water distribution points</li>
+                                    <li>Implement enhanced water rationing due to gravity system constraints</li>
+                                </ul>
+                            </li>
+                        </ol>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">MAJOR: Gravity System Pressure Loss</h4>
+                        
+                        <div class="alert alert-warning">
+                            <strong>TRIGGER EVENTS:</strong> System pressure below 2.0 bar, inadequate flow to accommodation units
+                        </div>
+                        
+                        <ol>
+                            <li><strong>Immediate Assessment (Within 15 minutes)</strong>
+                                <ul>
+                                    <li>Check all storage tank levels immediately</li>
+                                    <li>Verify pressure vessel pre-charge pressures</li>
+                                    <li>Inspect for major leaks or pipe failures</li>
+                                    <li>Monitor source flow rate from hill collection</li>
+                                </ul>
+                            </li>
+                            <li><strong>System Diagnosis</strong>
+                                <ul>
+                                    <li>Identify if problem is source flow, storage, or distribution</li>
+                                    <li>Check for blockages in treatment plant reducing flow</li>
+                                    <li>Assess if seasonal source yield is insufficient</li>
+                                    <li>Determine if high demand is exceeding gravity supply capacity</li>
+                                </ul>
+                            </li>
+                            <li><strong>Emergency Actions</strong>
+                                <ul>
+                                    <li>Implement immediate demand reduction measures</li>
+                                    <li>Deploy emergency bottled water for critical needs</li>
+                                    <li>Prepare for potential accommodation unit isolation if needed</li>
+                                    <li>Consider emergency pumping equipment if available</li>
+                                </ul>
+                            </li>
+                        </ol>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">MAJOR: Source Water Contamination</h4>
+                        
+                        <div class="alert alert-warning">
+                            <strong>TRIGGER EVENTS:</strong> Visible contamination, unusual odor, dead animals in catchment, chemical spill upstream
+                        </div>
+                        
+                        <ol>
+                            <li><strong>Source Isolation (Within 30 minutes)</strong>
+                                <ul>
+                                    <li>Close source water intake valve</li>
+                                    <li>Investigate contamination source</li>
+                                    <li>Take photographs and water samples</li>
+                                    <li>Secure contamination area if accessible</li>
+                                </ul>
+                            </li>
+                            <li><strong>System Assessment</strong>
+                                <ul>
+                                    <li>Check if contamination has entered storage tanks</li>
+                                    <li>Assess remaining water reserves</li>
+                                    <li>Estimate time to alternative supply needed</li>
+                                    <li>Review treatment system capability</li>
+                                </ul>
+                            </li>
+                            <li><strong>Customer Protection</strong>
+                                <ul>
+                                    <li>Issue boil water notice if contamination suspected</li>
+                                    <li>Provide bottled water for drinking and cooking</li>
+                                    <li>Monitor customer complaints and health issues</li>
+                                    <li>Liaise with NHS Highland if health concerns arise</li>
+                                </ul>
+                            </li>
+                        </ol>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">MAJOR: Power Supply Failure</h4>
+                        
+                        <div class="alert alert-info">
+                            <strong>GRAVITY SYSTEM ADVANTAGE:</strong> Water flow continues during power failure, but UV disinfection and monitoring systems affected
+                        </div>
+                        
+                        <ol>
+                            <li><strong>Immediate Response (Within 10 minutes)</strong>
+                                <ul>
+                                    <li>Check main electrical supply and local distribution</li>
+                                    <li>Start emergency generator (automatic or manual)</li>
+                                    <li>Prioritize power to UV disinfection system FIRST</li>
+                                    <li>Verify critical systems have power (UV, controls, monitoring)</li>
+                                    <li>Contact Scottish Power Networks: 0800 092 9290</li>
+                                </ul>
+                            </li>
+                            <li><strong>System Prioritization for Gravity-Fed System</strong>
+                                <ul>
+                                    <li>Priority 1: UV disinfection system (CRITICAL - maintain boil water notice if offline)</li>
+                                    <li>Priority 2: Monitoring and alarm systems</li>
+                                    <li>Priority 3: Treatment plant automation (filters can operate manually)</li>
+                                    <li>Priority 4: Communications and emergency lighting</li>
+                                    <li>Water flow continues via gravity - NO PUMPING REQUIRED</li>
+                                </ul>
+                            </li>
+                            <li><strong>Manual Operation Procedures</strong>
+                                <ul>
+                                    <li>Water continues to flow by gravity during power outage</li>
+                                    <li>Monitor system manually at 2-hour intervals</li>
+                                    <li>Manual filter backwashing if automated systems offline</li>
+                                    <li>Implement fuel conservation for extended outages</li>
+                                    <li>Maintain boil water notice if UV system cannot be powered</li>
+                                </ul>
+                            </li>
+                            <li><strong>Guest Communication</strong>
+                                <ul>
+                                    <li>Inform guests that water continues to flow (gravity-fed advantage)</li>
+                                    <li>Maintain or strengthen boil water notice during UV downtime</li>
+                                    <li>Provide battery-powered PA announcements</li>
+                                    <li>Increase bottled water distribution as precaution</li>
+                                </ul>
+                            </li>
+                        </ol>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">MAJOR: Storage Tank Contamination</h4>
+                        
+                        <ol>
+                            <li><strong>Contamination Assessment</strong>
+                                <ul>
+                                    <li>Identify contaminated tank(s) and isolate immediately</li>
+                                    <li>Determine contamination source and extent</li>
+                                    <li>Take water samples for emergency analysis</li>
+                                    <li>Assess impact on remaining system capacity</li>
+                                </ul>
+                            </li>
+                            <li><strong>System Reconfiguration</strong>
+                                <ul>
+                                    <li>Switch to uncontaminated storage tanks</li>
+                                    <li>Bypass contaminated tanks from system</li>
+                                    <li>Increase monitoring of remaining tanks</li>
+                                    <li>Implement enhanced disinfection if needed</li>
+                                </ul>
+                            </li>
+                            <li><strong>Tank Remediation</strong>
+                                <ul>
+                                    <li>Drain contaminated tank completely</li>
+                                    <li>Clean and disinfect using approved procedures</li>
+                                    <li>Test water quality before return to service</li>
+                                    <li>Investigate and eliminate contamination source</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Communication Procedures</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Regulatory Notifications</h4>
+                        
+                        <div class="data-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Authority</th>
+                                        <th>Contact Details</th>
+                                        <th>Notification Trigger</th>
+                                        <th>Time Limit</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Argyll & Bute Environmental Health</td>
+                                        <td>01546 605519</td>
+                                        <td>Any quality failure or system breakdown</td>
+                                        <td>24 hours</td>
+                                    </tr>
+                                    <tr>
+                                        <td>NHS Highland</td>
+                                        <td>01463 717123</td>
+                                        <td>Public health risk identified</td>
+                                        <td>4 hours</td>
+                                    </tr>
+                                    <tr>
+                                        <td>SEPA</td>
+                                        <td>0800 807060</td>
+                                        <td>Environmental pollution incident</td>
+                                        <td>Immediate</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Emergency Services</td>
+                                        <td>999</td>
+                                        <td>Immediate danger to life</td>
+                                        <td>Immediate</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Customer Communication</h4>
+                        <ul class="checklist">
+                            <li>PA system announcements for immediate notifications</li>
+                            <li>Notice boards at reception and key locations</li>
+                            <li>Door-to-door notifications for critical health risks</li>
+                            <li>Website and social media updates</li>
+                            <li>Local media coordination if required</li>
+                            <li>Regular updates every 4 hours during incidents</li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Internal Communication</h4>
+                        <ul class="checklist">
+                            <li>Emergency cascade calling system for staff</li>
+                            <li>Incident command post establishment</li>
+                            <li>Regular situation reports to management</li>
+                            <li>Coordination with external contractors</li>
+                            <li>Documentation of all communications</li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Emergency Resources and Equipment</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Emergency Water Supply</h4>
+                        <ul class="checklist">
+                            <li>Emergency bottled water stock: 1000 litres minimum</li>
+                            <li>Water storage containers: 20 x 25L containers</li>
+                            <li>Emergency water tanker supplier on retainer</li>
+                            <li>Temporary pipeline equipment and fittings</li>
+                            <li>Water quality test kits for field testing</li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Emergency Equipment</h4>
+                        <ul class="checklist">
+                            <li>Emergency generator: 20kVA diesel generator</li>
+                            <li>Portable pumps: 2 x diesel driven pumps</li>
+                            <li>Spare UV lamps and quartz sleeves</li>
+                            <li>Chemical disinfection kit (sodium hypochlorite)</li>
+                            <li>Pipeline repair kit and isolation equipment</li>
+                            <li>Emergency communication equipment (satellite phone)</li>
+                            <li>PPE for emergency response team</li>
+                            <li>Sampling equipment and containers</li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">External Contractor Support</h4>
+                        <ul>
+                            <li><strong>Emergency Water Supply:</strong> Highland Spring - 01764 679200</li>
+                            <li><strong>Generator Hire:</strong> HSS Hire - 0345 266 5050</li>
+                            <li><strong>Emergency Plumbing:</strong> Oban Plumbing Services - 01631 123456</li>
+                            <li><strong>Water Testing:</strong> ALS Laboratory - 01234 567890</li>
+                            <li><strong>Waste Disposal:</strong> Highland Waste - 01631 987654</li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Recovery and Restoration Procedures</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">System Restart Procedures</h4>
+                        <ol>
+                            <li><strong>Pre-Restart Checks</strong>
+                                <ul>
+                                    <li>Verify contamination source has been eliminated</li>
+                                    <li>Confirm all equipment is operational</li>
+                                    <li>Complete system disinfection if required</li>
+                                    <li>Take water quality samples before restart</li>
+                                </ul>
+                            </li>
+                            <li><strong>Graduated Restart</strong>
+                                <ul>
+                                    <li>Start with single system component testing</li>
+                                    <li>Gradually bring systems online</li>
+                                    <li>Monitor water quality at each stage</li>
+                                    <li>Confirm customer supply quality before full service</li>
+                                </ul>
+                            </li>
+                            <li><strong>Service Restoration</strong>
+                                <ul>
+                                    <li>Notify customers of service restoration</li>
+                                    <li>Implement enhanced monitoring for 48 hours</li>
+                                    <li>Arrange customer complaint monitoring</li>
+                                    <li>Complete incident investigation and reporting</li>
+                                </ul>
+                            </li>
+                        </ol>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Post-Incident Actions</h4>
+                        <ul class="checklist">
+                            <li>Complete incident investigation within 7 days</li>
+                            <li>Submit incident report to regulatory authorities</li>
+                            <li>Conduct lessons learned workshop</li>
+                            <li>Update emergency procedures based on experience</li>
+                            <li>Replenish emergency supplies and equipment</li>
+                            <li>Review emergency response team performance</li>
+                            <li>Implement preventive measures to avoid recurrence</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Business Continuity Tab -->
+            <div id="continuity" class="tab-content">
+                <div class="section">
+                    <h2 class="section-title">Business Continuity Management Plan</h2>
+                    
+                    <div class="alert alert-info">
+                        <strong>Business Continuity Objective:</strong> Maintain continuous safe water supply to holiday park guests while ensuring business operations can continue during system disruptions.
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Business Impact Analysis</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Critical Business Functions</h4>
+                        <div class="data-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Function</th>
+                                        <th>Priority</th>
+                                        <th>Maximum Tolerable Outage</th>
+                                        <th>Business Impact</th>
+                                        <th>Dependencies</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Safe Drinking Water Supply</td>
+                                        <td>Critical</td>
+                                        <td>4 hours</td>
+                                        <td>Health risk, guest evacuation</td>
+                                        <td>Treatment plant, power supply</td>
+                                    </tr>
+                                    <tr>
+                                        <td>General Water Supply</td>
+                                        <td>Essential</td>
+                                        <td>12 hours</td>
+                                        <td>Guest dissatisfaction, facility closure</td>
+                                        <td>Storage tanks, distribution pumps</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Guest Accommodation</td>
+                                        <td>Essential</td>
+                                        <td>24 hours</td>
+                                        <td>Revenue loss, reputation damage</td>
+                                        <td>Water supply, sewage treatment</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Food Service Operations</td>
+                                        <td>Important</td>
+                                        <td>8 hours</td>
+                                        <td>Food safety risk, revenue loss</td>
+                                        <td>Safe water supply, refrigeration</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Recreational Facilities</td>
+                                        <td>Desirable</td>
+                                        <td>48 hours</td>
+                                        <td>Guest dissatisfaction</td>
+                                        <td>Water supply, power</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Financial Impact Assessment</h4>
+                        <ul>
+                            <li><strong>Direct Costs:</strong>
+                                <ul>
+                                    <li>Emergency water supply: £500-1000 per day</li>
+                                    <li>Generator fuel and operation: £200-400 per day</li>
+                                    <li>Emergency contractor call-out: £1000-5000</li>
+                                    <li>Guest compensation: £100-200 per unit per day</li>
+                                </ul>
+                            </li>
+                            <li><strong>Indirect Costs:</strong>
+                                <ul>
+                                    <li>Lost revenue from cancelled bookings</li>
+                                    <li>Reputation damage and future booking losses</li>
+                                    <li>Regulatory penalties and legal costs</li>
+                                    <li>Staff overtime and additional resources</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Risk Treatment Strategies</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Water Supply Resilience</h4>
+                        
+                        <div class="alert alert-success">
+                            <strong>Current Resilience Measures:</strong>
+                        </div>
+                        
+                        <ul class="checklist">
+                            <li>Multiple storage tanks (187,000L total capacity)</li>
+                            <li>2.5 day water reserves at peak demand</li>
+                            <li>Backup pumping systems</li>
+                            <li>Emergency generator power supply</li>
+                            <li>Emergency bottled water stockpile</li>
+                            <li>Established emergency water supplier contracts</li>
+                        </ul>
+
+                        <div class="alert alert-warning">
+                            <strong>Recommended Enhancements:</strong>
+                        </div>
+                        
+                        <ul>
+                            <li><strong>Backup UV System:</strong> Install secondary UV disinfection unit for redundancy</li>
+                            <li><strong>Alternative Source:</strong> Develop emergency borehole or connection to mains supply</li>
+                            <li><strong>Enhanced Storage:</strong> Additional 50,000L emergency storage tank</li>
+                            <li><strong>Mobile Treatment:</strong> Containerized mobile water treatment unit on standby</li>
+                            <li><strong>Automatic Systems:</strong> Enhanced automation for unmanned operation</li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Operational Continuity</h4>
+                        <ul class="checklist">
+                            <li>24/7 monitoring and alarm systems</li>
+                            <li>Automated system operation capabilities</li>
+                            <li>Cross-trained staff for key operations</li>
+                            <li>Documented standard operating procedures</li>
+                            <li>External contractor support arrangements</li>
+                            <li>Emergency response team structure</li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Alternative Operating Strategies</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Scenario 1: Current Status - Boil Water Notice (Ongoing)</h4>
+                        <div class="alert alert-danger">
+                            <strong>Current Situation:</strong> Boil water notice active, gravity system operational, UV disinfection compromised
+                        </div>
+                        
+                        <ul>
+                            <li><strong>Water Supply Management:</strong>
+                                <ul>
+                                    <li>FREE bottled water available 24/7 at reception for all guests</li>
+                                    <li>Maintain gravity-fed supply for non-potable uses (toilets, showers)</li>
+                                    <li>Clear boil water notices at all taps and accommodation units</li>
+                                    <li>Enhanced monitoring of UV system and source water quality</li>
+                                </ul>
+                            </li>
+                            <li><strong>Operational Adjustments:</strong>
+                                <ul>
+                                    <li>Continue normal guest accommodation with enhanced water safety messaging</li>
+                                    <li>Modify food service operations (use bottled water for all food preparation)</li>
+                                    <li>Increase staff presence for guest support and information</li>
+                                    <li>Daily communication with Environmental Health authority</li>
+                                </ul>
+                            </li>
+                            <li><strong>Guest Services:</strong>
+                                <ul>
+                                    <li>Comprehensive check-in briefing on water safety precautions</li>
+                                    <li>Written information in all accommodation units</li>
+                                    <li>Daily PA announcements reinforcing boil water advice</li>
+                                    <li>Additional bottled water supplies in units upon request</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Scenario 2: Gravity System Pressure Loss (4-24 hours)</h4>
+                        <div class="alert alert-warning">
+                            <strong>Triggers:</strong> Pressure below 2.0 bar, source flow reduction, major leaks
+                        </div>
+                        
+                        <ul>
+                            <li><strong>Water Supply Strategy:</strong>
+                                <ul>
+                                    <li>Immediate demand reduction through guest communication</li>
+                                    <li>Deploy emergency bottled water for all drinking/cooking needs</li>
+                                    <li>Use remaining gravity pressure for essential non-potable needs</li>
+                                    <li>Consider temporary accommodation unit isolation if pressure insufficient</li>
+                                </ul>
+                            </li>
+                            <li><strong>Operational Response:</strong>
+                                <ul>
+                                    <li>Implement water conservation measures throughout site</li>
+                                    <li>Suspend non-essential water-using activities</li>
+                                    <li>Increase bottled water distribution points</li>
+                                    <li>Prepare for potential guest relocation if pressure cannot be restored</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Scenario 3: Extended System Failure (>24 hours)</h4>
+                        <div class="alert alert-danger">
+                            <strong>Triggers:</strong> Major source contamination, catastrophic UV failure, gravity system collapse
+                        </div>
+                        
+                        <ul>
+                            <li><strong>Emergency Water Supply:</strong>
+                                <ul>
+                                    <li>Install temporary water tanker with gravity-compatible connections</li>
+                                    <li>Establish multiple water distribution points throughout park</li>
+                                    <li>Implement comprehensive bottled water supply for all needs</li>
+                                    <li>Consider partial site evacuation if gravity system cannot support basic needs</li>
+                                </ul>
+                            </li>
+                            <li><strong>Business Continuity:</strong>
+                                <ul>
+                                    <li>Reduce site capacity by 50-75% depending on water availability</li>
+                                    <li>Relocate guests to partner accommodations with confirmed safe water supply</li>
+                                    <li>Suspend all non-essential services</li>
+                                    <li>Focus all resources on water system restoration</li>
+                                    <li>Activate business interruption insurance</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Communication and Stakeholder Management</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Internal Communications</h4>
+                        <ul class="checklist">
+                            <li>Executive management notification within 30 minutes</li>
+                            <li>All staff briefing within 2 hours</li>
+                            <li>Daily management briefings during incidents</li>
+                            <li>Board/owner notification for major incidents</li>
+                            <li>Staff welfare and support arrangements</li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">External Communications</h4>
+                        <ul class="checklist">
+                            <li>Regulatory authority notifications as required</li>
+                            <li>Customer information via multiple channels</li>
+                            <li>Media management for significant incidents</li>
+                            <li>Partner facility coordination for guest relocation</li>
+                            <li>Supplier and contractor mobilization</li>
+                            <li>Insurance company notification</li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Customer Care Strategy</h4>
+                        <ul>
+                            <li><strong>Immediate Response:</strong>
+                                <ul>
+                                    <li>Clear, honest communication about situation</li>
+                                    <li>Provision of alternative water supply</li>
+                                    <li>Accommodation modifications or alternatives</li>
+                                    <li>Regular updates on restoration progress</li>
+                                </ul>
+                            </li>
+                            <li><strong>Recovery Phase:</strong>
+                                <ul>
+                                    <li>Service credits or refunds as appropriate</li>
+                                    <li>Future booking incentives</li>
+                                    <li>Personal follow-up with affected guests</li>
+                                    <li>Public relations campaign for reputation recovery</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Resource Management</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Emergency Supply Chain</h4>
+                        <div class="data-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Resource</th>
+                                        <th>Primary Supplier</th>
+                                        <th>Backup Supplier</th>
+                                        <th>Response Time</th>
+                                        <th>Contract Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Bottled Water</td>
+                                        <td>Highland Spring</td>
+                                        <td>Strathmore Water</td>
+                                        <td>4 hours</td>
+                                        <td>Framework agreement</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Water Tanker</td>
+                                        <td>Aqua Flow Services</td>
+                                        <td>Highland Water Transport</td>
+                                        <td>6 hours</td>
+                                        <td>Call-off contract</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Emergency Accommodation</td>
+                                        <td>Oban Bay Hotel</td>
+                                        <td>Local B&B Network</td>
+                                        <td>2 hours</td>
+                                        <td>Reciprocal agreement</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Generator</td>
+                                        <td>HSS Hire</td>
+                                        <td>Speedy Hire</td>
+                                        <td>8 hours</td>
+                                        <td>Priority customer</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Technical Support</td>
+                                        <td>safewater.pro</td>
+                                        <td>AquaTech Solutions</td>
+                                        <td>4 hours</td>
+                                        <td>Retainer agreement</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Financial Resources</h4>
+                        <ul class="checklist">
+                            <li>Emergency fund: £50,000 immediately available</li>
+                            <li>Business interruption insurance coverage</li>
+                            <li>Public liability insurance for health incidents</li>
+                            <li>Equipment breakdown insurance</li>
+                            <li>Crisis management expense coverage</li>
+                            <li>Rapid access credit facilities</li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Human Resources</h4>
+                        <ul class="checklist">
+                            <li>Emergency response team with defined roles</li>
+                            <li>Staff cascade calling system</li>
+                            <li>External contractor emergency call-out list</li>
+                            <li>Temporary staffing agency arrangements</li>
+                            <li>Staff welfare and support procedures</li>
+                            <li>Alternative accommodation for key staff</li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Testing and Maintenance</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Business Continuity Testing Schedule</h4>
+                        <div class="data-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Test Type</th>
+                                        <th>Frequency</th>
+                                        <th>Scope</th>
+                                        <th>Success Criteria</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Desktop Exercise</td>
+                                        <td>Quarterly</td>
+                                        <td>Decision making and communications</td>
+                                        <td>Response within target times</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Emergency Generator Test</td>
+                                        <td>Monthly</td>
+                                        <td>Power backup systems</td>
+                                        <td>Automatic start and load acceptance</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Water Supply Exercise</td>
+                                        <td>Bi-annually</td>
+                                        <td>Alternative water supply deployment</td>
+                                        <td>Supply established within 4 hours</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Full-scale Exercise</td>
+                                        <td>Annually</td>
+                                        <td>Complete business continuity plan</td>
+                                        <td>All functions restored within targets</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Plan Maintenance</h4>
+                        <ul class="checklist">
+                            <li>Annual plan review and update</li>
+                            <li>Contact list verification quarterly</li>
+                            <li>Resource availability confirmation bi-annually</li>
+                            <li>Staff training and awareness annually</li>
+                            <li>Lessons learned integration after incidents</li>
+                            <li>Regulatory requirement updates</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documentation Tab -->
+            <div id="documentation" class="tab-content">
+                <div class="section">
+                    <h2 class="section-title">Documentation and Record Management</h2>
+                    
+                    <div class="alert alert-info">
+                        <strong>Document Control:</strong> This system maintains comprehensive documentation in compliance with ISO 9001 quality management principles and regulatory requirements.
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Document Hierarchy and Control</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Document Classification System</h4>
+                        <div class="data-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Level</th>
+                                        <th>Document Type</th>
+                                        <th>Purpose</th>
+                                        <th>Review Frequency</th>
+                                        <th>Approval Authority</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>Risk Assessment</td>
+                                        <td>Regulatory compliance and safety management</td>
+                                        <td>5 years or on change</td>
+                                        <td>Technical Director</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>Operating Procedures</td>
+                                        <td>Standard operating methods</td>
+                                        <td>Annual</td>
+                                        <td>Site Manager</td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>Work Instructions</td>
+                                        <td>Detailed task procedures</td>
+                                        <td>2 years</td>
+                                        <td>Maintenance Supervisor</td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td>Forms and Records</td>
+                                        <td>Data capture and evidence</td>
+                                        <td>As required</td>
+                                        <td>Duty Supervisor</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Version Control System</h4>
+                        <ul class="checklist">
+                            <li>Unique document identification numbers</li>
+                            <li>Version numbering system (major.minor format)</li>
+                            <li>Change control log with reasons for changes</li>
+                            <li>Approval signatures and dates</li>
+                            <li>Distribution list maintenance</li>
+                            <li>Obsolete document withdrawal procedures</li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Mandatory Documentation</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Regulatory Documentation</h4>
+                        <ul>
+                            <li><strong>WSR-001 Water Supply Risk Assessment</strong> (This Document)
+                                <ul>
+                                    <li>Current Version: 3.0</li>
+                                    <li>Last Review: <span id="documentDate"></span></li>
+                                    <li>Next Review: <span id="nextReviewDate"></span></li>
+                                    <li>Prepared by: safewater.pro and Omnibosh CQR365</li>
+                                </ul>
+                            </li>
+                            <li><strong>WSP-001 Water Safety Plan</strong>
+                                <ul>
+                                    <li>Comprehensive HACCP-based water safety management</li>
+                                    <li>Critical control point identification and monitoring</li>
+                                    <li>Corrective action procedures</li>
+                                    <li>Management responsibilities and authorities</li>
+                                </ul>
+                            </li>
+                            <li><strong>EMS-001 Environmental Management System</strong>
+                                <ul>
+                                    <li>Environmental impact assessment</li>
+                                    <li>Waste management procedures</li>
+                                    <li>Chemical storage and handling</li>
+                                    <li>Energy management and efficiency</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Operational Documentation</h4>
+                        <ul>
+                            <li><strong>SOP-001 Daily Operation Procedures</strong></li>
+                            <li><strong>SOP-002 Equipment Maintenance Procedures</strong></li>
+                            <li><strong>SOP-003 Water Quality Testing Procedures</strong></li>
+                            <li><strong>SOP-004 Emergency Response Procedures</strong></li>
+                            <li><strong>SOP-005 Tank Cleaning and Disinfection</strong></li>
+                            <li><strong>SOP-006 UV System Maintenance</strong></li>
+                            <li><strong>SOP-007 Filter Maintenance and Replacement</strong></li>
+                            <li><strong>SOP-008 Chemical Handling and Storage</strong></li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Training Documentation</h4>
+                        <ul>
+                            <li><strong>TRN-001 Water System Operator Training</strong></li>
+                            <li><strong>TRN-002 Emergency Response Training</strong></li>
+                            <li><strong>TRN-003 Confined Space Entry Training</strong></li>
+                            <li><strong>TRN-004 Chemical Handling Training</strong></li>
+                            <li><strong>TRN-005 Equipment Maintenance Training</strong></li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Record Management System</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Electronic Records Management</h4>
+                        
+                        <div class="alert alert-success">
+                            <strong>Primary System:</strong> Omnibosh CQR365 Cloud-based Document Management Platform
+                        </div>
+                        
+                        <ul class="checklist">
+                            <li>Secure cloud storage with 99.9% uptime guarantee</li>
+                            <li>Automated backup and disaster recovery</li>
+                            <li>Role-based access control and audit trails</li>
+                            <li>Mobile app access for field data entry</li>
+                            <li>Integration with monitoring equipment</li>
+                            <li>Automated report generation and distribution</li>
+                            <li>Document retention and disposal scheduling</li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Data Security and Backup</h4>
+                        <ul class="checklist">
+                            <li>Daily automated backups to multiple locations</li>
+                            <li>256-bit encryption for data in transit and at rest</li>
+                            <li>Two-factor authentication for system access</li>
+                            <li>Regular penetration testing and security audits</li>
+                            <li>GDPR compliance for personal data handling</li>
+                            <li>Business continuity planning for IT systems</li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Physical Records</h4>
+                        <ul class="checklist">
+                            <li>Fireproof safe storage for critical documents</li>
+                            <li>Climate-controlled archive storage facility</li>
+                            <li>Document indexing and retrieval system</li>
+                            <li>Regular audit of physical document inventory</li>
+                            <li>Secure disposal procedures for confidential waste</li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Record Retention Schedule</h3>
+                        
+                        <div class="data-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Record Type</th>
+                                        <th>Retention Period</th>
+                                        <th>Storage Location</th>
+                                        <th>Disposal Method</th>
+                                        <th>Legal Basis</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Water Quality Test Results</td>
+                                        <td>5 years</td>
+                                        <td>Electronic archive</td>
+                                        <td>Secure deletion</td>
+                                        <td>PWS Regulations 2006</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Daily Operational Logs</td>
+                                        <td>5 years</td>
+                                        <td>Electronic/Physical</td>
+                                        <td>Secure shredding</td>
+                                        <td>PWS Regulations 2006</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Equipment Maintenance Records</td>
+                                        <td>Life of equipment + 5 years</td>
+                                        <td>Electronic archive</td>
+                                        <td>Secure deletion</td>
+                                        <td>Health & Safety legislation</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Training Records</td>
+                                        <td>40 years</td>
+                                        <td>Electronic archive</td>
+                                        <td>Secure deletion</td>
+                                        <td>HSWA 1974</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Incident Reports</td>
+                                        <td>10 years</td>
+                                        <td>Electronic/Physical</td>
+                                        <td>Secure disposal</td>
+                                        <td>Health & Safety legislation</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Risk Assessments</td>
+                                        <td>10 years after superseded</td>
+                                        <td>Electronic archive</td>
+                                        <td>Secure deletion</td>
+                                        <td>PWS Regulations 2006</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Chemical Data Sheets</td>
+                                        <td>40 years</td>
+                                        <td>Electronic archive</td>
+                                        <td>Secure deletion</td>
+                                        <td>COSHH Regulations</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Insurance Documentation</td>
+                                        <td>6 years after expiry</td>
+                                        <td>Physical safe</td>
+                                        <td>Secure shredding</td>
+                                        <td>Financial regulations</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Quality Assurance and Audit</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Internal Audit Schedule</h4>
+                        <div class="data-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Audit Area</th>
+                                        <th>Frequency</th>
+                                        <th>Auditor</th>
+                                        <th>Scope</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Document Control</td>
+                                        <td>Quarterly</td>
+                                        <td>Quality Manager</td>
+                                        <td>Version control, distribution, obsolete document withdrawal</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Record Keeping</td>
+                                        <td>Bi-annually</td>
+                                        <td>External Auditor</td>
+                                        <td>Completeness, accuracy, retention compliance</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Training Records</td>
+                                        <td>Annually</td>
+                                        <td>HR Manager</td>
+                                        <td>Training completion, competency assessment</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Regulatory Compliance</td>
+                                        <td>Annually</td>
+                                        <td>safewater.pro</td>
+                                        <td>Full regulatory requirement compliance review</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">External Audit and Inspection</h4>
+                        <ul class="checklist">
+                            <li>Local Authority annual inspection preparation</li>
+                            <li>Third-party certification body audits</li>
+                            <li>Insurance company risk assessments</li>
+                            <li>Customer audit and compliance verification</li>
+                            <li>Regulatory agency special investigations</li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Continuous Improvement</h4>
+                        <ul class="checklist">
+                            <li>Monthly management review meetings</li>
+                            <li>Quarterly system performance analysis</li>
+                            <li>Annual comprehensive system review</li>
+                            <li>Corrective and preventive action tracking</li>
+                            <li>Customer feedback integration</li>
+                            <li>Best practice benchmarking</li>
+                            <li>Technology advancement evaluation</li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Digital Innovation and Future Development</h3>
+                        
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Smart Monitoring Integration</h4>
+                        <ul class="checklist">
+                            <li>IoT sensor network for real-time monitoring</li>
+                            <li>Artificial intelligence for predictive maintenance</li>
+                            <li>Mobile workforce management applications</li>
+                            <li>Customer portal for service information</li>
+                            <li>Blockchain technology for record integrity</li>
+                        </ul>
+
+                        <h4 style="margin: 1rem 0 0.5rem 0; font-weight: 600;">Sustainability Reporting</h4>
+                        <ul class="checklist">
+                            <li>Carbon footprint monitoring and reporting</li>
+                            <li>Water efficiency metrics and benchmarking</li>
+                            <li>Waste minimization and circular economy</li>
+                            <li>Biodiversity impact assessment</li>
+                            <li>Social responsibility and community engagement</li>
+                        </ul>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Contact Information</h3>
+                        
+                        <div class="data-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Role</th>
+                                        <th>Name</th>
+                                        <th>Contact Details</th>
+                                        <th>Responsibilities</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Document Owner</td>
+                                        <td>safewater.pro</td>
+                                        <td>info@safewater.pro<br>0800 123 4567</td>
+                                        <td>Risk assessment maintenance, technical oversight</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Technical Support</td>
+                                        <td>Omnibosh CQR365</td>
+                                        <td>support@omnibosh.com<br>0800 987 6543</td>
+                                        <td>System maintenance, documentation management</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Site Manager</td>
+                                        <td>Highland Holidays</td>
+                                        <td>manager@highland-holidays.co.uk<br>01631 123456</td>
+                                        <td>Daily operations, emergency response</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Local Authority</td>
+                                        <td>Argyll & Bute Council</td>
+                                        <td>environmental.health@argyll-bute.gov.uk<br>01546 605519</td>
+                                        <td>Regulatory oversight, inspection</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript for document functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDocument();
+        });
+
+        function initializeDocument() {
+            // Set specific dates as requested
+            const documentDate = '12 Jan 25';
+            const nextReviewDate = 'Jan 2026';
+            
+            const currentDateElements = document.querySelectorAll('#currentDate, #documentDate');
+            currentDateElements.forEach(element => {
+                if (element) element.textContent = documentDate;
+            });
+            
+            const nextReviewElement = document.getElementById('nextReviewDate');
+            if (nextReviewElement) {
+                nextReviewElement.textContent = nextReviewDate;
+            }
+        }
+
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(tab => tab.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            const tabButtons = document.querySelectorAll('.nav-tab');
+            tabButtons.forEach(button => button.classList.remove('active'));
+            
+            // Show selected tab content
+            const selectedTab = document.getElementById(tabName);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+            }
+            
+            // Add active class to clicked tab
+            const clickedButton = document.querySelector(`[onclick="showTab('${tabName}')"]`);
+            if (clickedButton) {
+                clickedButton.classList.add('active');
+            }
+        }
+
+        // Print functionality
+        function printDocument() {
+            window.print();
+        }
+
+        // Export to PDF functionality (placeholder)
+        function exportToPDF() {
+            alert('PDF export functionality would be implemented here');
+        }
+
+        // Download complete system
+        function downloadSystem() {
+            const htmlContent = document.documentElement.outerHTML;
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = window.URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `highland_holidays_water_supply_assessment_12jan25.html`;
+            a.style.display = 'none';
+            
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Add download button functionality
+        const downloadButton = document.createElement('button');
+        downloadButton.className = 'btn btn-primary';
+        downloadButton.textContent = 'Download Complete System';
+        downloadButton.onclick = downloadSystem;
+        downloadButton.style.position = 'fixed';
+        downloadButton.style.bottom = '20px';
+        downloadButton.style.right = '20px';
+        downloadButton.style.zIndex = '1000';
+        document.body.appendChild(downloadButton);
+    </script>
+</body>
+</html>
