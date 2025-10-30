@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play Parks Safety System - Comprehensive User Manual</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 3rem;
+            font-weight: 300;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            margin: 1rem 0 0 0;
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .header .version {
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .toc {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            border-left: 4px solid #2a5298;
+        }
+        
+        .toc h2 {
+            color: #2a5298;
+            margin-top: 0;
+            font-size: 1.8rem;
+        }
+        
+        .toc-list {
+            columns: 2;
+            column-gap: 2rem;
+            list-style: none;
+            padding: 0;
+        }
+        
+        .toc-list li {
+            margin: 0.5rem 0;
+            break-inside: avoid;
+        }
+        
+        .toc-list a {
+            color: #2a5298;
+            text-decoration: none;
+            padding: 0.3rem 0;
+            display: block;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .toc-list a:hover {
+            background: #f8f9fa;
+            padding-left: 0.5rem;
+        }
+        
+        .section {
+            background: white;
+            margin: 2rem 0;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-left: 4px solid #2a5298;
+        }
+        
+        .section h2 {
+            color: #2a5298;
+            margin-top: 0;
+            font-size: 2rem;
+            font-weight: 600;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 0.5rem;
+        }
+        
+        .section h3 {
+            color: #444;
+            margin-top: 2rem;
+            font-size: 1.4rem;
+            font-weight: 500;
+        }
+        
+        .section h4 {
+            color: #666;
+            margin-top: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+        
+        .step-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .step-list li {
+            background: #f8f9fa;
+            margin: 1rem 0;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+            position: relative;
+        }
+        
+        .step-number {
+            background: #28a745;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 1rem;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .screenshot {
+            background: #e9ecef;
+            border: 2px dashed #6c757d;
+            border-radius: 8px;
+            padding: 3rem;
+            text-align: center;
+            margin: 1.5rem 0;
+            color: #6c757d;
+            font-style: italic;
+            position: relative;
+        }
+        
+        .screenshot::before {
+            content: "SCREENSHOT";
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            background: #6c757d;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .important-note {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid #f39c12;
+        }
+        
+        .important-note strong {
+            color: #b7860b;
+        }
+        
+        .safety-alert {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .safety-alert strong {
+            color: #721c24;
+        }
+        
+        .quick-tips {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .best-practice {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid #28a745;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        th {
+            background: #2a5298;
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .status-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-complete {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-overdue {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .risk-low {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .risk-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .risk-high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .card h4 {
+            margin-top: 0;
+            color: #2a5298;
+        }
+        
+        .procedure-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        .procedure-box h4 {
+            margin-top: 0;
+            color: #2a5298;
+            font-size: 1.1rem;
+        }
+        
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .checklist li {
+            margin: 0.8rem 0;
+            padding-left: 2rem;
+            position: relative;
+        }
+        
+        .checklist li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: #28a745;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .footer {
+            background: #343a40;
+            color: white;
+            text-align: center;
+            padding: 3rem;
+            margin-top: 4rem;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .footer-links a {
+            color: #adb5bd;
+            text-decoration: none;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .section {
+                padding: 1.5rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .toc-list {
+                columns: 1;
+            }
+            
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Play Parks Safety System</h1>
+        <p>Comprehensive User Manual & Training Guide</p>
+        <div class="version">Version 2.0 | Professional Edition</div>
+    </div>
+
+    <div class="container">
+        
+        <!-- Table of Contents -->
+        <div class="toc">
+            <h2>Table of Contents</h2>
+            <ul class="toc-list">
+                <li><a href="#system-overview">1. System Overview</a></li>
+                <li><a href="#getting-started">2. Getting Started</a></li>
+                <li><a href="#access-control">3. Access Control System</a></li>
+                <li><a href="#dashboard-guide">4. Dashboard Guide</a></li>
+                <li><a href="#park-setup">5. Park Setup & Configuration</a></li>
+                <li><a href="#daily-inspections">6. Daily Inspection Process</a></li>
+                <li><a href="#safety-checklist">7. 8-Point Safety Checklist</a></li>
+                <li><a href="#risk-assessment">8. Risk Assessment</a></li>
+                <li><a href="#safe-procedures">9. Safe Working Procedures</a></li>
+                <li><a href="#issue-reporting">10. Issue Reporting & Management</a></li>
+                <li><a href="#maintenance-integration">11. Maintenance Integration</a></li>
+                <li><a href="#compliance">12. Compliance & Standards</a></li>
+                <li><a href="#troubleshooting">13. Troubleshooting</a></li>
+                <li><a href="#best-practices">14. Best Practices</a></li>
+                <li><a href="#appendices">15. Appendices</a></li>
+            </ul>
+        </div>
+
+        <!-- System Overview -->
+        <div class="section" id="system-overview">
+            <h2>1. System Overview</h2>
+            <p>The Play Parks Safety System is a comprehensive digital platform designed to manage playground safety inspections, risk assessments, and maintenance across multiple holiday park locations.</p>
+            
+            <h3>Key Features</h3>
+            <div class="grid-container">
+                <div class="card">
+                    <h4>Daily Inspection Management</h4>
+                    <p>Complete 8-point safety checklists for all play areas with automatic compliance tracking.</p>
+                </div>
+                <div class="card">
+                    <h4>Risk Assessment Tools</h4>
+                    <p>Comprehensive risk evaluation covering equipment, infrastructure, signage, and environmental hazards.</p>
+                </div>
+                <div class="card">
+                    <h4>Access Control</h4>
+                    <p>Park-specific access codes ensuring staff only see and manage their assigned locations.</p>
+                </div>
+                <div class="card">
+                    <h4>Real-Time Reporting</h4>
+                    <p>Instant issue reporting with automatic maintenance request generation for urgent repairs.</p>
+                </div>
+            </div>
+            
+            <h3>System Architecture</h3>
+            <div class="screenshot">
+                [Screenshot would show: System overview diagram displaying the relationship between parks, inspections, risk assessments, and maintenance workflows]
+            </div>
+            
+            <div class="important-note">
+                <strong>Compliance Note:</strong> This system is designed to meet BS EN 1176:2017 playground equipment standards and BS EN 1177:2018 impact-absorbing surface requirements.
+            </div>
+        </div>
+
+        <!-- Getting Started -->
+        <div class="section" id="getting-started">
+            <h2>2. Getting Started</h2>
+            
+            <h3>System Requirements</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Requirement</th>
+                            <th>Minimum</th>
+                            <th>Recommended</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Internet Connection</td>
+                            <td>2 Mbps</td>
+                            <td>5+ Mbps</td>
+                        </tr>
+                        <tr>
+                            <td>Browser</td>
+                            <td>Chrome 90+, Firefox 88+, Safari 14+</td>
+                            <td>Latest version</td>
+                        </tr>
+                        <tr>
+                            <td>Screen Resolution</td>
+                            <td>1024x768</td>
+                            <td>1920x1080</td>
+                        </tr>
+                        <tr>
+                            <td>Device Type</td>
+                            <td>Desktop, Tablet, Mobile</td>
+                            <td>Desktop or Tablet</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3>Initial Setup Process</h3>
+            <ol class="step-list">
+                <li>
+                    <span class="step-number">1</span>
+                    <strong>Receive Access Credentials:</strong> Your park manager will provide you with a unique access code. This code determines which holiday parks you can inspect and manage.
+                </li>
+                <li>
+                    <span class="step-number">2</span>
+                    <strong>Access the System:</strong> Navigate to the SafePark.PRO login page and enter your access code.
+                </li>
+                <li>
+                    <span class="step-number">3</span>
+                    <strong>Complete Profile Setup:</strong> Enter your name, role, and contact information for inspection records.
+                </li>
+                <li>
+                    <span class="step-number">4</span>
+                    <strong>Review Assigned Parks:</strong> Verify you can see the correct holiday parks for your responsibilities.
+                </li>
+            </ol>
+            
+            <div class="screenshot">
+                [Screenshot would show: Login screen with access code entry field, user profile setup form, and park assignment verification screen]
+            </div>
+        </div>
+
+        <!-- Access Control System -->
+        <div class="section" id="access-control">
+            <h2>3. Access Control System</h2>
+            
+            <h3>Understanding Access Levels</h3>
+            <p>The system uses a park-specific access control system to ensure data security and operational efficiency.</p>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Access Code Pattern</th>
+                            <th>Access Level</th>
+                            <th>Permissions</th>
+                            <th>Accessible Parks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1010xxx</td>
+                            <td>Park Manager</td>
+                            <td>Full park management</td>
+                            <td>Holiday Park 1 only</td>
+                        </tr>
+                        <tr>
+                            <td>1020xxx</td>
+                            <td>Park Manager</td>
+                            <td>Full park management</td>
+                            <td>Holiday Park 2 only</td>
+                        </tr>
+                        <tr>
+                            <td>1030xxx</td>
+                            <td>Park Manager</td>
+                            <td>Full park management</td>
+                            <td>Holiday Park 3 only</td>
+                        </tr>
+                        <tr>
+                            <td>Admin Code</td>
+                            <td>System Administrator</td>
+                            <td>All system functions</td>
+                            <td>All parks</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3>Security Features</h3>
+            <ul class="checklist">
+                <li>Data isolation between different holiday parks</li>
+                <li>Access-controlled form submissions and inspections</li>
+                <li>Park-specific data storage and retrieval</li>
+                <li>Audit trail for all user actions</li>
+                <li>Session timeout after 60 minutes of inactivity</li>
+            </ul>
+            
+            <div class="safety-alert">
+                <strong>Security Policy:</strong> Never share your access code with others. Report lost or compromised codes to your supervisor immediately.
+            </div>
+        </div>
+
+        <!-- Dashboard Guide -->
+        <div class="section" id="dashboard-guide">
+            <h2>4. Dashboard Guide</h2>
+            
+            <h3>Dashboard Components</h3>
+            <div class="screenshot">
+                [Screenshot would show: Complete dashboard view with all sections labeled - inspection status, recent activity, quick actions, and statistics panels]
+            </div>
+            
+            <h4>Inspection Status Panel</h4>
+            <div class="procedure-box">
+                <h4>Understanding Status Indicators</h4>
+                <ul>
+                    <li><span class="status-badge status-complete">COMPLETE</span> - Today's inspection finished</li>
+                    <li><span class="status-badge status-pending">PENDING</span> - Inspection required today</li>
+                    <li><span class="status-badge status-overdue">OVERDUE</span> - Missed inspection from previous day</li>
+                </ul>
+            </div>
+            
+            <h4>Statistics Overview</h4>
+            <div class="grid-container">
+                <div class="card">
+                    <h4>Inspections Today</h4>
+                    <p>Total number of inspections completed across all your assigned parks today.</p>
+                </div>
+                <div class="card">
+                    <h4>Issues Identified</h4>
+                    <p>Number of safety issues or maintenance items found during recent inspections.</p>
+                </div>
+                <div class="card">
+                    <h4>Critical Items</h4>
+                    <p>High-priority issues requiring immediate attention or emergency repairs.</p>
+                </div>
+                <div class="card">
+                    <h4>Compliance Rate</h4>
+                    <p>Percentage of inspections completed on schedule with no critical issues.</p>
+                </div>
+            </div>
+            
+            <h3>Navigation and Quick Actions</h3>
+            <div class="screenshot">
+                [Screenshot would show: Navigation menu and quick action buttons for starting inspections, viewing reports, and accessing different modules]
+            </div>
+        </div>
+
+        <!-- Park Setup & Configuration -->
+        <div class="section" id="park-setup">
+            <h2>5. Park Setup & Configuration</h2>
+            
+            <h3>Adding New Holiday Parks</h3>
+            <ol class="step-list">
+                <li>
+                    <span class="step-number">1</span>
+                    <strong>Access Park Setup:</strong> Navigate to "Add New Park" from the main dashboard.
+                </li>
+                <li>
+                    <span class="step-number">2</span>
+                    <strong>Basic Information:</strong> Enter park name, location, installation date, and ownership details.
+                </li>
+                <li>
+                    <span class="step-number">3</span>
+                    <strong>Equipment Selection:</strong> Choose all equipment types present in the play area.
+                </li>
+                <li>
+                    <span class="step-number">4</span>
+                    <strong>Safety Infrastructure:</strong> Configure fencing, signage, and access control requirements.
+                </li>
+                <li>
+                    <span class="step-number">5</span>
+                    <strong>Surface Configuration:</strong> Select safety surfacing type and specify areas covered.
+                </li>
+            </ol>
+            
+            <div class="screenshot">
+                [Screenshot would show: Park setup form with all sections - basic info, equipment selection checkboxes, safety infrastructure options, and surface type selection]
+            </div>
+            
+            <h3>Equipment Categories</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Equipment Types</th>
+                            <th>Age Suitability</th>
+                            <th>Special Requirements</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Swings</td>
+                            <td>Flat swings, Toddler seats, Inclusive swings</td>
+                            <td>All ages (age-appropriate seats)</td>
+                            <td>Chain inspection, seat security</td>
+                        </tr>
+                        <tr>
+                            <td>Slides</td>
+                            <td>Straight slides, Spiral slides, Tube slides</td>
+                            <td>Height restrictions apply</td>
+                            <td>Platform barriers, exit zones</td>
+                        </tr>
+                        <tr>
+                            <td>Climbing</td>
+                            <td>Climbing walls, Rope nets, Play towers</td>
+                            <td>Height and difficulty graded</td>
+                            <td>Fall zones, surface depth</td>
+                        </tr>
+                        <tr>
+                            <td>Multi-Play</td>
+                            <td>Combined play structures</td>
+                            <td>Mixed age groups</td>
+                            <td>Multiple safety zones</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3>Safety Infrastructure Requirements</h3>
+            <div class="grid-container">
+                <div class="card">
+                    <h4>Perimeter Fencing</h4>
+                    <ul class="checklist">
+                        <li>Minimum 1.2m height</li>
+                        <li>Secure panel fixings</li>
+                        <li>No climbing aids</li>
+                        <li>Ground-level barriers</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>Gate Systems</h4>
+                    <ul class="checklist">
+                        <li>Self-closing mechanisms</li>
+                        <li>Child-proof latches</li>
+                        <li>Emergency access routes</li>
+                        <li>Sight line maintenance</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>Safety Signage</h4>
+                    <ul class="checklist">
+                        <li>Age restriction displays</li>
+                        <li>Equipment usage rules</li>
+                        <li>Emergency contact information</li>
+                        <li>Supervision requirements</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>Emergency Information</h4>
+                    <ul class="checklist">
+                        <li>Site address clearly visible</li>
+                        <li>Emergency services contact</li>
+                        <li>First aid information</li>
+                        <li>Incident reporting procedures</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Inspection Process -->
+        <div class="section" id="daily-inspections">
+            <h2>6. Daily Inspection Process</h2>
+            
+            <h3>Legal Requirements</h3>
+            <div class="safety-alert">
+                <strong>Legal Obligation:</strong> Daily inspections are required by law under the Health and Safety at Work Act 1974 and Management of Health and Safety at Work Regulations 1999. Missing daily inspections can result in legal liability.
+            </div>
+            
+            <h3>Inspection Workflow</h3>
+            <ol class="step-list">
+                <li>
+                    <span class="step-number">1</span>
+                    <strong>Pre-Inspection Setup:</strong> Check weather conditions, gather inspection equipment, and review previous day's issues.
+                </li>
+                <li>
+                    <span class="step-number">2</span>
+                    <strong>System Access:</strong> Log into the system and select the holiday park requiring inspection.
+                </li>
+                <li>
+                    <span class="step-number">3</span>
+                    <strong>Physical Inspection:</strong> Conduct systematic walk-through following the 8-point checklist.
+                </li>
+                <li>
+                    <span class="step-number">4</span>
+                    <strong>Digital Recording:</strong> Complete the online checklist and document any issues found.
+                </li>
+                <li>
+                    <span class="step-number">5</span>
+                    <strong>Issue Management:</strong> Report problems, create maintenance requests for urgent items.
+                </li>
+                <li>
+                    <span class="step-number">6</span>
+                    <strong>Completion & Verification:</strong> Submit inspection and verify successful saving to system.
+                </li>
+            </ol>
+            
+            <div class="screenshot">
+                [Screenshot would show: Step-by-step inspection workflow from park selection through completion, including the inspection form interface]
+            </div>
+            
+            <h3>Inspection Timing Guidelines</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Park Type</th>
+                            <th>Recommended Time</th>
+                            <th>Peak Season</th>
+                            <th>Off Season</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Small Play Area</td>
+                            <td>15-20 minutes</td>
+                            <td>Before 9:00 AM</td>
+                            <td>Before 10:00 AM</td>
+                        </tr>
+                        <tr>
+                            <td>Medium Play Area</td>
+                            <td>25-30 minutes</td>
+                            <td>Before 8:30 AM</td>
+                            <td>Before 10:00 AM</td>
+                        </tr>
+                        <tr>
+                            <td>Large Multi-Zone</td>
+                            <td>35-45 minutes</td>
+                            <td>Before 8:00 AM</td>
+                            <td>Before 9:30 AM</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 8-Point Safety Checklist -->
+        <div class="section" id="safety-checklist">
+            <h2>7. 8-Point Safety Checklist</h2>
+            <p>The comprehensive safety checklist covers all critical areas required for playground safety compliance.</p>
+            
+            <div class="procedure-box">
+                <h4>Checklist Point 1: General Visual Inspection</h4>
+                <p><strong>Objective:</strong> Identify obvious damage, hazards, or unusual conditions</p>
+                <ul class="checklist">
+                    <li>Overall structural integrity of all equipment</li>
+                    <li>No visible cracks, splits, or deterioration</li>
+                    <li>All components properly aligned and positioned</li>
+                    <li>No obvious safety hazards immediately visible</li>
+                    <li>Equipment appearance consistent with normal operation</li>
+                </ul>
+                <div class="screenshot">
+                    [Screenshot would show: Visual inspection interface with checkboxes and guidance notes for general assessment]
+                </div>
+            </div>
+            
+            <div class="procedure-box">
+                <h4>Checklist Point 2: Surface Safety Check</h4>
+                <p><strong>Objective:</strong> Ensure impact-absorbing surfaces are adequate and hazard-free</p>
+                <ul class="checklist">
+                    <li>Surface depth adequate (minimum 200mm for loose fill)</li>
+                    <li>No foreign objects (glass, litter, sharp items)</li>
+                    <li>No animal waste or contamination</li>
+                    <li>Even distribution of surface material</li>
+                    <li>No trip hazards or uneven areas</li>
+                    <li>Drainage functioning properly</li>
+                    <li>Edge containment secure and at correct height</li>
+                </ul>
+            </div>
+            
+            <div class="procedure-box">
+                <h4>Checklist Point 3: Equipment Integrity</h4>
+                <p><strong>Objective:</strong> Verify all equipment is secure and functioning safely</p>
+                <ul class="checklist">
+                    <li>All bolts, screws, and fixings tight and secure</li>
+                    <li>No excessive wear on moving parts</li>
+                    <li>No sharp edges, splinters, or protrusions</li>
+                    <li>Moving equipment operates smoothly</li>
+                    <li>No pinch points or entrapment hazards</li>
+                    <li>Weight and age limits clearly marked and appropriate</li>
+                </ul>
+            </div>
+            
+            <div class="procedure-box">
+                <h4>Checklist Point 4: Perimeter Fencing Check</h4>
+                <p><strong>Objective:</strong> Ensure boundary security and unauthorized access prevention</p>
+                <ul class="checklist">
+                    <li>Fence height maintained at minimum 1.2m</li>
+                    <li>All fence panels secure with no loose sections</li>
+                    <li>No gaps at ground level or between panels</li>
+                    <li>Mesh integrity maintained with no large holes</li>
+                    <li>No climbing aids (vegetation, objects) against fence</li>
+                    <li>Corner posts and end posts secure</li>
+                    <li>No vandalism or deliberate damage</li>
+                </ul>
+            </div>
+            
+            <div class="procedure-box">
+                <h4>Checklist Point 5: Gate Operation Check</h4>
+                <p><strong>Objective:</strong> Verify access control systems function correctly</p>
+                <ul class="checklist">
+                    <li>All gates open and close smoothly</li>
+                    <li>Self-closing mechanisms function properly</li>
+                    <li>Latches secure and child-proof</li>
+                    <li>Hinges lubricated and operating freely</li>
+                    <li>No finger trapping risks in gaps or mechanisms</li>
+                    <li>Emergency access routes clear and accessible</li>
+                    <li>Gate sight lines maintained for supervision</li>
+                </ul>
+            </div>
+            
+            <div class="procedure-box">
+                <h4>Checklist Point 6: Safety Signage Verification</h4>
+                <p><strong>Objective:</strong> Confirm all required safety information is displayed and legible</p>
+                <ul class="checklist">
+                    <li>Age restriction signs clearly visible and accurate</li>
+                    <li>Equipment-specific warnings and instructions present</li>
+                    <li>Emergency contact information displayed</li>
+                    <li>Site address visible for emergency services</li>
+                    <li>Compliance certificates (BS EN 1176) displayed</li>
+                    <li>All signage legible and weather-resistant</li>
+                    <li>Mounting security maintained</li>
+                </ul>
+            </div>
+            
+            <div class="procedure-box">
+                <h4>Checklist Point 7: Environmental Hazards</h4>
+                <p><strong>Objective:</strong> Identify and address environmental safety concerns</p>
+                <ul class="checklist">
+                    <li>Litter and debris removed from play area</li>
+                    <li>No vandalism or graffiti requiring immediate attention</li>
+                    <li>Vegetation managed to prevent obstruction</li>
+                    <li>No standing water or drainage issues</li>
+                    <li>No unauthorized items or structures in play area</li>
+                    <li>Weather-related hazards assessed (ice, high winds)</li>
+                </ul>
+            </div>
+            
+            <div class="procedure-box">
+                <h4>Checklist Point 8: Access Routes Clear</h4>
+                <p><strong>Objective:</strong> Ensure safe access and egress for all users</p>
+                <ul class="checklist">
+                    <li>Main pathways clear of obstructions</li>
+                    <li>No slip hazards on hard surfaces</li>
+                    <li>Adequate lighting during operational hours</li>
+                    <li>Emergency vehicle access maintained</li>
+                    <li>Supervision sight lines unobstructed</li>
+                    <li>Accessible routes maintained for disabled users</li>
+                </ul>
+            </div>
+            
+            <div class="best-practice">
+                <strong>Best Practice:</strong> Complete all 8 points systematically. If any point fails, document the specific issue, take appropriate immediate action, and ensure the area is safe before allowing continued use.
+            </div>
+        </div>
+
+        <!-- Risk Assessment -->
+        <div class="section" id="risk-assessment">
+            <h2>8. Risk Assessment</h2>
+            
+            <h3>Automated Risk Calculation</h3>
+            <p>The system automatically calculates risk levels based on inspection results and issue severity.</p>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Risk Level</th>
+                            <th>Criteria</th>
+                            <th>Action Required</th>
+                            <th>Timeline</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="status-badge risk-low">LOW</span></td>
+                            <td>All checklist items passed, no issues reported</td>
+                            <td>Continue normal operations</td>
+                            <td>None</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-badge risk-medium">MEDIUM</span></td>
+                            <td>1 checklist item failed or minor issues</td>
+                            <td>Monitor and schedule maintenance</td>
+                            <td>Within 7 days</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-badge risk-high">HIGH</span></td>
+                            <td>2+ checklist items failed or significant issues</td>
+                            <td>Increase inspection frequency</td>
+                            <td>Within 24 hours</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-badge risk-high">CRITICAL</span></td>
+                            <td>4+ failed items or "MAINTENANCE REQUIRED"</td>
+                            <td>Immediate action, consider closure</td>
+                            <td>Immediate</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3>Equipment-Specific Risk Factors</h3>
+            <div class="grid-container">
+                <div class="card">
+                    <h4>Swings - Medium Base Risk</h4>
+                    <ul>
+                        <li>Chain wear and entanglement</li>
+                        <li>Seat security and impact</li>
+                        <li>Clearance zone maintenance</li>
+                        <li>Weather deterioration</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>Slides - High Base Risk</h4>
+                    <ul>
+                        <li>Fall hazards from platform</li>
+                        <li>Hot surface temperatures</li>
+                        <li>Head/limb entrapment</li>
+                        <li>Exit zone collisions</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>Climbing Equipment - Medium Base Risk</h4>
+                    <ul>
+                        <li>Fall from height</li>
+                        <li>Finger/limb trapping</li>
+                        <li>Equipment load failure</li>
+                        <li>Weather-related slip</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>Fencing - Critical if Inadequate</h4>
+                    <ul>
+                        <li>Unauthorized access</li>
+                        <li>Children leaving unsupervised</li>
+                        <li>Vandalism and antisocial behavior</li>
+                        <li>Animal access and health hazards</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="screenshot">
+                [Screenshot would show: Risk assessment matrix display showing likelihood vs severity grid with color-coded risk levels]
+            </div>
+        </div>
+
+        <!-- Safe Working Procedures -->
+        <div class="section" id="safe-procedures">
+            <h2>9. Safe Working Procedures</h2>
+            
+            <h3>Daily Inspection Procedures</h3>
+            
+            <div class="procedure-box">
+                <h4>Pre-Inspection Preparation</h4>
+                <ol>
+                    <li>Review weather conditions and assess suitability for inspection</li>
+                    <li>Gather inspection equipment (measuring tape, camera, forms)</li>
+                    <li>Review previous inspection reports for outstanding issues</li>
+                    <li>Verify inspector competency and training status</li>
+                    <li>Confirm emergency contact information is available</li>
+                </ol>
+            </div>
+            
+            <div class="procedure-box">
+                <h4>Systematic Inspection Approach</h4>
+                <ol>
+                    <li>Conduct initial visual sweep from perimeter</li>
+                    <li>Check for obvious hazards or overnight damage</li>
+                    <li>Follow 8-point checklist systematically</li>
+                    <li>Document findings immediately using mobile device</li>
+                    <li>Take photographs of any issues identified</li>
+                    <li>Measure critical dimensions where concerns exist</li>
+                </ol>
+            </div>
+            
+            <h3>Emergency Response Procedures</h3>
+            
+            <div class="safety-alert">
+                <strong>Immediate Hazard Protocol:</strong> If you discover an immediate safety hazard that could cause serious injury:
+                <ol>
+                    <li>Immediately isolate the hazard area</li>
+                    <li>Place clear warning barriers/signage</li>
+                    <li>Contact site management immediately</li>
+                    <li>Document with photographs</li>
+                    <li>Do not allow continued use until repaired</li>
+                </ol>
+            </div>
+            
+            <div class="procedure-box">
+                <h4>Weather-Related Closure Procedures</h4>
+                <ul class="checklist">
+                    <li><strong>Ice Conditions:</strong> Close until ice removal completed safely</li>
+                    <li><strong>High Winds:</strong> Close if sustained winds exceed 25mph</li>
+                    <li><strong>Flooding:</strong> Close until water recedes and inspection completed</li>
+                    <li><strong>Lightning:</strong> Close during thunderstorm activity within 5 miles</li>
+                    <li><strong>Extreme Heat:</strong> Monitor surface temperatures - close metal equipment if >60°C</li>
+                </ul>
+            </div>
+            
+            <h3>Inspector Competency Requirements</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Qualification</th>
+                            <th>Level Required</th>
+                            <th>Renewal Period</th>
+                            <th>Authority</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>RoSPA Playground Inspector</td>
+                            <td>Preferred</td>
+                            <td>3 years</td>
+                            <td>RoSPA</td>
+                        </tr>
+                        <tr>
+                            <td>IOSH Managing Safely</td>
+                            <td>Minimum</td>
+                            <td>3 years</td>
+                            <td>IOSH</td>
+                        </tr>
+                        <tr>
+                            <td>First Aid Qualified</td>
+                            <td>Recommended</td>
+                            <td>3 years</td>
+                            <td>Various</td>
+                        </tr>
+                        <tr>
+                            <td>Risk Assessment Training</td>
+                            <td>Essential</td>
+                            <td>Annual</td>
+                            <td>Company</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Issue Reporting -->
+        <div class="section" id="issue-reporting">
+            <h2>10. Issue Reporting & Management</h2>
+            
+            <h3>Issue Classification System</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Priority Level</th>
+                            <th>Description</th>
+                            <th>Response Time</th>
+                            <th>Action Required</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="color: #dc3545; font-weight: bold;">CRITICAL</td>
+                            <td>Immediate danger to users</td>
+                            <td>Immediate</td>
+                            <td>Close area, emergency repair</td>
+                        </tr>
+                        <tr>
+                            <td style="color: #fd7e14; font-weight: bold;">HIGH</td>
+                            <td>Safety risk, increased monitoring needed</td>
+                            <td>24 hours</td>
+                            <td>Urgent maintenance, daily checks</td>
+                        </tr>
+                        <tr>
+                            <td style="color: #ffc107; font-weight: bold;">MEDIUM</td>
+                            <td>Maintenance required, not immediate risk</td>
+                            <td>7 days</td>
+                            <td>Schedule maintenance</td>
+                        </tr>
+                        <tr>
+                            <td style="color: #28a745; font-weight: bold;">LOW</td>
+                            <td>Cosmetic or minor issues</td>
+                            <td>30 days</td>
+                            <td>Include in routine maintenance</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3>Effective Issue Reporting</h3>
+            <div class="procedure-box">
+                <h4>Report Writing Best Practices</h4>
+                <ul class="checklist">
+                    <li><strong>Be Specific:</strong> "Loose bolt on swing A, left-hand chain connection"</li>
+                    <li><strong>Include Location:</strong> "North corner of play area, near climbing frame"</li>
+                    <li><strong>Describe Impact:</strong> "Chain could detach during use"</li>
+                    <li><strong>Suggest Action:</strong> "Requires immediate tightening with 19mm spanner"</li>
+                    <li><strong>Note Urgency:</strong> Use "MAINTENANCE REQUIRED" for immediate action</li>
+                </ul>
+            </div>
+            
+            <div class="screenshot">
+                [Screenshot would show: Issue reporting interface with text fields for description, location, priority selection, and photograph upload options]
+            </div>
+            
+            <h3>Automatic Maintenance Integration</h3>
+            <p>When issues are reported, the system automatically:</p>
+            <ul class="checklist">
+                <li>Creates maintenance requests in the integrated system</li>
+                <li>Assigns priority levels based on safety impact</li>
+                <li>Notifies relevant maintenance personnel</li>
+                <li>Tracks resolution progress and completion</li>
+                <li>Updates inspection records when repairs are completed</li>
+            </ul>
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="section" id="troubleshooting">
+            <h2>13. Troubleshooting</h2>
+            
+            <h3>Common Technical Issues</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Problem</th>
+                            <th>Symptoms</th>
+                            <th>Solution</th>
+                            <th>Prevention</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Access Code Not Working</td>
+                            <td>Login rejected, access denied message</td>
+                            <td>Verify code format, contact administrator</td>
+                            <td>Keep codes secure, report issues promptly</td>
+                        </tr>
+                        <tr>
+                            <td>Inspection Won't Save</td>
+                            <td>Error message, data not recorded</td>
+                            <td>Check internet connection, retry submission</td>
+                            <td>Ensure stable connection, save frequently</td>
+                        </tr>
+                        <tr>
+                            <td>Missing Holiday Parks</td>
+                            <td>Expected parks not visible</td>
+                            <td>Verify access level, contact administrator</td>
+                            <td>Confirm access permissions regularly</td>
+                        </tr>
+                        <tr>
+                            <td>Dashboard Not Updating</td>
+                            <td>Old data showing, statistics incorrect</td>
+                            <td>Refresh browser, clear cache</td>
+                            <td>Use current browser version</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3>Support Contacts</h3>
+            <div class="grid-container">
+                <div class="card">
+                    <h4>Technical Support</h4>
+                    <p>For system access, login issues, or technical problems</p>
+                    <p><strong>Contact:</strong> IT Support Department</p>
+                </div>
+                <div class="card">
+                    <h4>Safety Concerns</h4>
+                    <p>For immediate safety issues or emergency situations</p>
+                    <p><strong>Contact:</strong> Site Manager (immediate)</p>
+                </div>
+                <div class="card">
+                    <h4>Training Support</h4>
+                    <p>For system training or procedure questions</p>
+                    <p><strong>Contact:</strong> Training Coordinator</p>
+                </div>
+                <div class="card">
+                    <h4>Compliance Questions</h4>
+                    <p>For standards, regulations, or legal requirements</p>
+                    <p><strong>Contact:</strong> Safety Officer</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Best Practices -->
+        <div class="section" id="best-practices">
+            <h2>14. Best Practices</h2>
+            
+            <h3>Daily Inspection Excellence</h3>
+            <div class="best-practice">
+                <strong>Consistency is Key:</strong> Perform inspections at the same time each day, following the same route and systematic approach to ensure nothing is missed.
+            </div>
+            
+            <ul class="checklist">
+                <li>Arrive early to complete inspections before public access</li>
+                <li>Use mobile device for real-time data entry during inspection</li>
+                <li>Take photographs of issues for clear maintenance communication</li>
+                <li>Double-check all 8 checklist points before submission</li>
+                <li>Review previous day's issues to ensure follow-up</li>
+                <li>Maintain inspection equipment in good working order</li>
+            </ul>
+            
+            <h3>Safety Culture Development</h3>
+            <div class="grid-container">
+                <div class="card">
+                    <h4>Proactive Approach</h4>
+                    <p>Look for potential issues before they become problems. Report minor concerns early to prevent major safety incidents.</p>
+                </div>
+                <div class="card">
+                    <h4>Clear Communication</h4>
+                    <p>Write detailed, specific reports that enable maintenance teams to address issues efficiently and effectively.</p>
+                </div>
+                <div class="card">
+                    <h4>Continuous Learning</h4>
+                    <p>Stay updated on safety standards, attend training sessions, and learn from incidents at other sites.</p>
+                </div>
+                <div class="card">
+                    <h4>Documentation Excellence</h4>
+                    <p>Maintain thorough records that demonstrate compliance and provide evidence of due diligence.</p>
+                </div>
+            </div>
+            
+            <h3>Seasonal Considerations</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Season</th>
+                            <th>Key Focus Areas</th>
+                            <th>Additional Checks</th>
+                            <th>Common Issues</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Spring</td>
+                            <td>Winter damage assessment</td>
+                            <td>Vegetation growth, drainage</td>
+                            <td>Frost damage, surface displacement</td>
+                        </tr>
+                        <tr>
+                            <td>Summer</td>
+                            <td>Heat-related safety</td>
+                            <td>Surface temperatures, UV damage</td>
+                            <td>Hot surfaces, increased wear</td>
+                        </tr>
+                        <tr>
+                            <td>Autumn</td>
+                            <td>Leaf management, visibility</td>
+                            <td>Slip hazards, sight lines</td>
+                            <td>Wet surfaces, reduced visibility</td>
+                        </tr>
+                        <tr>
+                            <td>Winter</td>
+                            <td>Ice and weather protection</td>
+                            <td>Closure decisions, access routes</td>
+                            <td>Ice formation, equipment brittleness</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Appendices -->
+        <div class="section" id="appendices">
+            <h2>15. Appendices</h2>
+            
+            <h3>Appendix A: Legal Requirements Reference</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Legislation/Standard</th>
+                            <th>Key Requirements</th>
+                            <th>Inspection Relevance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Health and Safety at Work Act 1974</td>
+                            <td>Duty of care to employees and public</td>
+                            <td>Daily inspections demonstrate due diligence</td>
+                        </tr>
+                        <tr>
+                            <td>Management of Health and Safety at Work Regulations 1999</td>
+                            <td>Risk assessment and management systems</td>
+                            <td>Systematic inspection procedures required</td>
+                        </tr>
+                        <tr>
+                            <td>BS EN 1176:2017</td>
+                            <td>Playground equipment standards</td>
+                            <td>Equipment compliance verification</td>
+                        </tr>
+                        <tr>
+                            <td>BS EN 1177:2018</td>
+                            <td>Impact absorbing surface standards</td>
+                            <td>Surface depth and quality checks</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3>Appendix B: Emergency Contact Template</h3>
+            <div class="procedure-box">
+                <h4>Site Emergency Information</h4>
+                <ul>
+                    <li><strong>Site Address:</strong> [Full address for emergency services]</li>
+                    <li><strong>Emergency Services:</strong> 999</li>
+                    <li><strong>Site Manager:</strong> [Name and 24-hour contact]</li>
+                    <li><strong>Maintenance Emergency:</strong> [Contact details]</li>
+                    <li><strong>First Aid Location:</strong> [Nearest first aid station]</li>
+                    <li><strong>Assembly Point:</strong> [Emergency assembly location]</li>
+                </ul>
+            </div>
+            
+            <h3>Appendix C: Quick Reference Checklist</h3>
+            <div class="screenshot">
+                [Screenshot would show: Printable quick reference card with 8-point checklist summary for field use]
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer">
+        <div class="footer-links">
+            <a href="#system-overview">System Overview</a>
+            <a href="#daily-inspections">Daily Inspections</a>
+            <a href="#safety-checklist">Safety Checklist</a>
+            <a href="#troubleshooting">Support</a>
+        </div>
+        <p>&copy; 2025 SafePark.PRO Play Parks Safety System | Professional Playground Safety Management</p>
+        <p>Comprehensive User Manual v2.0 | Last Updated: January 2025</p>
+    </div>
+</body>
+</html>
