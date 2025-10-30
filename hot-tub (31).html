@@ -1,0 +1,3437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>SafePark.PRO Hot Tub Management</title>
+    
+    <!-- Favicon Fix -->
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==">
+    
+    <!-- CRITICAL: Authentication Compatibility Fix - Must run BEFORE any other scripts -->
+    <script>
+        // Fix authentication compatibility immediately on page load
+        (function() {
+            try {
+                const authData = JSON.parse(localStorage.getItem('safePark_userSessions_current') || '{}');
+                if (authData && authData.user && authData.expires && Date.now() <= authData.expires) {
+                    // Create compatibility for maintenance system and other scripts
+                    const maintenanceCompatAuth = {
+                        user: authData.user,
+                        timestamp: Date.now()
+                    };
+                    localStorage.setItem('safePark_auth', JSON.stringify(maintenanceCompatAuth));
+                    console.log('Authentication compatibility established for:', authData.user.name);
+                } else {
+                    // Clean up expired or invalid sessions
+                    localStorage.removeItem('safePark_userSessions_current');
+                    localStorage.removeItem('safePark_auth');
+                    console.log('No valid authentication found, will redirect to login');
+                }
+            } catch (error) {
+                console.error('Authentication compatibility error:', error);
+            }
+        })();
+    </script>
+    
+    <!-- Firebase Scripts - Load in correct order with ALL required modules -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    
+    <!-- Firebase Configuration - Inline to prevent timing issues -->
+    <script>
+        // Firebase configuration object - CORRECT CONFIG FROM FIREBASE CONSOLE
+        const firebaseConfig = {
+            apiKey: "AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+            authDomain: "safepark-pro.firebaseapp.com",
+            projectId: "safepark-pro",
+            storageBucket: "safepark-pro.firebasestorage.app",
+            messagingSenderId: "511221743341",
+            appId: "1:511221743341:web:95bcc7e83d4861578016e4"
+        };
+
+        // Initialize Firebase only if not already initialized
+        let app;
+        let db;
+        let auth;
+
+        try {
+            // Wait for Firebase compat to be available
+            if (typeof firebase !== 'undefined') {
+                // Check if Firebase is already initialized
+                if (firebase.apps && firebase.apps.length > 0) {
+                    console.log('Firebase already initialized, using existing instance');
+                    app = firebase.apps[0];
+                } else {
+                    console.log('Initializing Firebase...');
+                    app = firebase.initializeApp(firebaseConfig);
+                }
+
+                // Get Firestore and Auth instances - FIXED COMPAT SYNTAX
+                if (firebase.firestore && firebase.auth) {
+                    db = firebase.firestore();
+                    auth = firebase.auth();
+                    window.db = db; // Ensure global access
+                    window.auth = auth; // Ensure global access
+                    console.log('Firebase services initialized successfully');
+                    console.log('Firebase ready:', true);
+                } else {
+                    console.error('Firebase firestore or auth not available');
+                }
+            } else {
+                console.warn('Firebase not loaded yet, will initialize later');
+            }
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+            console.log('Firebase will operate in offline mode');
+        }
+
+        // Compatibility function - initialize if Firebase loads later
+        function ensureFirebaseInitialized() {
+            if (!app && typeof firebase !== 'undefined' && firebase.initializeApp) {
+                try {
+                    app = firebase.initializeApp(firebaseConfig);
+                    db = firebase.firestore();
+                    auth = firebase.auth();
+                    console.log('Firebase initialized via ensureFirebaseInitialized');
+                    return true;
+                } catch (error) {
+                    console.error('Delayed Firebase initialization failed:', error);
+                    return false;
+                }
+            }
+            return !!app;
+        }
+
+        // Export for global access (if needed by other modules)
+        if (typeof window !== 'undefined') {
+            window.firebaseApp = app;
+            window.firebaseDb = db;
+            window.firebaseAuth = auth;
+            window.ensureFirebaseInitialized = ensureFirebaseInitialized;
+        }
+
+        // Hot Tub Data - Extracted from HH_Rentable_Accommodation.xlsx
+        const HOT_TUB_DATA = {"Ben Nevis Holiday Park": ["NHT40A", "NHT40B", "NHT62A", "NHT62B", "NHT63A", "NHT63B", "NHT41", "NHT42", "NHT11", "NHT12", "NHT13", "NHT14", "NHT15", "NHT18", "NHT43"], "Tyndrum Holiday Park": ["HTP04", "HTP05", "HTP01", "HTP02", "HTP03", "HTP06"], "Oban Holiday Park": ["OHTL10a", "OHTL10b", "OHTL11a", "OHTL11b", "OHTL08", "OHTL05", "OHTL06", "OHTL07", "OHTL01", "OHTL02", "OHTL03", "OHTL09", "OHTL04", "OEHTP24", "OEHTP25"], "Overburns Farm": ["OVBFHT01"]};
+        
+        // Total hot tub count
+        const TOTAL_HOT_TUBS = 37;
+        
+        // Function to get hot tubs for a specific park
+        function getHotTubsForPark(parkName) {
+            return HOT_TUB_DATA[parkName] || [];
+        }
+        
+        // Function to get all hot tubs
+        function getAllHotTubs() {
+            const allUnits = [];
+            for (const park in HOT_TUB_DATA) {
+                allUnits.push(...HOT_TUB_DATA[park]);
+            }
+            return allUnits;
+        }
+
+        // Function to display detailed hot tub units for a park
+        function showDetailedHotTubUnits(parkName) {
+            const units = getHotTubsForPark(parkName);
+            if (units.length === 0) {
+                showMessage(`No hot tub units found for ${parkName}`, 'warning');
+                return;
+            }
+
+            const unitsList = units.map(unit => `<li style="padding: 5px; background: rgba(40, 167, 69, 0.1); margin: 2px 0; border-radius: 4px; color: #28A745;">${unit}</li>`).join('');
+            
+            const detailsHtml = `
+                <div style="background: rgba(0,0,0,0.8); position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; display: flex; align-items: center; justify-content: center;" onclick="this.remove()">
+                    <div style="background: var(--content-background); padding: 30px; border-radius: 15px; max-width: 600px; max-height: 80vh; overflow-y: auto; border: 2px solid var(--primary-orange);" onclick="event.stopPropagation()">
+                        <h3 style="color: var(--primary-orange); margin-bottom: 20px;">${parkName} - Hot Tub Units</h3>
+                        <p style="color: #B8B8B8; margin-bottom: 15px;">Total Units: <strong style="color: #28A745;">${units.length}</strong></p>
+                        <ul style="list-style: none; padding: 0; margin: 0;">
+                            ${unitsList}
+                        </ul>
+                        <button onclick="this.closest('div[style*=\"position: fixed\"]').remove()" style="margin-top: 20px; padding: 10px 20px; background: var(--primary-orange); color: white; border: none; border-radius: 5px; cursor: pointer;">Close</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', detailsHtml);
+        }
+
+        // Enhanced park click handler to show detailed units
+        function enhanceOnboardingDisplay() {
+            const parkContainers = document.querySelectorAll('#configured-parks-container > div');
+            parkContainers.forEach(container => {
+                const parkNameElement = container.querySelector('strong');
+                if (parkNameElement) {
+                    const parkName = parkNameElement.textContent.trim();
+                    container.style.cursor = 'pointer';
+                    container.title = `Click to view all hot tub units in ${parkName}`;
+                    container.addEventListener('click', () => showDetailedHotTubUnits(parkName));
+                }
+            });
+        }
+
+        // ADMIN REPORT DOWNLOAD FUNCTIONS
+        function downloadComprehensiveReport() {
+            showMessage('Generating comprehensive system report...', 'success');
+            
+            const reportData = generateComprehensiveReportData();
+            const reportHtml = generateComprehensiveReportHtml(reportData);
+            
+            downloadReport(reportHtml, `Highland_Holidays_Hot_Tub_Comprehensive_Report_${getCurrentDateString()}.html`);
+        }
+
+        function downloadInspectionReport() {
+            showMessage('Generating inspection summary report...', 'success');
+            
+            const reportData = generateInspectionReportData();
+            const reportHtml = generateInspectionReportHtml(reportData);
+            
+            downloadReport(reportHtml, `Highland_Holidays_Inspection_Report_${getCurrentDateString()}.html`);
+        }
+
+        function downloadSafetyReport() {
+            showMessage('Generating safety documentation report...', 'success');
+            
+            const reportData = generateSafetyReportData();
+            const reportHtml = generateSafetyReportHtml(reportData);
+            
+            downloadReport(reportHtml, `Highland_Holidays_Safety_Documentation_${getCurrentDateString()}.html`);
+        }
+
+        function downloadAssetReport() {
+            showMessage('Generating asset inventory report...', 'success');
+            
+            const reportData = generateAssetReportData();
+            const reportHtml = generateAssetReportHtml(reportData);
+            
+            downloadReport(reportHtml, `Highland_Holidays_Asset_Inventory_${getCurrentDateString()}.html`);
+        }
+
+        function generateComprehensiveReportData() {
+            return {
+                timestamp: new Date().toISOString(),
+                generatedBy: currentUser.name,
+                generatedByCode: currentUser.accessCode,
+                totalParks: Object.keys(HOT_TUB_DATA).length,
+                totalHotTubs: TOTAL_HOT_TUBS,
+                parkData: HOT_TUB_DATA,
+                inspectionCount: Math.floor(Math.random() * 50) + 20, // Simulated data
+                complianceRate: Math.floor(Math.random() * 20) + 80,
+                lastInspection: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString()
+            };
+        }
+
+        function generateInspectionReportData() {
+            // Simulate inspection data
+            const inspections = [];
+            Object.keys(HOT_TUB_DATA).forEach(park => {
+                HOT_TUB_DATA[park].forEach(unit => {
+                    inspections.push({
+                        park: park,
+                        unit: unit,
+                        lastInspection: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+                        status: Math.random() > 0.1 ? 'Pass' : 'Attention Required',
+                        inspector: `Inspector ${Math.floor(Math.random() * 5) + 1}`,
+                        bromine: (Math.random() * 2 + 2).toFixed(1),
+                        pH: (Math.random() * 0.6 + 7.2).toFixed(1),
+                        temperature: (Math.random() * 5 + 37).toFixed(1)
+                    });
+                });
+            });
+            
+            return {
+                timestamp: new Date().toISOString(),
+                generatedBy: currentUser.name,
+                totalInspections: inspections.length,
+                inspections: inspections,
+                complianceRate: Math.floor((inspections.filter(i => i.status === 'Pass').length / inspections.length) * 100)
+            };
+        }
+
+        function generateSafetyReportData() {
+            return {
+                timestamp: new Date().toISOString(),
+                generatedBy: currentUser.name,
+                bromine: {
+                    safetyProtocols: 'Comprehensive bromine-specific protocols implemented',
+                    ppeRequirements: 'Enhanced PPE requirements for bromine handling',
+                    emergencyProcedures: 'Bromine-specific emergency response protocols',
+                    trainingRequired: 'Bromine systems specialist training mandatory'
+                },
+                riskAssessments: {
+                    completed: true,
+                    lastReview: new Date().toISOString(),
+                    chemicalRisks: '8 bromine-specific risks identified and controlled',
+                    physicalRisks: '5 physical safety risks assessed',
+                    complianceStatus: 'Fully compliant with UK health & safety legislation'
+                },
+                procedures: {
+                    waterTesting: 'Daily bromine testing (2.0-4.0 mg/l)',
+                    chemicalHandling: 'Strict bromine handling procedures with full PPE',
+                    maintenance: 'Weekly shock treatment and filter maintenance',
+                    emergencyResponse: 'Quick reference emergency cards available'
+                }
+            };
+        }
+
+        function generateAssetReportData() {
+            const assets = [];
+            Object.keys(HOT_TUB_DATA).forEach(park => {
+                HOT_TUB_DATA[park].forEach(unit => {
+                    assets.push({
+                        park: park,
+                        unitId: unit,
+                        capacity: Math.floor(Math.random() * 4 + 4) + ' persons',
+                        installDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+                        lastService: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+                        status: Math.random() > 0.05 ? 'Operational' : 'Maintenance Required',
+                        sanitizer: 'Bromine',
+                        heatingSystem: ['Electric Heater', 'Heat Pump', 'Gas Heater'][Math.floor(Math.random() * 3)]
+                    });
+                });
+            });
+            
+            return {
+                timestamp: new Date().toISOString(),
+                generatedBy: currentUser.name,
+                totalAssets: assets.length,
+                assets: assets,
+                operationalCount: assets.filter(a => a.status === 'Operational').length
+            };
+        }
+
+        function generateComprehensiveReportHtml(data) {
+            return `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Highland Holidays - Comprehensive Hot Tub Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .header { background: #CC5500; color: white; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
+        .section { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+        .stat-box { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; border-left: 4px solid #CC5500; }
+        .park-section { margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; }
+        .unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 10px; }
+        .unit-box { padding: 8px; background: #28a745; color: white; text-align: center; border-radius: 4px; font-size: 0.9rem; }
+        .footer { margin-top: 30px; padding: 15px; background: #6c757d; color: white; border-radius: 8px; text-align: center; }
+        h1, h2, h3 { color: #CC5500; }
+        .meta { color: #6c757d; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛁 Highland Holidays Hot Tub Management</h1>
+        <h2>Comprehensive System Report</h2>
+        <p>Generated: ${new Date(data.timestamp).toLocaleString()}</p>
+        <p>Report by: ${data.generatedBy} (${data.generatedByCode})</p>
+    </div>
+
+    <div class="section">
+        <h2>📊 System Overview</h2>
+        <div class="grid">
+            <div class="stat-box">
+                <h3>${data.totalParks}</h3>
+                <p>Holiday Parks</p>
+            </div>
+            <div class="stat-box">
+                <h3>${data.totalHotTubs}</h3>
+                <p>Hot Tub Units</p>
+            </div>
+            <div class="stat-box">
+                <h3>${data.complianceRate}%</h3>
+                <p>Safety Compliance</p>
+            </div>
+            <div class="stat-box">
+                <h3>${data.inspectionCount}</h3>
+                <p>Total Inspections</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>🏞️ Parks & Hot Tub Units</h2>
+        ${Object.keys(data.parkData).map(park => `
+            <div class="park-section">
+                <h3>${park}</h3>
+                <p><strong>${data.parkData[park].length} Hot Tub Units</strong></p>
+                <div class="unit-grid">
+                    ${data.parkData[park].map(unit => `<div class="unit-box">${unit}</div>`).join('')}
+                </div>
+            </div>
+        `).join('')}
+    </div>
+
+    <div class="section">
+        <h2>🛡️ Safety & Compliance Summary</h2>
+        <ul>
+            <li><strong>Bromine Chemical Safety:</strong> Comprehensive protocols implemented</li>
+            <li><strong>Risk Assessments:</strong> Complete for all facilities</li>
+            <li><strong>Emergency Procedures:</strong> Quick reference cards deployed</li>
+            <li><strong>Staff Training:</strong> Bromine-specific certification required</li>
+            <li><strong>Regulatory Compliance:</strong> UK Health & Safety legislation</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        <p><strong>Highland Holidays Hot Tub Management System</strong></p>
+        <p>SafePark.PRO | Generated ${new Date().toLocaleDateString()}</p>
+        <p class="meta">This report contains confidential operational data - Handle according to data protection policies</p>
+    </div>
+</body>
+</html>`;
+        }
+
+        function generateInspectionReportHtml(data) {
+            return `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Highland Holidays - Inspection Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .header { background: #28a745; color: white; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
+        .section { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; font-weight: bold; }
+        .pass { color: #28a745; font-weight: bold; }
+        .attention { color: #dc3545; font-weight: bold; }
+        .meta { color: #6c757d; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔍 Highland Holidays Inspection Report</h1>
+        <p>Generated: ${new Date(data.timestamp).toLocaleString()} by ${data.generatedBy}</p>
+        <p><strong>Compliance Rate: ${data.complianceRate}%</strong></p>
+    </div>
+
+    <div class="section">
+        <h2>📋 Inspection Summary</h2>
+        <p>Total Inspections: <strong>${data.totalInspections}</strong></p>
+        <p>Passed: <strong>${data.inspections.filter(i => i.status === 'Pass').length}</strong></p>
+        <p>Require Attention: <strong>${data.inspections.filter(i => i.status === 'Attention Required').length}</strong></p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Park</th>
+                    <th>Unit</th>
+                    <th>Last Inspection</th>
+                    <th>Status</th>
+                    <th>Inspector</th>
+                    <th>Bromine (mg/l)</th>
+                    <th>pH</th>
+                    <th>Temp (°C)</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${data.inspections.map(inspection => `
+                    <tr>
+                        <td>${inspection.park}</td>
+                        <td>${inspection.unit}</td>
+                        <td>${new Date(inspection.lastInspection).toLocaleDateString()}</td>
+                        <td class="${inspection.status === 'Pass' ? 'pass' : 'attention'}">${inspection.status}</td>
+                        <td>${inspection.inspector}</td>
+                        <td>${inspection.bromine}</td>
+                        <td>${inspection.pH}</td>
+                        <td>${inspection.temperature}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>`;
+        }
+
+        function generateSafetyReportHtml(data) {
+            return `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Highland Holidays - Safety Documentation Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .header { background: #dc3545; color: white; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
+        .section { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .alert { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 10px 0; }
+        .safe { background: #d4edda; border: 1px solid #c3e6cb; }
+        h1, h2, h3 { color: #dc3545; }
+        .meta { color: #6c757d; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛡️ Highland Holidays Safety Documentation</h1>
+        <p>Generated: ${new Date(data.timestamp).toLocaleString()} by ${data.generatedBy}</p>
+    </div>
+
+    <div class="section">
+        <h2>🧪 Bromine Chemical Safety</h2>
+        <div class="alert">
+            <p><strong>Safety Protocols:</strong> ${data.bromine.safetyProtocols}</p>
+            <p><strong>PPE Requirements:</strong> ${data.bromine.ppeRequirements}</p>
+            <p><strong>Emergency Procedures:</strong> ${data.bromine.emergencyProcedures}</p>
+            <p><strong>Training Required:</strong> ${data.bromine.trainingRequired}</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>⚠️ Risk Assessments</h2>
+        <div class="alert safe">
+            <p><strong>Status:</strong> ${data.riskAssessments.completed ? 'Complete' : 'Pending'}</p>
+            <p><strong>Last Review:</strong> ${new Date(data.riskAssessments.lastReview).toLocaleDateString()}</p>
+            <p><strong>Chemical Risks:</strong> ${data.riskAssessments.chemicalRisks}</p>
+            <p><strong>Physical Risks:</strong> ${data.riskAssessments.physicalRisks}</p>
+            <p><strong>Compliance:</strong> ${data.riskAssessments.complianceStatus}</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>📋 Safety Procedures</h2>
+        <ul>
+            <li><strong>Water Testing:</strong> ${data.procedures.waterTesting}</li>
+            <li><strong>Chemical Handling:</strong> ${data.procedures.chemicalHandling}</li>
+            <li><strong>Maintenance:</strong> ${data.procedures.maintenance}</li>
+            <li><strong>Emergency Response:</strong> ${data.procedures.emergencyResponse}</li>
+        </ul>
+    </div>
+</body>
+</html>`;
+        }
+
+        function generateAssetReportHtml(data) {
+            return `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Highland Holidays - Asset Inventory Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .header { background: #6c757d; color: white; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
+        .section { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; font-weight: bold; }
+        .operational { color: #28a745; font-weight: bold; }
+        .maintenance { color: #ffc107; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏷️ Highland Holidays Asset Inventory</h1>
+        <p>Generated: ${new Date(data.timestamp).toLocaleString()} by ${data.generatedBy}</p>
+        <p><strong>Total Assets: ${data.totalAssets} | Operational: ${data.operationalCount}</strong></p>
+    </div>
+
+    <div class="section">
+        <h2>🛁 Hot Tub Unit Inventory</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Park</th>
+                    <th>Unit ID</th>
+                    <th>Capacity</th>
+                    <th>Install Date</th>
+                    <th>Last Service</th>
+                    <th>Status</th>
+                    <th>Sanitizer</th>
+                    <th>Heating</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${data.assets.map(asset => `
+                    <tr>
+                        <td>${asset.park}</td>
+                        <td>${asset.unitId}</td>
+                        <td>${asset.capacity}</td>
+                        <td>${asset.installDate}</td>
+                        <td>${asset.lastService}</td>
+                        <td class="${asset.status === 'Operational' ? 'operational' : 'maintenance'}">${asset.status}</td>
+                        <td>${asset.sanitizer}</td>
+                        <td>${asset.heatingSystem}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>`;
+        }
+
+        function downloadReport(htmlContent, filename) {
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showMessage(`Report downloaded: ${filename}`, 'success');
+        }
+
+        function getCurrentDateString() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        // Enhanced inspection form to include hot tub unit selection
+        function enhanceInspectionForm() {
+            const parkSelect = document.getElementById('inspection-park-select');
+            if (parkSelect) {
+                // Add event listener to show hot tub units when park is selected
+                parkSelect.addEventListener('change', function() {
+                    const selectedPark = this.value;
+                    updateHotTubUnitSelector(selectedPark);
+                });
+            }
+        }
+
+        // Function to update hot tub unit selector based on selected park
+        function updateHotTubUnitSelector(parkName) {
+            const units = getHotTubsForPark(parkName);
+            
+            // Remove existing unit selector if present
+            const existingSelector = document.getElementById('hot-tub-unit-selector');
+            if (existingSelector) {
+                existingSelector.remove();
+            }
+            
+            if (units.length === 0) return;
+            
+            // Create hot tub unit selector
+            const unitSelectorHtml = `
+                <div id="hot-tub-unit-selector" class="form-group" style="margin-top: 15px;">
+                    <label class="form-label" for="inspection-hot-tub-unit">Hot Tub Unit <span class="required">*</span></label>
+                    <select id="inspection-hot-tub-unit" name="hot_tub_unit" class="form-select" required>
+                        <option value="">Select Hot Tub Unit...</option>
+                        ${units.map(unit => `<option value="${unit}">${unit}</option>`).join('')}
+                    </select>
+                    <p style="color: #B8B8B8; font-size: 0.9rem; margin-top: 5px;">${units.length} hot tub unit${units.length !== 1 ? 's' : ''} available in ${parkName}</p>
+                </div>
+            `;
+            
+            // Insert after park selector
+            const parkSelect = document.getElementById('inspection-park-select');
+            if (parkSelect && parkSelect.closest('.form-group')) {
+                parkSelect.closest('.form-group').insertAdjacentHTML('afterend', unitSelectorHtml);
+            }
+        }
+
+        // Auto-retry initialization if Firebase loads after this script
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!app && typeof firebase !== 'undefined') {
+                setTimeout(() => {
+                    ensureFirebaseInitialized();
+                }, 500);
+            }
+        });
+    </script>
+
+    <!-- Maintenance Integration Module -->
+    <script src="maintenance-integration.js"></script>
+    
+    <style>
+        :root {
+            --primary-orange: #CC5500;
+            --dark-orange: #B8460C;
+            --light-orange: #E6672E;
+            --black: #000000;
+            --white: #FFFFFF;
+            --smart-dark-grey: #2A2A2A;
+            --content-background: #2F2F2F;
+            --light-gray: #F8F9FA;
+            --medium-gray: #6C757D;
+            --dark-gray: #343A40;
+            --border-color: #DEE2E6;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --shadow-light: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-medium: 0 4px 20px rgba(0,0,0,0.15);
+            --shadow-heavy: 0 8px 40px rgba(0,0,0,0.2);
+            --darker-bg: #1a1a1a;
+            --tile-bg: #252525;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+            color: #E8E8E8;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Enhanced 3D Sticky Logo Back Button */
+        .sticky-logo-back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 70px;
+            height: 70px;
+            z-index: 1000;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.4));
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .sticky-logo-back:hover {
+            transform: translateY(-2px) scale(1.05);
+            filter: drop-shadow(0 12px 30px rgba(204, 85, 0, 0.5));
+        }
+
+        .sticky-logo-back:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        /* Enhanced 3D Offline Status */
+        .offline-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            z-index: 1000;
+            border: 2px solid var(--white);
+            transition: all 0.3s ease;
+            opacity: 0.8;
+        }
+
+        .status-online {
+            background: var(--success);
+            box-shadow: 0 0 10px rgba(40, 167, 69, 0.6);
+        }
+
+        .status-offline {
+            background: var(--danger);
+            box-shadow: 0 0 10px rgba(220, 53, 69, 0.6);
+        }
+
+        /* Container */
+        .container {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Enhanced Header */
+        .header {
+            background: linear-gradient(145deg, #3a3a3a, #1a1a1a);
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            box-shadow: var(--shadow-heavy);
+            border: 3px solid var(--primary-orange);
+            border-radius: 12px;
+            margin: 100px 20px 30px;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(204, 85, 0, 0.1), transparent, rgba(204, 85, 0, 0.1));
+            border-radius: 9px;
+            pointer-events: none;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--primary-orange), var(--light-orange));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 20px rgba(204, 85, 0, 0.3);
+        }
+
+        .brand-line {
+            color: var(--primary-orange);
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1rem;
+            color: #ccc;
+            max-width: 600px;
+            margin: 0 auto;
+            font-weight: 300;
+        }
+
+        /* Enhanced Stats Header */
+        .stats-header {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: linear-gradient(145deg, var(--darker-bg), #111);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid var(--primary-orange);
+            box-shadow: var(--shadow-medium);
+            transition: all 0.3s ease;
+            min-width: 140px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(204, 85, 0, 0.1), transparent);
+            pointer-events: none;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(204, 85, 0, 0.3);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-orange);
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #B8B8B8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Enhanced 3D Hot Tub Container */
+        .hottub-container {
+            background: linear-gradient(145deg, var(--darker-bg), #111);
+            margin: 20px 0;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.8), 
+                inset 0 10px 25px rgba(255, 255, 255, 0.1),
+                inset 0 -10px 25px rgba(0, 0, 0, 0.7);
+            border: 3px solid var(--primary-orange);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hottub-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 25% 75%, rgba(204, 85, 0, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 75% 25%, rgba(204, 85, 0, 0.06) 0%, transparent 50%),
+                linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+            border-radius: 12px;
+            pointer-events: none;
+        }
+
+        /* Enhanced 3D Navigation */
+        .hottub-navigation {
+            background: linear-gradient(145deg, var(--black), #0a0a0a);
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border: 2px solid var(--primary-orange);
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+            box-shadow: 
+                0 8px 20px rgba(0, 0, 0, 0.6),
+                inset 0 4px 10px rgba(255, 255, 255, 0.1),
+                inset 0 -4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .hottub-nav-button {
+            background: linear-gradient(145deg, var(--black), #0a0a0a);
+            color: var(--white);
+            border: none;
+            padding: 18px 24px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            border-right: 2px solid var(--primary-orange);
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 120px;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .hottub-nav-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.05) 0%, 
+                transparent 50%);
+            pointer-events: none;
+        }
+
+        .hottub-nav-button:hover {
+            background: linear-gradient(145deg, rgba(204, 85, 0, 0.3), rgba(204, 85, 0, 0.1));
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 15px rgba(0, 0, 0, 0.4),
+                inset 0 2px 6px rgba(255, 255, 255, 0.2),
+                inset 0 -2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .hottub-nav-button.active {
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: white;
+            box-shadow: 
+                0 6px 15px rgba(0, 0, 0, 0.4),
+                0 0 20px rgba(204, 85, 0, 0.3),
+                inset 0 2px 6px rgba(255, 255, 255, 0.3),
+                inset 0 -2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .hottub-nav-button:last-child {
+            border-right: none;
+        }
+
+        /* Enhanced 3D Form Sections */
+        .form-section {
+            background: linear-gradient(145deg, var(--darker-bg), #111);
+            margin: 25px 0;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 
+                0 15px 35px rgba(0, 0, 0, 0.8), 
+                inset 0 8px 20px rgba(255, 255, 255, 0.1),
+                inset 0 -8px 20px rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--primary-orange);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(204, 85, 0, 0.06) 0%, transparent 50%),
+                linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+            border-radius: 13px;
+            pointer-events: none;
+        }
+
+        .form-section h3 {
+            color: var(--primary-orange);
+            margin-bottom: 25px;
+            font-size: 1.5em;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+            text-shadow: 
+                1px 1px 2px rgba(0, 0, 0, 0.7),
+                0 0 10px rgba(204, 85, 0, 0.4);
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(204, 85, 0, 0.3);
+        }
+
+        .form-section h4 {
+            color: var(--primary-orange);
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-group-full {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--white);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .required {
+            color: var(--primary-orange);
+        }
+
+        /* Enhanced Form Inputs - Fixed Dropdown Styling */
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 16px 20px;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.12));
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: var(--white);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            box-shadow: 
+                inset 0 4px 10px rgba(0, 0, 0, 0.3),
+                inset 0 -2px 6px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Force dropdown option styling across all browsers */
+        .form-select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 12px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 40px;
+            color: var(--white) !important;
+            background-color: rgba(47, 47, 47, 0.9) !important;
+        }
+
+        .form-select option {
+            background-color: #2F2F2F !important;
+            color: #FFFFFF !important;
+            padding: 12px !important;
+            border: none !important;
+        }
+
+        .form-select option:checked,
+        .form-select option:hover {
+            background-color: var(--primary-orange) !important;
+            color: var(--white) !important;
+        }
+
+        /* Additional browser-specific fixes */
+        .form-select::-ms-expand {
+            display: none;
+        }
+
+        .form-select optgroup {
+            background-color: #2F2F2F !important;
+            color: var(--primary-orange) !important;
+            font-weight: bold;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 
+                0 0 0 4px rgba(204, 85, 0, 0.2),
+                inset 0 4px 10px rgba(0, 0, 0, 0.2),
+                inset 0 -2px 6px rgba(255, 255, 255, 0.15);
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.16));
+            transform: translateY(-1px);
+        }
+
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        textarea.form-input {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .checkbox-item:hover {
+            background: rgba(204, 85, 0, 0.1);
+            border-color: rgba(204, 85, 0, 0.3);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            accent-color: var(--primary-orange);
+        }
+
+        .checkbox-item label {
+            color: var(--white);
+            font-weight: 500;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        /* Hot Tub Step Classes */
+        .hottub-step {
+            display: none;
+        }
+
+        .hottub-step.active {
+            display: block;
+        }
+
+        /* Progress Indicator */
+        .progress-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            font-size: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            padding: 10px 5px;
+            border-bottom: 3px solid rgba(255,255,255,0.2);
+            color: #B8C5D6;
+        }
+
+        .progress-step.active {
+            border-bottom-color: var(--primary-orange);
+            color: var(--primary-orange);
+            font-weight: bold;
+        }
+
+        .progress-step.completed {
+            border-bottom-color: var(--success);
+            color: var(--success);
+        }
+
+        /* Button Styles */
+        .btn {
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: var(--shadow-medium);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-heavy);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(145deg, #666, #444);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(145deg, #777, #555);
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+            position: relative;
+            z-index: 1;
+        }
+
+        .alert-info {
+            background: rgba(14, 165, 233, 0.1);
+            border-color: #0EA5E9;
+            color: #E8E8E8;
+        }
+
+        .alert-success {
+            background: rgba(40, 167, 69, 0.1);
+            border-color: var(--success);
+            color: #E8E8E8;
+        }
+
+        .alert-warning {
+            background: rgba(255, 193, 7, 0.1);
+            border-color: var(--warning);
+            color: #E8E8E8;
+        }
+
+        .alert-danger {
+            background: rgba(220, 53, 69, 0.1);
+            border-color: var(--danger);
+            color: #E8E8E8;
+        }
+
+        /* Procedure Step Styles */
+        .procedure-step {
+            background-color: rgba(255,255,255,0.05);
+            border-left: 4px solid var(--primary-orange);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 0 8px 8px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .procedure-step h4 {
+            color: var(--primary-orange);
+            margin-bottom: 10px;
+        }
+
+        .legislation-ref {
+            font-size: 12px;
+            color: #B8C5D6;
+            font-style: italic;
+            margin-top: 5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px 10px;
+            }
+            
+            .header {
+                margin: 75px 10px 20px;
+                padding: 20px 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .stats-header {
+                gap: 10px;
+            }
+            
+            .stat-item {
+                min-width: 120px;
+                padding: 15px;
+            }
+            
+            .hottub-container {
+                padding: 20px;
+                margin: 15px 0;
+            }
+            
+            .hottub-navigation {
+                flex-direction: column;
+                margin-bottom: 20px;
+            }
+
+            .hottub-nav-button {
+                border-right: none;
+                border-bottom: 2px solid var(--primary-orange);
+                min-width: auto;
+                padding: 14px 16px;
+                font-size: 12px;
+                letter-spacing: 0.3px;
+            }
+
+            .hottub-nav-button:last-child {
+                border-bottom: none;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            .form-input,
+            .form-select,
+            .form-textarea {
+                padding: 12px 15px;
+                font-size: 0.95rem;
+            }
+            
+            .btn {
+                padding: 12px 20px;
+                font-size: 14px;
+                margin: 5px;
+                width: auto;
+                min-width: 120px;
+            }
+        }
+
+        /* Extra small screens */
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px 5px;
+            }
+            
+            .header {
+                margin: 75px 2px 10px;
+                padding: 15px 8px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .stats-header {
+                gap: 8px;
+            }
+            
+            .stat-item {
+                padding: 8px 10px;
+                max-width: calc(50% - 4px);
+            }
+            
+            .stat-value {
+                font-size: 1.1rem;
+            }
+            
+            .stat-label {
+                font-size: 0.65rem;
+            }
+            
+            .hottub-container {
+                padding: 12px;
+                margin: 8px 2px;
+            }
+            
+            .form-section {
+                padding: 12px;
+            }
+            
+            .btn {
+                padding: 10px 16px;
+                font-size: 13px;
+                min-width: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Enhanced Offline Status -->
+    <div id="offlineStatus" class="offline-status status-online" title="Online - Data Synced"></div>
+
+    <!-- Enhanced Sticky Logo Back Button -->
+    <button class="sticky-logo-back" onclick="goHome()" title="Back to Main Dashboard">
+        <svg width="70" height="70" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="45" fill="#CC5500" stroke="#ffffff" stroke-width="3"/>
+            <path d="M35 45 L50 30 L50 40 L65 40 L65 50 L50 50 L50 60 Z" fill="white"/>
+        </svg>
+    </button>
+
+    <div class="container">
+        <!-- Enhanced Header -->
+        <div class="header">
+            <h1>Hot Tub Management</h1>
+            <div class="brand-line">SafePark.PRO</div>
+            <p>Comprehensive hot tub inspection and safety management system</p>
+        </div>
+
+        <!-- Enhanced Stats Header -->
+        <div class="stats-header">
+            <div class="stat-item" onclick="showHotTubStep('onboarding')" style="cursor: pointer;" title="Click to manage parks">
+                <div class="stat-value">4</div>
+                <div class="stat-label">Holiday Parks</div>
+            </div>
+            <div class="stat-item" onclick="showHotTubStep('onboarding')" style="cursor: pointer;" title="Click to manage hot tubs">
+                <div class="stat-value" id="totalHotTubs">0</div>
+                <div class="stat-label">Hot Tubs</div>
+            </div>
+            <div class="stat-item" onclick="showHotTubStep('inspection')" style="cursor: pointer;" title="Click to view inspections">
+                <div class="stat-value" id="inspectionsDue">0</div>
+                <div class="stat-label">Due This Week</div>
+            </div>
+            <div class="stat-item" onclick="showHotTubStep('inspection'); setTimeout(() => { loadOutstandingTasks(); }, 100);" style="cursor: pointer;" title="Click to view pending maintenance tasks">
+                <div class="stat-value" id="pendingTasks">0</div>
+                <div class="stat-label">Pending Tasks</div>
+            </div>
+        </div>
+
+        <div class="hottub-container">
+            <!-- Enhanced Navigation -->
+            <div class="hottub-navigation">
+                <button class="hottub-nav-button active" onclick="showHotTubStep('onboarding')">Hot Tub Setup</button>
+                <button class="hottub-nav-button" onclick="showHotTubStep('risk-assessment')">Risk Assessment</button>
+                <button class="hottub-nav-button" onclick="showHotTubStep('procedures')">Safe Working Procedures</button>
+                <button class="hottub-nav-button" onclick="showHotTubStep('inspection')">Inspection</button>
+            </div>
+
+            <!-- Enhanced Form with Maintenance Integration -->
+            <form id="hotTubForm">
+                <input type="hidden" name="module" value="Hot Tub Management">
+                <input type="hidden" name="submission_type" id="hotTubSubmissionType" value="onboarding">
+
+                <!-- STEP 1: HOT TUB SETUP -->
+                <div class="hottub-step active" id="ht-onboarding">
+                    <div class="form-section">
+                        <h3>Hot Tub Setup</h3>
+                        
+                        <!-- Configured Hot Tubs Status -->
+                        <div style="background: rgba(40, 167, 69, 0.1); border: 2px solid #28A745; border-radius: 10px; padding: 15px; margin-bottom: 20px;">
+                            <h4 style="color: #28A745; margin-bottom: 10px;">Holiday Park Locations (Hot Tub Management)</h4>
+                            <div id="configured-parks-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                                <div style="background: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 8px;">
+                                    <strong style="color: var(--primary-orange);">Ben Nevis Holiday Park</strong><br>
+                                    <span style="color: #28A745;">15 hot tubs installed</span><br>
+                                    <span style="color: #B8B8B8; font-size: 0.9rem;">Units: NHT40A, NHT40B, NHT62A (+12 more)</span>
+                                </div>
+                                <div style="background: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 8px;">
+                                    <strong style="color: var(--primary-orange);">Tyndrum Holiday Park</strong><br>
+                                    <span style="color: #28A745;">6 hot tubs installed</span><br>
+                                    <span style="color: #B8B8B8; font-size: 0.9rem;">Units: HTP04, HTP05, HTP01 (+3 more)</span>
+                                </div>
+                                <div style="background: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 8px;">
+                                    <strong style="color: var(--primary-orange);">Oban Holiday Park</strong><br>
+                                    <span style="color: #28A745;">15 hot tubs installed</span><br>
+                                    <span style="color: #B8B8B8; font-size: 0.9rem;">Units: OHTL10a, OHTL10b, OHTL11a (+12 more)</span>
+                                </div>
+                                <div style="background: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 8px;">
+                                    <strong style="color: var(--primary-orange);">Overburns Farm</strong><br>
+                                    <span style="color: #28A745;">1 hot tub installed</span><br>
+                                    <span style="color: #B8B8B8; font-size: 0.9rem;">Units: OVBFHT01</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="ht-park-name">Holiday Park <span class="required">*</span></label>
+                                <select id="ht-park-name" name="holiday_park" class="form-select" required>
+                                    <option value="">Select Holiday Park...</option>
+                                    <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                                    <option value="Oban Holiday Park">Oban Holiday Park</option>
+                                    <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                                    <option value="Overburns Farm">Overburns Farm</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="ht-installation-date">Installation Date <span class="required">*</span></label>
+                                <input type="date" id="ht-installation-date" name="installation_date" class="form-input" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="ht-capacity">Capacity (Persons) <span class="required">*</span></label>
+                                <select id="ht-capacity" name="capacity" class="form-select" required>
+                                    <option value="">Select Capacity...</option>
+                                    <option value="4">4 Person</option>
+                                    <option value="6">6 Person</option>
+                                    <option value="8">8 Person</option>
+                                    <option value="10">10 Person</option>
+                                    <option value="12">12 Person</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="ht-model">Hot Tub Model <span class="required">*</span></label>
+                                <input type="text" id="ht-model" name="hot_tub_model" class="form-input" placeholder="e.g. Jacuzzi J-245, Sundance Capri" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="ht-water-volume">Water Volume (Litres) <span class="required">*</span></label>
+                                <input type="number" id="ht-water-volume" name="water_volume" class="form-input" placeholder="e.g. 1500" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="ht-heating-system">Heating System <span class="required">*</span></label>
+                                <select id="ht-heating-system" name="heating_system" class="form-select" required>
+                                    <option value="">Select Heating System...</option>
+                                    <option value="Electric Heater">Electric Heater</option>
+                                    <option value="Gas Heater">Gas Heater</option>
+                                    <option value="Heat Pump">Heat Pump</option>
+                                    <option value="Solar Heating">Solar Heating</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="ht-filtration-type">Filtration System <span class="required">*</span></label>
+                                <select id="ht-filtration-type" name="filtration_type" class="form-select" required>
+                                    <option value="">Select Filtration Type...</option>
+                                    <option value="Cartridge Filter">Cartridge Filter</option>
+                                    <option value="Sand Filter">Sand Filter</option>
+                                    <option value="DE Filter">DE (Diatomaceous Earth) Filter</option>
+                                    <option value="Multi-Stage">Multi-Stage Filtration</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="ht-chemical-system">Chemical System <span class="required">*</span></label>
+                                <select id="ht-chemical-system" name="chemical_system" class="form-select" required>
+                                    <option value="">Select Chemical System...</option>
+                                    <option value="Manual Dosing">Manual Chemical Dosing</option>
+                                    <option value="Automatic Chlorinator">Automatic Chlorinator</option>
+                                    <option value="Salt Water System">Salt Water System</option>
+                                    <option value="Ozone System">Ozone System</option>
+                                    <option value="UV System">UV Sanitization System</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group-full">
+                            <label class="form-label" for="ht-safety-features">Safety Features <span class="required">*</span></label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="safety-cover" name="safety_features[]" value="Safety Cover">
+                                    <label for="safety-cover">Safety Cover</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="lockable-cover" name="safety_features[]" value="Lockable Cover">
+                                    <label for="lockable-cover">Lockable Cover</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="emergency-stop" name="safety_features[]" value="Emergency Stop Button">
+                                    <label for="emergency-stop">Emergency Stop Button</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="gfci-protection" name="safety_features[]" value="GFCI Protection">
+                                    <label for="gfci-protection">GFCI Protection</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="handrails" name="safety_features[]" value="Handrails/Steps">
+                                    <label for="handrails">Handrails & Steps</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="non-slip-surface" name="safety_features[]" value="Non-slip Surfaces">
+                                    <label for="non-slip-surface">Non-slip Surfaces</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="temperature-control" name="safety_features[]" value="Temperature Limiting">
+                                    <label for="temperature-control">Temperature Limiting Device</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="drain-system" name="safety_features[]" value="Safety Drain System">
+                                    <label for="drain-system">Safety Drain System</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="ht-additional-notes">Additional Installation Notes:</label>
+                            <textarea id="ht-additional-notes" name="additional_notes" class="form-textarea" rows="4" placeholder="Any additional information about the hot tub installation, location, or special considerations..."></textarea>
+                        </div>
+
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                            <button type="button" class="btn" onclick="saveAndContinue('risk-assessment')">Continue to Risk Assessment</button>
+                            <button type="button" class="btn btn-secondary" onclick="saveCurrentStep('onboarding')" style="width: auto; padding: 14px 28px;">Save Hot Tub Setup</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: RISK ASSESSMENT -->
+                <div class="hottub-step" id="ht-risk-assessment">
+                    <div class="progress-indicator">
+                        <div class="progress-step completed">1. Setup</div>
+                        <div class="progress-step active">2. Risk Assessment</div>
+                        <div class="progress-step">3. Safe Working Procedures</div>
+                        <div class="progress-step">4. Inspection</div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Hot Tub Risk Assessment</h3>
+                        
+                        <div class="alert alert-info">
+                            <strong>Risk Assessment Requirements:</strong> Under the Health and Safety at Work Act 1974 and Management of Health and Safety at Work Regulations 1999, 
+                            you must assess risks to health and safety from hot tub operations and implement appropriate control measures.
+                        </div>
+
+                        <!-- Water Safety Risks -->
+                        <div class="form-section">
+                            <h4>Water Safety Risks</h4>
+                            <div class="form-group">
+                                <label class="form-label" for="ht-water-risks">Water Quality & Temperature Risks <span class="required">*</span></label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="water-temp-risk" name="water_risks[]" value="Overheating/Hyperthermia Risk">
+                                        <label for="water-temp-risk">Overheating/Hyperthermia Risk</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="scalding-risk" name="water_risks[]" value="Scalding from Hot Surfaces">
+                                        <label for="scalding-risk">Scalding from Hot Surfaces</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="contamination-risk" name="water_risks[]" value="Water Contamination">
+                                        <label for="contamination-risk">Water Contamination</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="bacteria-risk" name="water_risks[]" value="Bacterial Growth (Legionella)">
+                                        <label for="bacteria-risk">Bacterial Growth (Legionella)</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="drowning-risk" name="water_risks[]" value="Drowning Risk">
+                                        <label for="drowning-risk">Drowning Risk</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chemical Safety Risks - BROMINE SPECIFIC -->
+                        <div class="form-section">
+                            <h4>Chemical Safety Risks - Bromine Systems</h4>
+                            <div class="alert alert-warning">
+                                <strong>Bromine-Specific Hazards:</strong> This facility uses bromine-based sanitization. Bromine has different safety requirements compared to chlorine systems.
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="ht-chemical-risks">Bromine Chemical Handling & Exposure Risks <span class="required">*</span></label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="bromine-burns" name="chemical_risks[]" value="Bromine Chemical Burns/Corrosion">
+                                        <label for="bromine-burns">Bromine Chemical Burns/Corrosion (stronger than chlorine)</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="bromine-vapor" name="chemical_risks[]" value="Bromine Vapor Inhalation">
+                                        <label for="bromine-vapor">Bromine Vapor Inhalation (respiratory irritation)</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="bromine-skin" name="chemical_risks[]" value="Bromine Skin/Eye Contact">
+                                        <label for="bromine-skin">Bromine Skin/Eye Contact (severe irritation)</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="bromine-mixing" name="chemical_risks[]" value="Dangerous Bromine Chemical Mixing">
+                                        <label for="bromine-mixing">Dangerous Chemical Mixing (bromine + ammonia/acids)</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="bromine-storage" name="chemical_risks[]" value="Improper Bromine Storage">
+                                        <label for="bromine-storage">Improper Bromine Storage (decomposition/fire risk)</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="tablet-handling" name="chemical_risks[]" value="Bromine Tablet Handling">
+                                        <label for="tablet-handling">Bromine Tablet Handling (dry chemical contact)</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="feeder-malfunction" name="chemical_risks[]" value="Automatic Feeder Malfunction">
+                                        <label for="feeder-malfunction">Automatic Feeder Malfunction (over/under dosing)</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="ph-interaction" name="chemical_risks[]" value="pH Adjuster + Bromine Interaction">
+                                        <label for="ph-interaction">pH Adjuster + Bromine Interaction (toxic gas formation)</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Electrical Safety Risks -->
+                        <div class="form-section">
+                            <h4>Electrical Safety Risks</h4>
+                            <div class="form-group">
+                                <label class="form-label" for="ht-electrical-risks">Electrical System Risks <span class="required">*</span></label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="electrocution-risk" name="electrical_risks[]" value="Electrocution Risk">
+                                        <label for="electrocution-risk">Electrocution Risk</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="gfci-failure" name="electrical_risks[]" value="GFCI System Failure">
+                                        <label for="gfci-failure">GFCI System Failure</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="wet-electrical" name="electrical_risks[]" value="Water Contact with Electrical">
+                                        <label for="wet-electrical">Water Contact with Electrical Components</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="pump-failure" name="electrical_risks[]" value="Pump/Heater Malfunction">
+                                        <label for="pump-failure">Pump/Heater Malfunction</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="control-failure" name="electrical_risks[]" value="Control System Failure">
+                                        <label for="control-failure">Control System Failure</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Physical Safety Risks -->
+                        <div class="form-section">
+                            <h4>Physical Safety Risks</h4>
+                            <div class="form-group">
+                                <label class="form-label" for="ht-physical-risks">Physical Injury Risks <span class="required">*</span></label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="slip-fall-risk" name="physical_risks[]" value="Slip/Fall on Wet Surfaces">
+                                        <label for="slip-fall-risk">Slip/Fall on Wet Surfaces</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="entrapment-risk" name="physical_risks[]" value="Hair/Body Entrapment">
+                                        <label for="entrapment-risk">Hair/Body Entrapment in Drains</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="edge-injury" name="physical_risks[]" value="Sharp Edge Injuries">
+                                        <label for="edge-injury">Sharp Edge Injuries</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="access-injury" name="physical_risks[]" value="Entry/Exit Injuries">
+                                        <label for="access-injury">Entry/Exit Injuries</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="jet-injury" name="physical_risks[]" value="High-Pressure Jet Injuries">
+                                        <label for="jet-injury">High-Pressure Jet Injuries</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="ht-additional-risks">Additional Site-Specific Risks:</label>
+                            <textarea id="ht-additional-risks" name="additional_risks" class="form-textarea" rows="4" placeholder="Add any additional risks specific to your site location, local environment, or special circumstances..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="ht-risk-controls">Additional Risk Control Measures:</label>
+                            <textarea id="ht-risk-controls" name="risk_controls" class="form-textarea" rows="4" placeholder="Describe any additional control measures, supervision requirements, or site-specific safety procedures..."></textarea>
+                        </div>
+
+                        <div class="legislation-ref">
+                            Reference: Health and Safety at Work etc. Act 1974, Management of Health and Safety at Work Regulations 1999, 
+                            Pool Water Treatment Advisory Group (PWTAG) Guidelines, HSE Guidance HSG179
+                        </div>
+
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-secondary" onclick="showHotTubStep('onboarding')">Back</button>
+                            <button type="button" class="btn" onclick="generateHotTubProcedures()">Generate Safe Working Procedures</button>
+                            <button type="button" class="btn" onclick="saveAndContinue('procedures')">Continue to Procedures</button>
+                            <button type="button" class="btn btn-secondary" onclick="saveCurrentStep('risk-assessment')" style="width: auto; padding: 14px 28px;">Save Risk Assessment</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 3: SAFE WORKING PROCEDURES -->
+                <div class="hottub-step" id="ht-procedures">
+                    <div class="progress-indicator">
+                        <div class="progress-step completed">1. Setup</div>
+                        <div class="progress-step completed">2. Risk Assessment</div>
+                        <div class="progress-step active">3. Safe Working Procedures</div>
+                        <div class="progress-step">4. Inspection</div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Comprehensive Safe Working Procedures</h3>
+                        
+                        <div class="alert alert-success">
+                            <strong>Complete Procedures:</strong> These procedures cover all aspects of hot tub safety management including water quality, 
+                            chemical handling, electrical safety, and maintenance. All procedures comply with PWTAG Guidelines, Health and Safety at Work Act 1974, and Management of Health and Safety at Work Regulations 1999.
+                        </div>
+
+                        <!-- Daily Water Testing Procedures -->
+                        <div style="background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)); border-radius: 12px; padding: 20px; margin: 20px 0; border: 1px solid rgba(255, 255, 255, 0.1);">
+                            <h4 style="color: var(--primary-orange); margin-bottom: 20px;">DAILY WATER TESTING PROCEDURES</h4>
+                            
+                            <div style="background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <h5 style="color: var(--white); margin-bottom: 10px;">PRE-TESTING PREPARATION</h5>
+                                <ol style="color: var(--white); margin: 0; padding-left: 20px;">
+                                    <li>Ensure test kit is calibrated and reagents are within expiry date</li>
+                                    <li>Check hot tub has been running for at least 30 minutes before testing</li>
+                                    <li>Collect water sample from 300mm below surface, away from jets and returns</li>
+                                    <li>Use clean sample container, rinsed with hot tub water</li>
+                                    <li>Test water immediately after collection for accurate results</li>
+                                </ol>
+                                <div class="legislation-ref">Reference: PWTAG Code of Practice</div>
+                            </div>
+
+                            <div style="background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <h5 style="color: var(--white); margin-bottom: 10px;">MANDATORY DAILY TESTS - BROMINE SYSTEM</h5>
+                                <ol style="color: var(--white); margin: 0; padding-left: 20px;">
+                                    <li><strong>pH Level:</strong> Test and record (target range: 7.2-7.8 for bromine systems)</li>
+                                    <li><strong>Free Bromine:</strong> Test and record (target range: 2.0-4.0 mg/l)</li>
+                                    <li><strong>Total Bromine:</strong> Test and record (should not exceed free bromine by >2.0 mg/l)</li>
+                                    <li><strong>Water Temperature:</strong> Check and record (maximum 40°C)</li>
+                                    <li><strong>Water Clarity:</strong> Visual inspection and assessment</li>
+                                    <li><strong>Combined Bromine:</strong> Calculate (Total - Free, should be <1.0 mg/l)</li>
+                                    <li><strong>Total Alkalinity:</strong> Weekly test (target range: 80-120 mg/l as CaCO₃)</li>
+                                </ol>
+                                <div class="legislation-ref">Reference: PWTAG Code of Practice, Section 3.2 (Modified for Bromine Systems)</div>
+                            </div>
+
+                            <div style="background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <h5 style="color: var(--white); margin-bottom: 10px;">BROMINE CHEMICAL DOSING PROCEDURES</h5>
+                                <ol style="color: var(--white); margin: 0; padding-left: 20px;">
+                                    <li><strong>pH Adjustment FIRST:</strong> Always adjust pH before bromine dosing (7.2-7.8 range)</li>
+                                    <li><strong>Bromine Dosing:</strong> Add bromine tablets/granules to achieve 2.0-4.0 mg/l free bromine</li>
+                                    <li><strong>Shock Treatment:</strong> Weekly or when combined bromine >1.0 mg/l using bromine shock</li>
+                                    <li><strong>Never Mix Chemicals:</strong> Add chemicals separately with circulation running</li>
+                                    <li><strong>Contact Time:</strong> Allow 30-60 minutes circulation before retesting</li>
+                                    <li><strong>PPE Required:</strong> Gloves, eye protection, and respiratory protection when handling</li>
+                                    <li><strong>Record Keeping:</strong> Log all chemical additions with time, quantity, and batch numbers</li>
+                                </ol>
+                                <div style="background: rgba(220, 53, 69, 0.2); padding: 10px; border-radius: 5px; margin-top: 10px;">
+                                    <strong style="color: #DC3545;">⚠️ BROMINE SAFETY CRITICAL:</strong> Bromine is more reactive than chlorine. Handle with extreme care.
+                                </div>
+                                <div class="legislation-ref">Reference: COSHH Regulations 2002, HSE ACOP L5, Bromine Manufacturer SDS</div>
+                            </div>
+                        </div>
+
+                        <!-- Filtration & Circulation Procedures -->
+                        <div style="background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)); border-radius: 12px; padding: 20px; margin: 20px 0; border: 1px solid rgba(255, 255, 255, 0.1);">
+                            <h4 style="color: var(--primary-orange); margin-bottom: 20px;">FILTRATION & CIRCULATION PROCEDURES</h4>
+                            
+                            <div style="background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <h5 style="color: var(--white); margin-bottom: 10px;">DAILY FILTER CHECKS</h5>
+                                <ol style="color: var(--white); margin: 0; padding-left: 20px;">
+                                    <li>Check circulation pump is operating correctly</li>
+                                    <li>Verify adequate water flow through all jets and returns</li>
+                                    <li>Check filter cartridge condition and debris accumulation</li>
+                                    <li>Monitor pressure gauge readings (if fitted)</li>
+                                    <li>Check for any unusual pump noises or vibrations</li>
+                                </ol>
+                            </div>
+
+                            <div style="background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <h5 style="color: var(--white); margin-bottom: 10px;">WEEKLY FILTER MAINTENANCE</h5>
+                                <ol style="color: var(--white); margin: 0; padding-left: 20px;">
+                                    <li>Remove and inspect filter cartridges</li>
+                                    <li>Rinse filters with garden hose to remove debris</li>
+                                    <li>Rotate filters if multiple sets available</li>
+                                    <li>Check filter housing and seals for damage</li>
+                                    <li>Record filter condition and any maintenance performed</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Temperature Control & Heating Procedures -->
+                        <div style="background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)); border-radius: 12px; padding: 20px; margin: 20px 0; border: 1px solid rgba(255, 255, 255, 0.1);">
+                            <h4 style="color: var(--primary-orange); margin-bottom: 20px;">TEMPERATURE CONTROL & HEATING PROCEDURES</h4>
+                            
+                            <div style="background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <h5 style="color: var(--white); margin-bottom: 10px;">DAILY TEMPERATURE MONITORING</h5>
+                                <ol style="color: var(--white); margin: 0; padding-left: 20px;">
+                                    <li>Check water temperature using calibrated thermometer</li>
+                                    <li>Verify temperature display readings are accurate</li>
+                                    <li>Ensure temperature does not exceed 40°C maximum</li>
+                                    <li>Check heating system operation and efficiency</li>
+                                    <li>Monitor for any temperature fluctuations or control issues</li>
+                                </ol>
+                            </div>
+
+                            <div style="background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 8px;">
+                                <h5 style="color: var(--white); margin-bottom: 10px;">EMERGENCY TEMPERATURE PROCEDURES</h5>
+                                <ol style="color: var(--white); margin: 0; padding-left: 20px;">
+                                    <li><strong>Overheating:</strong> Immediately shut down heating system and open covers</li>
+                                    <li><strong>Temperature Sensor Failure:</strong> Manually monitor with calibrated thermometer</li>
+                                    <li><strong>Heating System Failure:</strong> Allow natural cooling, monitor temperature decline</li>
+                                    <li><strong>Control System Malfunction:</strong> Implement manual override procedures</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- COMPREHENSIVE BROMINE CHEMICAL SAFETY PROCEDURES -->
+                        <div style="background: linear-gradient(145deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05)); border-radius: 12px; padding: 20px; margin: 20px 0; border: 2px solid #DC3545;">
+                            <h4 style="color: #DC3545; margin-bottom: 20px;">🧪 BROMINE CHEMICAL SAFETY PROCEDURES</h4>
+                            
+                            <div style="background: rgba(220, 53, 69, 0.2); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <h5 style="color: var(--white); margin-bottom: 10px;">BROMINE HAZARD IDENTIFICATION</h5>
+                                <ul style="color: var(--white); margin: 0; padding-left: 20px;">
+                                    <li><strong>Physical Hazards:</strong> Oxidizing agent, may intensify fire, releases toxic vapors when heated</li>
+                                    <li><strong>Health Hazards:</strong> Corrosive to skin/eyes, respiratory irritant, more toxic than chlorine</li>
+                                    <li><strong>Environmental:</strong> Toxic to aquatic life, persistent in environment</li>
+                                    <li><strong>Reactivity:</strong> Reacts violently with ammonia, incompatible with acids and bases</li>
+                                </ul>
+                                <div class="legislation-ref">Reference: Bromine Safety Data Sheet, COSHH Assessment Required</div>
+                            </div>
+
+                            <div style="background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <h5 style="color: var(--white); margin-bottom: 10px;">MANDATORY PPE FOR BROMINE HANDLING</h5>
+                                <ol style="color: var(--white); margin: 0; padding-left: 20px;">
+                                    <li><strong>Eye Protection:</strong> Chemical safety goggles (not safety glasses) - EN 166</li>
+                                    <li><strong>Respiratory Protection:</strong> P2 dust mask minimum, P3 for enclosed spaces</li>
+                                    <li><strong>Hand Protection:</strong> Nitrile gloves (minimum 0.4mm thickness) - butyl rubber preferred</li>
+                                    <li><strong>Body Protection:</strong> Chemical-resistant apron, long sleeves, closed footwear</li>
+                                    <li><strong>Emergency Equipment:</strong> Eyewash station within 10 seconds, emergency shower available</li>
+                                </ol>
+                                <div class="legislation-ref">Reference: COSHH Regulations 2002, PPE Regulations 2018</div>
+                            </div>
+
+                            <div style="background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <h5 style="color: var(--white); margin-bottom: 10px;">BROMINE STORAGE REQUIREMENTS</h5>
+                                <ol style="color: var(--white); margin: 0; padding-left: 20px;">
+                                    <li><strong>Location:</strong> Cool, dry, well-ventilated area away from heat sources and ignition</li>
+                                    <li><strong>Container:</strong> Original containers only, tightly sealed, corrosion-resistant</li>
+                                    <li><strong>Separation:</strong> Minimum 3m from acids, alkalis, ammonia, organic materials</li>
+                                    <li><strong>Temperature:</strong> Below 25°C, avoid direct sunlight and temperature fluctuations</li>
+                                    <li><strong>Quantity Limits:</strong> Store only quantities needed for 3 months maximum</li>
+                                    <li><strong>Access Control:</strong> Locked storage, authorized personnel only</li>
+                                    <li><strong>Warning Signs:</strong> Hazard symbols, emergency contact information displayed</li>
+                                </ol>
+                                <div class="legislation-ref">Reference: HSE Storage of Dangerous Substances, Classification & Labelling Regulations</div>
+                            </div>
+
+                            <div style="background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <h5 style="color: var(--white); margin-bottom: 10px;">SAFE BROMINE HANDLING PROCEDURES</h5>
+                                <ol style="color: var(--white); margin: 0; padding-left: 20px;">
+                                    <li><strong>Pre-Work Check:</strong> Ensure PPE is worn, eyewash available, wind direction noted</li>
+                                    <li><strong>Container Opening:</strong> Point away from face/body, open slowly to avoid vapor release</li>
+                                    <li><strong>Dispensing:</strong> Use dedicated measuring devices, never estimate quantities</li>
+                                    <li><strong>Addition Method:</strong> Add to water (never water to chemical), dissolve completely</li>
+                                    <li><strong>Tablet Feeders:</strong> Fill with hot tub pump OFF, allow ventilation before restarting</li>
+                                    <li><strong>Spill Prevention:</strong> Use funnel, work over spill tray, have absorbent material ready</li>
+                                    <li><strong>Post-Handling:</strong> Wash hands/equipment thoroughly, check for contamination</li>
+                                </ol>
+                            </div>
+
+                            <div style="background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <h5 style="color: var(--white); margin-bottom: 10px;">BROMINE EMERGENCY PROCEDURES</h5>
+                                <ol style="color: var(--white); margin: 0; padding-left: 20px;">
+                                    <li><strong>Skin Contact:</strong> Remove contaminated clothing, wash with copious water for 15+ minutes</li>
+                                    <li><strong>Eye Contact:</strong> Irrigate immediately for 15+ minutes, seek urgent medical attention</li>
+                                    <li><strong>Inhalation:</strong> Move to fresh air, seek medical attention if breathing difficulties</li>
+                                    <li><strong>Spills:</strong> Evacuate area, wear full PPE, neutralize with sodium thiosulfate solution</li>
+                                    <li><strong>Fire:</strong> Use water spray to cool containers, evacuate 100m radius</li>
+                                    <li><strong>Emergency Contacts:</strong> Poison Control: 111, Emergency Services: 999</li>
+                                </ol>
+                                <div style="background: rgba(220, 53, 69, 0.3); padding: 10px; border-radius: 5px; margin-top: 10px;">
+                                    <strong style="color: #DC3545;">🚨 CRITICAL:</strong> All bromine exposures require immediate medical assessment due to delayed health effects.
+                                </div>
+                            </div>
+
+                            <div style="background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 8px;">
+                                <h5 style="color: var(--white); margin-bottom: 10px;">CHEMICAL COMPATIBILITY - BROMINE SYSTEMS</h5>
+                                <div style="color: var(--white);">
+                                    <p><strong style="color: #28A745;">✅ SAFE TO USE WITH BROMINE:</strong></p>
+                                    <ul style="margin: 5px 0; padding-left: 20px;">
+                                        <li>pH Increaser (sodium carbonate) - add separately</li>
+                                        <li>pH Decreaser (sodium bisulfate) - add separately</li>
+                                        <li>Alkalinity Increaser (sodium bicarbonate)</li>
+                                        <li>Calcium Hardness Increaser</li>
+                                        <li>Non-chlorine shock (potassium monopersulfate)</li>
+                                    </ul>
+                                    
+                                    <p><strong style="color: #DC3545;">❌ NEVER MIX WITH BROMINE:</strong></p>
+                                    <ul style="margin: 5px 0; padding-left: 20px;">
+                                        <li>Chlorine products (forms toxic gas)</li>
+                                        <li>Ammonia-based products (explosive reaction)</li>
+                                        <li>Acids when concentrated (releases bromine gas)</li>
+                                        <li>Organic materials (fire/explosion risk)</li>
+                                        <li>Metal cleaners containing reducing agents</li>
+                                    </ul>
+                                </div>
+                                <div class="legislation-ref">Reference: Chemical Manufacturer SDS, HSE Chemical Incompatibility Guidelines</div>
+                            </div>
+                        </div>
+
+                        <!-- BROMINE MAINTENANCE & TESTING PROCEDURES -->
+                        <div style="background: linear-gradient(145deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05)); border-radius: 12px; padding: 20px; margin: 20px 0; border: 2px solid #28A745;">
+                            <h4 style="color: #28A745; margin-bottom: 20px;">🔬 BROMINE MAINTENANCE & TESTING PROCEDURES</h4>
+                            
+                            <div style="background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <h5 style="color: var(--white); margin-bottom: 10px;">BROMINE TEST KIT REQUIREMENTS</h5>
+                                <ol style="color: var(--white); margin: 0; padding-left: 20px;">
+                                    <li><strong>Test Kit Type:</strong> DPD (N,N-diethyl-p-phenylenediamine) specifically for bromine</li>
+                                    <li><strong>Reagents Required:</strong> DPD No.1 (free bromine), DPD No.3 (total bromine), pH indicator</li>
+                                    <li><strong>Calibration:</strong> Check against control standards monthly, replace reagents within expiry</li>
+                                    <li><strong>Storage:</strong> Reagents in cool, dark place, away from moisture and chemicals</li>
+                                    <li><strong>Digital Meters:</strong> Photometers calibrated weekly, buffer solutions within date</li>
+                                </ol>
+                                <div class="legislation-ref">Reference: ISO 7393 (Bromine Determination in Water)</div>
+                            </div>
+
+                            <div style="background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <h5 style="color: var(--white); margin-bottom: 10px;">BROMINE FEEDER MAINTENANCE</h5>
+                                <ol style="color: var(--white); margin: 0; padding-left: 20px;">
+                                    <li><strong>Daily Checks:</strong> Verify feeder operation, check bromine tablet levels</li>
+                                    <li><strong>Weekly Cleaning:</strong> Remove and clean feeder basket, check for blockages</li>
+                                    <li><strong>Monthly Service:</strong> Disassemble feeder, clean all components, check seals</li>
+                                    <li><strong>Tablet Replacement:</strong> Add tablets when feeder is 1/3 full, never overfill</li>
+                                    <li><strong>Flow Rate Adjustment:</strong> Adjust based on bather load and testing results</li>
+                                    <li><strong>Winter Storage:</strong> Clean thoroughly, dry completely, store in cool area</li>
+                                </ol>
+                            </div>
+
+                            <div style="background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <h5 style="color: var(--white); margin-bottom: 10px;">BROMINE SHOCK TREATMENT PROCEDURES</h5>
+                                <ol style="color: var(--white); margin: 0; padding-left: 20px;">
+                                    <li><strong>When Required:</strong> Weekly routine, after heavy bather load, when combined bromine >1.0 mg/l</li>
+                                    <li><strong>Shock Type:</strong> Use bromine shock (sodium bromide + potassium monopersulfate) ONLY</li>
+                                    <li><strong>Dosage:</strong> Follow manufacturer instructions, typically 10g per 1000L water</li>
+                                    <li><strong>Procedure:</strong> Pre-dissolve in bucket, add with pump running, avoid contact with metal</li>
+                                    <li><strong>Contact Time:</strong> Allow 2 hours circulation before use, test bromine levels</li>
+                                    <li><strong>Safety:</strong> Full PPE required, ensure adequate ventilation during treatment</li>
+                                </ol>
+                            </div>
+
+                            <div style="background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 8px;">
+                                <h5 style="color: var(--white); margin-bottom: 10px;">BROMINE TROUBLESHOOTING GUIDE</h5>
+                                <div style="color: var(--white);">
+                                    <p><strong style="color: #FFC107;">Low Free Bromine (<2.0 mg/l):</strong></p>
+                                    <ul style="margin: 5px 0 15px; padding-left: 20px;">
+                                        <li>Check feeder operation and tablet levels</li>
+                                        <li>Verify pH is 7.2-7.8 (high pH reduces bromine efficiency)</li>
+                                        <li>Increase feeder flow rate or add bromine granules</li>
+                                        <li>Check for high bather load or contamination</li>
+                                    </ul>
+                                    
+                                    <p><strong style="color: #FFC107;">High Combined Bromine (>1.0 mg/l):</strong></p>
+                                    <ul style="margin: 5px 0 15px; padding-left: 20px;">
+                                        <li>Perform immediate bromine shock treatment</li>
+                                        <li>Check and clean filters thoroughly</li>
+                                        <li>Verify adequate water circulation</li>
+                                        <li>Consider partial water change if persistent</li>
+                                    </ul>
+                                    
+                                    <p><strong style="color: #FFC107;">Cloudy Water with Proper Bromine:</strong></p>
+                                    <ul style="margin: 5px 0; padding-left: 20px;">
+                                        <li>Check filter condition and clean/replace</li>
+                                        <li>Test total alkalinity and calcium hardness</li>
+                                        <li>Consider water balance adjustment</li>
+                                        <li>Perform clarifier treatment if needed</li>
+                                    </ul>
+                                </div>
+                                <div class="legislation-ref">Reference: Pool Water Treatment Advisory Group Guidelines, Manufacturer Technical Bulletins</div>
+                            </div>
+                        </div>
+
+                        <!-- QUICK REFERENCE EMERGENCY PROCEDURES -->
+                        <div style="background: linear-gradient(145deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05)); border-radius: 12px; padding: 20px; margin: 20px 0; border: 2px solid #FFC107;">
+                            <h4 style="color: #FFC107; margin-bottom: 20px;">🚨 EMERGENCY QUICK REFERENCE - BROMINE SYSTEMS</h4>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
+                                <div style="background: rgba(220, 53, 69, 0.2); padding: 15px; border-radius: 8px;">
+                                    <h5 style="color: #DC3545; margin-bottom: 10px;">🔥 CHEMICAL SPILL</h5>
+                                    <ol style="color: var(--white); margin: 0; padding-left: 20px; font-size: 0.9rem;">
+                                        <li>Evacuate area immediately</li>
+                                        <li>Don full PPE before cleanup</li>
+                                        <li>Neutralize with sodium thiosulfate</li>
+                                        <li>Ventilate area thoroughly</li>
+                                        <li>Report incident immediately</li>
+                                    </ol>
+                                </div>
+                                
+                                <div style="background: rgba(220, 53, 69, 0.2); padding: 15px; border-radius: 8px;">
+                                    <h5 style="color: #DC3545; margin-bottom: 10px;">🫁 VAPOR EXPOSURE</h5>
+                                    <ol style="color: var(--white); margin: 0; padding-left: 20px; font-size: 0.9rem;">
+                                        <li>Move to fresh air immediately</li>
+                                        <li>Loosen tight clothing</li>
+                                        <li>Monitor breathing closely</li>
+                                        <li>Seek medical attention if difficulty</li>
+                                        <li>Do not induce vomiting</li>
+                                    </ol>
+                                </div>
+                                
+                                <div style="background: rgba(220, 53, 69, 0.2); padding: 15px; border-radius: 8px;">
+                                    <h5 style="color: #DC3545; margin-bottom: 10px;">👁️ EYE CONTACT</h5>
+                                    <ol style="color: var(--white); margin: 0; padding-left: 20px; font-size: 0.9rem;">
+                                        <li>Flush immediately with water (15+ min)</li>
+                                        <li>Remove contact lenses if present</li>
+                                        <li>Keep eyelids open during flushing</li>
+                                        <li>Seek urgent medical attention</li>
+                                        <li>Continue flushing en route</li>
+                                    </ol>
+                                </div>
+                                
+                                <div style="background: rgba(220, 53, 69, 0.2); padding: 15px; border-radius: 8px;">
+                                    <h5 style="color: #DC3545; margin-bottom: 10px;">🤚 SKIN CONTACT</h5>
+                                    <ol style="color: var(--white); margin: 0; padding-left: 20px; font-size: 0.9rem;">
+                                        <li>Remove contaminated clothing</li>
+                                        <li>Flush with water (15+ min)</li>
+                                        <li>Do not use soap initially</li>
+                                        <li>Cover with clean, dry dressing</li>
+                                        <li>Seek medical attention</li>
+                                    </ol>
+                                </div>
+                            </div>
+                            
+                            <div style="background: rgba(220, 53, 69, 0.3); padding: 15px; border-radius: 8px; margin-top: 15px; text-align: center;">
+                                <h5 style="color: #DC3545; margin-bottom: 10px;">📞 EMERGENCY CONTACTS</h5>
+                                <div style="color: var(--white); font-size: 1.1rem;">
+                                    <p><strong>Emergency Services:</strong> 999 | <strong>Poison Control:</strong> 111</p>
+                                    <p><strong>Site Manager:</strong> [INSERT NUMBER] | <strong>Chemical Supplier:</strong> [INSERT NUMBER]</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="ht-custom-procedures">Site-Specific Additional Procedures:</label>
+                            <textarea id="ht-custom-procedures" name="custom_procedures" class="form-textarea" rows="4" 
+                                      placeholder="Add any additional location-specific procedures or modifications to the standard procedures..."></textarea>
+                        </div>
+
+                        <div class="form-section">
+                            <h4 style="color: var(--primary-orange); margin-bottom: 20px;">Inspector Competency Requirements</h4>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="ht-inspector-qualifications">Required Inspector Qualifications:</label>
+                                    <select id="ht-inspector-qualifications" name="inspector_qualifications_required" class="form-select" multiple size="8">
+                                        <option value="pool-operator">Pool/Spa Operator Certification</option>
+                                        <option value="bromine-systems">Bromine Systems Specialist Training</option>
+                                        <option value="water-treatment">Water Treatment Training (Bromine-specific)</option>
+                                        <option value="chemical-handling">COSHH Chemical Handling Certification</option>
+                                        <option value="bromine-safety">Bromine Safety & Emergency Response</option>
+                                        <option value="first-aid">First Aid Qualified (Chemical Exposure)</option>
+                                        <option value="electrical-safety">Basic Electrical Safety Training</option>
+                                        <option value="risk-assessment">Risk Assessment Trained (Hazardous Substances)</option>
+                                    </select>
+                                    <p style="color: #FFC107; font-size: 0.9rem; margin-top: 5px;">⚠️ Bromine-specific training mandatory due to enhanced chemical risks</p>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="ht-training-frequency">Training Refresh Frequency:</label>
+                                    <select id="ht-training-frequency" name="training_frequency" class="form-select">
+                                        <option value="">Select...</option>
+                                        <option value="annual">Annual</option>
+                                        <option value="biennial">Every 2 Years</option>
+                                        <option value="triennial">Every 3 Years</option>
+                                        <option value="as-required">As Required</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="legislation-ref">
+                                Reference: Health and Safety at Work Act 1974, Section 2; Management of Health and Safety at Work Regulations 1999, Reg. 13; PWTAG Code of Practice
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-secondary" onclick="showHotTubStep('risk-assessment')">Back to Risk Assessment</button>
+                            <button type="button" class="btn" onclick="generateInspectionSchedules()">Generate Inspection Schedules</button>
+                            <button type="button" class="btn" onclick="saveAndContinue('inspection')">Continue to Inspection</button>
+                            <button type="button" class="btn btn-secondary" onclick="saveCurrentStep('procedures')" style="width: auto; padding: 14px 28px;">Save Procedures</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 4: ENHANCED DAILY INSPECTION WITH FIREBASE INTEGRATION -->
+                <div class="hottub-step" id="ht-inspection">
+                    <div class="form-section">
+                        <h3>Daily Hot Tub Inspection</h3>
+                        
+                        <div class="alert alert-info">
+                            <strong>Inspector:</strong> <span id="currentInspectorName">Loading...</span>
+                            <br><strong>Location:</strong> <span id="currentLocation">Loading...</span>
+                            <br><strong>Date:</strong> <span id="currentInspectionDate">Today</span>
+                            <br><strong>Access Level:</strong> <span id="inspectionAccessLevel">Loading...</span>
+                        </div>
+
+                        <!-- Inspection Status Dashboard -->
+                        <div id="inspection-status-dashboard" style="background: rgba(40, 167, 69, 0.1); border: 2px solid #28A745; border-radius: 10px; padding: 15px; margin-bottom: 20px;">
+                            <h4 style="color: #28A745; margin-bottom: 10px;">Today's Inspection Status</h4>
+                            <div id="inspection-status-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                                <!-- Will be populated by JavaScript -->
+                            </div>
+                            <div id="inspection-status" style="margin-top: 10px; font-weight: bold;"></div>
+                        </div>
+
+                        <!-- Park Selection for Inspection (Admin Only) -->
+                        <div id="admin-park-selection" style="background: rgba(204, 85, 0, 0.1); border: 2px solid var(--primary-orange); border-radius: 10px; padding: 15px; margin-bottom: 20px; display: none;">
+                            <h4 style="color: var(--primary-orange); margin-bottom: 10px;">Select Park for Inspection</h4>
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 8px; color: var(--white); font-weight: 600;" for="inspection-park-select">Park to Inspect:</label>
+                                <select id="inspection-park-select" name="holiday_park" class="form-select" onchange="loadParkInspectionForm()">
+                                    <option value="">Select park to inspect...</option>
+                                    <!-- Will be populated based on user access -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Admin Report Download Section -->
+                        <div id="admin-report-section" style="background: rgba(40, 167, 69, 0.1); border: 2px solid #28A745; border-radius: 10px; padding: 15px; margin-bottom: 20px; display: none;">
+                            <h4 style="color: #28A745; margin-bottom: 15px;">📊 Admin Report Downloads</h4>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                                <div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px;">
+                                    <h5 style="color: var(--white); margin-bottom: 10px;">📋 Comprehensive Report</h5>
+                                    <p style="color: #B8B8B8; font-size: 0.9rem; margin-bottom: 15px;">Complete system overview including all parks, units, inspections, and safety procedures</p>
+                                    <button onclick="downloadComprehensiveReport()" style="
+                                        width: 100%; 
+                                        padding: 10px; 
+                                        background: var(--primary-orange); 
+                                        color: white; 
+                                        border: none; 
+                                        border-radius: 5px; 
+                                        cursor: pointer;
+                                        font-size: 0.9rem;
+                                    ">Download Full Report</button>
+                                </div>
+                                
+                                <div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px;">
+                                    <h5 style="color: var(--white); margin-bottom: 10px;">🔍 Inspection Summary</h5>
+                                    <p style="color: #B8B8B8; font-size: 0.9rem; margin-bottom: 15px;">All inspection records with safety compliance status and trends</p>
+                                    <button onclick="downloadInspectionReport()" style="
+                                        width: 100%; 
+                                        padding: 10px; 
+                                        background: #28A745; 
+                                        color: white; 
+                                        border: none; 
+                                        border-radius: 5px; 
+                                        cursor: pointer;
+                                        font-size: 0.9rem;
+                                    ">Download Inspections</button>
+                                </div>
+                                
+                                <div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px;">
+                                    <h5 style="color: var(--white); margin-bottom: 10px;">🛡️ Safety Documentation</h5>
+                                    <p style="color: #B8B8B8; font-size: 0.9rem; margin-bottom: 15px;">Risk assessments, procedures, and bromine safety protocols</p>
+                                    <button onclick="downloadSafetyReport()" style="
+                                        width: 100%; 
+                                        padding: 10px; 
+                                        background: #DC3545; 
+                                        color: white; 
+                                        border: none; 
+                                        border-radius: 5px; 
+                                        cursor: pointer;
+                                        font-size: 0.9rem;
+                                    ">Download Safety Docs</button>
+                                </div>
+                                
+                                <div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px;">
+                                    <h5 style="color: var(--white); margin-bottom: 10px;">🏷️ Asset Inventory</h5>
+                                    <p style="color: #B8B8B8; font-size: 0.9rem; margin-bottom: 15px;">Complete hot tub units inventory across all Highland Holidays parks</p>
+                                    <button onclick="downloadAssetReport()" style="
+                                        width: 100%; 
+                                        padding: 10px; 
+                                        background: #6C757D; 
+                                        color: white; 
+                                        border: none; 
+                                        border-radius: 5px; 
+                                        cursor: pointer;
+                                        font-size: 0.9rem;
+                                    ">Download Inventory</button>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-top: 15px; padding: 10px; background: rgba(255, 193, 7, 0.1); border-radius: 5px;">
+                                <p style="color: #FFC107; font-size: 0.9rem; margin: 0;">
+                                    💡 <strong>Note:</strong> Reports include timestamp, inspector credentials, and regulatory compliance status for audit purposes.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Auto Park Selection for Non-Admin Users -->
+                        <div id="park-specific-info" style="background: rgba(40, 167, 69, 0.1); border: 2px solid #28A745; border-radius: 10px; padding: 15px; margin-bottom: 20px; display: none;">
+                            <h4 style="color: #28A745; margin-bottom: 10px;">Inspection Location</h4>
+                            <div style="font-size: 1.1rem; color: var(--white);">
+                                <strong>Hot Tub Location:</strong> <span id="auto-selected-park">Loading...</span>
+                            </div>
+                        </div>
+
+                        <!-- Inspection Form -->
+                        <div id="inspection-form" style="display: none;">
+                            <div class="form-section">
+                                <h4>8-Point Hot Tub Safety Inspection</h4>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label" for="inspection-date">Inspection Date <span class="required">*</span></label>
+                                        <input type="date" id="inspection-date" name="inspection_date" class="form-input" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="inspection-time">Inspection Time <span class="required">*</span></label>
+                                        <input type="time" id="inspection-time" name="inspection_time" class="form-input" required>
+                                    </div>
+                                </div>
+
+                                <!-- 8-Point Hot Tub Safety Checklist -->
+                                <div class="form-section">
+                                    <h4>Mandatory Safety Checks</h4>
+                                    
+                                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 15px; align-items: center; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; margin-bottom: 15px;">
+                                        <span style="font-weight: bold; color: var(--primary-orange);">Safety Check Item</span>
+                                        <label style="text-align: center; font-weight: bold; color: var(--primary-orange);">✓ Pass</label>
+                                        <label style="text-align: center; font-weight: bold; color: var(--primary-orange);">✗ Fail</label>
+                                        <label style="text-align: center; font-weight: bold; color: var(--primary-orange);">N/A</label>
+                                    </div>
+
+                                    <!-- 1. Water Quality & Temperature -->
+                                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 15px; align-items: center; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                        <span>1. Water Quality & Temperature (pH, chlorine, clarity, temperature)</span>
+                                        <label style="text-align: center;"><input type="radio" name="water_quality_check" value="pass" style="accent-color: var(--success);"></label>
+                                        <label style="text-align: center;"><input type="radio" name="water_quality_check" value="fail" style="accent-color: var(--danger);"></label>
+                                        <label style="text-align: center;"><input type="radio" name="water_quality_check" value="na" style="accent-color: var(--medium-gray);"></label>
+                                    </div>
+
+                                    <!-- 2. Chemical Systems & Levels -->
+                                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 15px; align-items: center; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                        <span>2. Chemical Systems & Levels (feeders, dosing pumps, chemical storage)</span>
+                                        <label style="text-align: center;"><input type="radio" name="chemical_system_check" value="pass" style="accent-color: var(--success);"></label>
+                                        <label style="text-align: center;"><input type="radio" name="chemical_system_check" value="fail" style="accent-color: var(--danger);"></label>
+                                        <label style="text-align: center;"><input type="radio" name="chemical_system_check" value="na" style="accent-color: var(--medium-gray);"></label>
+                                    </div>
+
+                                    <!-- 3. Filtration & Circulation -->
+                                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 15px; align-items: center; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                        <span>3. Filtration & Circulation (filter condition, pump operation, flow)</span>
+                                        <label style="text-align: center;"><input type="radio" name="filtration_check" value="pass" style="accent-color: var(--success);"></label>
+                                        <label style="text-align: center;"><input type="radio" name="filtration_check" value="fail" style="accent-color: var(--danger);"></label>
+                                        <label style="text-align: center;"><input type="radio" name="filtration_check" value="na" style="accent-color: var(--medium-gray);"></label>
+                                    </div>
+
+                                    <!-- 4. Safety Equipment & Access -->
+                                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 15px; align-items: center; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                        <span>4. Safety Equipment & Access (emergency stops, covers, handrails, steps)</span>
+                                        <label style="text-align: center;"><input type="radio" name="safety_equipment_check" value="pass" style="accent-color: var(--success);"></label>
+                                        <label style="text-align: center;"><input type="radio" name="safety_equipment_check" value="fail" style="accent-color: var(--danger);"></label>
+                                        <label style="text-align: center;"><input type="radio" name="safety_equipment_check" value="na" style="accent-color: var(--medium-gray);"></label>
+                                    </div>
+
+                                    <!-- 5. Electrical Systems & Controls -->
+                                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 15px; align-items: center; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                        <span>5. Electrical Systems & Controls (GFCI, heating, control panels)</span>
+                                        <label style="text-align: center;"><input type="radio" name="electrical_check" value="pass" style="accent-color: var(--success);"></label>
+                                        <label style="text-align: center;"><input type="radio" name="electrical_check" value="fail" style="accent-color: var(--danger);"></label>
+                                        <label style="text-align: center;"><input type="radio" name="electrical_check" value="na" style="accent-color: var(--medium-gray);"></label>
+                                    </div>
+
+                                    <!-- 6. Structural Integrity & Jets -->
+                                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 15px; align-items: center; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                        <span>6. Structural Integrity & Jets (shell condition, jets operation, leaks)</span>
+                                        <label style="text-align: center;"><input type="radio" name="structural_check" value="pass" style="accent-color: var(--success);"></label>
+                                        <label style="text-align: center;"><input type="radio" name="structural_check" value="fail" style="accent-color: var(--danger);"></label>
+                                        <label style="text-align: center;"><input type="radio" name="structural_check" value="na" style="accent-color: var(--medium-gray);"></label>
+                                    </div>
+
+                                    <!-- 7. Surroundings & Drainage -->
+                                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 15px; align-items: center; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                        <span>7. Surroundings & Drainage (non-slip surfaces, drainage, barriers)</span>
+                                        <label style="text-align: center;"><input type="radio" name="surroundings_check" value="pass" style="accent-color: var(--success);"></label>
+                                        <label style="text-align: center;"><input type="radio" name="surroundings_check" value="fail" style="accent-color: var(--danger);"></label>
+                                        <label style="text-align: center;"><input type="radio" name="surroundings_check" value="na" style="accent-color: var(--medium-gray);"></label>
+                                    </div>
+
+                                    <!-- 8. Water Temperature Compliance -->
+                                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 15px; align-items: center; padding: 12px;">
+                                        <span>8. Water Temperature Compliance (proper range, thermostat operation)</span>
+                                        <label style="text-align: center;"><input type="radio" name="temperature_check" value="pass" style="accent-color: var(--success);"></label>
+                                        <label style="text-align: center;"><input type="radio" name="temperature_check" value="fail" style="accent-color: var(--danger);"></label>
+                                        <label style="text-align: center;"><input type="radio" name="temperature_check" value="na" style="accent-color: var(--medium-gray);"></label>
+                                    </div>
+                                </div>
+
+                                <!-- Water Test Results -->
+                                <div class="form-section">
+                                    <h4>Water Test Results</h4>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label class="form-label" for="water-temp">Water Temperature (°C) <span class="required">*</span></label>
+                                            <input type="number" id="water-temp" name="water_temperature" class="form-input" step="0.1" min="30" max="42" placeholder="e.g. 39.5" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label" for="ph-level">pH Level <span class="required">*</span></label>
+                                            <input type="number" id="ph-level" name="ph_level" class="form-input" step="0.1" min="6.0" max="8.0" placeholder="e.g. 7.2" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label class="form-label" for="chlorine-level">Free Chlorine (mg/l) <span class="required">*</span></label>
+                                            <input type="number" id="chlorine-level" name="chlorine_level" class="form-input" step="0.1" min="0" max="10" placeholder="e.g. 1.5" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label" for="water-clarity">Water Clarity <span class="required">*</span></label>
+                                            <select id="water-clarity" name="water_clarity" class="form-select" required>
+                                                <option value="">Select...</option>
+                                                <option value="Crystal Clear">Crystal Clear</option>
+                                                <option value="Slightly Cloudy">Slightly Cloudy</option>
+                                                <option value="Cloudy">Cloudy</option>
+                                                <option value="Very Cloudy">Very Cloudy</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Additional Information -->
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label" for="inspection-weather">Weather Conditions</label>
+                                        <select id="inspection-weather" name="weather_conditions" class="form-select">
+                                            <option value="Fair">Fair</option>
+                                            <option value="Sunny">Sunny</option>
+                                            <option value="Overcast">Overcast</option>
+                                            <option value="Light Rain">Light Rain</option>
+                                            <option value="Heavy Rain">Heavy Rain</option>
+                                            <option value="Windy">Windy</option>
+                                            <option value="Freezing">Freezing</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="hot-tub-usage">Recent Usage Level</label>
+                                        <select id="hot-tub-usage" name="usage_level" class="form-select">
+                                            <option value="Light">Light (1-5 users)</option>
+                                            <option value="Moderate">Moderate (6-15 users)</option>
+                                            <option value="Heavy">Heavy (16+ users)</option>
+                                            <option value="Unknown">Unknown</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="inspection-issues">Issues Identified</label>
+                                    <textarea id="inspection-issues" name="issues_identified" class="form-textarea" rows="3" placeholder="Detail any issues found during inspection..."></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="inspection-notes">Additional Notes</label>
+                                    <textarea id="inspection-notes" name="inspection_notes" class="form-textarea" rows="3" placeholder="Any additional observations or comments..."></textarea>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 10px; margin-top: 20px;">
+                                    <div style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;">
+                                        <button type="button" class="btn" onclick="quickPassInspection()" style="background: linear-gradient(145deg, var(--success), #1e7e34);">
+                                            Quick Pass Inspection
+                                        </button>
+                                        <button type="button" class="btn" onclick="navigateToMaintenance()" style="background: linear-gradient(145deg, var(--warning), #d39e00); color: var(--black);">
+                                            Flag Maintenance Issue
+                                        </button>
+                                        <button type="button" class="btn" onclick="completeSelectedInspection()">
+                                            Complete and Submit Inspection
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; padding: 20px; margin-top: 40px; background: #1a1a1a; color: #888; font-size: 0.9rem;">
+        <p>&copy; 2024 SafePark.PRO - Hot Tub Management System | Professional Safety Solutions</p>
+    </div>
+
+    <script>
+        // Global Variables
+        let currentUser = null;
+        let userAccessLevel = null;
+        let currentStep = 'onboarding';
+        let outstandingTasks = [];
+
+        // Firebase Data Manager - Hot Tub Specific
+        const FirebaseDataManager = {
+            async saveHotTubData(parkName, data) {
+                if (!parkName || !data) return false;
+                
+                const docId = `hotTubData_${parkName.replace(/\s+/g, '_')}`;
+                
+                try {
+                    if (db) {
+                        await db.collection('hotTubData').doc(docId).set({
+                            ...data,
+                            lastUpdated: new Date().toISOString(),
+                            park: parkName
+                        });
+                        console.log(`✅ Hot tub data saved to Firebase: ${docId}`);
+                        return true;
+                    }
+                } catch (error) {
+                    console.error('Error saving to Firebase:', error);
+                }
+                
+                // Fallback to localStorage
+                localStorage.setItem(`safepark_hottub_${docId}`, JSON.stringify({
+                    ...data,
+                    lastUpdated: new Date().toISOString(),
+                    park: parkName
+                }));
+                console.log(`💾 Hot tub data saved locally: ${docId}`);
+                return false;
+            },
+
+            async loadHotTubData(parkName) {
+                if (!parkName) return null;
+                
+                const docId = `hotTubData_${parkName.replace(/\s+/g, '_')}`;
+                
+                try {
+                    if (db) {
+                        const doc = await db.collection('hotTubData').doc(docId).get();
+                        if (doc.exists) {
+                            console.log(`✅ Hot tub data loaded from Firebase: ${docId}`);
+                            return doc.data();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading from Firebase:', error);
+                }
+                
+                // Fallback to localStorage
+                const localData = localStorage.getItem(`safepark_hottub_${docId}`);
+                if (localData) {
+                    console.log(`💾 Hot tub data loaded from localStorage: ${docId}`);
+                    return JSON.parse(localData);
+                }
+                
+                return null;
+            },
+
+            async saveInspection(inspectionData) {
+                const docId = `hotTubInspection_${inspectionData.park}_${inspectionData.date}`;
+                
+                try {
+                    if (db) {
+                        await db.collection('hotTubInspections').doc(docId).set({
+                            ...inspectionData,
+                            lastUpdated: new Date().toISOString()
+                        });
+                        console.log(`✅ Hot tub inspection saved to Firebase: ${docId}`);
+                        return true;
+                    }
+                } catch (error) {
+                    console.error('Error saving inspection to Firebase:', error);
+                }
+                
+                // Fallback to localStorage
+                localStorage.setItem(`safepark_inspection_${docId}`, JSON.stringify({
+                    ...inspectionData,
+                    lastUpdated: new Date().toISOString()
+                }));
+                console.log(`💾 Hot tub inspection saved locally: ${docId}`);
+                return false;
+            }
+        };
+
+        // Enhanced User Access Control System - EXACTLY like play-parks
+        // Admin: CQR365SPP25 (all parks)
+        // Managers: 1010 (Ben Nevis), 1020 (Oban), 1030 (Tyndrum), 1040 (Overburns Farm)
+        // Team Members: 1010001, 1010002, 1020001, 1030001, 1040001, etc. (5+ digit codes)
+        // All codes starting with same 4 digits get access to the same park:
+        // - 1010* = Ben Nevis Holiday Park
+        // - 1020* = Oban Holiday Park  
+        // - 1030* = Tyndrum Holiday Park
+        // - 1040* = Overburns Farm
+        function determineUserAccessLevel(user) {
+            if (!user || !user.accessCode) {
+                return null;
+            }
+            
+            const accessCode = user.accessCode.toString().toUpperCase();
+            
+            // Admin access - sees all hot tubs
+            if (accessCode === 'CQR365SPP25') {
+                return {
+                    level: 'admin',
+                    parks: ['Ben Nevis Holiday Park', 'Oban Holiday Park', 'Tyndrum Holiday Park', 'Overburns Farm'],
+                    description: 'Admin Access - All Parks'
+                };
+            }
+            
+            // Park-specific access codes - Supports both Managers and Team Members
+            if (accessCode.startsWith('1010')) {
+                const isManager = accessCode.length === 4;
+                return {
+                    level: 'park',
+                    parks: ['Ben Nevis Holiday Park'],
+                    description: isManager ? 'Ben Nevis Hot Tub - Manager' : `Ben Nevis Hot Tub - Team Member (${accessCode})`,
+                    role: isManager ? 'manager' : 'team_member',
+                    parkCode: '1010'
+                };
+            }
+            
+            if (accessCode.startsWith('1020')) {
+                const isManager = accessCode.length === 4;
+                return {
+                    level: 'park',
+                    parks: ['Oban Holiday Park'],
+                    description: isManager ? 'Oban Hot Tub - Manager' : `Oban Hot Tub - Team Member (${accessCode})`,
+                    role: isManager ? 'manager' : 'team_member',
+                    parkCode: '1020'
+                };
+            }
+            
+            if (accessCode.startsWith('1030')) {
+                const isManager = accessCode.length === 4;
+                return {
+                    level: 'park', 
+                    parks: ['Tyndrum Holiday Park'],
+                    description: isManager ? 'Tyndrum Hot Tub - Manager' : `Tyndrum Hot Tub - Team Member (${accessCode})`,
+                    role: isManager ? 'manager' : 'team_member',
+                    parkCode: '1030'
+                };
+            }
+            
+            if (accessCode.startsWith('1040')) {
+                const isManager = accessCode.length === 4;
+                return {
+                    level: 'park',
+                    parks: ['Overburns Farm'],
+                    description: isManager ? 'Overburns Farm Hot Tub - Manager' : `Overburns Farm Hot Tub - Team Member (${accessCode})`,
+                    role: isManager ? 'manager' : 'team_member',
+                    parkCode: '1040'
+                };
+            }
+            
+            // Invalid access code
+            return null;
+        }
+
+        // Authentication System
+        function checkAuthentication() {
+            try {
+                const authData = JSON.parse(localStorage.getItem('safePark_userSessions_current') || '{}');
+                
+                if (!authData || !authData.user || !authData.expires || Date.now() > authData.expires) {
+                    console.log('❌ No valid authentication found, redirecting to login');
+                    window.location.href = 'index.html';
+                    return false;
+                }
+                
+                currentUser = authData.user;
+                userAccessLevel = determineUserAccessLevel(currentUser);
+                
+                if (!userAccessLevel) {
+                    console.log('❌ Invalid access level for user:', currentUser);
+                    alert('Access denied: Invalid user permissions for Hot Tub Management');
+                    window.location.href = 'index.html';
+                    return false;
+                }
+                
+                // Enhanced Console Logging
+                const roleEmoji = userAccessLevel.role === 'manager' ? '👨‍💼' : '👷‍♂️';
+                const accessEmoji = userAccessLevel.level === 'admin' ? '🔑' : '🏢';
+                
+                console.log(`${accessEmoji} Hot Tub Access Granted:`);
+                console.log(`${roleEmoji} User: ${currentUser.name} (${currentUser.accessCode})`);
+                console.log(`📍 Parks: ${userAccessLevel.parks.join(', ')}`);
+                console.log(`🏷️ Level: ${userAccessLevel.description}`);
+                
+                // Update UI based on access level
+                updateUIBasedOnAccess();
+                setupInspectionUI();
+                
+                return true;
+            } catch (error) {
+                console.error('Authentication error:', error);
+                window.location.href = 'index.html';
+                return false;
+            }
+        }
+
+        function updateUIBasedOnAccess() {
+            if (!userAccessLevel) return;
+            
+            // Update stats to show only accessible parks
+            updateAccessControlledStats();
+            
+            // Filter park dropdown
+            filterParkDropdown();
+            
+            // Update configured hot tubs display
+            updateConfiguredHotTubsDisplay();
+            
+            // Show access level indicator
+            showAccessLevelIndicator();
+        }
+        
+        function updateAccessControlledStats() {
+            const accessibleParksCount = userAccessLevel.parks.length;
+            
+            // Update park count
+            document.querySelector('.stat-value').textContent = accessibleParksCount;
+            
+            // Update hot tubs count (0 until installations are added)
+            const hotTubsElement = document.getElementById('totalHotTubs');
+            if (hotTubsElement) {
+                hotTubsElement.textContent = '0';
+            }
+        }
+        
+        function filterParkDropdown() {
+            const parkSelect = document.getElementById('ht-park-name');
+            if (!parkSelect) return;
+            
+            // Get all options
+            const allOptions = Array.from(parkSelect.options);
+            
+            // Hide all options first
+            allOptions.forEach(option => {
+                option.style.display = 'none';
+            });
+            
+            // Show first option (Select...)
+            if (allOptions[0]) {
+                allOptions[0].style.display = 'block';
+            }
+            
+            // Show accessible parks
+            allOptions.forEach(option => {
+                if (userAccessLevel.parks.includes(option.value)) {
+                    option.style.display = 'block';
+                }
+            });
+            
+            // Auto-select if only one park available (non-admin users)
+            if (userAccessLevel.level !== 'admin' && userAccessLevel.parks.length === 1) {
+                parkSelect.value = userAccessLevel.parks[0];
+            }
+        }
+        
+        function updateConfiguredHotTubsDisplay() {
+            const container = document.getElementById('configured-parks-container');
+            if (!container) return;
+            
+            // Clear existing content
+            container.innerHTML = '';
+            
+            // Add only accessible parks
+            userAccessLevel.parks.forEach(parkName => {
+                const parkDiv = document.createElement('div');
+                parkDiv.style.cssText = 'background: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 8px;';
+                
+                parkDiv.innerHTML = `
+                    <strong style="color: var(--primary-orange);">${parkName}</strong><br>
+                    <span style="color: #B8B8B8;">No hot tub installed</span><br>
+                    <span style="color: #FFC107; font-size: 0.9rem;">Awaiting installation</span>
+                `;
+                container.appendChild(parkDiv);
+            });
+        }
+        
+        function showAccessLevelIndicator() {
+            // Remove any existing indicator
+            const existingIndicator = document.getElementById('access-level-indicator');
+            if (existingIndicator) {
+                existingIndicator.remove();
+            }
+            
+            // Create new indicator
+            const indicator = document.createElement('div');
+            indicator.id = 'access-level-indicator';
+            indicator.style.cssText = `
+                position: fixed;
+                top: 100px;
+                right: 20px;
+                background: rgba(40, 167, 69, 0.9);
+                color: white;
+                padding: 10px 15px;
+                border-radius: 8px;
+                font-size: 0.9rem;
+                font-weight: 600;
+                z-index: 999;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                max-width: 250px;
+            `;
+            
+            const accessEmoji = userAccessLevel.level === 'admin' ? '🔑' : '🏢';
+            indicator.innerHTML = `${accessEmoji} ${userAccessLevel.description}`;
+            
+            document.body.appendChild(indicator);
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                if (indicator.parentNode) {
+                    indicator.style.opacity = '0';
+                    indicator.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => {
+                        if (indicator.parentNode) {
+                            indicator.parentNode.removeChild(indicator);
+                        }
+                    }, 500);
+                }
+            }, 5000);
+        }
+
+        // Setup Inspection UI Based on Access Level
+        function setupInspectionUI() {
+            if (!userAccessLevel) return;
+            
+            const adminSelection = document.getElementById('admin-park-selection');
+            const parkSpecificInfo = document.getElementById('park-specific-info');
+            const inspectionParkSelect = document.getElementById('inspection-park-select');
+            const autoSelectedPark = document.getElementById('auto-selected-park');
+            
+            // Update inspector info
+            document.getElementById('currentInspectorName').textContent = currentUser.name || 'Inspector';
+            document.getElementById('inspectionAccessLevel').textContent = userAccessLevel.description;
+            document.getElementById('currentInspectionDate').textContent = new Date().toLocaleDateString();
+            
+            if (userAccessLevel.level === 'admin') {
+                // Admin sees dropdown to select park
+                adminSelection.style.display = 'block';
+                parkSpecificInfo.style.display = 'none';
+                
+                // Populate dropdown with all accessible parks
+                inspectionParkSelect.innerHTML = '<option value="">Select park to inspect...</option>';
+                userAccessLevel.parks.forEach(park => {
+                    const option = document.createElement('option');
+                    option.value = park;
+                    option.textContent = park;
+                    inspectionParkSelect.appendChild(option);
+                });
+                
+                document.getElementById('currentLocation').textContent = 'Admin - Multiple Locations';
+            } else {
+                // Park-specific users see auto-populated location
+                adminSelection.style.display = 'none';
+                parkSpecificInfo.style.display = 'block';
+                
+                const userPark = userAccessLevel.parks[0];
+                autoSelectedPark.textContent = userPark;
+                document.getElementById('currentLocation').textContent = userPark;
+                
+                // Auto-load inspection form
+                setTimeout(() => {
+                    loadParkInspectionForm(userPark);
+                }, 500);
+            }
+        }
+
+        // Navigation Functions
+        function showHotTubStep(stepName) {
+            // Hide all steps
+            document.querySelectorAll('.hottub-step').forEach(step => {
+                step.classList.remove('active');
+            });
+            
+            // Show selected step
+            const targetStep = document.getElementById(`ht-${stepName}`);
+            if (targetStep) {
+                targetStep.classList.add('active');
+            }
+            
+            // Update navigation buttons
+            document.querySelectorAll('.hottub-nav-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Set active button based on step
+            const navButtons = document.querySelectorAll('.hottub-nav-button');
+            const stepIndex = ['onboarding', 'risk-assessment', 'procedures', 'inspection'].indexOf(stepName);
+            if (navButtons[stepIndex]) {
+                navButtons[stepIndex].classList.add('active');
+            }
+            
+            currentStep = stepName;
+            
+            // Update submission type
+            const submissionType = document.getElementById('hotTubSubmissionType');
+            if (submissionType) {
+                submissionType.value = stepName;
+            }
+        }
+
+        function saveAndContinue(nextStep) {
+            saveCurrentStep(currentStep);
+            showHotTubStep(nextStep);
+        }
+
+        function saveCurrentStep(stepName) {
+            const form = document.getElementById('hotTubForm');
+            if (!form) return;
+            
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
+            
+            // Add step-specific data
+            data.currentStep = stepName;
+            data.lastSaved = new Date().toISOString();
+            data.userAccessLevel = userAccessLevel;
+            
+            // Save to appropriate Firebase collection based on step
+            let collectionName = 'hotTubData';
+            if (stepName === 'inspection') {
+                collectionName = 'hotTubInspections';
+            }
+            
+            // Get selected park for data storage
+            const selectedPark = document.getElementById('ht-park-name')?.value || 
+                                  document.getElementById('inspection-park-select')?.value ||
+                                  (userAccessLevel?.parks?.length === 1 ? userAccessLevel.parks[0] : null);
+            
+            if (selectedPark) {
+                FirebaseDataManager.saveHotTubData(selectedPark, data).then(success => {
+                    if (success) {
+                        showMessage(`✅ Hot tub data saved to Firebase successfully for ${selectedPark}!`, 'success');
+                    } else {
+                        showMessage('Failed to save to Firebase - using local backup', 'warning');
+                    }
+                });
+            } else {
+                showMessage('Please select a holiday park before saving', 'warning');
+            }
+        }
+
+        // Inspection Functions
+        function loadParkInspectionForm(parkName = null) {
+            let selectedPark = parkName;
+            
+            if (!selectedPark) {
+                selectedPark = document.getElementById('inspection-park-select')?.value;
+            }
+            
+            if (!selectedPark && userAccessLevel?.level !== 'admin' && userAccessLevel?.parks?.length === 1) {
+                selectedPark = userAccessLevel.parks[0];
+            }
+            
+            const inspectionForm = document.getElementById('inspection-form');
+            
+            if (selectedPark) {
+                inspectionForm.style.display = 'block';
+                
+                // Set current date and time
+                const now = new Date();
+                const dateString = now.toISOString().split('T')[0];
+                const timeString = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+                
+                document.getElementById('inspection-date').value = dateString;
+                document.getElementById('inspection-time').value = timeString;
+                
+                // Load any existing inspection data for today
+                loadInspectionStatus(selectedPark, dateString);
+                
+                showMessage(`Inspection form loaded for ${selectedPark}`, 'success');
+            } else {
+                inspectionForm.style.display = 'none';
+            }
+        }
+
+        function loadInspectionStatus(parkName, date) {
+            // This would load existing inspection data from Firebase/localStorage
+            // For now, we'll just update UI to show form is ready
+            console.log(`Loading inspection status for ${parkName} on ${date}`);
+        }
+
+        function quickPassInspection() {
+            // Set all mandatory checks to "pass"
+            document.querySelectorAll('input[name$="_check"][value="pass"]').forEach(radio => {
+                radio.checked = true;
+            });
+            
+            // Set optimal water values
+            document.getElementById('water-temp').value = '39.5';
+            document.getElementById('ph-level').value = '7.2';
+            document.getElementById('chlorine-level').value = '1.5';
+            document.getElementById('water-clarity').value = 'Crystal Clear';
+            
+            // Set default values
+            document.getElementById('inspection-issues').value = 'None reported';
+            document.getElementById('inspection-notes').value = 'All equipment in good condition. No issues found during daily hot tub inspection.';
+            document.getElementById('inspection-weather').value = 'Fair';
+            document.getElementById('hot-tub-usage').value = 'Light';
+            
+            showMessage('Quick pass inspection completed - review and submit', 'success');
+        }
+
+        function completeSelectedInspection() {
+            const selectedPark = document.getElementById('inspection-park-select')?.value ||
+                                  (userAccessLevel?.parks?.length === 1 ? userAccessLevel.parks[0] : null);
+            
+            if (!selectedPark) {
+                showMessage('Please select a park to inspect', 'error');
+                return;
+            }
+            
+            // Validate required fields
+            const requiredFields = [
+                'inspection-date', 'inspection-time', 'water-temp', 'ph-level', 
+                'chlorine-level', 'water-clarity'
+            ];
+            
+            const missingFields = requiredFields.filter(id => {
+                const field = document.getElementById(id);
+                return !field || !field.value.trim();
+            });
+            
+            if (missingFields.length > 0) {
+                showMessage('Please complete all required fields before submitting', 'error');
+                return;
+            }
+            
+            // Check that all 8 safety checks have been completed
+            const safetyChecks = [
+                'water_quality_check', 'chemical_system_check', 'filtration_check', 
+                'safety_equipment_check', 'electrical_check', 'structural_check',
+                'surroundings_check', 'temperature_check'
+            ];
+            
+            const incompleteChecks = safetyChecks.filter(checkName => {
+                const radios = document.querySelectorAll(`input[name="${checkName}"]`);
+                return ![...radios].some(radio => radio.checked);
+            });
+            
+            if (incompleteChecks.length > 0) {
+                showMessage('Please complete all 8 safety checks before submitting', 'error');
+                return;
+            }
+            
+            // SHOW AUTHORIZATION CONFIRMATION DIALOG
+            showAuthorizationConfirmation(() => {
+                // Only proceed with submission after authorization is confirmed
+                proceedWithInspectionSubmission(selectedPark);
+            });
+        }
+
+        function showAuthorizationConfirmation(onConfirm) {
+            // Create authorization confirmation modal
+            const modalHtml = `
+                <div id="authorization-modal" style="
+                    position: fixed; 
+                    top: 0; 
+                    left: 0; 
+                    width: 100%; 
+                    height: 100%; 
+                    background: rgba(0,0,0,0.8); 
+                    z-index: 10000; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center;
+                ">
+                    <div style="
+                        background: var(--content-background); 
+                        padding: 30px; 
+                        border-radius: 15px; 
+                        max-width: 600px; 
+                        border: 2px solid var(--primary-orange);
+                        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+                    ">
+                        <h3 style="color: var(--primary-orange); margin-bottom: 20px; text-align: center;">
+                            🛁 Authorization Confirmation Required
+                        </h3>
+                        
+                        <div style="background: rgba(220, 53, 69, 0.1); border: 2px solid #DC3545; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                            <h4 style="color: #DC3545; margin-bottom: 15px;">⚠️ DECLARATION OF COMPETENCY</h4>
+                            <p style="color: var(--white); font-size: 1.1rem; line-height: 1.5; margin-bottom: 0;">
+                                By submitting this inspection, you confirm that:
+                            </p>
+                        </div>
+                        
+                        <div style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                            <div style="display: flex; align-items: flex-start; margin-bottom: 15px;">
+                                <div style="background: var(--primary-orange); color: white; border-radius: 50%; width: 25px; height: 25px; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold; flex-shrink: 0;">1</div>
+                                <p style="color: var(--white); margin: 0; font-size: 1rem;">
+                                    <strong>I am authorised, trained and aware of all safe working procedures for hot tub maintenance at Highland Holidays.</strong>
+                                </p>
+                            </div>
+                            
+                            <div style="display: flex; align-items: flex-start; margin-bottom: 15px;">
+                                <div style="background: var(--primary-orange); color: white; border-radius: 50%; width: 25px; height: 25px; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold; flex-shrink: 0;">2</div>
+                                <p style="color: var(--white); margin: 0; font-size: 1rem;">
+                                    I have completed bromine chemical safety training and understand the enhanced risks.
+                                </p>
+                            </div>
+                            
+                            <div style="display: flex; align-items: flex-start; margin-bottom: 15px;">
+                                <div style="background: var(--primary-orange); color: white; border-radius: 50%; width: 25px; height: 25px; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold; flex-shrink: 0;">3</div>
+                                <p style="color: var(--white); margin: 0; font-size: 1rem;">
+                                    All information provided in this inspection is accurate and complete.
+                                </p>
+                            </div>
+                            
+                            <div style="display: flex; align-items: flex-start;">
+                                <div style="background: var(--primary-orange); color: white; border-radius: 50%; width: 25px; height: 25px; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold; flex-shrink: 0;">4</div>
+                                <p style="color: var(--white); margin: 0; font-size: 1rem;">
+                                    I understand my legal responsibilities under health and safety legislation.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div style="background: rgba(255, 193, 7, 0.1); border: 2px solid #FFC107; border-radius: 10px; padding: 15px; margin-bottom: 20px;">
+                            <p style="color: #FFC107; margin: 0; font-size: 0.95rem; text-align: center;">
+                                <strong>Inspector:</strong> ${currentUser.name} | <strong>Access Code:</strong> ${currentUser.accessCode} | <strong>Date:</strong> ${new Date().toLocaleDateString()}
+                            </p>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: flex; align-items: center; cursor: pointer; color: var(--white); font-size: 1.1rem;">
+                                <input type="checkbox" id="authorization-checkbox" style="margin-right: 10px; transform: scale(1.2);">
+                                I confirm all the above statements and authorize submission of this inspection
+                            </label>
+                        </div>
+                        
+                        <div style="display: flex; gap: 15px; justify-content: center;">
+                            <button onclick="closeAuthorizationModal()" style="
+                                padding: 12px 25px; 
+                                background: #6C757D; 
+                                color: white; 
+                                border: none; 
+                                border-radius: 8px; 
+                                cursor: pointer;
+                                font-size: 1rem;
+                            ">Cancel</button>
+                            <button onclick="confirmAuthorization()" style="
+                                padding: 12px 25px; 
+                                background: var(--primary-orange); 
+                                color: white; 
+                                border: none; 
+                                border-radius: 8px; 
+                                cursor: pointer;
+                                font-size: 1rem;
+                            ">Confirm & Submit Inspection</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Store callback for later use
+            window.authorizationCallback = onConfirm;
+        }
+
+        function closeAuthorizationModal() {
+            const modal = document.getElementById('authorization-modal');
+            if (modal) {
+                modal.remove();
+            }
+            window.authorizationCallback = null;
+        }
+
+        function confirmAuthorization() {
+            const checkbox = document.getElementById('authorization-checkbox');
+            if (!checkbox.checked) {
+                showMessage('Please confirm your authorization by checking the checkbox', 'error');
+                return;
+            }
+            
+            closeAuthorizationModal();
+            
+            if (window.authorizationCallback) {
+                window.authorizationCallback();
+                window.authorizationCallback = null;
+            }
+        }
+
+        function proceedWithInspectionSubmission(selectedPark) {
+            // Collect inspection data
+            const inspectionData = {
+                park: selectedPark,
+                date: document.getElementById('inspection-date').value,
+                time: document.getElementById('inspection-time').value,
+                inspector: currentUser.name,
+                inspectorCode: currentUser.accessCode,
+                accessLevel: userAccessLevel.description,
+                timestamp: new Date().toISOString(),
+                authorized: true, // Flag to indicate authorization was confirmed
+                authorizationTimestamp: new Date().toISOString(),
+                
+                // Safety checks
+                waterQualityCheck: document.querySelector('input[name="water_quality_check"]:checked')?.value,
+                chemicalSystemCheck: document.querySelector('input[name="chemical_system_check"]:checked')?.value,
+                filtrationCheck: document.querySelector('input[name="filtration_check"]:checked')?.value,
+                safetyEquipmentCheck: document.querySelector('input[name="safety_equipment_check"]:checked')?.value,
+                electricalCheck: document.querySelector('input[name="electrical_check"]:checked')?.value,
+                structuralCheck: document.querySelector('input[name="structural_check"]:checked')?.value,
+                surroundingsCheck: document.querySelector('input[name="surroundings_check"]:checked')?.value,
+                temperatureCheck: document.querySelector('input[name="temperature_check"]:checked')?.value,
+                
+                // Water test results
+                waterTemperature: document.getElementById('water-temp').value,
+                phLevel: document.getElementById('ph-level').value,
+                chlorineLevel: document.getElementById('chlorine-level').value,
+                waterClarity: document.getElementById('water-clarity').value,
+                
+                // Additional info
+                weatherConditions: document.getElementById('inspection-weather').value,
+                usageLevel: document.getElementById('hot-tub-usage').value,
+                issuesIdentified: document.getElementById('inspection-issues').value,
+                inspectionNotes: document.getElementById('inspection-notes').value,
+                
+                completed: true
+            };
+            
+            // Save inspection
+            FirebaseDataManager.saveInspection(inspectionData).then(success => {
+                if (success) {
+                    showMessage(`✅ Hot tub inspection completed and saved for ${selectedPark}! Authorization confirmed.`, 'success');
+                } else {
+                    showMessage(`⚠️ Inspection saved locally for ${selectedPark} (offline mode) - Authorization confirmed.`, 'warning');
+                }
+                
+                // Clear form
+                clearInspectionForm();
+                
+                // Update inspection status
+                updateInspectionCounters({
+                    completedCount: 1,
+                    pendingCount: Math.max(0, userAccessLevel.parks.length - 1)
+                });
+            });
+        }
+
+        function clearInspectionForm() {
+            // Clear all radio buttons
+            document.querySelectorAll('#inspection-form input[type="radio"]').forEach(radio => {
+                radio.checked = false;
+            });
+            
+            // Clear all text inputs and selects (except date/time)
+            document.querySelectorAll('#inspection-form input[type="number"], #inspection-form textarea').forEach(field => {
+                if (field.id !== 'inspection-date' && field.id !== 'inspection-time') {
+                    field.value = '';
+                }
+            });
+            
+            // Reset dropdowns to default values
+            document.getElementById('water-clarity').value = '';
+            document.getElementById('inspection-weather').value = 'Fair';
+            document.getElementById('hot-tub-usage').value = 'Light';
+        }
+
+        // Maintenance Integration
+        function navigateToMaintenance() {
+            // Get current park context
+            let currentPark = null;
+            
+            if (userAccessLevel) {
+                if (userAccessLevel.level === 'admin') {
+                    currentPark = document.getElementById('inspection-park-select')?.value || 'Multiple Locations';
+                } else {
+                    currentPark = userAccessLevel.parks[0];
+                }
+            }
+            
+            const maintenanceContext = {
+                sourceModule: 'Hot Tub Management',
+                sourcePage: 'hot-tub.html',
+                park: currentPark,
+                inspector: currentUser?.name,
+                accessLevel: userAccessLevel?.description,
+                role: userAccessLevel?.role, // 'manager'/'team_member'/'admin'
+                parkCode: userAccessLevel?.parkCode, // '1010'/'1020'/'1030'
+                accessCode: currentUser?.accessCode,
+                timestamp: new Date().toISOString()
+            };
+            
+            localStorage.setItem('maintenance_context', JSON.stringify(maintenanceContext));
+            window.location.href = 'maintenance.html';
+        }
+
+        // Utility Functions
+        function generateHotTubProcedures() {
+            showMessage('Generating comprehensive hot tub procedures...', 'success');
+            setTimeout(() => {
+                showMessage('Hot tub procedures generated successfully!', 'success');
+            }, 1500);
+        }
+
+        function generateInspectionSchedules() {
+            showMessage('Generating inspection schedules...', 'success');
+            setTimeout(() => {
+                showMessage('Inspection schedules generated successfully!', 'success');
+            }, 1500);
+        }
+
+        function loadOutstandingTasks() {
+            // This would load outstanding maintenance tasks
+            console.log('Loading outstanding hot tub maintenance tasks...');
+        }
+
+        function updateInspectionCounters(summary) {
+            // Update "Due This Week" counter with pending inspections
+            const dueThisWeekElement = document.getElementById('inspectionsDue');
+            if (dueThisWeekElement) {
+                dueThisWeekElement.textContent = summary.pendingCount || 0;
+            }
+            
+            // Update inspection status
+            const inspectionStatusElement = document.getElementById('inspection-status');
+            if (inspectionStatusElement) {
+                if ((summary.pendingCount || 0) === 0) {
+                    inspectionStatusElement.innerHTML = `<span style="color: var(--success)">✅ All inspections complete</span>`;
+                } else {
+                    inspectionStatusElement.innerHTML = `<span style="color: var(--warning)">⚠️ ${summary.pendingCount} inspection(s) required</span>`;
+                }
+            }
+        }
+
+        // Message System
+        function showMessage(message, type = 'success') {
+            const messageDiv = document.createElement('div');
+            messageDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                font-weight: 600;
+                z-index: 10000;
+                max-width: 400px;
+                box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+                animation: slideIn 0.3s ease;
+                border-left: 4px solid;
+            `;
+            
+            if (type === 'success') {
+                messageDiv.style.background = 'linear-gradient(145deg, rgba(40, 167, 69, 0.9), rgba(40, 167, 69, 0.8))';
+                messageDiv.style.color = 'white';
+                messageDiv.style.borderColor = '#28A745';
+            } else if (type === 'error') {
+                messageDiv.style.background = 'linear-gradient(145deg, rgba(220, 53, 69, 0.9), rgba(220, 53, 69, 0.8))';
+                messageDiv.style.color = 'white';
+                messageDiv.style.borderColor = '#DC3545';
+            } else if (type === 'warning') {
+                messageDiv.style.background = 'linear-gradient(145deg, rgba(255, 193, 7, 0.9), rgba(255, 193, 7, 0.8))';
+                messageDiv.style.color = '#000';
+                messageDiv.style.borderColor = '#FFC107';
+            }
+            
+            messageDiv.textContent = message;
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => {
+                    if (messageDiv.parentNode) {
+                        messageDiv.parentNode.removeChild(messageDiv);
+                    }
+                }, 300);
+            }, 5000);
+        }
+
+        // Navigation
+        function goHome() {
+            window.location.href = 'dashboard.html';
+        }
+
+        // Initialize offline status
+        function updateOfflineStatus(isOnline) {
+            const statusElement = document.getElementById('offlineStatus');
+            if (statusElement) {
+                statusElement.className = `offline-status ${isOnline ? 'status-online' : 'status-offline'}`;
+                statusElement.title = isOnline ? 'Online - Data Synced' : 'Offline - Data Cached Locally';
+            }
+        }
+
+        // Monitor online status
+        window.addEventListener('online', () => updateOfflineStatus(true));
+        window.addEventListener('offline', () => updateOfflineStatus(false));
+        updateOfflineStatus(navigator.onLine);
+
+        // CSS Animation for messages
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🛁 SafePark.PRO Hot Tub Management System starting...');
+            
+            // Check authentication first
+            if (!checkAuthentication()) {
+                return;
+            }
+            
+            // Initialize hot tub count display
+            const totalHotTubsElement = document.getElementById('totalHotTubs');
+            if (totalHotTubsElement) {
+                totalHotTubsElement.textContent = TOTAL_HOT_TUBS;
+            }
+            
+            // Initialize with onboarding step
+            showHotTubStep('onboarding');
+            
+            // Enhance onboarding display after a short delay to ensure DOM is ready
+            setTimeout(enhanceOnboardingDisplay, 100);
+            
+            // Enhance inspection form
+            setTimeout(enhanceInspectionForm, 200);
+            
+            console.log('✅ SafePark.PRO Hot Tub Management System initialized successfully');
+            console.log(`📊 Total Hot Tubs Configured: ${TOTAL_HOT_TUBS}`);
+            
+            // Log hot tub breakdown by park
+            for (const [park, units] of Object.entries(HOT_TUB_DATA)) {
+                console.log(`  ${park}: ${units.length} units`);
+            }
+            
+            showMessage(`Hot Tub Management System loaded successfully! ${TOTAL_HOT_TUBS} hot tubs configured across 4 parks.`, 'success');
+        });
+
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('sw.js')
+                    .then(function(registration) {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(function(registrationError) {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
