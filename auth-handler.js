@@ -1,58 +1,10 @@
-// SafePark.PRO Authentication Handler - Compatible with Park-Reactive Dashboard
-// This version provides realistic test users that match the ACCESS_CODES system
+// SafePark.PRO Authentication Handler - Complete Version
+// This includes ALL users from the ACCESS_CODES system
 
 window.SafeParkAuth = {
-    // Test users that match the ACCESS_CODES in index.html
+    // Complete test users matching ALL ACCESS_CODES in index.html
     testUsers: {
-        // Ben Nevis Holiday Park Users
-        'bennevis_manager': {
-            name: 'Lesleyanne',
-            role: 'Park Manager', 
-            park: 'Ben Nevis Holiday Park',
-            accessCode: '1010',
-            type: 'park'
-        },
-        'bennevis_staff': {
-            name: 'David',
-            role: 'Grounds & Maintenance Manager',
-            park: 'Ben Nevis Holiday Park', 
-            accessCode: '1010001',
-            type: 'individual'
-        },
-        
-        // Oban Holiday Park Users
-        'oban_manager': {
-            name: 'Siobhan',
-            role: 'Park Manager',
-            park: 'Oban Holiday Park',
-            accessCode: '1020', 
-            type: 'park'
-        },
-        'oban_staff': {
-            name: 'Murray',
-            role: 'Grounds & Maintenance Manager',
-            park: 'Oban Holiday Park',
-            accessCode: '1020001',
-            type: 'individual'
-        },
-        
-        // Tyndrum Holiday Park Users
-        'tyndrum_manager': {
-            name: 'Tyndrum Holiday Park Manager',
-            role: 'Park Manager',
-            park: 'Tyndrum Holiday Park',
-            accessCode: '1030',
-            type: 'park'
-        },
-        'tyndrum_staff': {
-            name: 'Alasdair Fraser', 
-            role: 'Assistant Manager',
-            park: 'Tyndrum Holiday Park',
-            accessCode: '1030001',
-            type: 'individual'
-        },
-        
-        // Overburns Farm Users
+        // Park Management Users
         'overburns_manager': {
             name: 'Overburns Farm Manager',
             role: 'Manager',
@@ -60,15 +12,149 @@ window.SafeParkAuth = {
             accessCode: '365',
             type: 'park'
         },
-        'overburns_staff': {
+        'bennevis_manager': {
+            name: 'Lesleyanne',
+            role: 'Park Manager', 
+            park: 'Ben Nevis Holiday Park',
+            accessCode: '1010',
+            type: 'park'
+        },
+        'oban_manager': {
+            name: 'Siobhan',
+            role: 'Park Manager',
+            park: 'Oban Holiday Park',
+            accessCode: '1020', 
+            type: 'park'
+        },
+        'tyndrum_manager': {
+            name: 'Tyndrum Holiday Park Manager',
+            role: 'Park Manager',
+            park: 'Tyndrum Holiday Park',
+            accessCode: '1030',
+            type: 'park'
+        },
+        
+        // Overburns Farm Individual Team Members (365xxx)
+        'overburns_john': {
             name: 'John Smith',
             role: 'Maintenance Supervisor', 
             park: 'Overburns Farm',
             accessCode: '365001',
             type: 'individual'
         },
+        'overburns_sarah': {
+            name: 'Sarah Wilson',
+            role: 'Reception Manager',
+            park: 'Overburns Farm',
+            accessCode: '365002',
+            type: 'individual'
+        },
+        'overburns_mike': {
+            name: 'Mike Davis',
+            role: 'Groundskeeper',
+            park: 'Overburns Farm',
+            accessCode: '365003',
+            type: 'individual'
+        },
+        'overburns_emma': {
+            name: 'Emma Thompson',
+            role: 'Cleaner',
+            park: 'Overburns Farm',
+            accessCode: '365004',
+            type: 'individual'
+        },
+        'overburns_david': {
+            name: 'David Brown',
+            role: 'Security',
+            park: 'Overburns Farm',
+            accessCode: '365005',
+            type: 'individual'
+        },
         
-        // System Administrator
+        // Ben Nevis Individual Team Members (1010xxx)
+        'bennevis_david': {
+            name: 'David',
+            role: 'Grounds & Maintenance Manager',
+            park: 'Ben Nevis Holiday Park', 
+            accessCode: '1010001',
+            type: 'individual'
+        },
+        'bennevis_kelly': {
+            name: 'Kelly',
+            role: 'Team BN',
+            park: 'Ben Nevis Holiday Park',
+            accessCode: '1010002',
+            type: 'individual'
+        },
+        'bennevis_rik': {
+            name: 'Rik',
+            role: 'Team BN',
+            park: 'Ben Nevis Holiday Park',
+            accessCode: '1010003',
+            type: 'individual'
+        },
+        'bennevis_sam': {
+            name: 'Sam',
+            role: 'Team BN',
+            park: 'Ben Nevis Holiday Park',
+            accessCode: '1010004',
+            type: 'individual'
+        },
+        'bennevis_vinny': {
+            name: 'Vinny',
+            role: 'Team BN',
+            park: 'Ben Nevis Holiday Park',
+            accessCode: '1010005',
+            type: 'individual'
+        },
+        'bennevis_cooper': {
+            name: 'Cooper',
+            role: 'Team BN',
+            park: 'Ben Nevis Holiday Park',
+            accessCode: '1010007',
+            type: 'individual'
+        },
+        'bennevis_ewa': {
+            name: 'Ewa',
+            role: 'Team BN',
+            park: 'Ben Nevis Holiday Park',
+            accessCode: '1010008',
+            type: 'individual'
+        },
+        
+        // Oban Individual Team Members (1020xxx)
+        'oban_murray': {
+            name: 'Murray',
+            role: 'Grounds & Maintenance Manager',
+            park: 'Oban Holiday Park',
+            accessCode: '1020001',
+            type: 'individual'
+        },
+        'oban_allan': {
+            name: 'Allan',
+            role: 'Team OBN',
+            park: 'Oban Holiday Park',
+            accessCode: '1020002',
+            type: 'individual'
+        },
+        'oban_nathan': {
+            name: 'Nathan',
+            role: 'Team OBN',
+            park: 'Oban Holiday Park',
+            accessCode: '1020003',
+            type: 'individual'
+        },
+        
+        // Tyndrum Individual Team Members (1030xxx)
+        'tyndrum_alasdair': {
+            name: 'Alasdair Fraser', 
+            role: 'Assistant Manager',
+            park: 'Tyndrum Holiday Park',
+            accessCode: '1030001',
+            type: 'individual'
+        },
+        
+        // Master Access
         'admin': {
             name: 'SafePark.PRO System Administrator',
             role: 'System Administrator',
@@ -79,7 +165,7 @@ window.SafeParkAuth = {
     },
     
     // Current test user (change this to test different scenarios)
-    currentTestUser: 'bennevis_manager', // Change this to test different users
+    currentTestUser: 'bennevis_manager', // Default to Lesleyanne
     
     requireAuth: function() {
         console.log('Authentication handler active - providing test user data');
@@ -126,8 +212,19 @@ window.SafeParkAuth = {
             key: key,
             name: this.testUsers[key].name,
             park: this.testUsers[key].park,
-            role: this.testUsers[key].role
+            role: this.testUsers[key].role,
+            accessCode: this.testUsers[key].accessCode
         }));
+    },
+    
+    // Find user by access code (useful for testing)
+    getUserByAccessCode: function(accessCode) {
+        for (const [key, user] of Object.entries(this.testUsers)) {
+            if (user.accessCode === accessCode) {
+                return user;
+            }
+        }
+        return null;
     }
 };
 
@@ -143,8 +240,9 @@ if (typeof window.authState !== 'undefined') {
 }
 
 // Console helpers for testing different users
-console.log('SafePark Authentication Handler loaded (PARK-REACTIVE MODE)');
+console.log('SafePark Authentication Handler loaded (COMPLETE VERSION)');
 console.log('Current test user:', window.SafeParkAuth.getCurrentUser().name);
+console.log(`Total users available: ${Object.keys(window.SafeParkAuth.testUsers).length}`);
 console.log('Available test users:', window.SafeParkAuth.getAvailableUsers());
 console.log('To switch users, use: SafeParkAuth.switchTestUser("user_key")');
-console.log('Example: SafeParkAuth.switchTestUser("oban_manager")');
+console.log('Example: SafeParkAuth.switchTestUser("oban_murray")');
