@@ -14,7 +14,7 @@ class IncidentsSystem {
     }
     
     async initWhenReady() {
-        const maxAttempts = 50;
+        const maxAttempts = 100;
         let attempts = 0;
         
         const checkFirebase = () => {
@@ -29,7 +29,7 @@ class IncidentsSystem {
             }
             
             if (attempts < maxAttempts) {
-                setTimeout(checkFirebase, 100);
+                setTimeout(checkFirebase, 500);
             } else {
                 console.error('❌ Firebase not available - Incidents System will not function');
                 console.error('❌ NO localStorage fallback - Firebase is required');
