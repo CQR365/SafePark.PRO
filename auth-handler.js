@@ -1,107 +1,150 @@
-// Authentication Logic Fix for SafePark.PRO
-// Add this to your incidents.html page or auth-handler.js
+// SafePark.PRO Authentication Handler - Compatible with Park-Reactive Dashboard
+// This version provides realistic test users that match the ACCESS_CODES system
 
-// FIX 1: Ensure currentUser is set properly
-function ensureAuthentication() {
-    // Check if window.currentUser exists
-    if (!window.currentUser && window.SafeParkAuth) {
-        // Get user from SafeParkAuth system
-        window.currentUser = window.SafeParkAuth.getCurrentUser();
-        console.log('✅ Authentication restored from SafeParkAuth:', window.currentUser);
-    }
-    
-    // If still no user, try to get from auth handler
-    if (!window.currentUser && typeof window.authState !== 'undefined' && window.authState.currentUser) {
-        window.currentUser = window.authState.currentUser;
-        console.log('✅ Authentication restored from authState:', window.currentUser);
-    }
-    
-    // If still no user, create a default authenticated state
-    if (!window.currentUser) {
-        window.currentUser = {
+window.SafeParkAuth = {
+    // Test users that match the ACCESS_CODES in index.html
+    testUsers: {
+        // Ben Nevis Holiday Park Users
+        'bennevis_manager': {
             name: 'Lesleyanne',
-            role: 'Park Manager',
+            role: 'Park Manager', 
             park: 'Ben Nevis Holiday Park',
             accessCode: '1010',
-            authenticated: true
-        };
-        console.log('✅ Default authentication applied:', window.currentUser);
-    }
-    
-    return window.currentUser;
-}
-
-// FIX 2: Override the authentication check function
-function checkAuthenticationStatus() {
-    // Ensure we have a user
-    const user = ensureAuthentication();
-    
-    if (user && user.authenticated !== false) {
-        console.log('✅ Authentication check passed for:', user.name);
+            type: 'park'
+        },
+        'bennevis_staff': {
+            name: 'David',
+            role: 'Grounds & Maintenance Manager',
+            park: 'Ben Nevis Holiday Park', 
+            accessCode: '1010001',
+            type: 'individual'
+        },
         
-        // Hide any access denied screens
-        const accessDeniedElements = document.querySelectorAll('[id*="access"], [class*="access"], [id*="denied"], [class*="denied"]');
-        accessDeniedElements.forEach(element => {
-            if (element.textContent.includes('ACCESS DENIED') || element.textContent.includes('Authentication Required')) {
-                element.style.display = 'none';
-                console.log('✅ Hidden access denied element');
-            }
-        });
+        // Oban Holiday Park Users
+        'oban_manager': {
+            name: 'Siobhan',
+            role: 'Park Manager',
+            park: 'Oban Holiday Park',
+            accessCode: '1020', 
+            type: 'park'
+        },
+        'oban_staff': {
+            name: 'Murray',
+            role: 'Grounds & Maintenance Manager',
+            park: 'Oban Holiday Park',
+            accessCode: '1020001',
+            type: 'individual'
+        },
         
-        // Show main content
-        const mainContent = document.querySelector('.container') || document.querySelector('main') || document.querySelector('.content');
-        if (mainContent) {
-            mainContent.style.display = 'block';
+        // Tyndrum Holiday Park Users
+        'tyndrum_manager': {
+            name: 'Tyndrum Holiday Park Manager',
+            role: 'Park Manager',
+            park: 'Tyndrum Holiday Park',
+            accessCode: '1030',
+            type: 'park'
+        },
+        'tyndrum_staff': {
+            name: 'Alasdair Fraser', 
+            role: 'Assistant Manager',
+            park: 'Tyndrum Holiday Park',
+            accessCode: '1030001',
+            type: 'individual'
+        },
+        
+        // Overburns Farm Users
+        'overburns_manager': {
+            name: 'Overburns Farm Manager',
+            role: 'Manager',
+            park: 'Overburns Farm',
+            accessCode: '365',
+            type: 'park'
+        },
+        'overburns_staff': {
+            name: 'John Smith',
+            role: 'Maintenance Supervisor', 
+            park: 'Overburns Farm',
+            accessCode: '365001',
+            type: 'individual'
+        },
+        
+        // System Administrator
+        'admin': {
+            name: 'SafePark.PRO System Administrator',
+            role: 'System Administrator',
+            park: 'All Highland Holidays Parks',
+            accessCode: 'CQR365SPP25',
+            type: 'master'
+        }
+    },
+    
+    // Current test user (change this to test different scenarios)
+    currentTestUser: 'bennevis_manager', // Change this to test different users
+    
+    requireAuth: function() {
+        console.log('Authentication handler active - providing test user data');
+        return true; // Always return true for testing
+    },
+    
+    getCurrentUser: function() {
+        const user = this.testUsers[this.currentTestUser];
+        if (!user) {
+            console.error('Invalid test user specified:', this.currentTestUser);
+            return this.testUsers['admin']; // Fallback to admin
         }
         
-        return true;
+        console.log(`Auth Handler: Providing user data for ${user.name} at ${user.park}`);
+        return user;
+    },
+    
+    isAuthenticated: function() {
+        return true; // Always authenticated for testing
+    },
+    
+    // Helper function to simulate different user logins during testing
+    switchTestUser: function(userKey) {
+        if (this.testUsers[userKey]) {
+            this.currentTestUser = userKey;
+            const newUser = this.testUsers[userKey];
+            console.log(`Switched to test user: ${newUser.name} at ${newUser.park}`);
+            
+            // Trigger a reload to see the new user's dashboard
+            if (window.location && window.location.reload) {
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
+        } else {
+            console.error('Invalid user key:', userKey);
+            console.log('Available users:', Object.keys(this.testUsers));
+        }
+    },
+    
+    // Get available test users for debugging
+    getAvailableUsers: function() {
+        return Object.keys(this.testUsers).map(key => ({
+            key: key,
+            name: this.testUsers[key].name,
+            park: this.testUsers[key].park,
+            role: this.testUsers[key].role
+        }));
     }
-    
-    console.warn('❌ Authentication check failed');
-    return false;
-}
+};
 
-// FIX 3: Override the authentication error function
-function showAuthenticationError() {
-    console.log('🔄 Authentication error triggered - attempting to recover...');
-    
-    // Try to restore authentication first
-    const user = ensureAuthentication();
-    if (user) {
-        console.log('✅ Authentication recovered, hiding error');
-        return; // Don't show error if we recovered
-    }
-    
-    // If we get here, there's a real authentication problem
-    console.error('❌ Could not recover authentication');
-}
-
-// FIX 4: Auto-run authentication check
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🔄 Running authentication check on DOM load...');
-    
-    // Wait a moment for other scripts to load
-    setTimeout(() => {
-        checkAuthenticationStatus();
-    }, 1000);
-});
-
-// FIX 5: Override any existing authentication checks
-if (typeof window.checkAuthenticationStatus === 'function') {
-    const originalCheck = window.checkAuthenticationStatus;
-    window.checkAuthenticationStatus = function() {
-        // Run our fixed version first
-        const result = checkAuthenticationStatus();
-        if (result) return result;
-        
-        // Fall back to original if needed
-        return originalCheck();
+// Initialize the authentication state for the index.html
+if (typeof window.authState !== 'undefined') {
+    const currentUser = window.SafeParkAuth.getCurrentUser();
+    window.authState = {
+        isAuthenticated: true,
+        currentUser: currentUser,
+        sessionExpiry: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
     };
+    console.log('AuthState initialized with:', currentUser);
 }
 
-// Make functions available globally
-window.ensureAuthentication = ensureAuthentication;
-window.checkAuthenticationStatus = checkAuthenticationStatus;
-window.showAuthenticationError = showAuthenticationError;
-
-console.log('🔧 Authentication logic fixes applied');
+// Console helpers for testing different users
+console.log('SafePark Authentication Handler loaded (PARK-REACTIVE MODE)');
+console.log('Current test user:', window.SafeParkAuth.getCurrentUser().name);
+console.log('Available test users:', window.SafeParkAuth.getAvailableUsers());
+console.log('To switch users, use: SafeParkAuth.switchTestUser("user_key")');
+console.log('Example: SafeParkAuth.switchTestUser("oban_manager")');
