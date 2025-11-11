@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>SafePark.PRO Hot Tub Management - Standardized Template</title>
+    
+    <!-- Favicon Fix -->
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==">
+    
+    <!-- STANDARDIZED FIREBASE INTEGRATION - Uses existing SafePark.PRO Firebase instance -->
+    <script>
+        // Authentication compatibility fix
+        (function() {
+            try {
+                const authData = JSON.parse(localStorage.getItem('safeWater_userSessions_current') || '{}');
+                if (authData && authData.user && authData.expires && Date.now() <= authData.expires) {
+                    const maintenanceCompatAuth = {
+                        user: authData.user,
+                        timestamp: Date.now()
+                    };
+                    localStorage.setItem('safeWater_auth', JSON.stringify(maintenanceCompatAuth));
+                    console.log('Authentication compatibility established for:', authData.user.name);
+                } else {
+                    localStorage.removeItem('safeWater_userSessions_current');
+                    localStorage.removeItem('safeWater_auth');
+                    console.log('No valid authentication found, will redirect to login');
+                }
+            } catch (error) {
+                console.error('Authentication compatibility error:', error);
+            }
+        })();
+    </script>
+    
+    <!-- ✅ STANDARD SAFEPARK.PRO FIREBASE INTEGRATION FOR ALL MODULES -->
+    <script>
+        let db, auth;
+        const MODULE_NAME = 'Hot Tub Management'; 
+        
+        function waitForMainSystemFirebase() {
+            if (window.firebaseDb && window.firebaseAuth && window.firebaseInitialized) {
+                console.log(`✅ ${MODULE_NAME} connected to main SafePark.PRO Firebase`);
+                db = window.firebaseDb;
+                auth = window.firebaseAuth;
+                window.db = db;
+                window.auth = auth;
+                return true;
+            }
+            return false;
+        }
+
+        if (!waitForMainSystemFirebase()) {
+            let retryCount = 0;
+            const maxRetries = 30;
+            const retryInterval = 500;
+            
+            function retryFirebaseCheck() {
+                if (waitForMainSystemFirebase()) {
+                    console.log(`🔗 ${MODULE_NAME} Firebase connection established`);
+                } else if (retryCount < maxRetries) {
+                    retryCount++;
+                    console.log(`⏳ ${MODULE_NAME} waiting for main SafePark.PRO Firebase... ${retryCount}/${maxRetries}`);
+                    setTimeout(retryFirebaseCheck, retryInterval);
+                } else {
+                    console.error(`❌ ${MODULE_NAME}: Main SafePark.PRO Firebase not available`);
+                }
+            }
+            retryFirebaseCheck();
+        }
+    </script>
+
+        // BUSINESS CONFIGURATION - Customize this section for each business
+        const BUSINESS_CONFIG = {
+            businessName: "Your Business Name",
+            // Add your access codes here
+            ACCESS_CODES: {
+                // Example format:
+                // 'ADMIN123': {
+                //     type: 'admin',
+                //     name: 'System Administrator',
+                //     location: 'All Locations',
+                //     role: 'Admin',
+                //     message: 'Full system access granted'
+                // },
+                // 'MGR001': {
+                //     type: 'manager',
+                //     name: 'Location Manager',
+                //     location: 'Main Location',
+                //     role: 'Manager',
+                //     message: 'Welcome Manager'
+                // }
+            },
+            // Add your hot tub data here
+            HOT_TUB_DATA: {
+                // Example format:
+                // 'Your Location Name': [
+                //     { unit: 'HT001', make: 'Make', model: 'Model', serial: 'Serial123', capacity: '800L', filters: 'Bottom' },
+                //     { unit: 'HT002', make: 'Make', model: 'Model', serial: 'Serial456', capacity: '1000L', filters: 'Side' }
+                // ]
+            }
+        };
+
+        // Calculate total hot tubs
+        const TOTAL_HOT_TUBS = Object.values(BUSINESS_CONFIG.HOT_TUB_DATA).flat().length;
+    </script>
+    
+    <style>
+        :root {
+            --primary-blue: #1E40AF;
+            --dark-blue: #1E3A8A;
+            --light-blue: #3B82F6;
+            --water-blue: #0F172A;
+            --black: #000000;
+            --white: #FFFFFF;
+            --smart-dark-grey: #1A1A1A;
+            --content-background: #1F1F1F;
+            --light-gray: #F8F9FA;
+            --medium-gray: #6C757D;
+            --dark-gray: #343A40;
+            --border-color: #DEE2E6;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --shadow-light: 0 2px 10px rgba(0,0,0,0.3);
+            --shadow-medium: 0 4px 20px rgba(0,0,0,0.4);
+            --shadow-heavy: 0 8px 40px rgba(0,0,0,0.6);
+            --darker-bg: #0A0A0A;
+            --tile-bg: #151515;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(30, 64, 175, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(15, 23, 42, 0.8) 0%, transparent 50%),
+                linear-gradient(135deg, var(--smart-dark-grey) 0%, #0f0f0f 50%, #050505 100%);
+            color: #E8E8E8;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Offline Status */
+        .offline-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            z-index: 1000;
+            border: 2px solid var(--white);
+            transition: all 0.3s ease;
+            opacity: 0.8;
+        }
+
+        .status-online {
+            background: var(--success);
+            box-shadow: 0 0 10px rgba(40, 167, 69, 0.6);
+        }
+
+        .status-offline {
+            background: var(--danger);
+            box-shadow: 0 0 10px rgba(220, 53, 69, 0.6);
+        }
+
+        /* Container */
+        .container {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Enhanced Header */
+        .header {
+            background: 
+                linear-gradient(145deg, #2a2a2a 0%, #1a1a1a 20%, #0a0a0a 60%, #000000 80%, #050505 100%),
+                radial-gradient(circle at 30% 70%, rgba(0,0,0,0.9) 0%, transparent 60%),
+                repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(0,0,0,0.15) 6px, rgba(0,0,0,0.15) 12px);
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            border: 4px solid transparent;
+            background-clip: padding-box;
+            border-radius: 15px;
+            margin: 100px 20px 30px;
+            box-shadow: 
+                0 35px 120px rgba(0, 0, 0, 0.95),
+                0 25px 80px rgba(0, 0, 0, 0.8),
+                0 15px 50px rgba(0, 0, 0, 0.6),
+                0 8px 30px rgba(0, 0, 0, 0.4),
+                inset 0 5px 0 rgba(255, 255, 255, 0.06),
+                inset 0 -5px 0 rgba(0, 0, 0, 0.8),
+                inset 5px 0 0 rgba(255, 255, 255, 0.04),
+                inset -5px 0 0 rgba(0, 0, 0, 0.6);
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 25% 25%, rgba(30, 64, 175, 0.12) 0%, transparent 60%),
+                radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.06) 0%, transparent 50%),
+                linear-gradient(45deg, rgba(30, 64, 175, 0.08), transparent, rgba(30, 64, 175, 0.06)),
+                repeating-linear-gradient(135deg, transparent, transparent 4px, rgba(0,0,0,0.1) 4px, rgba(0,0,0,0.1) 8px);
+            border-radius: 11px;
+            pointer-events: none;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            border: 3px solid var(--primary-blue);
+            border-radius: 12px;
+            box-shadow: 
+                0 0 0 2px rgba(30, 64, 175, 0.5),
+                inset 0 3px 0 rgba(255, 255, 255, 0.12),
+                inset 0 -3px 0 rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: var(--white);
+            text-shadow: 0 4px 20px rgba(30, 64, 175, 0.3);
+        }
+
+        .header h1 .water-blue {
+            color: #60A5FA;
+            text-shadow: 0 4px 20px rgba(96, 165, 250, 0.4);
+        }
+
+        .brand-line {
+            color: var(--primary-orange);
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1rem;
+            color: #ccc;
+            max-width: 600px;
+            margin: 0 auto;
+            font-weight: 300;
+        }
+
+        /* Enhanced Stats Header */
+        .stats-header {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: 
+                linear-gradient(145deg, #2a2a2a 0%, #1a1a1a 30%, #0a0a0a 70%, #000000 100%),
+                radial-gradient(circle at 40% 60%, rgba(0,0,0,0.8) 0%, transparent 70%);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 3px solid transparent;
+            background-clip: padding-box;
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.8),
+                0 6px 20px rgba(0, 0, 0, 0.6),
+                0 3px 10px rgba(0, 0, 0, 0.4),
+                inset 0 3px 0 rgba(255, 255, 255, 0.08),
+                inset 0 -3px 0 rgba(0, 0, 0, 0.7),
+                inset 3px 0 0 rgba(255, 255, 255, 0.05),
+                inset -3px 0 0 rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+            min-width: 140px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .stat-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(30, 64, 175, 0.12) 0%, transparent 60%),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 70%),
+                repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px);
+            border-radius: 12px;
+            pointer-events: none;
+        }
+
+        .stat-item::after {
+            content: '';
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            right: 1px;
+            bottom: 1px;
+            border: 2px solid var(--primary-blue);
+            border-radius: 12px;
+            box-shadow: 
+                0 0 0 1px rgba(30, 64, 175, 0.4),
+                inset 0 2px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+        }
+
+        .stat-item:hover {
+            box-shadow: 
+                0 16px 50px rgba(0, 0, 0, 0.9),
+                0 8px 25px rgba(30, 64, 175, 0.4),
+                0 4px 15px rgba(0, 0, 0, 0.7),
+                inset 0 3px 0 rgba(255, 255, 255, 0.12),
+                inset 0 -3px 0 rgba(0, 0, 0, 0.8),
+                inset 3px 0 0 rgba(255, 255, 255, 0.08),
+                inset -3px 0 0 rgba(0, 0, 0, 0.6);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-blue);
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 
+                0 2px 4px rgba(0, 0, 0, 0.5),
+                0 0 8px rgba(30, 64, 175, 0.3);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #B8B8B8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+            text-shadow: 
+                0 1px 2px rgba(0, 0, 0, 0.4);
+        }
+
+        .stat-sublabel {
+            font-size: 0.65rem;
+            color: #FFC107;
+            font-weight: 500;
+            margin-top: 4px;
+            position: relative;
+            z-index: 1;
+            text-transform: none;
+            letter-spacing: 0.3px;
+            text-shadow: 
+                0 1px 2px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Enhanced Hot Tub Container */
+        .hottub-container {
+            background: 
+                linear-gradient(145deg, #1a1a1a 0%, var(--darker-bg) 20%, #050505 60%, #000000 80%, #0a0a0a 100%),
+                radial-gradient(circle at 20% 80%, rgba(0,0,0,0.9) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(30, 64, 175, 0.05) 0%, transparent 60%),
+                repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0,0,0,0.15) 8px, rgba(0,0,0,0.15) 16px);
+            margin: 20px 0;
+            padding: 30px;
+            border-radius: 20px;
+            border: 4px solid transparent;
+            background-clip: padding-box;
+            box-shadow: 
+                0 30px 100px rgba(0, 0, 0, 0.95),
+                0 20px 70px rgba(0, 0, 0, 0.8),
+                0 12px 40px rgba(0, 0, 0, 0.6),
+                0 6px 20px rgba(0, 0, 0, 0.4),
+                inset 0 5px 0 rgba(255, 255, 255, 0.06),
+                inset 0 -5px 0 rgba(0, 0, 0, 0.8),
+                inset 5px 0 0 rgba(255, 255, 255, 0.03),
+                inset -5px 0 0 rgba(0, 0, 0, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hottub-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 75%, rgba(30, 64, 175, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 25%, rgba(30, 64, 175, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.02) 0%, transparent 80%),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, transparent 70%),
+                repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(0,0,0,0.05) 4px, rgba(0,0,0,0.05) 8px);
+            border-radius: 16px;
+            pointer-events: none;
+        }
+
+        .hottub-container::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            border: 3px solid var(--primary-blue);
+            border-radius: 17px;
+            box-shadow: 
+                0 0 0 2px rgba(30, 64, 175, 0.4),
+                inset 0 3px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -3px 0 rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+        }
+
+        /* Enhanced Navigation */
+        .hottub-navigation {
+            background: 
+                linear-gradient(145deg, #1a1a1a 0%, var(--black) 30%, #050505 70%, #000000 100%),
+                radial-gradient(circle at 40% 60%, rgba(0,0,0,0.9) 0%, transparent 70%),
+                repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,0,0,0.2) 3px, rgba(0,0,0,0.2) 6px);
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 3px solid transparent;
+            background-clip: padding-box;
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+            box-shadow: 
+                0 15px 50px rgba(0, 0, 0, 0.9),
+                0 8px 30px rgba(0, 0, 0, 0.7),
+                0 4px 15px rgba(0, 0, 0, 0.5),
+                inset 0 4px 0 rgba(255, 255, 255, 0.06),
+                inset 0 -4px 0 rgba(0, 0, 0, 0.7),
+                inset 4px 0 0 rgba(255, 255, 255, 0.03),
+                inset -4px 0 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .hottub-navigation::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, transparent 60%),
+                radial-gradient(circle at 50% 0%, rgba(30, 64, 175, 0.08) 0%, transparent 70%),
+                repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px);
+            border-radius: 12px;
+            pointer-events: none;
+        }
+
+        .hottub-navigation::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            border: 2px solid var(--primary-blue);
+            border-radius: 12px;
+            box-shadow: 
+                0 0 0 1px rgba(30, 64, 175, 0.4),
+                inset 0 2px 0 rgba(255, 255, 255, 0.08),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+        }
+
+        .hottub-nav-button {
+            background: 
+                linear-gradient(145deg, #1a1a1a 0%, #000000 40%, #050505 80%, #000000 100%),
+                repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(0,0,0,0.2) 1px, rgba(0,0,0,0.2) 2px);
+            color: var(--white);
+            border: none;
+            padding: 18px 24px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            border-right: 2px solid var(--primary-blue);
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 120px;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 
+                inset 0 3px 0 rgba(255, 255, 255, 0.08),
+                inset 0 -3px 0 rgba(0, 0, 0, 0.6),
+                inset 3px 0 0 rgba(255, 255, 255, 0.03),
+                0 3px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .hottub-nav-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, transparent 60%),
+                radial-gradient(circle at 15% 15%, rgba(255, 255, 255, 0.04) 0%, transparent 40%),
+                repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(0,0,0,0.1) 3px, rgba(0,0,0,0.1) 6px);
+            pointer-events: none;
+        }
+
+        .hottub-nav-button:hover {
+            background: 
+                linear-gradient(145deg, rgba(30, 64, 175, 0.5) 0%, rgba(30, 64, 175, 0.3) 40%, rgba(30, 58, 138, 0.4) 80%, rgba(30, 64, 175, 0.6) 100%),
+                repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(0,0,0,0.3) 1px, rgba(0,0,0,0.3) 2px);
+            box-shadow: 
+                inset 0 3px 0 rgba(255, 255, 255, 0.15),
+                inset 0 -3px 0 rgba(0, 0, 0, 0.7),
+                inset 3px 0 0 rgba(255, 255, 255, 0.08),
+                0 4px 15px rgba(30, 64, 175, 0.4),
+                0 2px 8px rgba(0, 0, 0, 0.6);
+        }
+
+        .hottub-nav-button.active {
+            background: 
+                linear-gradient(145deg, var(--primary-blue) 0%, var(--dark-blue) 40%, #1e3a8a 80%, #1e40af 100%),
+                repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.1) 1px, rgba(255,255,255,0.1) 2px);
+            color: white;
+            box-shadow: 
+                inset 0 4px 0 rgba(255, 255, 255, 0.2),
+                inset 0 -4px 0 rgba(0, 0, 0, 0.5),
+                inset 4px 0 0 rgba(255, 255, 255, 0.1),
+                inset -4px 0 0 rgba(0, 0, 0, 0.3),
+                0 0 25px rgba(30, 64, 175, 0.6),
+                0 4px 20px rgba(0, 0, 0, 0.7);
+        }
+
+        .hottub-nav-button:last-child {
+            border-right: none;
+        }
+
+        /* Enhanced Form Sections */
+        .form-section {
+            background: 
+                linear-gradient(145deg, #1a1a1a 0%, var(--darker-bg) 30%, #050505 70%, #000000 100%),
+                radial-gradient(circle at 30% 70%, rgba(0,0,0,0.9) 0%, transparent 60%),
+                repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(0,0,0,0.2) 4px, rgba(0,0,0,0.2) 8px);
+            margin: 25px 0;
+            padding: 30px;
+            border-radius: 18px;
+            border: 3px solid transparent;
+            background-clip: padding-box;
+            box-shadow: 
+                0 25px 80px rgba(0, 0, 0, 0.9),
+                0 15px 50px rgba(0, 0, 0, 0.7),
+                0 8px 30px rgba(0, 0, 0, 0.5),
+                inset 0 4px 0 rgba(255, 255, 255, 0.06),
+                inset 0 -4px 0 rgba(0, 0, 0, 0.8),
+                inset 4px 0 0 rgba(255, 255, 255, 0.04),
+                inset -4px 0 0 rgba(0, 0, 0, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 15% 85%, rgba(30, 64, 175, 0.08) 0%, transparent 60%),
+                radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, transparent 80%),
+                repeating-linear-gradient(90deg, transparent, transparent 6px, rgba(0,0,0,0.1) 6px, rgba(0,0,0,0.1) 12px);
+            border-radius: 15px;
+            pointer-events: none;
+        }
+
+        .form-section::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            border: 2px solid var(--primary-blue);
+            border-radius: 15px;
+            box-shadow: 
+                0 0 0 1px rgba(30, 64, 175, 0.5),
+                inset 0 2px 0 rgba(255, 255, 255, 0.08),
+                inset 0 -2px 0 rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+        }
+
+        .form-section h3 {
+            color: var(--primary-orange);
+            margin-bottom: 25px;
+            font-size: 1.5em;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+            text-shadow: 
+                1px 1px 2px rgba(0, 0, 0, 0.7),
+                0 0 10px rgba(204, 85, 0, 0.4);
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(204, 85, 0, 0.3);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--white);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .required {
+            color: var(--primary-blue);
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 16px 20px;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.06) 100%);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: var(--white);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            box-shadow: 
+                inset 0 4px 8px rgba(0, 0, 0, 0.4),
+                inset 0 -2px 4px rgba(255, 255, 255, 0.1),
+                inset 2px 0 4px rgba(0, 0, 0, 0.2),
+                inset -2px 0 4px rgba(255, 255, 255, 0.05),
+                0 2px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .form-select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 12px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 40px;
+            color: var(--white) !important;
+            background-color: rgba(47, 47, 47, 0.9) !important;
+        }
+
+        .form-select option {
+            background-color: #2F2F2F !important;
+            color: #FFFFFF !important;
+            padding: 12px !important;
+            border: none !important;
+        }
+
+        .form-select option:checked,
+        .form-select option:hover {
+            background-color: var(--primary-blue) !important;
+            color: var(--white) !important;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 
+                0 0 0 4px rgba(30, 64, 175, 0.3),
+                inset 0 4px 8px rgba(0, 0, 0, 0.3),
+                inset 0 -2px 4px rgba(255, 255, 255, 0.15),
+                inset 2px 0 4px rgba(0, 0, 0, 0.15),
+                inset -2px 0 4px rgba(255, 255, 255, 0.08),
+                0 4px 12px rgba(30, 64, 175, 0.2);
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.10) 100%);
+        }
+
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Hot Tub Step Classes */
+        .hottub-step {
+            display: none;
+        }
+
+        .hottub-step.active {
+            display: block;
+        }
+
+        /* Empty State Styling */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #B8B8B8;
+        }
+
+        .empty-state h3 {
+            color: var(--primary-orange);
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+
+        .empty-state p {
+            margin-bottom: 10px;
+            line-height: 1.8;
+        }
+
+        .config-example {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid var(--primary-orange);
+            text-align: left;
+            font-family: monospace;
+            font-size: 0.9em;
+            color: #E8E8E8;
+        }
+
+        .setup-button {
+            background: 
+                linear-gradient(145deg, var(--primary-blue) 0%, var(--dark-blue) 40%, #1e3a8a 80%, var(--primary-blue) 100%),
+                repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.05) 2px, rgba(255,255,255,0.05) 4px);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 
+                0 8px 25px rgba(30, 64, 175, 0.5),
+                0 4px 15px rgba(0, 0, 0, 0.4),
+                inset 0 3px 0 rgba(255, 255, 255, 0.2),
+                inset 0 -3px 0 rgba(0, 0, 0, 0.4),
+                inset 3px 0 0 rgba(255, 255, 255, 0.1),
+                inset -3px 0 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .setup-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 70%),
+                repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(0,0,0,0.1) 1px, rgba(0,0,0,0.1) 2px);
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .setup-button:hover {
+            background: 
+                linear-gradient(145deg, #3b82f6 0%, var(--primary-blue) 40%, var(--dark-blue) 80%, #1e40af 100%),
+                repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.08) 2px, rgba(255,255,255,0.08) 4px);
+            box-shadow: 
+                0 12px 35px rgba(30, 64, 175, 0.7),
+                0 6px 20px rgba(0, 0, 0, 0.5),
+                inset 0 4px 0 rgba(255, 255, 255, 0.25),
+                inset 0 -4px 0 rgba(0, 0, 0, 0.5),
+                inset 4px 0 0 rgba(255, 255, 255, 0.12),
+                inset -4px 0 0 rgba(0, 0, 0, 0.4);
+        }
+
+        .setup-button:active {
+            box-shadow: 
+                0 4px 12px rgba(30, 64, 175, 0.4),
+                0 2px 6px rgba(0, 0, 0, 0.3),
+                inset 0 -2px 0 rgba(255, 255, 255, 0.15),
+                inset 0 3px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        /* Message styling */
+        .message {
+            position: fixed;
+            top: 50px;
+            right: 20px;
+            max-width: 400px;
+            padding: 15px 20px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            box-shadow: 
+                0 8px 32px rgba(0,0,0,0.6),
+                0 4px 16px rgba(0,0,0,0.4),
+                inset 0 2px 0 rgba(255, 255, 255, 0.2),
+                inset 0 -2px 0 rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .message::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 60%);
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .message.success {
+            background: linear-gradient(145deg, var(--success) 0%, #1e7e34 50%, #155724 100%);
+            color: white;
+            border-color: rgba(40, 167, 69, 0.5);
+        }
+
+        .message.warning {
+            background: linear-gradient(145deg, var(--warning) 0%, #e0a800 50%, #d39e00 100%);
+            color: #212529;
+            border-color: rgba(255, 193, 7, 0.5);
+        }
+
+        .message.error {
+            background: linear-gradient(145deg, var(--danger) 0%, #c82333 50%, #bd2130 100%);
+            color: white;
+            border-color: rgba(220, 53, 69, 0.5);
+        }
+
+        .message.info {
+            background: linear-gradient(145deg, #17a2b8 0%, #138496 50%, #117a8b 100%);
+            color: white;
+            border-color: rgba(23, 162, 184, 0.5);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header {
+                margin: 20px 10px;
+                padding: 30px 15px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .stats-header {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .stat-item {
+                min-width: 200px;
+            }
+            
+            .hottub-navigation {
+                flex-direction: column;
+            }
+            
+            .hottub-nav-button {
+                border-right: none;
+                border-bottom: 2px solid var(--primary-orange);
+            }
+            
+            .hottub-nav-button:last-child {
+                border-bottom: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-status status-online" id="connection-status"></div>
+    
+    <div class="container">
+        <!-- Enhanced Header -->
+        <div class="header">
+            <h1 id="business-title">safe<span class="water-blue">water</span>.pro</h1>
+            <p>Professional hot tub management and compliance tracking system</p>
+        </div>
+
+        <!-- Stats Header -->
+        <div class="stats-header" id="stats-container">
+            <div class="stat-item" onclick="showSetupGuide()">
+                <div class="stat-value" id="total-hot-tubs">0</div>
+                <div class="stat-label">Hot Tub Units</div>
+                <div class="stat-sublabel">Click to Setup</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="total-inspections">0</div>
+                <div class="stat-label">Total Inspections</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="compliance-rate">100</div>
+                <div class="stat-label">Compliance Rate</div>
+                <div class="stat-sublabel">Percentage</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="needing-attention">0</div>
+                <div class="stat-label">Need Attention</div>
+                <div class="stat-sublabel">Hot Tubs</div>
+            </div>
+        </div>
+
+        <!-- Hot Tub Container -->
+        <div class="hottub-container">
+            <!-- Navigation -->
+            <div class="hottub-navigation">
+                <button class="hottub-nav-button active" onclick="showHotTubStep('onboarding')">ONBOARDING</button>
+                <button class="hottub-nav-button" onclick="showHotTubStep('ht-inspection')">INSPECTION</button>
+                <button class="hottub-nav-button" onclick="showHotTubStep('reports')">REPORTS</button>
+                <button class="hottub-nav-button" onclick="showHotTubStep('setup')">SETUP</button>
+            </div>
+
+            <!-- Onboarding Step -->
+            <div id="onboarding" class="hottub-step active">
+                <div class="empty-state">
+                    <h3>Welcome to Your Hot Tub Management System</h3>
+                    <p>This is a clean business template ready for your customization.</p>
+                    <p><strong>To get started:</strong></p>
+                    
+                    <div class="config-example">
+                        <strong>1. Add your business information:</strong><br>
+                        - Business name<br>
+                        - Access codes for your staff<br>
+                        - Hot tub inventory data<br><br>
+                        
+                        <strong>2. Configure your locations and units:</strong><br>
+                        - Unit numbers (e.g., HT001, Pool01, etc.)<br>
+                        - Make, model, serial numbers<br>
+                        - Capacity and filter types<br><br>
+                        
+                        <strong>3. Set up user access:</strong><br>
+                        - Manager codes<br>
+                        - Staff member codes<br>
+                        - Admin access codes
+                    </div>
+                    
+                    <button class="setup-button" onclick="showHotTubStep('setup')">Open Setup Guide</button>
+                    <button class="setup-button" onclick="loadSampleData()">Load Sample Data</button>
+                </div>
+            </div>
+
+            <!-- Inspection Step -->
+            <div id="ht-inspection" class="hottub-step">
+                <div class="form-section">
+                    <h3>Hot Tub Inspection System</h3>
+                    <div class="empty-state">
+                        <p>Configure your hot tub inventory in the Setup section to enable inspections.</p>
+                        <button class="setup-button" onclick="showHotTubStep('setup')">Go to Setup</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Step -->
+            <div id="reports" class="hottub-step">
+                <div class="form-section">
+                    <h3>Reports & Analytics</h3>
+                    <div class="empty-state">
+                        <p>Reports will be available once you have configured your system and started logging inspections.</p>
+                        <button class="setup-button" onclick="showHotTubStep('setup')">Configure System</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Setup Step -->
+            <div id="setup" class="hottub-step">
+                <div class="form-section">
+                    <h3>Business Configuration</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Business Name <span class="required">*</span></label>
+                            <input type="text" class="form-input" id="business-name" placeholder="Enter your business name">
+                        </div>
+                    </div>
+
+                    <h4 style="color: var(--primary-orange); margin: 30px 0 20px 0;">Hot Tub Inventory</h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Location Name <span class="required">*</span></label>
+                            <input type="text" class="form-input" id="location-name" placeholder="Main Location, Pool Area, etc.">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Unit Number <span class="required">*</span></label>
+                            <input type="text" class="form-input" id="unit-number" placeholder="HT001, Pool01, etc.">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Make</label>
+                            <input type="text" class="form-input" id="unit-make" placeholder="Beach Comber, Viskan, etc.">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Model</label>
+                            <input type="text" class="form-input" id="unit-model" placeholder="320, 321, Ronno, etc.">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Serial Number</label>
+                            <input type="text" class="form-input" id="unit-serial" placeholder="Serial number">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Capacity</label>
+                            <input type="text" class="form-input" id="unit-capacity" placeholder="800L, 1000L, etc.">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Filter Type</label>
+                            <select class="form-select" id="unit-filters">
+                                <option value="">Select filter type</option>
+                                <option value="Bottom">Bottom</option>
+                                <option value="Side">Side</option>
+                                <option value="Top">Top</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin: 30px 0;">
+                        <button class="setup-button" onclick="addHotTubUnit()">Add Hot Tub Unit</button>
+                        <button class="setup-button" onclick="saveBusinesConfig()">Save Configuration</button>
+                    </div>
+
+                    <!-- Current Units Display -->
+                    <div id="current-units" style="margin-top: 30px;"></div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Access Code Configuration</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Access Code <span class="required">*</span></label>
+                            <input type="text" class="form-input" id="access-code" placeholder="e.g., MGR001, ADMIN123">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Person Name <span class="required">*</span></label>
+                            <input type="text" class="form-input" id="person-name" placeholder="Full name">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Role <span class="required">*</span></label>
+                            <select class="form-select" id="person-role">
+                                <option value="">Select role</option>
+                                <option value="Manager">Manager</option>
+                                <option value="Supervisor">Supervisor</option>
+                                <option value="Staff">Staff</option>
+                                <option value="Admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Access Type</label>
+                            <select class="form-select" id="access-type">
+                                <option value="manager">Manager</option>
+                                <option value="staff">Staff</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin: 30px 0;">
+                        <button class="setup-button" onclick="addAccessCode()">Add Access Code</button>
+                    </div>
+
+                    <!-- Current Access Codes Display -->
+                    <div id="current-access-codes" style="margin-top: 30px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let currentBusinessConfig = { ...BUSINESS_CONFIG };
+
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('SafeWater.PRO Hot Tub Management - Clean Template');
+            
+            // Load saved configuration if available
+            loadSavedConfiguration();
+            
+            // Update display
+            updateStatistics();
+            updateBusinessDisplay();
+            
+            // Check authentication
+            checkAuthentication();
+            
+            showMessage('Hot Tub Management System loaded - Ready for configuration', 'info');
+        });
+
+        // Configuration management
+        function loadSavedConfiguration() {
+            const saved = localStorage.getItem('business_hottub_config');
+            if (saved) {
+                try {
+                    currentBusinessConfig = JSON.parse(saved);
+                    console.log('Loaded saved business configuration');
+                } catch (error) {
+                    console.error('Error loading saved configuration:', error);
+                }
+            }
+        }
+
+        function saveConfiguration() {
+            localStorage.setItem('business_hottub_config', JSON.stringify(currentBusinessConfig));
+            console.log('Business configuration saved');
+        }
+
+        function updateBusinessDisplay() {
+            // Update business name in header
+            if (currentBusinessConfig.businessName && currentBusinessConfig.businessName !== "Your Business Name") {
+                document.getElementById('business-title').textContent = `${currentBusinessConfig.businessName}`;
+                document.querySelector('.brand-line').textContent = 'Hot Tub Management System';
+            }
+
+            // Update hot tub count
+            const totalUnits = Object.values(currentBusinessConfig.HOT_TUB_DATA).flat().length;
+            document.getElementById('total-hot-tubs').textContent = totalUnits;
+
+            // Update current units display
+            displayCurrentUnits();
+            displayCurrentAccessCodes();
+        }
+
+        function updateStatistics() {
+            const totalUnits = Object.values(currentBusinessConfig.HOT_TUB_DATA).flat().length;
+            document.getElementById('total-hot-tubs').textContent = totalUnits;
+            
+            // Mock data for other stats (will be real data once system is in use)
+            const totalInspections = Math.floor(totalUnits * 10); // 10 inspections per unit average
+            const needingAttention = Math.floor(totalUnits * 0.1); // 10% need attention
+            
+            document.getElementById('total-inspections').textContent = totalInspections;
+            document.getElementById('needing-attention').textContent = needingAttention;
+        }
+
+        // Hot tub management functions
+        function addHotTubUnit() {
+            const locationName = document.getElementById('location-name').value.trim();
+            const unitNumber = document.getElementById('unit-number').value.trim();
+            const unitMake = document.getElementById('unit-make').value.trim();
+            const unitModel = document.getElementById('unit-model').value.trim();
+            const unitSerial = document.getElementById('unit-serial').value.trim();
+            const unitCapacity = document.getElementById('unit-capacity').value.trim();
+            const unitFilters = document.getElementById('unit-filters').value;
+
+            if (!locationName || !unitNumber) {
+                showMessage('Location name and unit number are required', 'warning');
+                return;
+            }
+
+            // Initialize location if it doesn't exist
+            if (!currentBusinessConfig.HOT_TUB_DATA[locationName]) {
+                currentBusinessConfig.HOT_TUB_DATA[locationName] = [];
+            }
+
+            // Check for duplicate unit number
+            const existingUnit = Object.values(currentBusinessConfig.HOT_TUB_DATA)
+                .flat()
+                .find(unit => unit.unit === unitNumber);
+
+            if (existingUnit) {
+                showMessage('Unit number already exists', 'error');
+                return;
+            }
+
+            // Add the unit
+            const newUnit = {
+                unit: unitNumber,
+                make: unitMake || 'Not specified',
+                model: unitModel || 'Not specified',
+                serial: unitSerial || 'Not specified',
+                capacity: unitCapacity || 'Not specified',
+                filters: unitFilters || 'Not specified'
+            };
+
+            currentBusinessConfig.HOT_TUB_DATA[locationName].push(newUnit);
+            saveConfiguration();
+            updateBusinessDisplay();
+
+            // Clear form
+            document.getElementById('unit-number').value = '';
+            document.getElementById('unit-make').value = '';
+            document.getElementById('unit-model').value = '';
+            document.getElementById('unit-serial').value = '';
+            document.getElementById('unit-capacity').value = '';
+            document.getElementById('unit-filters').value = '';
+
+            showMessage(`Hot tub unit ${unitNumber} added successfully`, 'success');
+        }
+
+        function addAccessCode() {
+            const accessCode = document.getElementById('access-code').value.trim();
+            const personName = document.getElementById('person-name').value.trim();
+            const personRole = document.getElementById('person-role').value;
+            const accessType = document.getElementById('access-type').value;
+
+            if (!accessCode || !personName || !personRole) {
+                showMessage('Access code, name, and role are required', 'warning');
+                return;
+            }
+
+            if (currentBusinessConfig.ACCESS_CODES[accessCode]) {
+                showMessage('Access code already exists', 'error');
+                return;
+            }
+
+            currentBusinessConfig.ACCESS_CODES[accessCode] = {
+                type: accessType,
+                name: personName,
+                location: 'All Locations',
+                role: personRole,
+                message: `Welcome ${personName}`
+            };
+
+            saveConfiguration();
+            displayCurrentAccessCodes();
+
+            // Clear form
+            document.getElementById('access-code').value = '';
+            document.getElementById('person-name').value = '';
+            document.getElementById('person-role').value = '';
+
+            showMessage(`Access code ${accessCode} added for ${personName}`, 'success');
+        }
+
+        function saveBusinesConfig() {
+            const businessName = document.getElementById('business-name').value.trim();
+            
+            if (businessName) {
+                currentBusinessConfig.businessName = businessName;
+            }
+
+            saveConfiguration();
+            updateBusinessDisplay();
+            showMessage('Business configuration saved successfully', 'success');
+        }
+
+        function displayCurrentUnits() {
+            const container = document.getElementById('current-units');
+            const locations = currentBusinessConfig.HOT_TUB_DATA;
+
+            if (Object.keys(locations).length === 0) {
+                container.innerHTML = '<p style="color: #B8B8B8; text-align: center;">No hot tub units configured yet</p>';
+                return;
+            }
+
+            let html = '<h4 style="color: var(--primary-blue); margin-bottom: 15px;">Current Hot Tub Units</h4>';
+            
+            for (const [location, units] of Object.entries(locations)) {
+                if (units.length > 0) {
+                    html += `<div style="margin-bottom: 20px;">`;
+                    html += `<h5 style="color: var(--white); margin-bottom: 10px;">${location} (${units.length} units)</h5>`;
+                    html += `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">`;
+                    
+                    units.forEach(unit => {
+                        html += `
+                            <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary-blue);">
+                                <div style="font-weight: bold; color: var(--primary-blue); margin-bottom: 8px;">${unit.unit}</div>
+                                <div style="font-size: 0.9em; color: #E8E8E8;">
+                                    <div>Make: ${unit.make}</div>
+                                    <div>Model: ${unit.model}</div>
+                                    <div>Capacity: ${unit.capacity}</div>
+                                    <div>Filters: ${unit.filters}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `</div></div>`;
+                }
+            }
+
+            container.innerHTML = html;
+        }
+
+        function displayCurrentAccessCodes() {
+            const container = document.getElementById('current-access-codes');
+            const accessCodes = currentBusinessConfig.ACCESS_CODES;
+
+            if (Object.keys(accessCodes).length === 0) {
+                container.innerHTML = '<p style="color: #B8B8B8; text-align: center;">No access codes configured yet</p>';
+                return;
+            }
+
+            let html = '<h4 style="color: var(--primary-blue); margin-bottom: 15px;">Current Access Codes</h4>';
+            html += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">';
+            
+            for (const [code, info] of Object.entries(accessCodes)) {
+                html += `
+                    <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border-left: 4px solid var(--success);">
+                        <div style="font-weight: bold; color: var(--success); margin-bottom: 8px;">${code}</div>
+                        <div style="font-size: 0.9em; color: #E8E8E8;">
+                            <div>Name: ${info.name}</div>
+                            <div>Role: ${info.role}</div>
+                            <div>Type: ${info.type}</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Sample data loader
+        function loadSampleData() {
+            currentBusinessConfig = {
+                businessName: "Sample Resort & Spa",
+                ACCESS_CODES: {
+                    'ADMIN123': {
+                        type: 'admin',
+                        name: 'System Administrator',
+                        location: 'All Locations',
+                        role: 'Admin',
+                        message: 'Full system access granted'
+                    },
+                    'MGR001': {
+                        type: 'manager',
+                        name: 'Pool Manager',
+                        location: 'Main Pool Area',
+                        role: 'Manager',
+                        message: 'Welcome Pool Manager'
+                    },
+                    'STAFF01': {
+                        type: 'staff',
+                        name: 'Maintenance Staff',
+                        location: 'All Locations',
+                        role: 'Maintenance',
+                        message: 'Welcome Maintenance Staff'
+                    }
+                },
+                HOT_TUB_DATA: {
+                    'Main Pool Area': [
+                        { unit: 'HT001', make: 'AquaSpas', model: 'Deluxe 800', serial: 'AS12345', capacity: '800L', filters: 'Bottom' },
+                        { unit: 'HT002', make: 'AquaSpas', model: 'Deluxe 800', serial: 'AS12346', capacity: '800L', filters: 'Bottom' },
+                        { unit: 'HT003', make: 'ThermalSpa', model: 'Pro 1000', serial: 'TS67890', capacity: '1000L', filters: 'Side' }
+                    ],
+                    'Spa Wellness Center': [
+                        { unit: 'SPA01', make: 'LuxurySpas', model: 'Elite', serial: 'LS11111', capacity: '600L', filters: 'Top' },
+                        { unit: 'SPA02', make: 'LuxurySpas', model: 'Elite', serial: 'LS11112', capacity: '600L', filters: 'Top' }
+                    ]
+                }
+            };
+
+            saveConfiguration();
+            updateBusinessDisplay();
+            showMessage('Sample data loaded successfully! You can now test the system.', 'success');
+        }
+
+        // Authentication check
+        function checkAuthentication() {
+            try {
+                const authData = JSON.parse(localStorage.getItem('safeWater_userSessions_current') || '{}');
+                
+                if (authData && authData.user && authData.expires && Date.now() <= authData.expires) {
+                    currentUser = authData.user;
+                    const accessCode = currentUser.accessCode || '';
+                    const userAccess = currentBusinessConfig.ACCESS_CODES[accessCode];
+                    
+                    if (userAccess) {
+                        console.log(`Authenticated: ${userAccess.name} (${userAccess.role})`);
+                        return true;
+                    }
+                }
+                
+                console.log('No authentication found - system available for setup');
+                return false;
+            } catch (error) {
+                console.error('Authentication error:', error);
+                return false;
+            }
+        }
+
+        // Navigation functions
+        function showHotTubStep(stepName) {
+            // Hide all steps
+            const steps = document.querySelectorAll('.hottub-step');
+            steps.forEach(step => step.classList.remove('active'));
+
+            // Show selected step
+            const selectedStep = document.getElementById(stepName);
+            if (selectedStep) {
+                selectedStep.classList.add('active');
+            }
+
+            // Update navigation buttons
+            const buttons = document.querySelectorAll('.hottub-nav-button');
+            buttons.forEach(button => button.classList.remove('active'));
+
+            // Find and activate the corresponding button
+            const activeButton = Array.from(buttons).find(button => 
+                button.onclick.toString().includes(stepName)
+            );
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+        }
+
+        function showSetupGuide() {
+            showHotTubStep('setup');
+        }
+
+        // Message system
+        function showMessage(text, type = 'info') {
+            const messageContainer = document.createElement('div');
+            messageContainer.className = `message ${type}`;
+            messageContainer.textContent = text;
+            
+            document.body.appendChild(messageContainer);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (messageContainer.parentNode) {
+                    messageContainer.parentNode.removeChild(messageContainer);
+                }
+            }, 5000);
+        }
+
+        // Connection status
+        function updateConnectionStatus() {
+            const statusElement = document.getElementById('connection-status');
+            if (navigator.onLine) {
+                statusElement.className = 'offline-status status-online';
+            } else {
+                statusElement.className = 'offline-status status-offline';
+            }
+        }
+
+        // Listen for online/offline events
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+        
+        // Initial connection status check
+        updateConnectionStatus();
+    </script>
+</body>
+</html>
