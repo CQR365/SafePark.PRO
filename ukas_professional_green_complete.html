@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>SafePark.PRO - UKAS Microbiological Testing</title>
+    
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="auth-handler.js"></script>
+    
+    <!-- SECURITY: Authentication Check - Must be logged in through main index.html -->
+    <script>
+        function checkAuthentication() {
+            // Check for required session data that's set by main index.html login
+            const currentUser = sessionStorage.getItem('currentUser');
+            const currentPark = sessionStorage.getItem('currentPark');
+            const currentAccessCode = sessionStorage.getItem('currentAccessCode');
+            const userAccessLevel = sessionStorage.getItem('userAccessLevel');
+            
+            // If any required authentication data is missing, redirect to main index
+            if (!currentUser || !currentPark || !currentAccessCode || !userAccessLevel) {
+                // Clear any partial session data
+                sessionStorage.clear();
+                
+                // Show alert to user
+                alert('Access Denied: Please login through the main SafeSystems.PRO dashboard to access this module.');
+                
+                // Redirect to main index.html for proper login
+                window.location.href = 'index.html';
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Run authentication check immediately when page loads
+        if (!checkAuthentication()) {
+            // Page will redirect, stop further execution
+            throw new Error('Authentication required - redirecting to login');
+        }
+        
+        console.log('UKAS Module: User authenticated successfully');
+    </script>
+    
+    <!-- Chart.js for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --primary-green: #1e7e34;
+            --dark-green: #155724;
+            --light-green: #28a745;
+            --black: #000000;
+            --white: #FFFFFF;
+            --smart-dark-grey: #2A2A2A;
+            --content-background: #2F2F2F;
+            --light-gray: #F8F9FA;
+            --medium-gray: #6C757D;
+            --dark-gray: #343A40;
+            --border-color: #DEE2E6;
+            --success: #1e7e34;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --shadow-light: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-medium: 0 4px 20px rgba(0,0,0,0.15);
+            --shadow-heavy: 0 8px 40px rgba(0,0,0,0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+            color: #E8E8E8;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--content-background) 0%, #1F1F1F 100%);
+            padding: 40px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 
+                var(--shadow-heavy),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+            position: relative;
+            border: 2px solid rgba(30, 126, 52, 0.2);
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-green), var(--light-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            margin-bottom: 15px;
+            text-shadow: none;
+            letter-spacing: -1px;
+        }
+
+        .brand-line {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--light-green);
+            text-align: center;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .subtitle {
+            font-size: 1.4rem;
+            font-weight: 500;
+            color: #E8E8E8;
+            text-align: center;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+
+        .header p {
+            text-align: center;
+            color: #B8B8B8;
+            font-size: 1.1rem;
+            margin-top: 15px;
+            line-height: 1.5;
+        }
+
+        .ukas-info {
+            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            color: var(--white);
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 25px;
+            font-size: 1rem;
+            box-shadow: 0 4px 15px rgba(30, 126, 52, 0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: linear-gradient(145deg, var(--content-background), #353535);
+            border: 2px solid rgba(30, 126, 52, 0.2);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 
+                var(--shadow-heavy),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .panel:hover {
+            border-color: rgba(30, 126, 52, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 
+                0 12px 40px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        .panel h2 {
+            color: var(--primary-green);
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            font-weight: 700;
+            border-bottom: 3px solid var(--primary-green);
+            padding-bottom: 10px;
+            position: relative;
+        }
+
+        .panel h2::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-green), var(--light-green));
+            border-radius: 2px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: linear-gradient(145deg, #404040, #383838);
+            border-radius: 15px;
+            border-left: 5px solid var(--primary-green);
+            box-shadow: 
+                var(--shadow-light),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .form-section:hover {
+            transform: translateX(5px);
+            border-left-color: var(--light-green);
+        }
+
+        .form-section h3 {
+            color: var(--light-green);
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            font-weight: 600;
+            padding: 12px 16px;
+            background: linear-gradient(145deg, var(--content-background), #404040);
+            border-radius: 10px;
+            border: 1px solid rgba(30, 126, 52, 0.2);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--primary-green);
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid rgba(30, 126, 52, 0.3);
+            border-radius: 10px;
+            background: linear-gradient(145deg, #404040, #383838);
+            color: #E8E8E8;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 
+                inset 0 2px 5px rgba(0,0,0,0.2),
+                0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .form-group select option {
+            background: #404040;
+            color: #E8E8E8;
+            padding: 10px;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 
+                0 0 0 3px rgba(30, 126, 52, 0.2),
+                inset 0 2px 5px rgba(0,0,0,0.2),
+                0 4px 20px rgba(30, 126, 52, 0.1);
+            background: linear-gradient(145deg, #454545, #404040);
+        }
+
+        .btn {
+            background: linear-gradient(145deg, var(--primary-green), var(--dark-green));
+            color: var(--white);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            margin: 5px;
+            box-shadow: 
+                0 4px 15px rgba(30, 126, 52, 0.3),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 8px 25px rgba(30, 126, 52, 0.4),
+                inset 0 1px 0 rgba(255,255,255,0.3);
+            background: linear-gradient(145deg, var(--light-green), var(--primary-green));
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 
+                0 2px 10px rgba(30, 126, 52, 0.3),
+                inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .btn-large {
+            padding: 18px 35px;
+            font-size: 18px;
+            border-radius: 12px;
+            letter-spacing: 1px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 350px;
+            margin: 20px 0;
+            background: linear-gradient(145deg, #3a3a3a, #333);
+            border-radius: 15px;
+            border: 2px solid rgba(30, 126, 52, 0.2);
+            box-shadow: 
+                inset 0 2px 10px rgba(0,0,0,0.3),
+                0 4px 20px rgba(0,0,0,0.2);
+            padding: 15px;
+        }
+
+        .hottub-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .hottub-btn {
+            background: linear-gradient(145deg, #404040, #383838);
+            border: 2px solid rgba(30, 126, 52, 0.3);
+            color: #E8E8E8;
+            padding: 12px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+            box-shadow: 
+                0 3px 10px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .hottub-btn:hover {
+            border-color: var(--primary-green);
+            background: linear-gradient(145deg, #4a4a4a, #424242);
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 20px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+
+        .hottub-btn.selected {
+            background: linear-gradient(145deg, var(--primary-green), var(--dark-green));
+            border-color: var(--light-green);
+            color: var(--white);
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 20px rgba(30, 126, 52, 0.4),
+                inset 0 1px 0 rgba(255,255,255,0.3);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.95em;
+            background: linear-gradient(145deg, #3a3a3a, #353535);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 
+                0 8px 25px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            color: var(--white);
+            font-weight: 700;
+            border-right: 2px solid rgba(255,255,255,0.2);
+            position: relative;
+            padding: 15px 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9em;
+        }
+
+        .data-table th:last-child {
+            border-right: none;
+        }
+
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            color: #E8E8E8;
+            transition: all 0.3s ease;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(30, 126, 52, 0.1);
+            transform: scale(1.01);
+        }
+
+        .risk-indicator {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            font-weight: 700;
+            margin-left: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .risk-low { 
+            background: linear-gradient(135deg, var(--success), #1e7e34); 
+            color: white; 
+        }
+        .risk-medium { 
+            background: linear-gradient(135deg, var(--warning), #e0a800); 
+            color: white; 
+        }
+        .risk-high { 
+            background: linear-gradient(135deg, var(--danger), #bd2130); 
+            color: white; 
+        }
+        .risk-critical { 
+            background: linear-gradient(135deg, #9C27B0, #7b1fa2); 
+            color: white; 
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #B8B8B8;
+            border-top: 1px solid #444;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sticky PRO Button (Top Left) -->
+    <div class="container">
+        <div class="header">
+            <h1>safewater.pro</h1>
+            <div class="brand-line">UKAS Microbiological Trends Analysis</div>
+            <div class="subtitle">Professional Water Quality Testing & Compliance Management</div>
+            <p>Comprehensive microbiological testing and trend analysis for hot tub and spa facilities</p>
+            <div class="ukas-info">
+                Testing Laboratory: Eurofins Livingston | UKAS Accreditation: 2382
+            </div>
+        </div>
+
+        <!-- Hot Tub Selection -->
+        <div class="panel" style="margin-bottom: 20px;">
+            <h2>Hot Tub Selection</h2>
+            
+            <div class="form-section">
+                <h3>Location</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="holidayPark">Holiday Park <span style="color: var(--danger);">*</span></label>
+                        <select id="holidayPark" name="holiday_park" required onchange="updateHotTubSelection()">
+                            <option value="">Select holiday park...</option>
+                            <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                            <option value="Oban Holiday Park">Oban Holiday Park</option>
+                            <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                            <option value="Overburns Farm">Overburns Farm</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="businessArea">Business Area</label>
+                        <select id="businessArea" name="business_area">
+                            <option value="">Select business area...</option>
+                            <option value="Reception & Administration">Reception & Administration</option>
+                            <option value="Accommodation Services">Accommodation Services</option>
+                            <option value="Play Areas & Recreation">Play Areas & Recreation</option>
+                            <option value="Maintenance & Grounds">Maintenance & Grounds</option>
+                            <option value="Food & Beverage">Food & Beverage</option>
+                            <option value="Security & Safety">Security & Safety</option>
+                            <option value="Water Activities">Water Activities</option>
+                            <option value="Entertainment">Entertainment</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <button id="allHotTubsBtn" class="btn" onclick="selectAllHotTubs()" style="
+                    background: linear-gradient(145deg, #007bff, #0056b3); 
+                    display: none;
+                    margin-bottom: 10px;
+                ">
+                    All Hot Tubs (Park View)
+                </button>
+            </div>
+            
+            <div id="hotTubSelector" class="hottub-selector">
+                <!-- Hot tubs will be populated based on selected park -->
+            </div>
+
+            <div style="text-align: center; margin: 15px 0;">
+                <span id="selectedHotTub" style="color: var(--primary-green); font-weight: bold;">Select a holiday park to view available hot tubs</span>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="panel">
+                <h2>Sample Entry & Testing</h2>
+                
+                <form id="testForm" action="https://formspree.io/f/xldprzkr" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="module" value="UKAS Microbiological Testing">
+                    <input type="hidden" name="_subject" value="SafePark.PRO - Microbiological Testing Results">
+                    <input type="hidden" name="selected_hottub" id="formHotTub">
+                    
+                    <div class="form-section">
+                        <h3>Sample Information</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="sampleDate">Sample Date:</label>
+                                <input type="date" id="sampleDate" name="sample_date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="sampleType">Sample Type:</label>
+                                <select id="sampleType" name="sample_type" required>
+                                    <option value="">Select type</option>
+                                    <option value="water">Water Sample</option>
+                                    <option value="surface_swab">Surface Swab</option>
+                                    <option value="contact_plate">Surface Contact Plate</option>
+                                    <option value="air_plate">Air Plate</option>
+                                    <option value="endoscope_rinse">Endoscope Rinse</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="testSuite">Test Suite:</label>
+                                <select id="testSuite" name="test_suite" required>
+                                    <option value="">Select test suite</option>
+                                    <option value="bacterial_suite">Bacterial Suite (Monthly)</option>
+                                    <option value="legionella_suite">Legionella Suite (Quarterly)</option>
+                                    <option value="full_suite">Full Microbiological Suite</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="collectedBy">Collected By:</label>
+                                <select id="collectedBy" name="collected_by">
+                                    <option value="">Select team member...</option>
+                                    <option value="Sarah McKenzie - Water Safety">Sarah McKenzie - Water Safety</option>
+                                    <option value="James Robertson - Maintenance">James Robertson - Maintenance</option>
+                                    <option value="Emma Stewart - Operations">Emma Stewart - Operations</option>
+                                    <option value="David MacLeod - Health & Safety">David MacLeod - Health & Safety</option>
+                                    <option value="Claire Morrison - Guest Services">Claire Morrison - Guest Services</option>
+                                    <option value="Alan Campbell - Technical Services">Alan Campbell - Technical Services</option>
+                                    <option value="Fiona MacDonald - Compliance">Fiona MacDonald - Compliance</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Pathogenic Bacteria (CFU/100ml)</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="legionella">Legionella:</label>
+                                <input type="number" id="legionella" name="legionella" min="0" placeholder="0" step="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="ecoli">E. coli:</label>
+                                <input type="number" id="ecoli" name="ecoli" min="0" placeholder="0" step="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="pseudomonas">P. aeruginosa:</label>
+                                <input type="number" id="pseudomonas" name="pseudomonas" min="0" placeholder="0" step="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="tvc">Total Viable Count (CFU/ml):</label>
+                                <input type="number" id="tvc" name="tvc" min="0" placeholder="0" step="1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-large" onclick="handleFormSubmit(event)">Add Test Results</button>
+                        <button type="button" class="btn btn-large" onclick="generateComplianceReport()">Generate Report</button>
+                        <button type="button" class="btn" onclick="exportData()">Export Data</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="panel">
+                <h2>Microbiological Trends</h2>
+                <div class="chart-container">
+                    <canvas id="pathogenChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" style="margin-top: 20px;">
+            <h2>Test History</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <div>
+                    <span id="dataStatus" style="color: #B8B8B8; font-size: 0.9em;">0 test results loaded</span>
+                </div>
+                <div>
+                    <button class="btn" onclick="clearAllTestData()" style="background: linear-gradient(145deg, #dc3545, #bd2130); padding: 8px 16px; font-size: 0.9em;">
+                        Clear All Data
+                    </button>
+                </div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Hot Tub</th>
+                            <th>Type</th>
+                            <th>Suite</th>
+                            <th>Legionella</th>
+                            <th>E. coli</th>
+                            <th>P. aeruginosa</th>
+                            <th>TVC</th>
+                            <th>Risk Level</th>
+                            <th>Compliance</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTable">
+                        <tr>
+                            <td colspan="10" style="text-align: center; color: #B8B8B8;">Select a hot tub to view test history</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        SafePark.PRO
+    </div>
+
+    <script>
+        // Empty test results - load from Firebase
+        // Empty test results - load from Firebase
+        let testResults = [];
+
+        // Hot tub configurations
+        const hotTubConfig = {
+            'Ben Nevis Holiday Park': {
+                prefix: 'BNHT',
+                codes: ['01', '02', '03', '04', '05']
+            },
+            'Oban Holiday Park': {
+                prefix: 'OBHT',
+                codes: ['01', '02', '03', '04', '05', '06', '07']
+            },
+            'Tyndrum Holiday Park': {
+                prefix: 'TYHT',
+                codes: ['01', '02', '03', '04', '05']
+            },
+            'Overburns Farm': {
+                prefix: 'OFHT',
+                codes: ['01']
+            }
+        };
+
+        let selectedHotTub = null;
+        let currentPark = null;
+        let chart = null;
+
+        // Handle form submission to add test results locally
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            // Get form data
+            const form = document.getElementById('testForm');
+            const formData = new FormData(form);
+            
+            // Validate required fields
+            if (!currentPark) {
+                alert('Please select a holiday park first');
+                return;
+            }
+            
+            if (!selectedHotTub || selectedHotTub === 'ALL') {
+                alert('Please select a specific hot tub for testing');
+                return;
+            }
+            
+            // Create test result object
+            const testResult = {
+                id: Date.now(),
+                date: formData.get('sampleDate'),
+                park: currentPark,
+                hotTubId: selectedHotTub,
+                type: formData.get('sampleType'),
+                testSuite: formData.get('testSuite'),
+                legionella: parseInt(formData.get('legionella')) || 0,
+                ecoli: parseInt(formData.get('ecoli')) || 0,
+                pseudomonas: parseInt(formData.get('pseudomonas')) || 0,
+                tvc: parseInt(formData.get('tvc')) || 0,
+                compliance: true, // Will be calculated
+                timestamp: new Date().toISOString()
+            };
+            
+            // Calculate compliance
+            testResult.compliance = (testResult.legionella === 0 && 
+                                   testResult.ecoli === 0 && 
+                                   testResult.pseudomonas <= 10 && 
+                                   testResult.tvc <= 100);
+            
+            // Add to test results array
+            testResults.push(testResult);
+            
+            // Save to localStorage for persistence
+            localStorage.setItem('ukas_test_results', JSON.stringify(testResults));
+            
+            // Update displays
+            updateHistoryTable();
+            updateChart();
+            
+            // Reset form
+            form.reset();
+            document.getElementById('sampleDate').value = new Date().toISOString().split('T')[0];
+            
+            // Show success message
+            alert(`Test results added successfully for ${selectedHotTub}`);
+            
+            // Also submit to Formspree for backup
+            submitToFormspree(formData);
+        }
+        
+        // Submit to Formspree for external logging
+        function submitToFormspree(formData) {
+            fetch('https://formspree.io/f/xldprzkr', {
+                method: 'POST',
+                body: formData
+            }).catch(error => {
+                console.log('Formspree submission failed:', error);
+                // Don't show error to user since local data is saved
+            });
+        }
+        
+        // Load test results from localStorage on page load
+        function loadTestResults() {
+            const saved = localStorage.getItem('ukas_test_results');
+            if (saved) {
+                try {
+                    testResults = JSON.parse(saved);
+                    console.log(`Loaded ${testResults.length} test results from storage`);
+                } catch (error) {
+                    console.error('Error loading test results:', error);
+                    testResults = [];
+                }
+            }
+        }
+
+        // Update hot tub selection based on park
+        function updateHotTubSelection() {
+            const parkSelect = document.getElementById('holidayPark');
+            const hotTubSelector = document.getElementById('hotTubSelector');
+            const selectedHotTubDisplay = document.getElementById('selectedHotTub');
+            const allHotTubsBtn = document.getElementById('allHotTubsBtn');
+            
+            currentPark = parkSelect.value;
+            selectedHotTub = null;
+            
+            if (!currentPark) {
+                hotTubSelector.innerHTML = '';
+                allHotTubsBtn.style.display = 'none';
+                selectedHotTubDisplay.textContent = 'Select a holiday park to view available hot tubs';
+                updateHistoryTable();
+                return;
+            }
+            
+            const config = hotTubConfig[currentPark];
+            hotTubSelector.innerHTML = '';
+            
+            // Show the All Hot Tubs button
+            allHotTubsBtn.style.display = 'inline-block';
+            
+            // Add individual hot tub buttons
+            config.codes.forEach(code => {
+                const hotTubId = `${config.prefix}${code}`;
+                const btn = document.createElement('div');
+                btn.className = 'hottub-btn';
+                btn.textContent = hotTubId;
+                btn.onclick = () => selectHotTub(hotTubId);
+                hotTubSelector.appendChild(btn);
+            });
+            
+            selectedHotTubDisplay.textContent = 'Select a hot tub from above, or view all hot tubs for this park';
+            updateHistoryTable();
+        }
+
+        function selectAllHotTubs() {
+            selectedHotTub = 'ALL';
+            
+            // Update visual selection - clear all individual selections
+            document.querySelectorAll('.hottub-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // Highlight the All Hot Tubs button
+            const allBtn = document.getElementById('allHotTubsBtn');
+            allBtn.style.background = 'linear-gradient(145deg, var(--primary-green), var(--dark-green))';
+            
+            // Update form and display
+            document.getElementById('formHotTub').value = `All Hot Tubs - ${currentPark}`;
+            document.getElementById('selectedHotTub').textContent = `Selected: All Hot Tubs for ${currentPark}`;
+            
+            updateHistoryTable();
+            updateChart();
+        }
+
+        function selectHotTub(hotTubId) {
+            selectedHotTub = hotTubId;
+            
+            // Reset All Hot Tubs button styling
+            const allBtn = document.getElementById('allHotTubsBtn');
+            allBtn.style.background = 'linear-gradient(145deg, #007bff, #0056b3)';
+            
+            // Update visual selection
+            document.querySelectorAll('.hottub-btn').forEach(btn => {
+                btn.classList.remove('selected');
+                if (btn.textContent === hotTubId) {
+                    btn.classList.add('selected');
+                }
+            });
+            
+            // Update form
+            document.getElementById('formHotTub').value = hotTubId;
+            document.getElementById('selectedHotTub').textContent = `Selected: ${hotTubId}`;
+            
+            updateHistoryTable();
+            updateChart();
+        }
+
+        function updateHistoryTable() {
+            const tbody = document.getElementById('historyTable');
+            tbody.innerHTML = '';
+            
+            let filteredResults = [];
+            if (selectedHotTub) {
+                filteredResults = testResults.filter(result => result.hotTubId === selectedHotTub);
+            } else if (currentPark) {
+                filteredResults = testResults.filter(result => result.park === currentPark);
+            }
+            
+            if (filteredResults.length === 0) {
+                const row = tbody.insertRow();
+                row.innerHTML = '<td colspan="10" style="text-align: center; color: #B8B8B8;">No test data available</td>';
+                return;
+            }
+            
+            filteredResults.forEach(result => {
+                const riskLevel = getRiskLevel(result);
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${new Date(result.date).toLocaleDateString()}</td>
+                    <td>${result.hotTubId}</td>
+                    <td>${result.type}</td>
+                    <td>${result.testSuite.replace('_', ' ')}</td>
+                    <td>${result.legionella}</td>
+                    <td>${result.ecoli}</td>
+                    <td>${result.pseudomonas}</td>
+                    <td>${result.tvc}</td>
+                    <td><span class="risk-indicator risk-${riskLevel.toLowerCase()}">${riskLevel}</span></td>
+                    <td><span class="risk-indicator ${result.compliance ? 'risk-low' : 'risk-high'}">${result.compliance ? 'PASS' : 'FAIL'}</span></td>
+                `;
+            });
+        }
+
+        function getRiskLevel(result) {
+            if (result.legionella > 0 || result.ecoli > 0 || result.pseudomonas > 10) return 'CRITICAL';
+            if (result.tvc > 100 || result.pseudomonas > 0) return 'HIGH';
+            if (result.tvc > 50) return 'MEDIUM';
+            return 'LOW';
+        }
+
+        function updateChart() {
+            const ctx = document.getElementById('pathogenChart').getContext('2d');
+            
+            if (chart) {
+                chart.destroy();
+            }
+            
+            if (!selectedHotTub || !currentPark) return;
+            
+            let filteredResults = [];
+            let chartTitle = '';
+            
+            if (selectedHotTub === 'ALL') {
+                // Show all hot tubs for the selected park
+                filteredResults = testResults.filter(result => result.park === currentPark);
+                chartTitle = `All Hot Tubs - ${currentPark}`;
+                
+                if (filteredResults.length === 0) return;
+                
+                // Group data by hot tub ID for multiple datasets
+                const hotTubGroups = {};
+                filteredResults.forEach(result => {
+                    if (!hotTubGroups[result.hotTubId]) {
+                        hotTubGroups[result.hotTubId] = [];
+                    }
+                    hotTubGroups[result.hotTubId].push(result);
+                });
+                
+                // Create datasets for each hot tub
+                const datasets = [];
+                const colors = ['#1e7e34', '#007bff', '#dc3545', '#ffc107', '#6f42c1', '#20c997', '#fd7e14'];
+                let colorIndex = 0;
+                
+                Object.keys(hotTubGroups).forEach(hotTubId => {
+                    const hotTubData = hotTubGroups[hotTubId];
+                    const color = colors[colorIndex % colors.length];
+                    
+                    datasets.push({
+                        label: `${hotTubId} - TVC`,
+                        data: hotTubData.map(r => ({
+                            x: new Date(r.date).toLocaleDateString(),
+                            y: r.tvc
+                        })),
+                        borderColor: color,
+                        backgroundColor: color + '20',
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    });
+                    
+                    colorIndex++;
+                });
+                
+                const allDates = [...new Set(filteredResults.map(r => new Date(r.date).toLocaleDateString()))].sort();
+                
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: allDates,
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: chartTitle,
+                                color: '#E8E8E8',
+                                font: { size: 16, weight: 'bold' }
+                            },
+                            legend: {
+                                labels: { color: '#E8E8E8' }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: '#E8E8E8' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                            },
+                            y: {
+                                ticks: { color: '#E8E8E8' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                title: {
+                                    display: true,
+                                    text: 'TVC Count',
+                                    color: '#E8E8E8'
+                                }
+                            }
+                        }
+                    }
+                });
+                
+            } else {
+                // Individual hot tub view
+                filteredResults = testResults.filter(result => result.hotTubId === selectedHotTub);
+                chartTitle = `${selectedHotTub} Trends`;
+                
+                if (filteredResults.length === 0) return;
+                
+                const dates = filteredResults.map(r => new Date(r.date).toLocaleDateString());
+                
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [{
+                            label: 'TVC',
+                            data: filteredResults.map(r => r.tvc),
+                            borderColor: '#1e7e34',
+                            backgroundColor: 'rgba(30, 126, 52, 0.1)',
+                            tension: 0.4
+                        }, {
+                            label: 'P. aeruginosa',
+                            data: filteredResults.map(r => r.pseudomonas),
+                            borderColor: '#FF1744',
+                            backgroundColor: 'rgba(255, 23, 68, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: chartTitle,
+                                color: '#E8E8E8',
+                                font: { size: 16, weight: 'bold' }
+                            },
+                            legend: {
+                                labels: { color: '#E8E8E8' }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: '#E8E8E8' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                            },
+                            y: {
+                                ticks: { color: '#E8E8E8' },
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function generateComplianceReport() {
+            if (testResults.length === 0) {
+                alert('No test data available for report generation');
+                return;
+            }
+            
+            // Simple report generation
+            const reportData = testResults.map(result => ({
+                Date: new Date(result.date).toLocaleDateString(),
+                'Hot Tub': result.hotTubId,
+                Park: result.park,
+                'Risk Level': getRiskLevel(result),
+                Compliance: result.compliance ? 'PASS' : 'FAIL'
+            }));
+            
+            console.log('Compliance Report:', reportData);
+            alert(`Report generated for ${testResults.length} test results. Check browser console for details.`);
+        }
+
+        function exportData() {
+            if (testResults.length === 0) {
+                alert('No test data available for export');
+                return;
+            }
+            
+            // Export as CSV
+            const headers = ['Date', 'Park', 'Hot Tub', 'Type', 'Suite', 'Legionella', 'E.coli', 'P.aeruginosa', 'TVC', 'Risk Level', 'Compliance'];
+            const csvContent = [
+                headers.join(','),
+                ...testResults.map(result => [
+                    new Date(result.date).toLocaleDateString(),
+                    result.park,
+                    result.hotTubId,
+                    result.type,
+                    result.testSuite,
+                    result.legionella,
+                    result.ecoli,
+                    result.pseudomonas,
+                    result.tvc,
+                    getRiskLevel(result),
+                    result.compliance ? 'PASS' : 'FAIL'
+                ].join(','))
+            ].join('\n');
+            
+            // Download CSV
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `ukas_test_results_${new Date().toISOString().split('T')[0]}.csv`);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+        
+        // Function to clear all test data (for testing purposes)
+        function clearAllTestData() {
+            if (confirm('Are you sure you want to delete ALL test data? This cannot be undone.')) {
+                testResults = [];
+                localStorage.removeItem('ukas_test_results');
+                updateHistoryTable();
+                updateChart();
+                const dataStatus = document.getElementById('dataStatus');
+                if (dataStatus) {
+                    dataStatus.textContent = '0 test results loaded';
+                }
+                alert('All test data cleared');
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check authentication using global system
+            if (window.SafeParkAuth) {
+                if (!window.SafeParkAuth.requireAuth()) {
+                    return; // Will redirect to index.html if not authenticated
+                }
+                console.log('User authenticated:', window.SafeParkAuth.getCurrentUser().name);
+            } else {
+                console.error('SafePark authentication system not available');
+                alert('Authentication system not available. Returning to main dashboard.');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // Initialize Firebase
+            if (!window.firebaseDb) {
+                console.error('Firebase not available');
+                return;
+            }
+            
+            // Load test results from localStorage
+            loadTestResults();
+            
+            // Set default sample date
+            document.getElementById('sampleDate').value = new Date().toISOString().split('T')[0];
+            
+            // Update data status display
+            const dataStatus = document.getElementById('dataStatus');
+            if (dataStatus) {
+                dataStatus.textContent = `${testResults.length} test results loaded`;
+            }
+            
+            console.log('UKAS system loaded with', testResults.length, 'test results');
+        });
+    </script>
+</body>
+</html>
