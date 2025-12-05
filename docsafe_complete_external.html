@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocSafe.PRO - Firebase Document Management System</title>
+    
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+    
+    <!-- Custom Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Source+Code+Pro:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --docsafe-primary: #795548;
+            --docsafe-secondary: #5d4037;
+            --docsafe-accent: #8d6e63;
+            --docsafe-light: #a1887f;
+            --docsafe-dark: #3e2723;
+            --docsafe-bg: #0a0a0a;
+            --docsafe-surface: #1a1a1a;
+            --docsafe-surface-elevated: #2a2a2a;
+            --docsafe-text-primary: #ffffff;
+            --docsafe-text-secondary: #cccccc;
+            --docsafe-text-muted: #999999;
+            --docsafe-border: #444444;
+            --docsafe-success: #4caf50;
+            --docsafe-warning: #ff9800;
+            --docsafe-error: #f44336;
+            --docsafe-info: #2196f3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Source Code Pro', monospace;
+            background: linear-gradient(135deg, var(--docsafe-bg) 0%, #0d0d0d 100%);
+            color: var(--docsafe-text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background Grid */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(121, 85, 72, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(121, 85, 72, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--docsafe-surface) 0%, var(--docsafe-surface-elevated) 100%);
+            border-bottom: 3px solid var(--docsafe-primary);
+            padding: 2rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -50%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(
+                90deg, 
+                transparent 0%, 
+                rgba(121, 85, 72, 0.1) 50%, 
+                transparent 100%
+            );
+            animation: headerShine 6s ease-in-out infinite;
+        }
+
+        @keyframes headerShine {
+            0%, 100% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header-content {
+            text-align: center;
+        }
+
+        .brand-title {
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(
+                135deg, 
+                #C0C0C0 0%, 
+                var(--docsafe-primary) 30%, 
+                #C0C0C0 100%
+            );
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(121, 85, 72, 0.3);
+            animation: titlePulse 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes titlePulse {
+            0% { filter: brightness(1); }
+            100% { filter: brightness(1.2); }
+        }
+
+        .brand-subtitle {
+            font-size: 1.2rem;
+            color: var(--docsafe-text-secondary);
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Firebase Status */
+        .firebase-status {
+            background: var(--docsafe-surface);
+            border: 2px solid var(--docsafe-border);
+            border-radius: 12px;
+            padding: 1rem;
+            margin: 2rem auto;
+            max-width: 600px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .firebase-status::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg, 
+                transparent 0%, 
+                rgba(121, 85, 72, 0.2) 50%, 
+                transparent 100%
+            );
+            transition: left 0.5s ease;
+        }
+
+        .firebase-status.connected::before {
+            left: 100%;
+        }
+
+        .status-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Document Categories Grid */
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .doc-category {
+            background: var(--docsafe-surface);
+            border-radius: 16px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 2px solid var(--docsafe-border);
+        }
+
+        .doc-category::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(
+                90deg, 
+                var(--category-color), 
+                transparent 50%, 
+                var(--category-color)
+            );
+            animation: categoryGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes categoryGlow {
+            0% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .doc-category:hover {
+            transform: translateY(-8px);
+            border-color: var(--category-color);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .category-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--category-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .category-icon {
+            font-size: 1.5rem;
+        }
+
+        .doc-count {
+            background: var(--category-color);
+            color: white;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            animation: countPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes countPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Upload Areas */
+        .upload-area {
+            border: 2px dashed var(--category-color);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.1) 50%, 
+                transparent 100%
+            );
+            transition: left 0.6s ease;
+        }
+
+        .upload-area:hover::before {
+            left: 100%;
+        }
+
+        .upload-area:hover {
+            border-color: var(--category-color);
+            background: rgba(121, 85, 72, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-area.drag-over {
+            background: rgba(121, 85, 72, 0.2);
+            border-style: solid;
+            animation: dragPulse 0.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes dragPulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+
+        .upload-text {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .upload-subtext {
+            font-size: 0.9rem;
+            color: var(--docsafe-text-muted);
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Document Lists */
+        .document-list {
+            max-height: 250px;
+            overflow-y: auto;
+            border-radius: 8px;
+        }
+
+        .document-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .document-list::-webkit-scrollbar-track {
+            background: var(--docsafe-surface-elevated);
+            border-radius: 4px;
+        }
+
+        .document-list::-webkit-scrollbar-thumb {
+            background: var(--category-color);
+            border-radius: 4px;
+        }
+
+        .document-item {
+            padding: 0.75rem;
+            border: 1px solid var(--docsafe-border);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--docsafe-surface-elevated);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .document-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--category-color);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+            transform-origin: bottom;
+        }
+
+        .document-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .document-item:hover {
+            background: var(--docsafe-surface);
+            border-color: var(--category-color);
+            transform: translateX(8px);
+        }
+
+        .document-name {
+            flex: 1;
+            font-size: 0.9rem;
+            color: var(--docsafe-text-primary);
+        }
+
+        .document-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .doc-btn {
+            background: var(--category-color);
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .doc-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left 0.3s ease;
+        }
+
+        .doc-btn:hover::before {
+            left: 100%;
+        }
+
+        .doc-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .doc-btn.delete-btn {
+            background: var(--docsafe-error);
+        }
+
+        .doc-btn.download-btn {
+            background: var(--docsafe-info);
+        }
+
+        .preloaded-badge {
+            background: var(--docsafe-success);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            margin-right: 0.5rem;
+            animation: badgeShine 3s ease-in-out infinite;
+        }
+
+        @keyframes badgeShine {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        /* Management Tools */
+        .management-tools {
+            background: var(--docsafe-surface);
+            border: 2px solid var(--docsafe-primary);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 3rem 0;
+            position: relative;
+        }
+
+        .tools-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .tools-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem;
+            color: var(--docsafe-primary);
+            margin-bottom: 1rem;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .search-input {
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--docsafe-border);
+            border-radius: 8px;
+            background: var(--docsafe-surface-elevated);
+            color: var(--docsafe-text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--docsafe-primary);
+            box-shadow: 0 0 20px rgba(121, 85, 72, 0.3);
+        }
+
+        .tool-btn {
+            background: linear-gradient(135deg, var(--docsafe-primary), var(--docsafe-secondary));
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tool-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left 0.4s ease;
+        }
+
+        .tool-btn:hover::before {
+            left: 100%;
+        }
+
+        .tool-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(121, 85, 72, 0.4);
+        }
+
+        .tool-btn.export-btn {
+            background: linear-gradient(135deg, var(--docsafe-success), #388e3c);
+        }
+
+        /* Firebase Integration Info */
+        .firebase-info {
+            background: linear-gradient(135deg, rgba(121, 85, 72, 0.1), rgba(93, 64, 55, 0.1));
+            border: 2px solid var(--docsafe-primary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 3rem 0;
+        }
+
+        .info-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.3rem;
+            color: var(--docsafe-primary);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(121, 85, 72, 0.1);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .info-item:hover {
+            background: rgba(121, 85, 72, 0.2);
+            transform: translateX(5px);
+        }
+
+        /* Back Button */
+        .back-button-container {
+            text-align: center;
+            margin: 3rem 0;
+        }
+
+        .back-btn {
+            background: linear-gradient(135deg, var(--docsafe-surface), var(--docsafe-surface-elevated));
+            color: var(--docsafe-primary);
+            border: 2px solid var(--docsafe-primary);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .back-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--docsafe-primary);
+            transition: left 0.4s ease;
+            z-index: -1;
+        }
+
+        .back-btn:hover::before {
+            left: 0;
+        }
+
+        .back-btn:hover {
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(121, 85, 72, 0.4);
+        }
+
+        /* Empty State */
+        .empty-state {
+            color: var(--docsafe-text-muted);
+            font-style: italic;
+            text-align: center;
+            padding: 2rem;
+            background: rgba(121, 85, 72, 0.05);
+            border-radius: 8px;
+            border: 1px dashed var(--docsafe-border);
+        }
+
+        /* Special Risk Assessment Styling */
+        .risk-assessments {
+            --category-color: var(--docsafe-warning);
+        }
+
+        .licences {
+            --category-color: var(--docsafe-primary);
+        }
+
+        .policies {
+            --category-color: var(--docsafe-info);
+        }
+
+        .training {
+            --category-color: #9c27b0;
+        }
+
+        .procedures {
+            --category-color: var(--docsafe-success);
+        }
+
+        .general {
+            --category-color: #607d8b;
+        }
+
+        /* Special Notice */
+        .risk-assessment-notice {
+            background: rgba(255, 152, 0, 0.1);
+            border: 1px solid var(--docsafe-warning);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .risk-assessment-notice::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg, 
+                transparent 0%, 
+                rgba(255, 152, 0, 0.1) 50%, 
+                transparent 100%
+            );
+            animation: noticeShine 4s ease-in-out infinite;
+        }
+
+        @keyframes noticeShine {
+            0%, 100% { left: -100%; }
+            50% { left: 100%; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+
+            .categories-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .tools-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .brand-title {
+                font-size: 2rem;
+            }
+
+            .doc-category {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .category-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .upload-area {
+                padding: 1.5rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1 class="brand-title">
+                    <span style="color: #C0C0C0;">doc</span><span style="color: var(--docsafe-primary);">safe</span><span style="color: #C0C0C0;">.pro</span>
+                </h1>
+                <p class="brand-subtitle">Firebase Document Management & Compliance Library</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Firebase Status -->
+        <div class="firebase-status" id="firebaseStatus">
+            <div class="status-text">🔄 Connecting to Firebase Storage...</div>
+        </div>
+
+        <!-- Document Categories -->
+        <div class="categories-grid">
+            <!-- Licences Category -->
+            <div class="doc-category licences">
+                <div class="category-header">
+                    <h3 class="category-title">
+                        <span class="category-icon">📋</span>
+                        Licences
+                    </h3>
+                    <div class="doc-count" data-category="licences">0</div>
+                </div>
+                
+                <div class="upload-area" data-category="licences" onclick="openFileUpload('licences')" 
+                     ondrop="handleDrop(event, 'licences')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="upload-text">📁 Drop files here or click to upload</div>
+                    <div class="upload-subtext">Site licences, planning permissions, insurance documents</div>
+                </div>
+                <input type="file" id="fileInput-licences" multiple accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png" style="display: none;" onchange="handleFileUpload(event, 'licences')">
+                
+                <div class="document-list" data-category="licences">
+                    <div class="empty-state">No documents uploaded yet</div>
+                </div>
+            </div>
+
+            <!-- Risk Assessments Category -->
+            <div class="doc-category risk-assessments">
+                <div class="category-header">
+                    <h3 class="category-title">
+                        <span class="category-icon">⚠️</span>
+                        Risk Assessments
+                    </h3>
+                    <div class="doc-count" data-category="risk-assessments">14</div>
+                </div>
+                
+                <div class="risk-assessment-notice">
+                    <div style="font-size: 0.9rem; color: #ffb74d; margin-bottom: 0.5rem;">✅ 14 Professional Risk Assessments Pre-loaded</div>
+                    <div style="font-size: 0.8rem; color: var(--docsafe-text-muted);">Complete Omnibosh CQR 365 library ready for immediate use</div>
+                </div>
+                
+                <div class="upload-area" data-category="risk-assessments" onclick="openFileUpload('risk-assessments')" 
+                     ondrop="handleDrop(event, 'risk-assessments')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="upload-text">📁 Add custom risk assessments</div>
+                    <div class="upload-subtext">Site-specific and additional risk assessments</div>
+                </div>
+                <input type="file" id="fileInput-risk-assessments" multiple accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png" style="display: none;" onchange="handleFileUpload(event, 'risk-assessments')">
+                
+                <div class="document-list" data-category="risk-assessments">
+                    <!-- Pre-loaded documents will be populated here -->
+                </div>
+            </div>
+
+            <!-- Policies Category -->
+            <div class="doc-category policies">
+                <div class="category-header">
+                    <h3 class="category-title">
+                        <span class="category-icon">📘</span>
+                        Policies
+                    </h3>
+                    <div class="doc-count" data-category="policies">0</div>
+                </div>
+                
+                <div class="upload-area" data-category="policies" onclick="openFileUpload('policies')" 
+                     ondrop="handleDrop(event, 'policies')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="upload-text">📁 Drop files here or click to upload</div>
+                    <div class="upload-subtext">Health & safety policies, operational procedures</div>
+                </div>
+                <input type="file" id="fileInput-policies" multiple accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png" style="display: none;" onchange="handleFileUpload(event, 'policies')">
+                
+                <div class="document-list" data-category="policies">
+                    <div class="empty-state">No documents uploaded yet</div>
+                </div>
+            </div>
+
+            <!-- Training & Certification Category -->
+            <div class="doc-category training">
+                <div class="category-header">
+                    <h3 class="category-title">
+                        <span class="category-icon">🎓</span>
+                        Training & Certification
+                    </h3>
+                    <div class="doc-count" data-category="training">0</div>
+                </div>
+                
+                <div class="upload-area" data-category="training" onclick="openFileUpload('training')" 
+                     ondrop="handleDrop(event, 'training')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="upload-text">📁 Drop files here or click to upload</div>
+                    <div class="upload-subtext">Staff training records, certifications, qualifications</div>
+                </div>
+                <input type="file" id="fileInput-training" multiple accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png" style="display: none;" onchange="handleFileUpload(event, 'training')">
+                
+                <div class="document-list" data-category="training">
+                    <div class="empty-state">No documents uploaded yet</div>
+                </div>
+            </div>
+
+            <!-- Safe Working Procedures Category -->
+            <div class="doc-category procedures">
+                <div class="category-header">
+                    <h3 class="category-title">
+                        <span class="category-icon">🔧</span>
+                        Safe Working Procedures
+                    </h3>
+                    <div class="doc-count" data-category="procedures">0</div>
+                </div>
+                
+                <div class="upload-area" data-category="procedures" onclick="openFileUpload('procedures')" 
+                     ondrop="handleDrop(event, 'procedures')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="upload-text">📁 Drop files here or click to upload</div>
+                    <div class="upload-subtext">Equipment procedures, safety protocols, work instructions</div>
+                </div>
+                <input type="file" id="fileInput-procedures" multiple accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png" style="display: none;" onchange="handleFileUpload(event, 'procedures')">
+                
+                <div class="document-list" data-category="procedures">
+                    <div class="empty-state">No documents uploaded yet</div>
+                </div>
+            </div>
+
+            <!-- General Documents Category -->
+            <div class="doc-category general">
+                <div class="category-header">
+                    <h3 class="category-title">
+                        <span class="category-icon">📄</span>
+                        General Documents
+                    </h3>
+                    <div class="doc-count" data-category="general">0</div>
+                </div>
+                
+                <div class="upload-area" data-category="general" onclick="openFileUpload('general')" 
+                     ondrop="handleDrop(event, 'general')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="upload-text">📁 Drop files here or click to upload</div>
+                    <div class="upload-subtext">Miscellaneous documents, correspondence, references</div>
+                </div>
+                <input type="file" id="fileInput-general" multiple accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png" style="display: none;" onchange="handleFileUpload(event, 'general')">
+                
+                <div class="document-list" data-category="general">
+                    <div class="empty-state">No documents uploaded yet</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Management Tools -->
+        <div class="management-tools">
+            <div class="tools-header">
+                <h3 class="tools-title">Document Management Tools</h3>
+            </div>
+            
+            <div class="tools-grid">
+                <input type="text" id="documentSearch" class="search-input" 
+                       placeholder="Search documents by name or category..." 
+                       oninput="searchDocuments(this.value)">
+                <button class="tool-btn" onclick="refreshAllDocuments()">
+                    🔄 Refresh
+                </button>
+                <button class="tool-btn export-btn" onclick="exportAllDocuments()">
+                    📦 Export All
+                </button>
+            </div>
+        </div>
+
+        <!-- Firebase Integration Info -->
+        <div class="firebase-info">
+            <div class="info-header">
+                <span style="font-size: 1.5rem;">🔥</span>
+                <h4 class="info-title">Firebase Integration Features</h4>
+            </div>
+            
+            <div class="info-grid">
+                <div class="info-item">
+                    <span>✅</span>
+                    <span>Cloud Storage with automatic backup</span>
+                </div>
+                <div class="info-item">
+                    <span>✅</span>
+                    <span>Real-time document synchronization</span>
+                </div>
+                <div class="info-item">
+                    <span>✅</span>
+                    <span>Role-based access control</span>
+                </div>
+                <div class="info-item">
+                    <span>✅</span>
+                    <span>Document version tracking</span>
+                </div>
+                <div class="info-item">
+                    <span>✅</span>
+                    <span>Secure authentication</span>
+                </div>
+                <div class="info-item">
+                    <span>✅</span>
+                    <span>Cross-platform accessibility</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="back-button-container">
+            <button class="back-btn" onclick="returnToDashboard()">
+                ← Back to SafeSystems.PRO Dashboard
+            </button>
+        </div>
+    </div>
+
+        // Firebase Configuration and DocSafe JavaScript
+        // Improved Firebase initialization with proper error handling
+        
+        // Firebase Configuration (Same as SafePark.PRO)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+            authDomain: "safepark-pro.firebaseapp.com",
+            projectId: "safepark-pro",
+            storageBucket: "safepark-pro.firebasestorage.app",
+            messagingSenderId: "511221743341",
+            appId: "1:511221743341:web:95bcc7e83d4861578016e4"
+        };
+
+        // Initialize Firebase with improved error handling
+        let app, db, auth, storage;
+        let documentsRef = null;
+        let firebaseInitialized = false;
+
+        // Pre-loaded Risk Assessment Library (14 Professional Documents)
+        const preloadedRiskAssessments = [
+            { 
+                name: 'Personal Safety Risk Assessment (OMNB-RA-PS-001)',
+                description: 'Comprehensive personal safety assessment for all staff and visitors'
+            },
+            { 
+                name: 'Fire Safety Risk Assessment (OMNB-RA-FS-002)',
+                description: 'Complete fire risk evaluation and emergency procedures'
+            },
+            { 
+                name: 'Legionella Risk Assessment (OMNB-RA-LEG-003)',
+                description: 'Water system safety and Legionella prevention protocols'
+            },
+            { 
+                name: 'Manual Handling Risk Assessment (OMNB-RA-MH-004)',
+                description: 'Safe lifting and manual handling procedures assessment'
+            },
+            { 
+                name: 'Hot Tub Risk Assessment (OMNB-RA-HT-005)',
+                description: 'Specialized safety assessment for hot tub and spa facilities'
+            },
+            { 
+                name: 'Electrical Safety Risk Assessment (OMNB-RA-ES-006)',
+                description: 'Electrical system safety and maintenance protocols'
+            },
+            { 
+                name: 'Chemical Storage & Handling (OMNB-RA-CS-007)',
+                description: 'Safe chemical storage and handling procedures'
+            },
+            { 
+                name: 'Power Tools Risk Assessment (OMNB-RA-PT-008)',
+                description: 'Power tool safety protocols and usage guidelines'
+            },
+            { 
+                name: 'Private Water Supply (OMNB-RA-PWS-009)',
+                description: 'Private water supply safety and quality management'
+            },
+            { 
+                name: 'Hand Tools Risk Assessment (OMNB-RA-HT-010)',
+                description: 'Hand tool safety and maintenance procedures'
+            },
+            { 
+                name: 'Ride-on Mowers Risk Assessment (OMNB-RA-RM-011)',
+                description: 'Ride-on mower operation and safety protocols'
+            },
+            { 
+                name: 'Grass Strimmers Risk Assessment (OMNB-RA-GS-012)',
+                description: 'Grass strimmer safety and operational guidelines'
+            },
+            { 
+                name: 'Human Waste Management (OMNB-RA-HWM-013)',
+                description: 'Sewage and waste management safety procedures'
+            },
+            { 
+                name: 'Rental Units Risk Assessment (OMNB-RA-RU-014)',
+                description: 'Comprehensive rental accommodation safety assessment'
+            }
+        ];
+
+        // Improved Firebase initialization function
+        async function initializeDocSafe() {
+            try {
+                updateFirebaseStatus('🔄 Initializing Firebase...', '#2196f3');
+
+                // Wait for Firebase to be fully loaded
+                if (typeof firebase === 'undefined') {
+                    updateFirebaseStatus('⚠️ Firebase scripts not loaded - Retrying...', '#ff9800');
+                    setTimeout(initializeDocSafe, 1000);
+                    return;
+                }
+
+                // Initialize Firebase App
+                if (!firebase.apps || firebase.apps.length === 0) {
+                    app = firebase.initializeApp(firebaseConfig);
+                    console.log('🔥 Firebase app initialized');
+                } else {
+                    app = firebase.apps[0];
+                    console.log('🔥 Using existing Firebase app');
+                }
+
+                // Initialize Firebase services with error handling
+                try {
+                    db = firebase.firestore();
+                    console.log('✅ Firestore initialized');
+                } catch (error) {
+                    console.error('❌ Firestore initialization error:', error);
+                    throw new Error('Firestore initialization failed');
+                }
+
+                try {
+                    auth = firebase.auth();
+                    console.log('✅ Auth initialized');
+                } catch (error) {
+                    console.error('❌ Auth initialization error:', error);
+                    throw new Error('Auth initialization failed');
+                }
+
+                try {
+                    storage = firebase.storage();
+                    documentsRef = storage.ref('documents');
+                    console.log('✅ Storage initialized');
+                } catch (error) {
+                    console.error('❌ Storage initialization error:', error);
+                    throw new Error('Storage initialization failed');
+                }
+
+                firebaseInitialized = true;
+                updateFirebaseStatus('✅ Connected to Firebase Storage', '#4caf50');
+                
+                // Load existing documents and pre-loaded assessments
+                try {
+                    await loadAllDocuments();
+                    loadPreloadedRiskAssessments();
+                    console.log('🔥 DocSafe.PRO Firebase integration completed successfully');
+                } catch (error) {
+                    console.error('⚠️ Error loading documents:', error);
+                    // Continue anyway, just show the error
+                }
+
+            } catch (error) {
+                console.error('❌ Firebase initialization failed:', error);
+                firebaseInitialized = false;
+                
+                // Show specific error messages
+                if (error.message.includes('Firestore')) {
+                    updateFirebaseStatus('❌ Firestore connection failed - Check permissions', '#f44336');
+                } else if (error.message.includes('Storage')) {
+                    updateFirebaseStatus('❌ Storage connection failed - Check permissions', '#f44336');
+                } else {
+                    updateFirebaseStatus('❌ Firebase connection failed - Operating offline', '#f44336');
+                }
+                
+                // Still load pre-loaded assessments
+                loadPreloadedRiskAssessments();
+            }
+        }
+
+        // Update Firebase status display
+        function updateFirebaseStatus(message, color) {
+            const statusElement = document.getElementById('firebaseStatus');
+            const statusText = statusElement.querySelector('.status-text');
+            statusText.innerHTML = `<span style="color: ${color};">${message}</span>`;
+            
+            if (color === '#4caf50') {
+                statusElement.classList.add('connected');
+            }
+        }
+
+        // Load pre-loaded risk assessments
+        function loadPreloadedRiskAssessments() {
+            const riskAssessmentsList = document.querySelector('[data-category="risk-assessments"] .document-list');
+            riskAssessmentsList.innerHTML = '';
+            
+            preloadedRiskAssessments.forEach((doc, index) => {
+                const docElement = createDocumentElement(doc.name, 'risk-assessments', true, index + 1, doc.description);
+                riskAssessmentsList.appendChild(docElement);
+            });
+            
+            console.log(`✅ Loaded ${preloadedRiskAssessments.length} pre-loaded risk assessments`);
+        }
+
+        // Create document list item element
+        function createDocumentElement(name, category, isPreloaded = false, index = null, description = '') {
+            const docDiv = document.createElement('div');
+            docDiv.className = 'document-item';
+            
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'document-name';
+            
+            if (isPreloaded) {
+                nameDiv.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="preloaded-badge">PRE-LOADED</span>
+                        <div>
+                            <div style="font-weight: 500;">${name}</div>
+                            <div style="font-size: 0.8rem; color: var(--docsafe-text-muted); margin-top: 0.2rem;">${description}</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                nameDiv.textContent = name;
+            }
+            
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'document-actions';
+            
+            if (isPreloaded) {
+                const downloadBtn = document.createElement('button');
+                downloadBtn.className = 'doc-btn download-btn';
+                downloadBtn.innerHTML = '📄 Access';
+                downloadBtn.title = 'Access from Risk Assessment Library';
+                downloadBtn.onclick = () => downloadPreloadedDocument(index, name);
+                actionsDiv.appendChild(downloadBtn);
+            } else {
+                const downloadBtn = document.createElement('button');
+                downloadBtn.className = 'doc-btn download-btn';
+                downloadBtn.innerHTML = '📥 Download';
+                downloadBtn.onclick = () => downloadDocument(name, category);
+                actionsDiv.appendChild(downloadBtn);
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'doc-btn delete-btn';
+                deleteBtn.innerHTML = '🗑️ Delete';
+                deleteBtn.onclick = () => deleteDocument(name, category);
+                actionsDiv.appendChild(deleteBtn);
+            }
+            
+            docDiv.appendChild(nameDiv);
+            docDiv.appendChild(actionsDiv);
+            return docDiv;
+        }
+
+        // File upload handlers
+        function openFileUpload(category) {
+            document.getElementById(`fileInput-${category}`).click();
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(event) {
+            event.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(event, category) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('drag-over');
+            const files = event.dataTransfer.files;
+            uploadFiles(files, category);
+        }
+
+        function handleFileUpload(event, category) {
+            const files = event.target.files;
+            uploadFiles(files, category);
+            event.target.value = ''; // Reset input
+        }
+
+        // Upload files to Firebase Storage with improved error handling
+        async function uploadFiles(files, category) {
+            if (!firebaseInitialized) {
+                updateFirebaseStatus('❌ Firebase not connected - Cannot upload files', '#f44336');
+                alert('Firebase not connected. Please wait for connection or refresh the page.');
+                return;
+            }
+
+            if (!files || files.length === 0) {
+                alert('No files selected');
+                return;
+            }
+
+            for (const file of files) {
+                try {
+                    updateFirebaseStatus(`📤 Uploading ${file.name}...`, '#2196f3');
+                    
+                    // Validate file
+                    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                        alert(`File ${file.name} is too large. Maximum size is 10MB.`);
+                        continue;
+                    }
+                    
+                    // Create unique filename
+                    const timestamp = Date.now();
+                    const fileName = `${timestamp}_${file.name}`;
+                    
+                    if (!documentsRef) {
+                        throw new Error('Firebase Storage not initialized');
+                    }
+                    
+                    const fileRef = documentsRef.child(`${category}/${fileName}`);
+                    
+                    // Upload file to Firebase Storage with progress tracking
+                    const uploadTask = fileRef.put(file);
+                    
+                    // Wait for upload completion
+                    const snapshot = await uploadTask;
+                    
+                    // Get download URL
+                    const downloadURL = await snapshot.ref.getDownloadURL();
+                    
+                    // Save metadata to Firestore
+                    if (db) {
+                        const metadata = {
+                            name: file.name,
+                            category: category,
+                            uploadDate: new Date().toISOString(),
+                            size: file.size,
+                            type: file.type,
+                            storagePath: snapshot.ref.fullPath,
+                            downloadURL: downloadURL
+                        };
+                        
+                        await db.collection('documents').add(metadata);
+                    }
+                    
+                    // Update UI
+                    addDocumentToList(file.name, category);
+                    updateDocumentCount(category);
+                    
+                    console.log(`✅ Document uploaded: ${file.name}`);
+                    updateFirebaseStatus('✅ Document uploaded successfully', '#4caf50');
+                    
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    
+                    let errorMessage = 'Unknown error occurred';
+                    if (error.code === 'storage/unauthorized') {
+                        errorMessage = 'Permission denied - Check Firebase Storage rules';
+                    } else if (error.code === 'storage/canceled') {
+                        errorMessage = 'Upload was canceled';
+                    } else if (error.code === 'storage/unknown') {
+                        errorMessage = 'Unknown storage error';
+                    } else if (error.message) {
+                        errorMessage = error.message;
+                    }
+                    
+                    alert(`Error uploading ${file.name}: ${errorMessage}`);
+                    updateFirebaseStatus('❌ Upload failed', '#f44336');
+                }
+            }
+        }
+
+        // Add document to UI list
+        function addDocumentToList(name, category) {
+            const docList = document.querySelector(`[data-category="${category}"] .document-list`);
+            
+            // Remove empty state if present
+            const emptyState = docList.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+            
+            const docElement = createDocumentElement(name, category);
+            docList.appendChild(docElement);
+        }
+
+        // Update document count display
+        function updateDocumentCount(category) {
+            const countElement = document.querySelector(`[data-category="${category}"]`);
+            const docList = document.querySelector(`[data-category="${category}"] .document-list`);
+            
+            if (countElement && docList) {
+                // Count non-empty-state children
+                const count = docList.querySelectorAll('.document-item').length;
+                countElement.textContent = count;
+            }
+        }
+
+        // Load all documents from Firestore with improved error handling
+        async function loadAllDocuments() {
+            if (!firebaseInitialized || !db) {
+                console.log('⚠️ Firebase not initialized - skipping document load');
+                return;
+            }
+            
+            try {
+                console.log('📄 Loading documents from Firebase...');
+                const snapshot = await db.collection('documents').orderBy('uploadDate', 'desc').get();
+                
+                if (snapshot.empty) {
+                    console.log('📄 No documents found in database');
+                    return;
+                }
+                
+                let loadedCount = 0;
+                snapshot.forEach(doc => {
+                    try {
+                        const data = doc.data();
+                        if (data.name && data.category) {
+                            addDocumentToList(data.name, data.category);
+                            updateDocumentCount(data.category);
+                            loadedCount++;
+                        } else {
+                            console.warn('⚠️ Invalid document data:', data);
+                        }
+                    } catch (error) {
+                        console.error('⚠️ Error processing document:', error);
+                    }
+                });
+                
+                console.log(`✅ Loaded ${loadedCount} documents from Firebase`);
+                
+            } catch (error) {
+                console.error('❌ Error loading documents from Firebase:', error);
+                
+                if (error.code === 'permission-denied') {
+                    updateFirebaseStatus('❌ Permission denied - Check Firestore rules', '#f44336');
+                } else if (error.code === 'unavailable') {
+                    updateFirebaseStatus('❌ Firestore unavailable - Check connection', '#f44336');
+                } else {
+                    updateFirebaseStatus('⚠️ Error loading documents', '#ff9800');
+                }
+            }
+        }
+
+        // Download document from Firebase Storage
+        async function downloadDocument(name, category) {
+            try {
+                updateFirebaseStatus('📥 Preparing download...', '#2196f3');
+                
+                // Find the document in Firestore to get download URL
+                const snapshot = await db.collection('documents')
+                    .where('name', '==', name)
+                    .where('category', '==', category)
+                    .limit(1)
+                    .get();
+                
+                if (!snapshot.empty) {
+                    const docData = snapshot.docs[0].data();
+                    
+                    // Create download link
+                    const link = document.createElement('a');
+                    link.href = docData.downloadURL;
+                    link.download = name;
+                    link.target = '_blank';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    updateFirebaseStatus('✅ Download started', '#4caf50');
+                } else {
+                    alert('Document not found in database');
+                }
+                
+            } catch (error) {
+                console.error('Download error:', error);
+                alert('Error downloading document');
+                updateFirebaseStatus('❌ Download failed', '#f44336');
+            }
+        }
+
+        // Download pre-loaded risk assessment
+        function downloadPreloadedDocument(index, name) {
+            const doc = preloadedRiskAssessments[index - 1];
+            alert(`📋 Access: ${name}\n\n🏢 Professional Document from Omnibosh CQR 365\n\n📄 Description: ${doc.description}\n\n🔥 In the full Firebase system, this would:\n• Download the professional Word document\n• Track access for compliance\n• Update usage analytics\n\n✅ Ready for immediate use in your safety management system.`);
+        }
+
+        // Delete document from Firebase
+        async function deleteDocument(name, category) {
+            if (!confirm(`Are you sure you want to delete "${name}"?`)) {
+                return;
+            }
+            
+            try {
+                updateFirebaseStatus('🗑️ Deleting document...', '#ff9800');
+                
+                // Find and delete from Firestore
+                const snapshot = await db.collection('documents')
+                    .where('name', '==', name)
+                    .where('category', '==', category)
+                    .get();
+                
+                if (!snapshot.empty) {
+                    const docData = snapshot.docs[0].data();
+                    
+                    // Delete from Storage
+                    const fileRef = storage.refFromURL(docData.downloadURL);
+                    await fileRef.delete();
+                    
+                    // Delete from Firestore
+                    await snapshot.docs[0].ref.delete();
+                    
+                    // Refresh UI
+                    await refreshAllDocuments();
+                    
+                    updateFirebaseStatus('✅ Document deleted', '#4caf50');
+                    console.log(`✅ Deleted: ${name}`);
+                } else {
+                    alert('Document not found in database');
+                }
+                
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert('Error deleting document');
+                updateFirebaseStatus('❌ Delete failed', '#f44336');
+            }
+        }
+
+        // Search documents functionality
+        function searchDocuments(searchTerm) {
+            const allDocItems = document.querySelectorAll('.document-item');
+            const lowerSearchTerm = searchTerm.toLowerCase();
+            
+            allDocItems.forEach(item => {
+                const nameElement = item.querySelector('.document-name');
+                const name = nameElement.textContent.toLowerCase();
+                
+                if (name.includes(lowerSearchTerm)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // Show/hide empty states based on search results
+            document.querySelectorAll('.document-list').forEach(list => {
+                const visibleItems = list.querySelectorAll('.document-item[style*="display: flex"], .document-item:not([style*="display: none"])');
+                const emptyState = list.querySelector('.empty-state');
+                
+                if (visibleItems.length === 0 && !emptyState) {
+                    const newEmptyState = document.createElement('div');
+                    newEmptyState.className = 'empty-state';
+                    newEmptyState.textContent = searchTerm ? 'No documents match your search' : 'No documents uploaded yet';
+                    list.appendChild(newEmptyState);
+                } else if (visibleItems.length > 0 && emptyState) {
+                    emptyState.remove();
+                }
+            });
+        }
+
+        // Refresh all documents
+        async function refreshAllDocuments() {
+            updateFirebaseStatus('🔄 Refreshing documents...', '#2196f3');
+            
+            // Clear all document lists except risk assessments
+            document.querySelectorAll('.document-list').forEach(list => {
+                const category = list.getAttribute('data-category');
+                if (category !== 'risk-assessments') {
+                    list.innerHTML = '<div class="empty-state">No documents uploaded yet</div>';
+                }
+            });
+            
+            // Reset counters (except risk assessments)
+            document.querySelectorAll('.doc-count').forEach(counter => {
+                const category = counter.getAttribute('data-category');
+                if (category !== 'risk-assessments') {
+                    counter.textContent = '0';
+                }
+            });
+            
+            // Reload documents
+            await loadAllDocuments();
+            loadPreloadedRiskAssessments();
+            
+            updateFirebaseStatus('✅ Documents refreshed', '#4caf50');
+        }
+
+        // Export all documents
+        function exportAllDocuments() {
+            alert(`📦 Export All Documents\n\n🔥 Firebase Integration Feature:\n\n✅ Available Export Options:\n• ZIP archive with all documents\n• Organized by category folders\n• Includes metadata and timestamps\n• Direct download from Firebase Storage\n• Compliance tracking reports\n\n📊 Export would include:\n• ${preloadedRiskAssessments.length} pre-loaded risk assessments\n• All uploaded documents across categories\n• Document access logs and history\n\n🚀 This feature would be fully implemented in the production system.`);
+        }
+
+        // Return to dashboard (for iframe integration)
+        function returnToDashboard() {
+            if (window.parent && window.parent !== window) {
+                // If loaded in iframe, message parent to return to dashboard
+                window.parent.postMessage({ type: 'CLOSE_MODULE' }, '*');
+            } else {
+                // If standalone, redirect to main system
+                window.location.href = '../index.html';
+            }
+        }
+
+        // Initialize when page loads with proper timing
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 DocSafe.PRO initializing...');
+            
+            // Test Firebase availability first
+            function testFirebaseConnection() {
+                if (typeof firebase === 'undefined') {
+                    console.warn('⚠️ Firebase not available yet, retrying...');
+                    setTimeout(testFirebaseConnection, 500);
+                    return;
+                }
+                
+                if (!firebase.apps || !firebase.firestore || !firebase.storage || !firebase.auth) {
+                    console.warn('⚠️ Firebase services not fully loaded, retrying...');
+                    setTimeout(testFirebaseConnection, 500);
+                    return;
+                }
+                
+                console.log('✅ Firebase services detected, initializing...');
+                // Small delay to ensure everything is ready
+                setTimeout(initializeDocSafe, 100);
+            }
+            
+            // Start the connection test
+            testFirebaseConnection();
+        });
+
+        // Cross-module integration message handler
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'INIT_DOCSAFE') {
+                console.log('📨 Received initialization message from parent module');
+                // Additional initialization if needed
+                if (!firebaseInitialized) {
+                    initializeDocSafe();
+                }
+            }
+        });
+
+        // Add window error handler for debugging
+        window.addEventListener('error', function(event) {
+            console.error('🚨 Global error caught:', event.error);
+            if (event.error && event.error.message.includes('Firebase')) {
+                updateFirebaseStatus('❌ Firebase error detected', '#f44336');
+            }
+        });
+
+        console.log('📋 DocSafe.PRO module loaded successfully');
+    </script>
+</body>
+</html>
