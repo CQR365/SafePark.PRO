@@ -664,6 +664,30 @@
             --category-color: #f39c12;
         }
 
+        .licences {
+            --category-color: #795548;
+        }
+
+        .risk-assessments {
+            --category-color: #ff9800;
+        }
+
+        .policies {
+            --category-color: #2196f3;
+        }
+
+        .training {
+            --category-color: #9c27b0;
+        }
+
+        .procedures {
+            --category-color: #4caf50;
+        }
+
+        .general {
+            --category-color: #607d8b;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .container {
@@ -1036,6 +1060,138 @@
                     <div class="empty-state">No documents uploaded yet</div>
                 </div>
             </div>
+
+            <!-- Licences Category -->
+            <div class="doc-category licences">
+                <div class="category-header">
+                    <h3 class="category-title">
+                        <span class="category-icon" style="background: #795548;">L</span>
+                        Licences
+                    </h3>
+                    <div class="doc-count" data-category="licences">0</div>
+                </div>
+                
+                <div class="upload-area" data-category="licences" onclick="openFileUpload('licences')" 
+                     ondrop="handleDrop(event, 'licences')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="upload-text">Drop files here or click to upload</div>
+                    <div class="upload-subtext">Site licences, planning permissions, regulatory approvals</div>
+                </div>
+                <input type="file" id="fileInput-licences" multiple accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png" style="display: none;" onchange="handleFileUpload(event, 'licences')">
+                
+                <div class="document-list" data-category="licences">
+                    <div class="empty-state">No documents uploaded yet</div>
+                </div>
+            </div>
+
+            <!-- Risk Assessments Category -->
+            <div class="doc-category risk-assessments">
+                <div class="category-header">
+                    <h3 class="category-title">
+                        <span class="category-icon" style="background: #ff9800;">R</span>
+                        Risk Assessments
+                    </h3>
+                    <div class="doc-count" data-category="risk-assessments">0</div>
+                </div>
+                
+                <div class="upload-area" data-category="risk-assessments" onclick="openFileUpload('risk-assessments')" 
+                     ondrop="handleDrop(event, 'risk-assessments')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="upload-text">Drop files here or click to upload</div>
+                    <div class="upload-subtext">General risk assessments, COSHH, manual handling assessments</div>
+                </div>
+                <input type="file" id="fileInput-risk-assessments" multiple accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png" style="display: none;" onchange="handleFileUpload(event, 'risk-assessments')">
+                
+                <div class="document-list" data-category="risk-assessments">
+                    <div class="empty-state">No documents uploaded yet</div>
+                </div>
+            </div>
+
+            <!-- Policies Category -->
+            <div class="doc-category policies">
+                <div class="category-header">
+                    <h3 class="category-title">
+                        <span class="category-icon" style="background: #2196f3;">P</span>
+                        Policies
+                    </h3>
+                    <div class="doc-count" data-category="policies">0</div>
+                </div>
+                
+                <div class="upload-area" data-category="policies" onclick="openFileUpload('policies')" 
+                     ondrop="handleDrop(event, 'policies')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="upload-text">Drop files here or click to upload</div>
+                    <div class="upload-subtext">Health & safety policies, company policies, procedures</div>
+                </div>
+                <input type="file" id="fileInput-policies" multiple accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png" style="display: none;" onchange="handleFileUpload(event, 'policies')">
+                
+                <div class="document-list" data-category="policies">
+                    <div class="empty-state">No documents uploaded yet</div>
+                </div>
+            </div>
+
+            <!-- Training & Certification Category -->
+            <div class="doc-category training">
+                <div class="category-header">
+                    <h3 class="category-title">
+                        <span class="category-icon" style="background: #9c27b0;">T</span>
+                        Training & Certification
+                    </h3>
+                    <div class="doc-count" data-category="training">0</div>
+                </div>
+                
+                <div class="upload-area" data-category="training" onclick="openFileUpload('training')" 
+                     ondrop="handleDrop(event, 'training')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="upload-text">Drop files here or click to upload</div>
+                    <div class="upload-subtext">Staff training records, certifications, qualifications</div>
+                </div>
+                <input type="file" id="fileInput-training" multiple accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png" style="display: none;" onchange="handleFileUpload(event, 'training')">
+                
+                <div class="document-list" data-category="training">
+                    <div class="empty-state">No documents uploaded yet</div>
+                </div>
+            </div>
+
+            <!-- Safe Working Procedures Category -->
+            <div class="doc-category procedures">
+                <div class="category-header">
+                    <h3 class="category-title">
+                        <span class="category-icon" style="background: #4caf50;">W</span>
+                        Safe Working Procedures
+                    </h3>
+                    <div class="doc-count" data-category="procedures">0</div>
+                </div>
+                
+                <div class="upload-area" data-category="procedures" onclick="openFileUpload('procedures')" 
+                     ondrop="handleDrop(event, 'procedures')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="upload-text">Drop files here or click to upload</div>
+                    <div class="upload-subtext">Equipment procedures, safety protocols, work instructions</div>
+                </div>
+                <input type="file" id="fileInput-procedures" multiple accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png" style="display: none;" onchange="handleFileUpload(event, 'procedures')">
+                
+                <div class="document-list" data-category="procedures">
+                    <div class="empty-state">No documents uploaded yet</div>
+                </div>
+            </div>
+
+            <!-- General Documents Category -->
+            <div class="doc-category general">
+                <div class="category-header">
+                    <h3 class="category-title">
+                        <span class="category-icon" style="background: #607d8b;">G</span>
+                        General Documents
+                    </h3>
+                    <div class="doc-count" data-category="general">0</div>
+                </div>
+                
+                <div class="upload-area" data-category="general" onclick="openFileUpload('general')" 
+                     ondrop="handleDrop(event, 'general')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="upload-text">Drop files here or click to upload</div>
+                    <div class="upload-subtext">Miscellaneous documents, correspondence, references</div>
+                </div>
+                <input type="file" id="fileInput-general" multiple accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png" style="display: none;" onchange="handleFileUpload(event, 'general')">
+                
+                <div class="document-list" data-category="general">
+                    <div class="empty-state">No documents uploaded yet</div>
+                </div>
+            </div>
         </div>
 
         <!-- Management Tools -->
@@ -1160,7 +1316,13 @@
             'gas-cert': 'GAS',
             'water-cert': 'WAT',
             'sops': 'SOP',
-            'insurance': 'INS'
+            'insurance': 'INS',
+            'licences': 'LIC',
+            'risk-assessments': 'RSK',
+            'policies': 'POL',
+            'training': 'TRN',
+            'procedures': 'SWP',
+            'general': 'GEN'
         };
 
         // Pending download data
