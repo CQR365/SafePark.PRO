@@ -53,50 +53,6 @@
         }
         */
     </script>
-    
-    <!-- DIAGNOSTIC: Find grey elements on mobile -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            if (window.innerWidth <= 1366) {
-                setTimeout(function() {
-                    console.log('=== GREY BOX DIAGNOSTIC ===');
-                    const allElements = document.querySelectorAll('body, body *');
-                    allElements.forEach(function(el) {
-                        const style = window.getComputedStyle(el);
-                        const bg = style.backgroundColor;
-                        const bgImage = style.backgroundImage;
-                        const boxShadow = style.boxShadow;
-                        
-                        // Check background color
-                        if (bg && bg.includes('rgb')) {
-                            const match = bg.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
-                            if (match) {
-                                const r = parseInt(match[1]);
-                                const g = parseInt(match[2]);
-                                const b = parseInt(match[3]);
-                                // Grey is when r, g, b are similar and in the 30-70 range
-                                if (r > 30 && r < 70 && Math.abs(r-g) < 10 && Math.abs(g-b) < 10) {
-                                    console.log('GREY BG:', el.tagName, '#'+el.id, '.'+el.className, 'bg:', bg, 'size:', el.offsetWidth+'x'+el.offsetHeight);
-                                    el.style.outline = '5px solid lime';
-                                }
-                            }
-                        }
-                        
-                        // Check for gradients with grey
-                        if (bgImage && bgImage !== 'none' && bgImage.includes('gradient')) {
-                            console.log('GRADIENT:', el.tagName, '#'+el.id, '.'+el.className, 'bg-image:', bgImage.substring(0, 100));
-                        }
-                        
-                        // Check for inset shadows (can create grey areas)
-                        if (boxShadow && boxShadow !== 'none' && boxShadow.includes('inset')) {
-                            console.log('INSET SHADOW:', el.tagName, '#'+el.id, '.'+el.className, 'shadow:', boxShadow.substring(0, 100));
-                        }
-                    });
-                    console.log('=== END DIAGNOSTIC ===');
-                }, 3000);
-            }
-        });
-    </script>
 
     <!-- Firebase Scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -2251,29 +2207,71 @@
 
         /* FINAL MOBILE/TABLET FIX - Clean version */
         
-        /* DIAGNOSTIC: WILDCARD - make EVERYTHING transparent */
+        /* SURGICAL FIX: Only make specific containers transparent - NOT everything */
         @media (max-width: 1366px) {
-            *, *::before, *::after {
+            /* These are the suspected grey box culprits */
+            .content-area,
+            #dashboard,
+            .module-content,
+            .module-content::before,
+            .module-content::after,
+            #dashboardHeader {
                 background: transparent !important;
                 background-color: transparent !important;
                 background-image: none !important;
             }
             
-            /* Set body to pure black so we can see what's left */
-            body {
-                background: #000000 !important;
-            }
-            
-            /* Keep stat-cards visible */
+            /* Keep stat-cards styled and clickable */
             .stat-card {
                 background: rgba(30,30,30,0.95) !important;
                 border: 1px solid var(--primary-orange) !important;
+                pointer-events: auto !important;
+                cursor: pointer !important;
+                position: relative !important;
+                z-index: 10 !important;
             }
             
-            /* Keep hamburger visible */
+            /* Ensure grid container and all parents allow clicks */
+            .module-content,
+            .module-content > div,
+            #dashboard,
+            .content-area {
+                pointer-events: auto !important;
+            }
+            
+            /* Keep hamburger styled but hide during opening/login */
             .mobile-menu-toggle {
                 background: var(--primary-orange) !important;
+                pointer-events: auto !important;
             }
+            
+            /* Keep login form container styled */
+            .login-form-container {
+                background: linear-gradient(145deg, #2F2F2F, #000) !important;
+                pointer-events: auto !important;
+            }
+            
+            .login-input {
+                background: rgba(255, 255, 255, 0.1) !important;
+            }
+            
+            .login-btn {
+                background: linear-gradient(145deg, #FE7F2D, #E56D1F) !important;
+                pointer-events: auto !important;
+            }
+        }
+        
+        /* Hide hamburger during opening sequence and login */
+        .mobile-menu-toggle {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        /* Only show hamburger when logged in */
+        body.logged-in .mobile-menu-toggle {
+            opacity: 1;
+            pointer-events: auto;
         }
         
         /* NUCLEAR FIX: Force hide mainApp on mobile until shown by JavaScript */
@@ -4658,6 +4656,9 @@
                     mainAppEl.style.display = 'flex';
                 }
                 
+                // Add logged-in class to body for CSS (hamburger visibility etc)
+                document.body.classList.add('logged-in');
+                
                 // Store access information in session storage for modules to access
                 sessionStorage.setItem('currentAccessCode', accessCode);
                 sessionStorage.setItem('currentUser', userInfo.user);
@@ -6103,6 +6104,9 @@
                 mainAppEl.classList.remove('visible');
                 mainAppEl.style.display = 'none';
             }
+            
+            // Remove logged-in class from body
+            document.body.classList.remove('logged-in');
             
             document.getElementById('loginScreen').style.display = 'flex';
             
