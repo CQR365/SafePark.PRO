@@ -53,6 +53,35 @@
         }
         */
     </script>
+    
+    <!-- DIAGNOSTIC: Find grey elements on mobile -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.innerWidth <= 1366) {
+                setTimeout(function() {
+                    console.log('=== GREY BOX DIAGNOSTIC ===');
+                    const allElements = document.querySelectorAll('*');
+                    allElements.forEach(function(el) {
+                        const style = window.getComputedStyle(el);
+                        const bg = style.backgroundColor;
+                        if (bg && bg.includes('rgb')) {
+                            const match = bg.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+                            if (match) {
+                                const r = parseInt(match[1]);
+                                const g = parseInt(match[2]);
+                                const b = parseInt(match[3]);
+                                // Grey is when r, g, b are similar and in the 30-70 range
+                                if (r > 30 && r < 70 && Math.abs(r-g) < 10 && Math.abs(g-b) < 10) {
+                                    console.log('GREY:', el.tagName, '#'+el.id, '.'+el.className, 'bg:', bg, 'size:', el.offsetWidth+'x'+el.offsetHeight);
+                                    el.style.outline = '5px solid lime';
+                                }
+                            }
+                        }
+                    });
+                }, 3000);
+            }
+        });
+    </script>
 
     <!-- Firebase Scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -2206,6 +2235,40 @@
         }
 
         /* FINAL MOBILE/TABLET FIX - Clean version */
+        
+        /* DIAGNOSTIC: Force ALL backgrounds transparent to find grey box */
+        @media (max-width: 1366px) {
+            #mainApp,
+            #mainApp *,
+            .content-area,
+            .content-area *,
+            #dashboard,
+            #dashboard * {
+                background: transparent !important;
+                background-color: transparent !important;
+            }
+            
+            /* Keep stat-cards visible */
+            .stat-card {
+                background: rgba(30,30,30,0.95) !important;
+            }
+        }
+        
+        /* NUCLEAR FIX: Force hide mainApp on mobile until shown by JavaScript */
+        @media (max-width: 1366px) {
+            #mainApp {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+            }
+            
+            /* Only show when .visible class is added by JavaScript */
+            #mainApp.visible {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
+        }
         
         @media (max-width: 1366px) {
             /* NUCLEAR: Remove ALL min-heights that cause the huge empty space */
@@ -4552,6 +4615,9 @@
                     document.body.style.minHeight = '0';
                     document.body.style.height = 'auto';
                     
+                    // Add visible class for CSS to show mainApp
+                    mainAppEl.classList.add('visible');
+                    
                     // First, make mainApp visible but with reset styles
                     mainAppEl.style.cssText = 'display: block !important; min-height: 0 !important; height: auto !important; flex: none !important; overflow: visible !important; flex-direction: unset !important;';
                     
@@ -4566,6 +4632,7 @@
                         void contentArea.offsetHeight;
                     }
                 } else {
+                    mainAppEl.classList.add('visible');
                     mainAppEl.style.display = 'flex';
                 }
                 
@@ -4658,6 +4725,7 @@
             
             // Force mainApp to block with no height constraints
             if (mainApp) {
+                mainApp.classList.add('visible');
                 mainApp.style.cssText = 'display: block !important; min-height: 0 !important; height: auto !important; flex: none !important; overflow: visible !important; flex-direction: unset !important;';
                 // Force reflow by reading offsetHeight
                 void mainApp.offsetHeight;
@@ -5296,6 +5364,7 @@
                 // Fix mainApp container - change from flex to block on mobile
                 const mainApp = document.getElementById('mainApp');
                 if (mainApp) {
+                    mainApp.classList.add('visible');
                     mainApp.style.cssText = 'display: block !important; min-height: 0 !important; height: auto !important; flex: none !important;';
                     console.log('MOBILE FIX: mainApp set to block');
                 }
@@ -5893,6 +5962,7 @@
             }
             if (mainApp) {
                 mainApp.classList.remove('module-view');
+                mainApp.classList.add('visible');
                 if (isDesktop) {
                     mainApp.style.cssText = 'display: flex !important;';
                 } else {
@@ -6008,6 +6078,7 @@
             if (mainAppEl) {
                 mainAppEl.removeAttribute('style');
                 mainAppEl.classList.remove('module-view');
+                mainAppEl.classList.remove('visible');
                 mainAppEl.style.display = 'none';
             }
             
