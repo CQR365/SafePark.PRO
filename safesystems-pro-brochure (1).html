@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeSystems.PRO - Complete Safety Management Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-orange: #FE7F2D;
+            --dark-orange: #E5682A;
+            --light-orange: #FF9454;
+            --cyan: #0dcaf0;
+            --pink: #f492f0;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --dark-bg: #1a1a1a;
+            --card-bg: #2a2a2a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+            color: #E8E8E8;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header / Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #1a1a2e 0%, #0d1b2a 100%);
+            padding: 80px 20px;
+            text-align: center;
+            border-bottom: 3px solid var(--primary-orange);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="1" fill="%23FE7F2D" opacity="0.1"/></svg>') repeat;
+            background-size: 50px 50px;
+            opacity: 0.3;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 4rem;
+            font-weight: 700;
+            letter-spacing: 4px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px rgba(254, 127, 45, 0.5);
+        }
+
+        .logo .safe { color: #C0C0C0; }
+        .logo .systems { color: var(--primary-orange); }
+        .logo .pro { color: #C0C0C0; }
+
+        .tagline {
+            font-size: 1.5rem;
+            color: #888;
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+
+        .hero-description {
+            max-width: 800px;
+            margin: 0 auto 40px;
+            font-size: 1.1rem;
+            color: #aaa;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(254, 127, 45, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(254, 127, 45, 0.5);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary-orange);
+            border: 2px solid var(--primary-orange);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(254, 127, 45, 0.1);
+        }
+
+        /* Section Styles */
+        .section {
+            padding: 80px 20px;
+        }
+
+        .section-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--primary-orange);
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: #888;
+            max-width: 700px;
+            margin: 0 auto 50px;
+            font-size: 1.1rem;
+        }
+
+        /* Stats Section */
+        .stats-section {
+            background: linear-gradient(145deg, var(--dark-bg), #0d1b2a);
+            border-top: 1px solid #333;
+            border-bottom: 1px solid #333;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-family: 'Orbitron', monospace;
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--primary-orange);
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Module Tiers */
+        .tiers-section {
+            background: #0d1b2a;
+        }
+
+        .tier {
+            margin-bottom: 60px;
+        }
+
+        .tier-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid;
+        }
+
+        .tier-core .tier-header { border-color: var(--primary-orange); }
+        .tier-plus .tier-header { border-color: var(--pink); }
+        .tier-max .tier-header { border-color: var(--cyan); }
+
+        .tier-badge {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            padding: 8px 20px;
+            border-radius: 25px;
+        }
+
+        .tier-core .tier-badge {
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: white;
+        }
+
+        .tier-plus .tier-badge {
+            background: linear-gradient(145deg, var(--pink), #d47fd4);
+            color: white;
+        }
+
+        .tier-max .tier-badge {
+            background: linear-gradient(145deg, var(--cyan), #0aa6c9);
+            color: white;
+        }
+
+        .tier-title {
+            font-size: 1.3rem;
+            color: #E8E8E8;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .module-card {
+            background: linear-gradient(145deg, #2a2a3e, #1a1a2e);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid #333;
+            transition: all 0.3s ease;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-orange);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .module-name {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .module-name .highlight-orange { color: var(--primary-orange); }
+        .module-name .highlight-pink { color: var(--pink); }
+        .module-name .highlight-cyan { color: var(--cyan); }
+
+        .module-description {
+            font-size: 0.9rem;
+            color: #888;
+            line-height: 1.5;
+        }
+
+        .module-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+
+        .status-live {
+            background: rgba(40, 167, 69, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .status-coming {
+            background: rgba(255, 193, 7, 0.2);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        /* Features Section */
+        .features-section {
+            background: linear-gradient(145deg, #1a1a2e, #0d1b2a);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            background: rgba(254, 127, 45, 0.05);
+            border-color: var(--primary-orange);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feature-icon svg {
+            width: 48px;
+            height: 48px;
+        }
+
+        .industry-icon {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .industry-icon svg {
+            width: 40px;
+            height: 40px;
+        }
+
+        .contact-icon {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .contact-icon svg {
+            width: 40px;
+            height: 40px;
+        }
+
+        .feature-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            color: var(--primary-orange);
+            margin-bottom: 15px;
+        }
+
+        .feature-text {
+            color: #888;
+            font-size: 0.95rem;
+        }
+
+        /* Industries Section */
+        .industries-section {
+            background: #0f0f23;
+        }
+
+        .industries-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+
+        .industry-card {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            border: 1px solid #333;
+            transition: all 0.3s ease;
+        }
+
+        .industry-card:hover {
+            border-color: var(--primary-orange);
+            transform: scale(1.02);
+        }
+
+        .industry-name {
+            font-size: 1.1rem;
+            color: #E8E8E8;
+            font-weight: 600;
+        }
+
+        /* Compliance Section */
+        .compliance-section {
+            background: linear-gradient(145deg, #1a1a2e, #0d1b2a);
+        }
+
+        .compliance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .compliance-item {
+            background: rgba(0, 0, 0, 0.2);
+            border-left: 4px solid var(--primary-orange);
+            padding: 20px 25px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .compliance-title {
+            font-weight: 600;
+            color: var(--primary-orange);
+            margin-bottom: 8px;
+        }
+
+        .compliance-text {
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .cta-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.5rem;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .cta-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-section .btn {
+            background: white;
+            color: var(--primary-orange);
+            font-weight: 700;
+        }
+
+        .cta-section .btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+        }
+
+        /* Contact Section */
+        .contact-section {
+            background: #0d1b2a;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .contact-item {
+            text-align: center;
+        }
+
+        .contact-label {
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .contact-value {
+            font-size: 1.2rem;
+            color: var(--primary-orange);
+            font-weight: 600;
+        }
+
+        .contact-value a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .contact-value a:hover {
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--dark-bg);
+            padding: 40px 20px;
+            text-align: center;
+            border-top: 1px solid #333;
+        }
+
+        .footer-logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .footer-logo .safe { color: #888; }
+        .footer-logo .systems { color: var(--primary-orange); }
+        .footer-logo .pro { color: #888; }
+
+        .footer-text {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .footer-company {
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .footer-company a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+                color: #333;
+            }
+
+            .hero {
+                background: #f5f5f5;
+                border-bottom-color: var(--primary-orange);
+            }
+
+            .hero::before {
+                display: none;
+            }
+
+            .logo, .section-title, .tier-badge, .feature-title, .cta-title {
+                color: var(--primary-orange) !important;
+                text-shadow: none;
+            }
+
+            .tagline, .hero-description, .section-subtitle, .stat-label, 
+            .module-description, .feature-text, .compliance-text, .footer-text {
+                color: #666 !important;
+            }
+
+            .stat-number, .contact-value {
+                color: var(--primary-orange) !important;
+            }
+
+            .module-card, .feature-card, .industry-card, .compliance-item {
+                background: #f9f9f9;
+                border-color: #ddd;
+            }
+
+            .cta-section {
+                background: var(--primary-orange);
+            }
+
+            .btn {
+                border: 2px solid var(--primary-orange);
+            }
+
+            .section, .hero, .footer {
+                page-break-inside: avoid;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2.5rem;
+            }
+
+            .tagline {
+                font-size: 1.2rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .stat-number {
+                font-size: 2.5rem;
+            }
+
+            .cta-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="logo">
+                <span class="safe">safe</span><span class="systems">systems</span><span class="pro">.pro</span>
+            </div>
+            <p class="tagline">The Complete Safety Management Platform</p>
+            <p class="hero-description">
+                A comprehensive, modular safety management system designed for the hospitality, leisure, and food service industry. 
+                Streamline compliance, reduce risk, and protect your guests with our integrated suite of professional safety tools.
+            </p>
+            <div class="cta-buttons">
+                <a href="mailto:safesystems.pro@omnibosh.com" class="btn btn-primary">Request Demo</a>
+                <a href="https://safesystems.pro" class="btn btn-secondary">Visit Platform</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="section stats-section">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">43+</div>
+                    <div class="stat-label">Safety Modules</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Cloud Based</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Access</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">Real-Time</div>
+                    <div class="stat-label">Sync</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Module Tiers Section -->
+    <section class="section tiers-section">
+        <div class="container">
+            <h2 class="section-title">Modular Safety Suite</h2>
+            <p class="section-subtitle">
+                Choose the modules you need. Our tiered system allows you to build a safety management solution 
+                that matches your requirements and budget.
+            </p>
+
+            <!-- CORE Tier -->
+            <div class="tier tier-core">
+                <div class="tier-header">
+                    <span class="tier-badge">CORE</span>
+                    <span class="tier-title">Essential Safety Management Modules</span>
+                </div>
+                <div class="modules-grid">
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-orange">maint</span>.pro</div>
+                        <div class="module-description">Maintenance job tracking, scheduling, and compliance documentation.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-orange">report</span>.pro</div>
+                        <div class="module-description">Incident and accident reporting with RIDDOR compliance and investigations.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-orange">action</span>.pro</div>
+                        <div class="module-description">Action management and task tracking with full audit trails.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-orange">water</span>.pro (HT)</div>
+                        <div class="module-description">Hot tub water quality testing, chemical dosing, and compliance records.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-orange">park</span>.pro</div>
+                        <div class="module-description">Play park and playground safety inspections and maintenance.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">cozzZ<span class="highlight-orange">stays</span>.pro</div>
+                        <div class="module-description">Accommodation inspections, turnaround checklists, and guest readiness.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name"><span class="highlight-orange">HPGS</span></div>
+                        <div class="module-description">Holiday Park General Safety - Managers audit module for compliance oversight.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-orange">clean</span>.pro</div>
+                        <div class="module-description">Hygiene management with cleaning schedules and sanitisation records.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-orange">facilities</span>.pro</div>
+                        <div class="module-description">Building safety, facilities inspections, and regulatory compliance.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-orange">news</span>.pro</div>
+                        <div class="module-description">Internal communications hub for safety alerts and company updates.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-orange">office</span>.pro</div>
+                        <div class="module-description">Office safety with DSE assessments and workstation ergonomics.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-orange">passport</span>.pro</div>
+                        <div class="module-description">Centralised property safety certifications and compliance documents.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">doc<span class="highlight-orange">safe</span>.pro</div>
+                        <div class="module-description">Document management system for policies, procedures, and safety records.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PLUS Tier -->
+            <div class="tier tier-plus">
+                <div class="tier-header">
+                    <span class="tier-badge">PLUS+</span>
+                    <span class="tier-title">Enhanced Compliance & Operations</span>
+                </div>
+                <div class="modules-grid">
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-pink">chem</span>.pro+</div>
+                        <div class="module-description">COSHH management with chemical inventories and safety data sheets.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-pink">teams</span>.pro+</div>
+                        <div class="module-description">Staff management with training records and certification tracking.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-pink">contractor</span>.pro+</div>
+                        <div class="module-description">Contractor permits, insurance verification, and on-site coordination.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-pink">grounds</span>.pro+</div>
+                        <div class="module-description">Grounds and equipment inspections, maintenance, and asset tracking.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-pink">fire</span>.pro+</div>
+                        <div class="module-description">Fire safety with risk assessments, extinguisher inspections, and evacuation plans.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-pink">learn</span>.pro+</div>
+                        <div class="module-description">Training and e-learning with course delivery and certification management.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-pink">pools</span>.pro+</div>
+                        <div class="module-description">Swimming pool safety with PWTAG compliance and water testing.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-pink">aid</span>.pro+</div>
+                        <div class="module-description">First aid kit tracking, expiry monitoring, and first aider certifications.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-pink">cafe</span>.pro+</div>
+                        <div class="module-description">Café food safety with HACCP, hygiene monitoring, and allergen management.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-pink">child</span>.pro+</div>
+                        <div class="module-description">Child safeguarding with DBS tracking and protection policy compliance.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-pink">manager</span>.pro+</div>
+                        <div class="module-description">Management dashboard with KPI tracking and compliance overview.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-pink">traffic</span>.pro+</div>
+                        <div class="module-description">On-site traffic management, speed controls, and pedestrian safety.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-pink">drive</span>.pro+</div>
+                        <div class="module-description">Vehicles, plant, and machinery inspections, servicing, and compliance.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name"><span class="highlight-pink">UKAS Trends</span>+</div>
+                        <div class="module-description">Accreditation monitoring, compliance trends, and audit preparation.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MAX Tier -->
+            <div class="tier tier-max">
+                <div class="tier-header">
+                    <span class="tier-badge">MAX</span>
+                    <span class="tier-title">Enterprise & Specialist Modules</span>
+                </div>
+                <div class="modules-grid">
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-cyan">care</span>.pro max</div>
+                        <div class="module-description">Customer care and complaints with 4-stage workflow and resolution tracking.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-cyan">water</span>.pro (PWS) max</div>
+                        <div class="module-description">Private water supply quality testing and regulatory compliance.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-cyan">chef</span>.pro max</div>
+                        <div class="module-description">Kitchen food safety with HACCP, temperature monitoring, and EHO prep.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-cyan">lettings</span>.pro max</div>
+                        <div class="module-description">Short-term let compliance for Scottish licensing and safety documentation.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-cyan">miss</span>.pro max</div>
+                        <div class="module-description">Near miss reporting with trend analysis and proactive safety culture.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-cyan">spark</span>.pro max</div>
+                        <div class="module-description">Electrical safety with EICR tracking and EET testing schedules.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-cyan">gas</span>.pro max</div>
+                        <div class="module-description">Gas safety with Gas Safe tracking and appliance inspections.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-cyan">sites</span>.pro max</div>
+                        <div class="module-description">Multi-site management with centralised oversight and cross-site reporting.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name"><span class="highlight-cyan">loler</span>safe.pro max</div>
+                        <div class="module-description">LOLER compliance for lifting equipment inspections and examinations.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name"><span class="highlight-cyan">puwer</span>safe.pro max</div>
+                        <div class="module-description">PUWER compliance for work equipment regulations and maintenance.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-cyan">access</span>.pro max</div>
+                        <div class="module-description">Accessibility compliance with DDA assessments and audits.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-cyan">flood</span>.pro max</div>
+                        <div class="module-description">Flood risk assessment and emergency response planning.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-cyan">games</span>.pro max</div>
+                        <div class="module-description">Entertainment and arcade equipment safety inspections.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-cyan">pest</span>.pro max</div>
+                        <div class="module-description">Integrated pest management with inspection schedules and records.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-cyan">pets</span>.pro max</div>
+                        <div class="module-description">Pet-friendly accommodation policies and guest pet management.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                    <div class="module-card">
+                        <div class="module-name">safe<span class="highlight-cyan">secure</span>.pro max</div>
+                        <div class="module-description">Security management with access control and incident response.</div>
+                        <span class="module-status status-live">● Live</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Features Section -->
+    <section class="section features-section">
+        <div class="container">
+            <h2 class="section-title">Platform Features</h2>
+            <p class="section-subtitle">
+                Built for busy hospitality professionals who need reliable, efficient safety management tools.
+            </p>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#FE7F2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19.5 9.5c0-2.5-2-4.5-4.5-4.5-.7 0-1.4.2-2 .5A5.5 5.5 0 0 0 3 9.5c0 2.5 1.5 4.5 4 5v6h10v-6c2.5-.5 4-2.5 4-5.5z"/>
+                            <path d="M12 3v2M5.5 6.5L7 8M18.5 6.5L17 8"/>
+                        </svg>
+                    </div>
+                    <div class="feature-title">Cloud-Based PWA</div>
+                    <div class="feature-text">Access from any device, anywhere. Progressive Web App technology means no downloads required - works on phones, tablets, and desktops.</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#FE7F2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 12a9 9 0 1 1-9-9"/>
+                            <polyline points="21 3 21 9 15 9"/>
+                            <path d="M21 9l-6-6"/>
+                        </svg>
+                    </div>
+                    <div class="feature-title">Real-Time Sync</div>
+                    <div class="feature-text">Firebase-powered synchronisation ensures all team members see the latest data instantly across all locations.</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#FE7F2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <path d="M3 9h18"/>
+                            <path d="M9 21V9"/>
+                            <path d="M13 15l2 2 4-4"/>
+                        </svg>
+                    </div>
+                    <div class="feature-title">Master Reporting</div>
+                    <div class="feature-text">Generate comprehensive reports across all modules with one click. Filter by park, date range, and status for actionable insights.</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#FE7F2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            <circle cx="12" cy="16" r="1"/>
+                        </svg>
+                    </div>
+                    <div class="feature-title">Role-Based Access</div>
+                    <div class="feature-text">Park-specific logins ensure staff only see relevant data. Admin codes provide multi-site oversight for management.</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#FE7F2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                            <circle cx="18" cy="5" r="3" fill="#DC3545" stroke="#DC3545"/>
+                        </svg>
+                    </div>
+                    <div class="feature-title">Smart Alerts</div>
+                    <div class="feature-text">Dashboard badges highlight items needing attention. Never miss an overdue inspection, expiring certificate, or pending action.</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#FE7F2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="5" y="2" width="14" height="20" rx="2"/>
+                            <line x1="12" y1="18" x2="12" y2="18"/>
+                            <path d="M9 2v2h6V2"/>
+                        </svg>
+                    </div>
+                    <div class="feature-title">Mobile Optimised</div>
+                    <div class="feature-text">Designed mobile-first for staff on the ground. Complete inspections, log incidents, and update records from anywhere on-site.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Industries Section -->
+    <section class="section industries-section">
+        <div class="container">
+            <h2 class="section-title">Built For</h2>
+            <p class="section-subtitle">
+                Designed for the hospitality, leisure, and food service industry with sector-specific compliance requirements built in.
+            </p>
+            <div class="industries-grid">
+                <div class="industry-card">
+                    <div class="industry-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#FE7F2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 21h18"/>
+                            <path d="M5 21V7l7-4 7 4v14"/>
+                            <path d="M9 21v-6h6v6"/>
+                            <path d="M9 9h.01M15 9h.01M9 13h.01M15 13h.01"/>
+                        </svg>
+                    </div>
+                    <div class="industry-name">Holiday Parks</div>
+                </div>
+                <div class="industry-card">
+                    <div class="industry-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#FE7F2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16"/>
+                            <path d="M3 21h18"/>
+                            <path d="M9 7h1M9 11h1M9 15h1M14 7h1M14 11h1M14 15h1"/>
+                        </svg>
+                    </div>
+                    <div class="industry-name">Hotels & B&Bs</div>
+                </div>
+                <div class="industry-card">
+                    <div class="industry-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#FE7F2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 21h18"/>
+                            <path d="M5 21V8l7-5 7 5v13"/>
+                            <rect x="9" y="12" width="6" height="9"/>
+                            <path d="M9 12h6"/>
+                        </svg>
+                    </div>
+                    <div class="industry-name">Hostels</div>
+                </div>
+                <div class="industry-card">
+                    <div class="industry-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#FE7F2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 21h18"/>
+                            <path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/>
+                            <path d="M9 21v-4h6v4"/>
+                            <path d="M10 9l2-2 2 2"/>
+                            <path d="M12 7v6"/>
+                        </svg>
+                    </div>
+                    <div class="industry-name">Short-Term Lets</div>
+                </div>
+                <div class="industry-card">
+                    <div class="industry-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#FE7F2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19h16"/>
+                            <path d="M4 19l2-14h12l2 14"/>
+                            <path d="M9 19v-4a3 3 0 0 1 6 0v4"/>
+                            <circle cx="12" cy="8" r="1"/>
+                        </svg>
+                    </div>
+                    <div class="industry-name">Caravan Sites</div>
+                </div>
+                <div class="industry-card">
+                    <div class="industry-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#FE7F2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="8" width="18" height="12" rx="2"/>
+                            <path d="M7 8V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2"/>
+                            <path d="M12 12v4"/>
+                            <path d="M10 14h4"/>
+                        </svg>
+                    </div>
+                    <div class="industry-name">Hospitality Venues</div>
+                </div>
+                <div class="industry-card">
+                    <div class="industry-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#FE7F2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8h1a4 4 0 0 1 0 8h-1"/>
+                            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
+                            <line x1="6" y1="1" x2="6" y2="4"/>
+                            <line x1="10" y1="1" x2="10" y2="4"/>
+                            <line x1="14" y1="1" x2="14" y2="4"/>
+                        </svg>
+                    </div>
+                    <div class="industry-name">Cafés & Coffee Shops</div>
+                </div>
+                <div class="industry-card">
+                    <div class="industry-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#FE7F2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 11h18"/>
+                            <path d="M5 11V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v5"/>
+                            <path d="M4 11l1 9h14l1-9"/>
+                            <circle cx="8" cy="15" r="1"/>
+                            <circle cx="16" cy="15" r="1"/>
+                        </svg>
+                    </div>
+                    <div class="industry-name">Restaurants & Food Service</div>
+                </div>
+                <div class="industry-card">
+                    <div class="industry-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#FE7F2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="7" width="20" height="10" rx="2"/>
+                            <circle cx="6" cy="17" r="2"/>
+                            <circle cx="18" cy="17" r="2"/>
+                            <path d="M6 7V5"/>
+                            <path d="M18 7V5"/>
+                            <path d="M8 11h8"/>
+                        </svg>
+                    </div>
+                    <div class="industry-name">Mobile Catering Units</div>
+                </div>
+                <div class="industry-card">
+                    <div class="industry-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#FE7F2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="9"/>
+                            <path d="M12 3v4M12 17v4M3 12h4M17 12h4"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </div>
+                    <div class="industry-name">Leisure Centres</div>
+                </div>
+                <div class="industry-card">
+                    <div class="industry-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#FE7F2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 12h20"/>
+                            <path d="M4 12c0-4 3.5-8 8-8s8 4 8 8"/>
+                            <path d="M7 12v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-5"/>
+                            <path d="M12 12v7"/>
+                            <circle cx="12" cy="8" r="2"/>
+                        </svg>
+                    </div>
+                    <div class="industry-name">Spa & Wellness</div>
+                </div>
+                <div class="industry-card">
+                    <div class="industry-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#FE7F2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="4" y="4" width="16" height="16" rx="2"/>
+                            <path d="M4 12h16"/>
+                            <path d="M12 4v16"/>
+                            <circle cx="8" cy="8" r="1"/>
+                            <circle cx="16" cy="16" r="1"/>
+                        </svg>
+                    </div>
+                    <div class="industry-name">Events & Functions</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Compliance Section -->
+    <section class="section compliance-section">
+        <div class="container">
+            <h2 class="section-title">Regulatory Compliance</h2>
+            <p class="section-subtitle">
+                Our modules are designed to help you meet key UK health and safety regulations.
+            </p>
+            <div class="compliance-grid">
+                <div class="compliance-item">
+                    <div class="compliance-title">Health & Safety at Work Act 1974</div>
+                    <div class="compliance-text">Core duty of care requirements for employers and premises operators.</div>
+                </div>
+                <div class="compliance-item">
+                    <div class="compliance-title">RIDDOR 2013</div>
+                    <div class="compliance-text">Reporting of Injuries, Diseases and Dangerous Occurrences Regulations.</div>
+                </div>
+                <div class="compliance-item">
+                    <div class="compliance-title">COSHH 2002</div>
+                    <div class="compliance-text">Control of Substances Hazardous to Health Regulations.</div>
+                </div>
+                <div class="compliance-item">
+                    <div class="compliance-title">Fire Safety Order 2005</div>
+                    <div class="compliance-text">Regulatory Reform (Fire Safety) Order requirements.</div>
+                </div>
+                <div class="compliance-item">
+                    <div class="compliance-title">Food Safety Act 1990</div>
+                    <div class="compliance-text">Food hygiene, HACCP, and allergen management requirements.</div>
+                </div>
+                <div class="compliance-item">
+                    <div class="compliance-title">Private Water Supplies</div>
+                    <div class="compliance-text">Scottish regulations for private water supply management.</div>
+                </div>
+                <div class="compliance-item">
+                    <div class="compliance-title">LOLER 1998</div>
+                    <div class="compliance-text">Lifting Operations and Lifting Equipment Regulations.</div>
+                </div>
+                <div class="compliance-item">
+                    <div class="compliance-title">PUWER 1998</div>
+                    <div class="compliance-text">Provision and Use of Work Equipment Regulations.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <h2 class="cta-title">Ready to Transform Your Safety Management?</h2>
+            <p class="cta-text">
+                Join the growing number of hospitality businesses using SafeSystems.PRO to streamline compliance and protect their guests.
+            </p>
+            <a href="mailto:safesystems.pro@omnibosh.com?subject=SafeSystems.PRO Demo Request" class="btn">Request a Demo</a>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="section contact-section">
+        <div class="container">
+            <h2 class="section-title">Get In Touch</h2>
+            <p class="section-subtitle">
+                Ready to discuss how SafeSystems.PRO can help your business? Our team is here to help.
+            </p>
+            <div class="contact-grid">
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#FE7F2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="4" width="20" height="16" rx="2"/>
+                            <path d="M22 6l-10 7L2 6"/>
+                        </svg>
+                    </div>
+                    <div class="contact-label">Email</div>
+                    <div class="contact-value"><a href="mailto:safesystems.pro@omnibosh.com">safesystems.pro@omnibosh.com</a></div>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#FE7F2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M2 12h20"/>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                        </svg>
+                    </div>
+                    <div class="contact-label">Website</div>
+                    <div class="contact-value"><a href="https://omnibosh.com">omnibosh.com</a></div>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#FE7F2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 21h18"/>
+                            <path d="M5 21V7l7-4 7 4v14"/>
+                            <rect x="9" y="13" width="6" height="8"/>
+                            <path d="M9 9h6"/>
+                        </svg>
+                    </div>
+                    <div class="contact-label">Company</div>
+                    <div class="contact-value"><a href="https://omnibosh.com">Omnibosh CQR365 & safesystems.pro</a></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-logo">
+                <span class="safe">safe</span><span class="systems">systems</span><span class="pro">.pro</span>
+            </div>
+            <p class="footer-text">The Complete Safety Management Platform for Hospitality, Leisure & Food Service</p>
+            <p class="footer-company">
+                Developed by <a href="https://omnibosh.com">Omnibosh CQR365 & safesystems.pro</a> • Scotland, UK<br>
+                © 2025 Omnibosh CQR365. All rights reserved.
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>
