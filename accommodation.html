@@ -1,0 +1,4756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- PREVENT SEARCH ENGINE INDEXING - COMPLETE PRIVACY PROTECTION -->
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex, nocache">
+    <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet, noimageindex, nocache">
+    <meta name="bingbot" content="noindex, nofollow, noarchive, nosnippet, noimageindex, nocache">
+    <meta name="yandexbot" content="noindex, nofollow, noarchive, nosnippet, noimageindex, nocache">
+    <meta name="slurp" content="noindex, nofollow, noarchive, nosnippet, noimageindex, nocache">
+    <meta name="duckduckbot" content="noindex, nofollow, noarchive, nosnippet, noimageindex, nocache">
+    
+    <title>cozzZstays.pro Accommodation Management</title>
+    
+    <!-- Google Fonts - Orbitron for headings -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    
+    <!-- Firebase Scripts - Global Integration -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    
+    <!-- SECURITY: Authentication Check - Must be logged in through main index.html -->
+    <script>
+        function checkAuthentication() {
+            // Check for required session data that's set by main index.html login
+            const currentUser = sessionStorage.getItem('currentUser');
+            const currentPark = sessionStorage.getItem('currentPark');
+            const currentAccessCode = sessionStorage.getItem('currentAccessCode');
+            const userAccessLevel = sessionStorage.getItem('userAccessLevel');
+            
+            // If any required authentication data is missing, redirect to main index
+            if (!currentUser || !currentPark || !currentAccessCode || !userAccessLevel) {
+                // Clear any partial session data
+                sessionStorage.clear();
+                
+                // Show alert to user
+                alert('Access Denied: Please login through the main SafeSystems.PRO dashboard to access this module.');
+                
+                // Redirect to main index.html for proper login
+                window.location.href = 'index.html';
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Run authentication check immediately when page loads
+        if (!checkAuthentication()) {
+            // Page will redirect, stop further execution
+            throw new Error('Authentication required - redirecting to login');
+        }
+        
+        console.log('Accommodation Module: User authenticated successfully');
+    </script>
+    
+    <!-- Firebase Configuration - Self-Contained -->
+    <script>
+        // Firebase configuration - using standard SafePark.PRO config
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6_-vZVc7hYUEw8UJY0mK1yQ9gBcLjJbE",
+            authDomain: "safepark-pro.firebaseapp.com",
+            projectId: "safepark-pro",
+            storageBucket: "safepark-pro.appspot.com",
+            messagingSenderId: "1234567890",
+            appId: "1:1234567890:web:abcd1234567890"
+        };
+        
+        // Initialize Firebase if not already initialized
+        let firebaseApp;
+        let db;
+        let auth;
+        
+        try {
+            firebaseApp = firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            auth = firebase.auth();
+            console.log('Accommodation Module: Firebase initialized successfully');
+        } catch (error) {
+            if (error.code === 'app/duplicate-app') {
+                // App already initialized
+                firebaseApp = firebase.app();
+                db = firebase.firestore();
+                auth = firebase.auth();
+                console.log('Accommodation Module: Using existing Firebase app');
+            } else {
+                console.error('Firebase initialization error:', error);
+            }
+        }
+        
+        // Create global Firebase variables for compatibility
+        window.firebaseDb = db;
+        window.firebaseAuth = auth;
+        window.firebaseInitialized = true;
+    </script>
+    
+    <script src="firebase-config.js"></script>
+    <script src="auth-handler.js"></script>
+    
+    <!-- Global Firebase Integration -->
+    <script>
+        // Simplified Firebase connection check
+        function checkGlobalFirebase() {
+            if (window.firebaseDb && window.firebaseAuth && window.firebaseInitialized) {
+                console.log('Accommodation Module connected to global Firebase');
+                return true;
+            }
+            
+            // If global not available, use local initialization
+            if (typeof firebase !== 'undefined' && db && auth) {
+                window.firebaseDb = db;
+                window.firebaseAuth = auth;
+                window.firebaseInitialized = true;
+                console.log('Accommodation Module: Local Firebase setup complete');
+                return true;
+            }
+            
+            console.warn('Firebase not available - some features may be limited');
+            return false;
+        }
+        
+        // Initialize Firebase connection
+        checkGlobalFirebase();
+    </script>
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2E86AB">
+
+    <style>
+        /* cozzZstays.pro CSS Variables - Professional Blue Scheme */
+        :root {
+            --primary-blue: #2E86AB;
+            --dark-blue: #1B5E7C;
+            --light-blue: #4A9BC8;
+            --black: #000000;
+            --white: #FFFFFF;
+            --smart-dark-grey: #2A2A2A;
+            --content-background: #2F2F2F;
+            --light-gray: #F8F9FA;
+            --medium-gray: #6C757D;
+            --dark-gray: #343A40;
+            --border-color: #DEE2E6;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #DC3545;
+            --shadow-light: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-medium: 0 4px 20px rgba(0,0,0,0.15);
+            --shadow-heavy: 0 8px 40px rgba(0,0,0,0.2);
+            --darker-bg: #1a1a1a;
+            --tile-bg: #252525;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--smart-dark-grey) 0%, #1a1a1a 100%);
+            color: #E8E8E8;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(145deg, #3a3a3a, #1a1a1a);
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 
+                        inset 0 8px 20px rgba(255, 255, 255, 0.1),
+                        inset 0 -8px 20px rgba(0, 0, 0, 0.7);
+            border: 3px solid var(--primary-blue);
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.1) 0%, 
+                transparent 30%, 
+                transparent 70%, 
+                rgba(0, 0, 0, 0.2) 100%);
+            border-radius: 9px;
+            pointer-events: none;
+        }
+
+        h1 {
+            font-family: 'Orbitron', monospace;
+            color: var(--primary-blue);
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin: 0 0 10px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5),
+                         0 0 10px rgba(46, 134, 171, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        h2, h3, h4, h5, h6 {
+            font-family: 'Orbitron', monospace;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .brand-line {
+            font-family: 'Orbitron', monospace;
+            color: var(--light-blue);
+            font-size: 1.5rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .subtitle {
+            color: #E8E8E8;
+            font-size: 1.1rem;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* User Info */
+        .user-info {
+            background: var(--content-background);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 2px solid var(--primary-blue);
+        }
+
+        .user-info h3 {
+            color: var(--primary-blue);
+            margin-bottom: 10px;
+        }
+
+        .user-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .user-detail {
+            background: var(--smart-dark-grey);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-blue);
+        }
+
+        .user-detail strong {
+            color: var(--light-blue);
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            background: var(--smart-dark-grey);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            padding: 10px;
+            overflow-x: auto;
+        }
+
+        .nav-tab {
+            background: transparent;
+            color: #B8B8B8;
+            border: none;
+            padding: 15px 25px;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            min-width: 150px;
+            margin-right: 10px;
+        }
+
+        .nav-tab:hover {
+            background: var(--content-background);
+            color: var(--light-blue);
+        }
+
+        .nav-tab.active {
+            background: var(--primary-blue);
+            color: var(--white);
+            box-shadow: 0 4px 15px rgba(46, 134, 171, 0.3);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            background: var(--content-background);
+            padding: 30px;
+            border-radius: 12px;
+            border: 2px solid var(--primary-blue);
+            min-height: 600px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--light-blue);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            background: var(--smart-dark-grey);
+            border: 2px solid #444;
+            color: #E8E8E8;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        /* Fix dropdown/select styling to prevent white-on-white */
+        select.form-control {
+            background-color: var(--smart-dark-grey);
+            color: #E8E8E8;
+        }
+
+        select.form-control option {
+            background-color: #2A2A2A;
+            color: #E8E8E8;
+            padding: 10px;
+        }
+
+        select.form-control option:checked {
+            background-color: var(--primary-blue);
+            color: #FFFFFF;
+        }
+
+        select.form-control option:hover {
+            background-color: var(--dark-blue);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 10px rgba(46, 134, 171, 0.3);
+        }
+
+        /* Buttons */
+        .btn {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            color: var(--white);
+            border: none;
+            padding: 15px 25px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-decoration: none;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, var(--dark-blue), var(--primary-blue));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(46, 134, 171, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--medium-gray), var(--dark-gray));
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, var(--dark-gray), var(--medium-gray));
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #1e7e34);
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #1e7e34, var(--success));
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #c82333);
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #c82333, var(--danger));
+        }
+
+        /* Unit Selection Styles */
+        .unit-selection-container {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #444;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 10px;
+        }
+
+        .unit-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .unit-controls .btn {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            min-width: 100px;
+        }
+
+        .selected-count {
+            color: var(--light-blue);
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .units-checkbox-container {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #555;
+            border-radius: 8px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .unit-checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+        }
+
+        .unit-checkbox-item:hover {
+            background: rgba(46, 134, 171, 0.1);
+        }
+
+        .unit-checkbox-item input[type="checkbox"] {
+            margin-right: 12px;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-blue);
+        }
+
+        .unit-checkbox-item label {
+            color: var(--white);
+            cursor: pointer;
+            margin: 0;
+            flex: 1;
+            font-size: 0.95rem;
+        }
+
+        .units-checkbox-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .units-checkbox-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .units-checkbox-container::-webkit-scrollbar-thumb {
+            background: var(--primary-blue);
+            border-radius: 4px;
+        }
+
+        .units-checkbox-container::-webkit-scrollbar-thumb:hover {
+            background: var(--dark-blue);
+        }
+
+        /* Alert Messages */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: rgba(40, 167, 69, 0.2);
+            border: 2px solid var(--success);
+            color: #d4edda;
+        }
+
+        .alert-warning {
+            background: rgba(255, 193, 7, 0.2);
+            border: 2px solid var(--warning);
+            color: #fff3cd;
+        }
+
+        .alert-danger {
+            background: rgba(220, 53, 69, 0.2);
+            border: 2px solid var(--danger);
+            color: #f8d7da;
+        }
+
+        .alert-info {
+            background: rgba(46, 134, 171, 0.2);
+            border: 2px solid var(--primary-blue);
+            color: var(--light-blue);
+        }
+
+        /* Inspection Checklist */
+        .inspection-checklist {
+            background: var(--smart-dark-grey);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--content-background);
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-blue);
+        }
+
+        .checklist-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 15px;
+            margin-top: 2px;
+            accent-color: var(--primary-blue);
+        }
+
+        .checklist-label {
+            flex: 1;
+        }
+
+        .checklist-title {
+            color: var(--light-blue);
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .checklist-description {
+            color: #B8B8B8;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* Unchecked Reason Input */
+        .unchecked-reason {
+            display: none;
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(220, 53, 69, 0.1);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+            border-radius: 6px;
+        }
+
+        .unchecked-reason.visible {
+            display: block;
+        }
+
+        .unchecked-reason label {
+            display: block;
+            color: #DC3545;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .unchecked-reason textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(220, 53, 69, 0.5);
+            border-radius: 4px;
+            background: var(--smart-dark-grey);
+            color: #E8E8E8;
+            font-size: 0.9rem;
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .unchecked-reason textarea:focus {
+            outline: none;
+            border-color: #DC3545;
+            box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2);
+        }
+
+        .unchecked-reason textarea::placeholder {
+            color: #888;
+        }
+
+        .checklist-item.has-reason {
+            border-left-color: #FFC107;
+        }
+
+        .checklist-item.checked {
+            border-left-color: var(--success);
+        }
+
+        /* ============================================
+           RESPONSIVE DESIGN - Mobile First Approach
+           Based on maintenance.html PERFECT template
+           ============================================ */
+
+        /* Tablet - 1024px */
+        @media (max-width: 1024px) {
+            .main-container {
+                padding: 15px;
+            }
+
+            .header {
+                padding: 30px 15px;
+            }
+
+            h1 {
+                font-size: 2.4rem;
+            }
+
+            .brand-line {
+                font-size: 1.5rem;
+            }
+
+            .header .subtitle {
+                font-size: 1rem;
+            }
+
+            .user-details {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .accommodation-grid {
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            }
+        }
+
+        /* Mobile - 768px */
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 12px;
+            }
+
+            .header {
+                padding: 20px 15px;
+            }
+
+            h1 {
+                font-size: 1.8rem !important;
+                letter-spacing: 1px !important;
+                margin-bottom: 8px;
+            }
+
+            .brand-line {
+                font-size: 1.1rem !important;
+                margin-bottom: 10px;
+                line-height: 1.3;
+            }
+
+            .header .subtitle {
+                font-size: 0.9rem !important;
+                line-height: 1.4;
+                margin-bottom: 0;
+            }
+
+            /* Hide system status on mobile - too cluttered */
+            .header > div[style*="position: absolute"] {
+                display: none;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .nav-tab {
+                min-width: unset;
+                width: 100%;
+                max-width: 300px;
+                margin: 0 auto 5px auto;
+                padding: 12px 20px;
+            }
+
+            .user-info {
+                padding: 15px;
+            }
+
+            .user-info h3 {
+                font-size: 1.1rem;
+            }
+
+            .user-details {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .user-detail {
+                padding: 10px;
+            }
+
+            .tab-content {
+                padding: 15px;
+            }
+
+            .tab-content h2 {
+                font-size: 1.3rem;
+            }
+
+            .accommodation-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .accommodation-card {
+                padding: 15px;
+            }
+
+            .form-row {
+                flex-direction: column;
+            }
+
+            .form-group {
+                margin-bottom: 15px;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 300px;
+                padding: 12px 20px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .action-buttons .btn {
+                margin: 0;
+            }
+        }
+
+        /* Small Mobile - 480px */
+        @media (max-width: 480px) {
+            .main-container {
+                padding: 8px;
+            }
+
+            .header {
+                padding: 15px 10px;
+                border-radius: 8px;
+            }
+
+            h1 {
+                font-size: 1.4rem !important;
+                letter-spacing: 0.5px !important;
+            }
+
+            .brand-line {
+                font-size: 0.95rem !important;
+                line-height: 1.2;
+            }
+
+            .header .subtitle {
+                font-size: 0.8rem !important;
+                line-height: 1.3;
+            }
+
+            .nav-tabs {
+                gap: 6px;
+            }
+
+            .nav-tab {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+                max-width: 280px;
+            }
+
+            .user-info {
+                padding: 12px;
+                border-radius: 8px;
+            }
+
+            .user-info h3 {
+                font-size: 1rem;
+            }
+
+            .user-detail {
+                padding: 8px;
+                font-size: 0.85rem;
+            }
+
+            .tab-content {
+                padding: 12px;
+                border-radius: 8px;
+            }
+
+            .tab-content h2 {
+                font-size: 1.15rem;
+            }
+
+            .tab-content h3 {
+                font-size: 1rem;
+            }
+
+            .accommodation-card h3 {
+                font-size: 1rem;
+            }
+
+            .form-group label {
+                font-size: 0.85rem;
+            }
+
+            input, select, textarea {
+                font-size: 16px; /* Prevents iOS zoom on focus */
+                padding: 10px;
+            }
+
+            .btn {
+                padding: 10px 16px;
+                font-size: 0.85rem;
+                max-width: 260px;
+            }
+
+            /* Modal adjustments */
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+                padding: 15px;
+            }
+
+            .modal-content h2 {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* Extra Small Mobile - 360px */
+        @media (max-width: 360px) {
+            .main-container {
+                padding: 5px;
+            }
+
+            .header {
+                padding: 12px 8px;
+            }
+
+            h1 {
+                font-size: 1.2rem !important;
+            }
+
+            .brand-line {
+                font-size: 0.85rem !important;
+            }
+
+            .header .subtitle {
+                font-size: 0.75rem !important;
+            }
+
+            .nav-tab {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+
+            .tab-content {
+                padding: 10px;
+            }
+
+            .btn {
+                font-size: 0.8rem;
+                padding: 8px 12px;
+            }
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-blue);
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Hidden elements */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Accommodation specific styles */
+        .accommodation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .accommodation-card {
+            background: var(--smart-dark-grey);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #444;
+            transition: border-color 0.3s ease;
+        }
+
+        .accommodation-card:hover {
+            border-color: var(--primary-blue);
+        }
+
+        .accommodation-type {
+            color: var(--light-blue);
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .accommodation-units {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .unit-tag {
+            background: var(--primary-blue);
+            color: var(--white);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* Download section */
+        .download-section {
+            background: var(--smart-dark-grey);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border: 2px solid var(--primary-blue);
+        }
+
+        .download-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        /* Facility Management Styles */
+        .facility-nav-container {
+            display: flex;
+            gap: 20px;
+            min-height: 800px;
+        }
+
+        .facility-sidebar {
+            width: 250px;
+            background: var(--smart-dark-grey);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid var(--primary-blue);
+            height: fit-content;
+        }
+
+        .facility-sidebar h3 {
+            color: var(--light-blue);
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+
+        .facility-nav-tabs {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .facility-nav-tab {
+            background: var(--content-background);
+            color: #B8B8B8;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-size: 0.95rem;
+        }
+
+        .facility-nav-tab:hover {
+            background: var(--tile-bg);
+            color: var(--light-blue);
+            transform: translateX(5px);
+        }
+
+        .facility-nav-tab.active {
+            background: var(--primary-blue);
+            color: var(--white);
+            box-shadow: 0 4px 15px rgba(46, 134, 171, 0.3);
+        }
+
+        .facility-content-area {
+            flex: 1;
+            background: var(--content-background);
+            padding: 30px;
+            border-radius: 12px;
+            border: 2px solid var(--primary-blue);
+        }
+
+        .facility-tab-content {
+            display: none;
+        }
+
+        .facility-tab-content.active {
+            display: block;
+        }
+
+        .facility-tab-content h3 {
+            color: var(--primary-blue);
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        .facility-sections {
+            margin-top: 20px;
+        }
+
+        .facility-section {
+            margin-bottom: 40px;
+        }
+
+        .facility-section h4 {
+            color: var(--light-blue);
+            margin: 30px 0 20px 0;
+            font-size: 1.4rem;
+            border-bottom: 2px solid var(--primary-blue);
+            padding-bottom: 10px;
+        }
+
+        .facility-section h5 {
+            color: var(--light-blue);
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .risk-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .risk-item {
+            background: var(--smart-dark-grey);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-blue);
+        }
+
+        .risk-item h5 {
+            color: var(--light-blue);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .risk-item ul {
+            color: #B8B8B8;
+            line-height: 1.6;
+            margin-left: 20px;
+        }
+
+        .risk-item li {
+            margin-bottom: 8px;
+        }
+
+        .procedure-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .procedure-step {
+            background: var(--smart-dark-grey);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--success);
+        }
+
+        .procedure-step h5 {
+            color: var(--success);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .procedure-step ol {
+            color: #B8B8B8;
+            line-height: 1.6;
+            margin-left: 20px;
+        }
+
+        .procedure-step li {
+            margin-bottom: 8px;
+        }
+
+        .cleaning-schedule {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .schedule-item {
+            background: var(--smart-dark-grey);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--warning);
+        }
+
+        .schedule-item strong {
+            color: var(--warning);
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .schedule-item ul {
+            color: #B8B8B8;
+            line-height: 1.6;
+            margin-left: 20px;
+        }
+
+        .schedule-item li {
+            margin-bottom: 8px;
+        }
+
+        .park-facility-info {
+            background: rgba(46, 134, 171, 0.1);
+            border: 2px solid var(--primary-blue);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .park-facility-info h4 {
+            color: var(--primary-blue);
+            margin-bottom: 15px;
+        }
+
+        .facility-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .facility-item {
+            background: var(--smart-dark-grey);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid var(--light-blue);
+        }
+
+        .facility-item strong {
+            color: var(--light-blue);
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .facility-item span {
+            color: #B8B8B8;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Design for Facility Management */
+        @media (max-width: 1024px) {
+            .facility-nav-container {
+                flex-direction: column;
+            }
+
+            .facility-sidebar {
+                width: 100%;
+                margin-bottom: 20px;
+            }
+
+            .facility-nav-tabs {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+
+            .facility-nav-tab {
+                min-width: 140px;
+                text-align: center;
+            }
+
+            .risk-grid,
+            .procedure-steps,
+            .cleaning-schedule {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .facility-content-area {
+                padding: 20px;
+            }
+
+            .facility-nav-tabs {
+                flex-direction: column;
+            }
+
+            .facility-nav-tab {
+                min-width: unset;
+                text-align: left;
+            }
+        }
+
+        /* Facility Inspection Form Styles */
+        .facility-inspection-form {
+            margin-top: 30px;
+        }
+
+        .facility-checklist {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .facility-check-item {
+            display: flex;
+            align-items: center;
+            color: #E8E8E8;
+            font-size: 0.95rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        .facility-check-item:hover {
+            background: rgba(46, 134, 171, 0.1);
+        }
+
+        .facility-check-item input[type="checkbox"] {
+            margin-right: 10px;
+            width: 16px;
+            height: 16px;
+            accent-color: var(--success);
+        }
+
+        /* Enhanced facility navigation */
+        .facility-nav-tab {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .facility-nav-tab::before {
+            content: '';
+            position: absolute;
+            left: -100%;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .facility-nav-tab:hover::before {
+            left: 100%;
+        }
+
+        /* Facility content animation */
+        .facility-tab-content {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .facility-tab-content.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Enhanced facility item styling */
+        .facility-item {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .facility-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(46, 134, 171, 0.2);
+        }
+
+        /* Inspection status indicators */
+        .inspection-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .inspection-status.completed {
+            background: rgba(40, 167, 69, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .inspection-status.pending {
+            background: rgba(255, 193, 7, 0.2);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .inspection-status.overdue {
+            background: rgba(220, 53, 69, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        /* Facility metrics dashboard */
+        .facility-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: var(--smart-dark-grey);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid var(--primary-blue);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(46, 134, 171, 0.3);
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            color: #B8B8B8;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .metric-change {
+            font-size: 0.8rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .metric-change.positive {
+            background: rgba(40, 167, 69, 0.2);
+            color: var(--success);
+        }
+
+        .metric-change.negative {
+            background: rgba(220, 53, 69, 0.2);
+            color: var(--danger);
+        }
+
+        /* Quick action buttons */
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .quick-action-btn {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            color: var(--white);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quick-action-btn:hover {
+            background: linear-gradient(135deg, var(--dark-blue), var(--primary-blue));
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(46, 134, 171, 0.4);
+        }
+
+        /* Priority indicators */
+        .priority-high {
+            border-left-color: var(--danger) !important;
+        }
+
+        .priority-medium {
+            border-left-color: var(--warning) !important;
+        }
+
+        .priority-low {
+            border-left-color: var(--success) !important;
+        }
+
+        /* Enhanced loading states */
+        .facility-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            color: #B8B8B8;
+        }
+
+        .facility-loading .loading {
+            margin-right: 15px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.8);
+        }
+
+        .modal-content {
+            background: var(--content-background);
+            margin: 5% auto;
+            padding: 30px;
+            border: 3px solid var(--primary-blue);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            color: var(--primary-blue);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .training-agreement {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .agreement-checkbox {
+            display: flex;
+            align-items: flex-start;
+            margin: 20px 0;
+            padding: 15px;
+            background: var(--smart-dark-grey);
+            border-radius: 8px;
+        }
+
+        .agreement-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 15px;
+            accent-color: var(--primary-blue);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        /* Accommodation Management Styles */
+        .setup-management-container {
+            background: var(--content-background);
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid var(--primary-blue);
+        }
+
+        .management-controls {
+            margin-bottom: 25px;
+        }
+
+        .unit-controls-bar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .units-count {
+            color: var(--primary-blue);
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .units-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .unit-item {
+            background: linear-gradient(145deg, #404040, #383838);
+            border: 2px solid rgba(46, 134, 171, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            font-weight: 600;
+            color: #E8E8E8;
+            transition: all 0.3s ease;
+            cursor: default;
+        }
+
+        .unit-item:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-2px);
+        }
+
+        .unit-item.remove-mode {
+            cursor: pointer;
+            border-color: #dc3545;
+        }
+
+        .unit-item.remove-mode:hover {
+            background: linear-gradient(145deg, #dc3545, #bd2130);
+            color: white;
+        }
+
+        .unit-code {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+
+        .unit-details-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-top: 5px;
+            padding-top: 5px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .unit-details-info small {
+            font-size: 0.7rem;
+            font-weight: 400;
+            color: #B8B8B8;
+            line-height: 1.3;
+        }
+
+        /* Dropdown Stats Styles */
+        .stats-section {
+            margin-top: 30px;
+            background: var(--smart-dark-grey);
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .stats-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .park-stats-dropdown {
+            background: linear-gradient(145deg, #404040, #383838);
+            border: 2px solid rgba(46, 134, 171, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .park-stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: linear-gradient(145deg, var(--content-background), #404040);
+            cursor: pointer;
+            list-style: none;
+            font-weight: 600;
+            color: #E8E8E8;
+            transition: all 0.3s ease;
+        }
+
+        .park-stats-header:hover {
+            background: linear-gradient(145deg, #4a4a4a, #424242);
+        }
+
+        .park-stats-header::marker {
+            display: none;
+        }
+
+        .park-name {
+            color: var(--primary-blue);
+        }
+
+        .unit-count {
+            color: #B8B8B8;
+            font-size: 0.9rem;
+        }
+
+        .park-stats-content {
+            padding: 20px;
+            background: #353535;
+        }
+
+        .stat-item {
+            margin-bottom: 15px;
+            color: #E8E8E8;
+        }
+
+        .stat-item strong {
+            color: var(--light-blue);
+        }
+
+        .stat-item ul {
+            margin-left: 20px;
+            margin-top: 5px;
+        }
+
+        .stat-item li {
+            color: #B8B8B8;
+            margin-bottom: 3px;
+        }
+
+        .sample-units {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .sample-unit-tag {
+            background: var(--primary-blue);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .more-units {
+            color: #888;
+            font-style: italic;
+            padding: 3px 8px;
+        }
+
+        /* Management responsive adjustments */
+        @media (max-width: 768px) {
+            .units-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 8px;
+            }
+            
+            .unit-controls-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .units-count {
+                margin-left: 0;
+                text-align: center;
+            }
+        }
+
+        /* Checklist Controls Styles */
+        .checklist-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .checklist-progress {
+            color: var(--primary-blue);
+            font-weight: 600;
+            margin-left: 10px;
+            padding: 6px 12px;
+            background: rgba(46, 134, 171, 0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(46, 134, 171, 0.3);
+        }
+
+        /* Enhanced checklist item styling */
+        .checklist-item {
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            padding-left: 15px;
+        }
+
+        .checklist-item.completed {
+            border-left-color: var(--success);
+            background: rgba(40, 167, 69, 0.1);
+        }
+
+        .checklist-item input[type="checkbox"]:checked + .checklist-label {
+            opacity: 0.8;
+        }
+
+        .checklist-item input[type="checkbox"]:checked + .checklist-label .checklist-title {
+            text-decoration: line-through;
+            color: var(--success);
+        }
+
+        /* Responsive checklist controls */
+        @media (max-width: 768px) {
+            .checklist-controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            
+            .checklist-controls button {
+                width: 100%;
+            }
+            
+            .checklist-progress {
+                margin-left: 0;
+                text-align: center;
+            }
+        }
+
+        /* Inspection History Styles */
+        .history-section {
+            background: var(--content-background);
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid var(--primary-blue);
+            margin-top: 30px;
+        }
+
+        .history-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .history-content {
+            background: var(--smart-dark-grey);
+            border-radius: 10px;
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: linear-gradient(145deg, #404040, #383838);
+            border: 1px solid rgba(46, 134, 171, 0.3);
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .history-item:hover {
+            border-color: var(--primary-blue);
+        }
+
+        .history-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .history-summary-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .history-summary-date {
+            color: var(--primary-blue);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .history-summary-initials {
+            background: var(--dark-blue);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .history-summary-units {
+            color: #B8B8B8;
+            font-size: 0.9rem;
+        }
+
+        .history-summary-status {
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .history-summary-status.complete {
+            background: rgba(40, 167, 69, 0.2);
+            color: #28a745;
+        }
+
+        .history-summary-status.incomplete {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+
+        .history-show-btn {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .history-show-btn:hover {
+            background: var(--dark-blue);
+        }
+
+        .history-details-expanded {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .history-details-expanded.visible {
+            display: block;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .history-title {
+            color: var(--primary-blue);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .history-date {
+            color: #B8B8B8;
+            font-size: 0.9rem;
+        }
+
+        .history-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .history-detail {
+            color: #E8E8E8;
+        }
+
+        .history-detail strong {
+            color: var(--light-blue);
+        }
+
+        .history-checks {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .check-badge {
+            background: var(--success);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .loading-message {
+            text-align: center;
+            color: #B8B8B8;
+            padding: 40px;
+            font-style: italic;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .history-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .history-details {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Pulse animation for action required badge */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                <span style="color: #FFFFFF;">cozzZ</span><span style="color: #DAA520;">stays</span><span style="color: #FFFFFF;">.pro</span>
+            </h1>
+            <div class="brand-line">Accommodation Management</div>
+            <div style="position: absolute; top: 10px; right: 15px; font-size: 0.8rem;">
+                <span id="systemStatus" style="color: #ccc;">System Status: Checking...</span>
+            </div>
+        </div>
+
+        <!-- User Information -->
+        <div class="user-info">
+            <h3>User Access Information</h3>
+            <div id="userAccessInfo">
+                <div class="loading"></div> Loading user information...
+            </div>
+            <div class="user-details" id="userDetails" style="display: none;">
+                <!-- User details will be populated here -->
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('inspection')">
+                Unit Changeover
+            </button>
+            <button class="nav-tab" onclick="showTab('setup')">
+                Accommodation Setup
+            </button>
+        </div>
+
+        <!-- Tab Contents -->
+        
+        <!-- Setup Tab -->
+        <div id="setup" class="tab-content">
+            <h2>Accommodation Setup & Configuration</h2>
+            <p>Configure accommodation units and facilities for your assigned holiday park location.</p>
+
+            <div id="setupContent">
+                <!-- Setup content will be populated based on user access -->
+            </div>
+            
+            <!-- Admin Reset Section -->
+            <div id="adminResetSection" style="display: none; margin-top: 40px; padding: 20px; background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); border-radius: 8px;">
+                <h3 style="color: #DC3545; margin-bottom: 15px;">⚠️ System Reset Tools (Admin Only)</h3>
+                <p style="color: #B8B8B8; margin-bottom: 15px;">Use these tools to clear cached data if units or configuration appear incorrect.</p>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <button type="button" class="btn" style="background: #DC3545; color: white;" onclick="resetAccommodationCache()">
+                        🗑️ Reset Unit Cache
+                    </button>
+                    <button type="button" class="btn" style="background: #FD7E14; color: white;" onclick="clearServiceWorkers()">
+                        🔄 Clear Service Workers
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="fullSystemReset()">
+                        ⚡ Full Reset & Reload
+                    </button>
+                </div>
+                <p style="color: #888; font-size: 0.85rem; margin-top: 15px;">Note: Full Reset will clear all cached data and reload the page.</p>
+            </div>
+        </div>
+
+        <!-- Inspection Tab -->
+        <div id="inspection" class="tab-content active">
+            <h2>Unit Changeover Safety Inspection</h2>
+            <p>Complete the comprehensive 9-point safety checklist for selected accommodation units during changeover.</p>
+
+            <!-- Admin Location Selection -->
+            <div id="adminLocationSelection" class="form-group" style="display: none;">
+                <label for="inspectionLocation">Select Inspection Location:</label>
+                <select id="inspectionLocation" class="form-control">
+                    <option value="">Choose a location...</option>
+                </select>
+            </div>
+
+            <!-- Location Info (Non-Admin Users) -->
+            <div id="locationInfo" class="alert alert-info" style="display: none;">
+                <strong>Inspection Location:</strong> <span id="userLocation"></span>
+            </div>
+
+            <!-- Inspection Form -->
+            <div id="inspectionForm" style="display: none;">
+                <form id="accommodationChangeoverForm">
+                    <div class="form-group">
+                        <label for="inspectionDate">Changeover Date:</label>
+                        <input type="date" id="inspectionDate" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="accommodationUnits">Accommodation Units:</label>
+                        <div class="unit-selection-container">
+                            <div class="unit-controls">
+                                <button type="button" id="selectAllUnits" class="btn btn-secondary">Select All</button>
+                                <button type="button" id="deselectAllUnits" class="btn btn-secondary">Deselect All</button>
+                                <span id="selectedCount" class="selected-count">0 units selected</span>
+                            </div>
+                            <div id="accommodationUnitsCheckboxes" class="units-checkbox-container">
+                                <!-- Unit checkboxes will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inspectorName">Inspector Name:</label>
+                        <input type="text" id="inspectorName" class="form-control" required readonly>
+                    </div>
+
+                    <!-- 9-Point Accommodation Safety Checklist -->
+                    <div class="inspection-checklist">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 style="color: var(--primary-blue); margin: 0;">9-Point Unit Changeover Safety Checklist</h3>
+                            <div class="checklist-controls">
+                                <button type="button" class="btn btn-secondary" onclick="selectAllChecks()" id="selectAllBtn">
+                                    Select All
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="deselectAllChecks()" id="deselectAllBtn">
+                                    Deselect All
+                                </button>
+                                <span id="checklistProgress" class="checklist-progress">0/9 completed</span>
+                            </div>
+                        </div>
+                        
+                        <!-- 1. Fire Safety Systems -->
+                        <div class="checklist-item" id="checkItem1">
+                            <input type="checkbox" id="check1" name="safetyChecks" value="fire_safety" onchange="toggleReasonField(1)">
+                            <div class="checklist-label">
+                                <div class="checklist-title">1. Fire Safety Systems</div>
+                                <div class="checklist-description">
+                                    Smoke alarms functional, fire extinguishers present and pressurized, escape routes clear and accessible, emergency lighting operational, fire blankets available where required.
+                                </div>
+                                <div class="unchecked-reason" id="reason1">
+                                    <label>⚠️ Please explain why this check was not completed:</label>
+                                    <textarea id="reasonText1" placeholder="Enter reason for not completing this safety check..." oninput="validateReasonField(1)"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Gas Safety Check -->
+                        <div class="checklist-item" id="checkItem2">
+                            <input type="checkbox" id="check2" name="safetyChecks" value="gas_safety" onchange="toggleReasonField(2)">
+                            <div class="checklist-label">
+                                <div class="checklist-title">2. Gas Safety Check</div>
+                                <div class="checklist-description">
+                                    LPG connections secure (interior and exterior), gas appliances operating correctly, ventilation adequate and unobstructed, carbon monoxide detectors functional, gas shut-off valves accessible, exterior gas bottle storage secure and compliant, no gas odors detected.
+                                </div>
+                                <div class="unchecked-reason" id="reason2">
+                                    <label>⚠️ Please explain why this check was not completed:</label>
+                                    <textarea id="reasonText2" placeholder="Enter reason for not completing this safety check..." oninput="validateReasonField(2)"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Electrical Safety -->
+                        <div class="checklist-item" id="checkItem3">
+                            <input type="checkbox" id="check3" name="safetyChecks" value="electrical_safety" onchange="toggleReasonField(3)">
+                            <div class="checklist-label">
+                                <div class="checklist-title">3. Electrical Safety</div>
+                                <div class="checklist-description">
+                                    RCD protection operational, interior and exterior sockets undamaged, interior and exterior lighting systems functional, exterior security lighting operational, PAT tested appliances safe, no overloading of circuits, exterior electrical connections weatherproof and secure.
+                                </div>
+                                <div class="unchecked-reason" id="reason3">
+                                    <label>⚠️ Please explain why this check was not completed:</label>
+                                    <textarea id="reasonText3" placeholder="Enter reason for not completing this safety check..." oninput="validateReasonField(3)"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. Water Systems -->
+                        <div class="checklist-item" id="checkItem4">
+                            <input type="checkbox" id="check4" name="safetyChecks" value="water_systems" onchange="toggleReasonField(4)">
+                            <div class="checklist-label">
+                                <div class="checklist-title">4. Water Systems</div>
+                                <div class="checklist-description">
+                                    Hot water temperature appropriate, water pressure adequate, no leaks visible internally or externally, exterior water taps and connections secure, Legionella controls in place, pressure relief valves functional, drainage systems clear and operational.
+                                </div>
+                                <div class="unchecked-reason" id="reason4">
+                                    <label>⚠️ Please explain why this check was not completed:</label>
+                                    <textarea id="reasonText4" placeholder="Enter reason for not completing this safety check..." oninput="validateReasonField(4)"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 5. Structural Safety -->
+                        <div class="checklist-item" id="checkItem5">
+                            <input type="checkbox" id="check5" name="safetyChecks" value="structural_safety" onchange="toggleReasonField(5)">
+                            <div class="checklist-label">
+                                <div class="checklist-title">5. Structural Safety</div>
+                                <div class="checklist-description">
+                                    Doors and windows secure and functional, exterior steps and decking stable and safe, handrails secure and properly fixed, door handles and locks operational, exterior door mats secure and non-slip, no structural damage visible to walls, roof, or foundations.
+                                </div>
+                                <div class="unchecked-reason" id="reason5">
+                                    <label>⚠️ Please explain why this check was not completed:</label>
+                                    <textarea id="reasonText5" placeholder="Enter reason for not completing this safety check..." oninput="validateReasonField(5)"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 6. Security Systems -->
+                        <div class="checklist-item" id="checkItem6">
+                            <input type="checkbox" id="check6" name="safetyChecks" value="security_systems" onchange="toggleReasonField(6)">
+                            <div class="checklist-label">
+                                <div class="checklist-title">6. Security Systems</div>
+                                <div class="checklist-description">
+                                    Entry controls functional, window and door locks secure, exterior security lighting operational, access routes well-lit and clear, safe storage areas secure, guest safety measures in place, exterior door handles and locks working properly.
+                                </div>
+                                <div class="unchecked-reason" id="reason6">
+                                    <label>⚠️ Please explain why this check was not completed:</label>
+                                    <textarea id="reasonText6" placeholder="Enter reason for not completing this safety check..." oninput="validateReasonField(6)"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 7. Emergency Equipment -->
+                        <div class="checklist-item" id="checkItem7">
+                            <input type="checkbox" id="check7" name="safetyChecks" value="emergency_equipment" onchange="toggleReasonField(7)">
+                            <div class="checklist-label">
+                                <div class="checklist-title">7. Emergency Equipment</div>
+                                <div class="checklist-description">
+                                    Emergency contact information displayed, communication devices functional, evacuation procedures posted.
+                                </div>
+                                <div class="unchecked-reason" id="reason7">
+                                    <label>⚠️ Please explain why this check was not completed:</label>
+                                    <textarea id="reasonText7" placeholder="Enter reason for not completing this safety check..." oninput="validateReasonField(7)"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 8. General Condition -->
+                        <div class="checklist-item" id="checkItem8">
+                            <input type="checkbox" id="check8" name="safetyChecks" value="general_condition" onchange="toggleReasonField(8)">
+                            <div class="checklist-label">
+                                <div class="checklist-title">8. General Condition</div>
+                                <div class="checklist-description">
+                                    Interior accommodation clean and presentable, exterior areas including decking, steps, and handrails in good condition, door mats clean and properly positioned, access routes clear and safe, exterior lighting functional, no maintenance issues visible inside or outside, guest welfare considerations met, all identified hazards removed or reported.
+                                </div>
+                                <div class="unchecked-reason" id="reason8">
+                                    <label>⚠️ Please explain why this check was not completed:</label>
+                                    <textarea id="reasonText8" placeholder="Enter reason for not completing this safety check..." oninput="validateReasonField(8)"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 9. Pest Control & Bug Indicators -->
+                        <div class="checklist-item" id="checkItem9">
+                            <input type="checkbox" id="check9" name="safetyChecks" value="pest_control" onchange="toggleReasonField(9)">
+                            <div class="checklist-label">
+                                <div class="checklist-title">9. Pest Control & Bug Indicators</div>
+                                <div class="checklist-description">
+                                    Bug indicator monitors checked and inspected for signs of activity, mattress and bed frame thoroughly inspected for bed bugs or other pests, mattress seams, piping, and tags examined, headboard and bed base checked, bedside furniture and drawers inspected, upholstered furniture examined, carpet edges and skirting boards checked, no evidence of pest activity or droppings found, all findings documented and reported if issues identified.
+                                </div>
+                                <div class="unchecked-reason" id="reason9">
+                                    <label>⚠️ Please explain why this check was not completed:</label>
+                                    <textarea id="reasonText9" placeholder="Enter reason for not completing this safety check..." oninput="validateReasonField(9)"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="additionalNotes">Additional Notes / Issues Identified:</label>
+                        <textarea id="additionalNotes" class="form-control" rows="4" placeholder="Document any issues, concerns, or maintenance requirements..."></textarea>
+                    </div>
+
+                    <!-- Action Required Section -->
+                    <div style="background: rgba(220, 53, 69, 0.1); border: 2px solid #DC3545; border-radius: 10px; padding: 15px; margin: 20px 0;">
+                        <label style="display: flex; align-items: center; cursor: pointer; color: var(--white);">
+                            <input type="checkbox" id="actionRequired" style="margin-right: 10px; transform: scale(1.3);">
+                            <span style="font-weight: 600;">⚠️ Action Required - Issue identified requiring follow-up</span>
+                        </label>
+                        <div id="actionDetails" class="hidden" style="margin-top: 15px;">
+                            <label style="color: #DC3545; font-weight: 600; margin-bottom: 8px; display: block;">Describe the Issue & Required Action:</label>
+                            <textarea id="actionNotes" class="form-control" rows="3" placeholder="Describe the issue and what action needs to be taken..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 30px;">
+                        <button type="submit" class="btn btn-success" style="flex: 1; min-width: 200px;">
+                            Complete and Submit Inspection
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Admin Download Section -->
+            <div id="adminDownloadSection" class="download-section" style="display: none;">
+                <h3 style="color: var(--primary-blue);">Admin Data Downloads</h3>
+                <p>Download comprehensive accommodation inspection and compliance data.</p>
+                <div class="download-buttons">
+                    <button class="btn" onclick="downloadAllData('completed')">
+                        Download Completed Inspections
+                    </button>
+                    <button class="btn btn-secondary" onclick="downloadAllData('incomplete')">
+                        Download Outstanding Inspections
+                    </button>
+                    <button class="btn btn-secondary" onclick="downloadAllData('all')">
+                        Download All Data
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Inspection History Viewer -->
+            <div id="inspectionHistorySection" class="history-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                    <h3 style="color: var(--primary-blue);">Recent Inspection History</h3>
+                    <div class="history-controls" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <select id="historyTimeFilter" class="form-control" style="width: 150px;" onchange="filterInspectionHistory()">
+                            <option value="24">Last 24 Hours</option>
+                            <option value="48">Last 48 Hours</option>
+                            <option value="all">All Time</option>
+                        </select>
+                        <select id="historyParkFilter" class="form-control" style="width: 200px;" onchange="filterInspectionHistory()">
+                            <option value="">All Parks</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="refreshInspectionHistory()">Refresh</button>
+                        <button class="btn btn-secondary" onclick="exportVisibleHistory()">Export Visible</button>
+                    </div>
+                </div>
+                
+                <div id="inspectionHistoryContent" class="history-content">
+                    <div class="loading-message">Loading inspection history...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Training Agreement Modal -->
+    <div id="trainingModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                Accommodation Services Training Agreement
+            </div>
+            <div class="training-agreement">
+                <h4 style="color: var(--light-blue); margin-bottom: 15px;">Training & Competency Declaration</h4>
+                <p style="line-height: 1.6; margin-bottom: 15px;">
+                    By submitting this accommodation safety inspection form, you hereby declare and confirm that:
+                </p>
+                <ul style="margin-left: 20px; line-height: 1.8; color: #B8B8B8;">
+                    <li>You have received appropriate training in accommodation services and safety procedures</li>
+                    <li>You are competent to perform accommodation safety inspections and identify hazards</li>
+                    <li>You understand the fire safety, gas safety, electrical safety, and water safety requirements</li>
+                    <li>You will report any safety concerns or maintenance issues immediately</li>
+                    <li>You acknowledge responsibility for guest safety and regulatory compliance</li>
+                    <li>You will follow all safe working procedures and emergency protocols</li>
+                </ul>
+                <p style="margin-top: 15px; font-weight: 600; color: var(--light-blue);">
+                    This declaration ensures compliance with health and safety regulations and protects both guests and staff.
+                </p>
+            </div>
+            <div class="agreement-checkbox">
+                <input type="checkbox" id="trainingAgreement">
+                <label for="trainingAgreement" style="color: #E8E8E8; line-height: 1.6;">
+                    <strong>I agree that I am trained in the accommodation services department</strong> and understand my responsibilities for accommodation safety inspections and guest welfare.
+                </label>
+            </div>
+            <div class="form-group" style="margin-top: 20px; margin-bottom: 20px;">
+                <label for="inspectorInitials" style="color: #E8E8E8; font-weight: 600; display: block; margin-bottom: 8px;">
+                    Enter Your Initials to Confirm <span style="color: var(--danger);">*</span>
+                </label>
+                <input type="text" id="inspectorInitials" class="form-control" 
+                       placeholder="e.g., JS, AB, etc." 
+                       maxlength="5" 
+                       style="max-width: 150px; text-transform: uppercase; font-weight: bold; font-size: 1.2rem; text-align: center;"
+                       oninput="validateInitialsInput()">
+                <small style="color: var(--medium-gray); display: block; margin-top: 5px;">
+                    Your initials will be recorded with this inspection submission.
+                </small>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="cancelSubmission()">Cancel</button>
+                <button class="btn btn-success" onclick="confirmSubmission()" id="confirmSubmitBtn" disabled>
+                    Confirm & Submit Inspection
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let userAccessLevel = null;
+        let accommodationData = {};
+        let pendingSubmission = null;
+
+        // Highland Holiday Parks Accommodation Data
+        const ACCOMMODATION_CONFIG = {
+            'Ben Nevis Holiday Park': {
+                units: [],
+                facilities: ['Fire Safety Systems', 'Gas Safety (LPG)', 'Electrical Systems (RCD)', 'Water Systems', 'Hot Tub Facilities', 'Central Heating', 'Full Kitchen', 'Private Bathroom', 'WiFi'],
+                totalUnits: 0
+            },
+            'Tyndrum Holiday Park': {
+                units: [],
+                facilities: ['Fire Safety Systems', 'Gas Safety (LPG)', 'Electrical Systems', 'Water Systems', 'Hot Tub Facilities', 'Basic Kitchen', 'Shared/Private Facilities', 'WiFi'],
+                totalUnits: 0
+            },
+            'Oban Holiday Park': {
+                units: [],
+                facilities: ['Fire Safety Systems', 'Gas Safety (LPG)', 'Electrical Systems (RCD)', 'Water Systems', 'Hot Tub Facilities', 'Kitchen Facilities', 'Private/Shared Bathrooms', 'Electric Hook-up', 'WiFi'],
+                totalUnits: 0
+            },
+            'Overburns Farm': {
+                units: ['OVBFUN1'],
+                facilities: ['Fire Safety Systems', 'Gas Safety', 'Electrical Systems', 'Water Systems', 'Farm Accommodation Facilities'],
+                totalUnits: 1
+            }
+        };
+
+        // Park-Specific Facility Configuration
+        const FACILITY_CONFIG = {
+            'Ben Nevis Holiday Park': {
+                laundry: {
+                    name: 'Fully Working Laundry Facility',
+                    description: 'Central laundry facility serving all Highland Holiday Parks',
+                    areas: ['Industrial Washing Area', 'Commercial Drying Section', 'Sorting and Folding Area', 'Chemical Storage Room', 'Staff Rest Area'],
+                    equipment: ['6x Industrial Washing Machines', '4x Commercial Tumble Dryers', '2x Steam Press Units', 'Chemical Dosing System', 'Industrial Extractor Fans']
+                },
+                reception: {
+                    name: 'Main Reception Area',
+                    description: 'Primary guest reception and check-in facility',
+                    areas: ['Reception Desk', 'Waiting Area', 'Information Display Zone', 'Staff Office Area'],
+                    equipment: ['Reception Computer System', 'Card Payment Terminal', 'Key Management System', 'CCTV Monitoring', 'Emergency Communication']
+                },
+                office: {
+                    name: 'Administrative Office Block',
+                    description: 'Main administrative and management offices',
+                    areas: ['Management Office', 'Administrative Workspace', 'Staff Meeting Room', 'Document Storage', 'IT Server Room'],
+                    equipment: ['Multiple Computer Workstations', 'Printer/Scanner Equipment', 'Filing Systems', 'Network Infrastructure', 'Phone System']
+                },
+                ablution: {
+                    name: 'Main Ablution Block',
+                    description: 'Central ablution facilities for guest accommodation',
+                    areas: ['Male Shower Area', 'Female Shower Area', 'Family Shower Rooms', 'Accessibility Shower'],
+                    equipment: ['Thermostatic Shower Valves', 'Commercial Water Heaters', 'Extractor Fan Systems', 'Emergency Lighting']
+                },
+                toilet: {
+                    name: 'Toilet Block Facilities',
+                    description: 'Additional toilet facilities throughout the park',
+                    areas: ['Male Toilet Block', 'Female Toilet Block', 'Disabled Access Toilet', 'Baby Changing Facilities'],
+                    equipment: ['Automatic Flush Systems', 'Hand Dryers', 'Soap Dispensers', 'Emergency Call Systems']
+                },
+                washing: {
+                    name: 'Guest Washing Machine Area',
+                    description: 'Self-service washing facilities for guests',
+                    areas: ['Washing Machine Bay', 'Utility Sink Area', 'Drying Rack Space'],
+                    equipment: ['Coin-Operated Washing Machines', 'Utility Sinks', 'Folding Tables', 'Vending Machine']
+                }
+            },
+            'Tyndrum Holiday Park': {
+                laundry: {
+                    name: 'Combined Washing Machine Facility',
+                    description: 'Integrated washing facility within ablution block',
+                    areas: ['Guest Washing Area', 'Utility Section'],
+                    equipment: ['2x Coin-Operated Washing Machines', 'Utility Sink', 'Drying Area']
+                },
+                reception: {
+                    name: 'Combined Office and Reception',
+                    description: 'Multi-purpose reception and administrative area',
+                    areas: ['Reception/Office Desk', 'Guest Seating Area', 'Storage Section'],
+                    equipment: ['Computer Terminal', 'Payment System', 'Phone/Communication', 'Filing Cabinet']
+                },
+                office: {
+                    name: 'Combined Office and Reception',
+                    description: 'Shared office and reception space',
+                    areas: ['Administrative Desk Area', 'Reception Counter', 'Document Storage'],
+                    equipment: ['Dual-Purpose Workstation', 'Printer/Scanner', 'Communication Systems', 'Key Storage']
+                },
+                ablution: {
+                    name: 'Main Ablution Block with Washing Facility',
+                    description: 'Combined ablution and washing machine facility',
+                    areas: ['Shower Cubicles', 'Washing Machine Area', 'General Facilities'],
+                    equipment: ['Thermostatic Showers', 'Washing Machines', 'Water Heating System', 'Ventilation']
+                },
+                toilet: {
+                    name: 'Toilet Facilities',
+                    description: 'Toilet facilities within the ablution block',
+                    areas: ['Male Facilities', 'Female Facilities', 'Family Area'],
+                    equipment: ['Standard Toilet Fixtures', 'Hand Washing Facilities', 'Hand Dryers']
+                }
+            },
+            'Oban Holiday Park': {
+                laundry: {
+                    name: 'Laundry Store',
+                    description: 'Dedicated laundry storage and processing area',
+                    areas: ['Laundry Storage Room', 'Sorting Area', 'Supply Storage'],
+                    equipment: ['Commercial Washing Equipment', 'Storage Shelving', 'Sorting Tables', 'Chemical Storage']
+                },
+                reception: {
+                    name: 'Combined Office and Reception',
+                    description: 'Multi-function reception and office space',
+                    areas: ['Reception Desk', 'Office Workspace', 'Customer Seating'],
+                    equipment: ['Reception Computer', 'Payment Terminal', 'Communication System', 'Filing Systems']
+                },
+                office: {
+                    name: 'Combined Office and Reception',
+                    description: 'Shared administrative and reception facility',
+                    areas: ['Administrative Area', 'Reception Counter', 'Storage Space'],
+                    equipment: ['Office Computer Systems', 'Printer Equipment', 'Phone Systems', 'Document Storage']
+                },
+                ablution: {
+                    name: '3 Ablution Blocks',
+                    description: 'Multiple ablution facilities throughout the park',
+                    areas: ['Ablution Block 1', 'Ablution Block 2', 'Ablution Block 3', 'Accessibility Features'],
+                    equipment: ['Multiple Shower Systems', 'Water Heating Equipment', 'Ventilation Systems', 'Emergency Lighting']
+                },
+                toilet: {
+                    name: 'Multiple Toilet Block Facilities',
+                    description: 'Toilet facilities across the park sites',
+                    areas: ['Primary Toilet Block', 'Secondary Facilities', 'Accessibility Toilets'],
+                    equipment: ['Standard Fixtures', 'Hand Washing Stations', 'Paper Dispensers', 'Hand Dryers']
+                }
+            },
+            'Overburns Farm': {
+                laundry: {
+                    name: 'Basic Washing Facilities',
+                    description: 'Simple washing facility for farm accommodation',
+                    areas: ['Utility Room'],
+                    equipment: ['Domestic Washing Machine', 'Utility Sink', 'Drying Area']
+                },
+                reception: {
+                    name: 'Farm Reception Area',
+                    description: 'Simple reception area for farm guests',
+                    areas: ['Reception Desk', 'Information Area'],
+                    equipment: ['Basic Computer Terminal', 'Communication System']
+                },
+                office: {
+                    name: 'Farm Office',
+                    description: 'Administrative office for farm operations',
+                    areas: ['Office Desk Area', 'Storage Space'],
+                    equipment: ['Computer Workstation', 'Filing Cabinet', 'Phone System']
+                },
+                ablution: {
+                    name: 'Farm Ablution Facilities',
+                    description: 'Basic ablution facilities for farm accommodation',
+                    areas: ['Shower Area', 'Washroom'],
+                    equipment: ['Standard Shower', 'Water Heating', 'Basic Ventilation']
+                },
+                toilet: {
+                    name: 'Farm Toilet Facilities',
+                    description: 'Basic toilet facilities',
+                    areas: ['Toilet Area', 'Hand Washing'],
+                    equipment: ['Standard Toilet', 'Hand Basin', 'Basic Fixtures']
+                }
+            }
+        };
+
+        // Authentication and Access Control
+        async function checkAuthentication() {
+            try {
+                // Get session data set by main index.html
+                const sessionUser = sessionStorage.getItem('currentUser');
+                const sessionPark = sessionStorage.getItem('currentPark');
+                const sessionAccessCode = sessionStorage.getItem('currentAccessCode');
+                const sessionAccessLevel = sessionStorage.getItem('userAccessLevel');
+                
+                if (!sessionUser || !sessionPark || !sessionAccessCode) {
+                    console.log('Missing session data - please login through main dashboard');
+                    showMessage('Please log in through the main SafeSystems.PRO dashboard.', 'warning');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 2000);
+                    return false;
+                }
+                
+                // Create user object from session data
+                currentUser = {
+                    name: sessionUser,
+                    park: sessionPark,  // Include the park from session
+                    accessCode: sessionAccessCode,
+                    role: sessionAccessLevel === 'admin' ? 'admin' : 'user',
+                    level: sessionAccessLevel === 'admin' ? 'admin' : 'basic'
+                };
+                
+                // Determine user access level
+                userAccessLevel = determineUserAccessLevel(currentUser);
+                
+                console.log('Authentication verified for:', currentUser.name);
+                console.log('Access Level:', userAccessLevel);
+                
+                updateUserInterface();
+                return true;
+                
+            } catch (error) {
+                console.error('Authentication error:', error);
+                showMessage('Authentication error. Please log in again.', 'danger');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+                return false;
+            }
+        }
+
+        function determineUserAccessLevel(user) {
+            const accessCode = (user.accessCode || '').toUpperCase();
+            const sessionPark = user.park || '';
+            console.log('Determining access level for code:', accessCode, 'park:', sessionPark);
+            
+            // Master Admin access - ONLY CQR365SPP25
+            if (accessCode === 'CQR365SPP25') {
+                return {
+                    level: 'admin',
+                    description: 'SafeSystems.PRO Administrator',
+                    role: 'admin',
+                    parks: Object.keys(ACCOMMODATION_CONFIG),
+                    accessCode: 'SECURE'
+                };
+            }
+            
+            // HR access - HRALL2025
+            if (accessCode === 'HRALL2025') {
+                return {
+                    level: 'hr',
+                    description: 'HR Administrator',
+                    role: 'hr_admin',
+                    parks: Object.keys(ACCOMMODATION_CONFIG),
+                    accessCode: 'SECURE'
+                };
+            }
+            
+            // Park-specific access determination
+            const parkMappings = {
+                'Ben Nevis Holiday Park': {
+                    codes: ['BN2025HH', 'BN'],
+                    name: 'Ben Nevis Holiday Park'
+                },
+                'Tyndrum Holiday Park': {
+                    codes: ['TY2025HH', 'TY'],
+                    name: 'Tyndrum Holiday Park'
+                },
+                'Oban Holiday Park': {
+                    codes: ['OB2025HH', 'OB'],
+                    name: 'Oban Holiday Park'
+                }
+                // Overburns Farm - Admin access only (CQR365SPP25)
+            };
+            
+            // Check access code against park mappings FIRST
+            for (const [parkKey, parkData] of Object.entries(parkMappings)) {
+                for (const code of parkData.codes) {
+                    if (accessCode === code.toUpperCase()) {
+                        return {
+                            level: 'park',
+                            description: `${parkData.name} Team Member`,
+                            role: 'team_member',
+                            parks: [parkData.name],
+                            accessCode: 'SECURE'
+                        };
+                    }
+                }
+            }
+            
+            // Then check if sessionPark matches a known park
+            if (sessionPark && ACCOMMODATION_CONFIG[sessionPark]) {
+                return {
+                    level: 'park',
+                    description: `${sessionPark} Team Member`,
+                    role: 'team_member',
+                    parks: [sessionPark],
+                    accessCode: 'SECURE'
+                };
+            }
+            
+            // Default access if no specific park found
+            return {
+                level: 'basic',
+                description: 'Accommodation Team Member',
+                role: 'team_member',
+                parks: [],
+                accessCode: 'SECURE'
+            };
+        }
+
+        // Enhanced Firebase Data Manager with localStorage backup
+        const FirebaseDataManager = {
+            async saveInspectionData(data) {
+                console.log('Saving inspection data:', data);
+                
+                try {
+                    let docId = null;
+                    
+                    // Try Firebase first if available
+                    if (window.firebaseDb && window.firebaseInitialized) {
+                        try {
+                            const docRef = await window.firebaseDb.collection('accommodation_inspections').add({
+                                ...data,
+                                submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                            docId = docRef.id;
+                            console.log('Data saved to Firebase with ID:', docId);
+                        } catch (firebaseError) {
+                            console.error('Firebase save failed:', firebaseError);
+                        }
+                    }
+                    
+                    // Always save to localStorage as backup
+                    const localData = JSON.parse(localStorage.getItem('accommodation_inspections') || '[]');
+                    const localItem = {
+                        ...data,
+                        id: docId || 'local_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                        submittedAt: new Date().toISOString(),
+                        source: docId ? 'firebase' : 'local'
+                    };
+                    
+                    localData.push(localItem);
+                    localStorage.setItem('accommodation_inspections', JSON.stringify(localData));
+                    console.log('Data saved to localStorage with ID:', localItem.id);
+                    
+                    return localItem.id;
+                    
+                } catch (error) {
+                    console.error('Error saving data:', error);
+                    throw error;
+                }
+            },
+
+            async getAllInspectionData() {
+                console.log('Retrieving all inspection data...');
+                
+                let allData = [];
+                
+                try {
+                    // Try Firebase first if available
+                    if (window.firebaseDb && window.firebaseInitialized) {
+                        try {
+                            const snapshot = await window.firebaseDb.collection('accommodation_inspections')
+                                .orderBy('submittedAt', 'desc')
+                                .get();
+                            
+                            const firebaseData = snapshot.docs.map(doc => ({
+                                id: doc.id,
+                                ...doc.data(),
+                                submittedAt: doc.data().submittedAt?.toDate()?.toISOString(),
+                                source: 'firebase'
+                            }));
+                            
+                            allData = firebaseData;
+                            console.log(`Retrieved ${firebaseData.length} records from Firebase`);
+                        } catch (firebaseError) {
+                            console.error('Firebase retrieval failed:', firebaseError);
+                        }
+                    }
+                    
+                    // Get localStorage data
+                    const localData = JSON.parse(localStorage.getItem('accommodation_inspections') || '[]');
+                    console.log(`Retrieved ${localData.length} records from localStorage`);
+                    
+                    // Merge data - prefer Firebase data, add local-only data
+                    localData.forEach(localItem => {
+                        if (!allData.find(item => item.id === localItem.id)) {
+                            allData.push(localItem);
+                        }
+                    });
+                    
+                    // Sort by submittedAt
+                    allData.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+                    
+                    console.log(`Total ${allData.length} unique records available`);
+                    return allData;
+                    
+                } catch (error) {
+                    console.error('Error retrieving data:', error);
+                    // Fallback to localStorage only
+                    const localData = JSON.parse(localStorage.getItem('accommodation_inspections') || '[]');
+                    return localData.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+                }
+            }
+        };
+
+        // UI Management Functions
+        function updateUserInterface() {
+            // Update user access info
+            const userAccessInfo = document.getElementById('userAccessInfo');
+            userAccessInfo.innerHTML = `
+                <div style="color: var(--light-blue); font-weight: 600; margin-bottom: 10px;">
+                    Authentication Verified - Welcome ${currentUser.name}
+                </div>
+                <div style="color: #B8B8B8;">
+                    Access Level: ${userAccessLevel.description}<br>
+                    Role: ${userAccessLevel.role.replace('_', ' ').toUpperCase()}
+                </div>
+            `;
+
+            // Show user details
+            const userDetails = document.getElementById('userDetails');
+            userDetails.innerHTML = `
+                <div class="user-detail">
+                    <strong>Name:</strong>
+                    ${currentUser.name}
+                </div>
+                <div class="user-detail">
+                    <strong>Access Level:</strong>
+                    ${userAccessLevel.description}
+                </div>
+                <div class="user-detail">
+                    <strong>Authorized Locations:</strong>
+                    ${userAccessLevel.parks.join(', ')}
+                </div>
+                <div class="user-detail">
+                    <strong>System Role:</strong>
+                    ${userAccessLevel.role.replace('_', ' ').toUpperCase()}
+                </div>
+            `;
+            userDetails.style.display = 'grid';
+
+            // Setup location-specific interface
+            setupLocationInterface();
+            
+            // Setup form content for accommodation management
+            setupFormContent();
+            
+            // Show admin features if applicable
+            if (userAccessLevel.level === 'admin') {
+                document.getElementById('adminDownloadSection').style.display = 'block';
+                document.getElementById('adminResetSection').style.display = 'block';
+            }
+        }
+
+        function setupLocationInterface() {
+            const adminLocationSelection = document.getElementById('adminLocationSelection');
+            const locationInfo = document.getElementById('locationInfo');
+            const inspectionForm = document.getElementById('inspectionForm');
+
+            if (userAccessLevel.level === 'admin') {
+                // Admin can select any location
+                const locationSelect = document.getElementById('inspectionLocation');
+                locationSelect.innerHTML = '<option value="">Choose a location...</option>';
+                
+                userAccessLevel.parks.forEach(park => {
+                    const option = document.createElement('option');
+                    option.value = park;
+                    option.textContent = park;
+                    locationSelect.appendChild(option);
+                });
+
+                locationSelect.addEventListener('change', function() {
+                    if (this.value) {
+                        populateAccommodationUnits(this.value);
+                        inspectionForm.style.display = 'block';
+                        document.getElementById('inspectorName').value = currentUser.name;
+                        document.getElementById('inspectionDate').value = new Date().toISOString().split('T')[0];
+                        // Initialize checklist listeners when form is shown
+                        setTimeout(initializeChecklistListeners, 100);
+                    } else {
+                        inspectionForm.style.display = 'none';
+                    }
+                });
+
+                adminLocationSelection.style.display = 'block';
+            } else {
+                // Regular users see their assigned location
+                const userLocation = userAccessLevel.parks[0];
+                document.getElementById('userLocation').textContent = userLocation;
+                locationInfo.style.display = 'block';
+                
+                populateAccommodationUnits(userLocation);
+                inspectionForm.style.display = 'block';
+                document.getElementById('inspectorName').value = currentUser.name;
+                document.getElementById('inspectionDate').value = new Date().toISOString().split('T')[0];
+                // Initialize checklist listeners when form is shown
+                setTimeout(initializeChecklistListeners, 100);
+            }
+
+            // Setup form content based on access
+            setupFormContent();
+        }
+
+        function setupFormContent() {
+            const setupContent = document.getElementById('setupContent');
+            
+            const availableParks = userAccessLevel.parks;
+            
+            setupContent.innerHTML = `
+                <div class="setup-management-container">
+                    <h3>Accommodation Units Management</h3>
+                    
+                    <!-- Park Selection for Unit Management -->
+                    <div class="form-group">
+                        <label for="managementParkSelect">Select Park for Unit Management:</label>
+                        <select id="managementParkSelect" class="form-control" onchange="loadParkUnitsManagement(this.value)">
+                            <option value="">Choose a park...</option>
+                            ${availableParks.map(parkName => 
+                                `<option value="${parkName}">${parkName}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                    
+                    <!-- Park Info Display -->
+                    <div id="parkInfoDisplay" style="display: none;" class="alert alert-info">
+                        <div id="parkInfoContent">
+                            <!-- Park info will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Unit Management Section -->
+                    <div id="unitManagementSection" style="display: none;">
+                        <div class="management-controls">
+                            <h4>Current Accommodation Units</h4>
+                            <div class="unit-controls-bar">
+                                <button type="button" class="btn btn-secondary" onclick="showAddUnitForm()">Add New Unit</button>
+                                <button type="button" class="btn btn-danger" onclick="toggleRemoveMode()">Remove Units</button>
+                                <span id="unitsCount" class="units-count">0 units total</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Add Unit Form -->
+                        <div id="addUnitForm" style="display: none;" class="form-section">
+                            <h4>Add New Accommodation Unit</h4>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="newUnitCode">Unit Code/Name: <span style="color: var(--danger);">*</span></label>
+                                    <input type="text" id="newUnitCode" class="form-control" placeholder="e.g., HP04, BNL9, Thistle, etc." maxlength="30">
+                                </div>
+                                <div class="form-group">
+                                    <label for="unitType">Unit Type: <span style="color: var(--danger);">*</span></label>
+                                    <select id="unitType" class="form-control">
+                                        <option value="static">Static Caravan</option>
+                                        <option value="lodge">Lodge</option>
+                                        <option value="cottage">Holiday Cottage</option>
+                                        <option value="apartment">Apartment</option>
+                                        <option value="pitch">Touring Pitch</option>
+                                        <option value="pod">Glamping Pod</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="unitMake">Unit Make/Manufacturer:</label>
+                                    <input type="text" id="unitMake" class="form-control" placeholder="e.g., Willerby, ABI, Swift, etc." maxlength="50">
+                                </div>
+                                <div class="form-group">
+                                    <label for="unitBedrooms">Number of Bedrooms:</label>
+                                    <select id="unitBedrooms" class="form-control">
+                                        <option value="">Select...</option>
+                                        <option value="1">1 Bedroom</option>
+                                        <option value="2">2 Bedrooms</option>
+                                        <option value="3">3 Bedrooms</option>
+                                        <option value="4">4 Bedrooms</option>
+                                        <option value="5">5 Bedrooms</option>
+                                        <option value="6">6+ Bedrooms</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="unitSleeps">Sleeps (Max Occupancy):</label>
+                                    <select id="unitSleeps" class="form-control">
+                                        <option value="">Select...</option>
+                                        <option value="2">2 Guests</option>
+                                        <option value="3">3 Guests</option>
+                                        <option value="4">4 Guests</option>
+                                        <option value="5">5 Guests</option>
+                                        <option value="6">6 Guests</option>
+                                        <option value="7">7 Guests</option>
+                                        <option value="8">8 Guests</option>
+                                        <option value="9">9 Guests</option>
+                                        <option value="10">10+ Guests</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="button-group">
+                                <button type="button" class="btn" onclick="addNewUnit()">Add Unit</button>
+                                <button type="button" class="btn btn-secondary" onclick="hideAddUnitForm()">Cancel</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Units List -->
+                        <div id="unitsListContainer">
+                            <div id="unitsList" class="units-grid">
+                                <!-- Units will be populated here -->
+                            </div>
+                        </div>
+                        
+                        <!-- Remove Mode Instructions -->
+                        <div id="removeModeInstructions" style="display: none;" class="alert alert-warning">
+                            <strong>Remove Mode Active:</strong> Click on any unit to remove it. Click "Exit Remove Mode" when finished.
+                            <button type="button" class="btn btn-secondary" onclick="exitRemoveMode()" style="margin-left: 10px;">Exit Remove Mode</button>
+                        </div>
+                    </div>
+                    
+                    <!-- System Statistics -->
+                    <div id="systemStats" class="stats-section">
+                        <h4>System Overview</h4>
+                        <div class="stats-grid">
+                            ${availableParks.map(parkName => {
+                                const config = ACCOMMODATION_CONFIG[parkName];
+                                return `
+                                    <details class="park-stats-dropdown">
+                                        <summary class="park-stats-header">
+                                            <span class="park-name">${parkName}</span>
+                                            <span class="unit-count">${config.totalUnits} units</span>
+                                        </summary>
+                                        <div class="park-stats-content">
+                                            <div class="stat-item">
+                                                <strong>Total Units:</strong> ${config.totalUnits}
+                                            </div>
+                                            <div class="stat-item">
+                                                <strong>Facilities:</strong> 
+                                                <ul>
+                                                    ${config.facilities.map(facility => `<li>${facility}</li>`).join('')}
+                                                </ul>
+                                            </div>
+                                            <div class="stat-item">
+                                                <strong>Sample Units:</strong>
+                                                <div class="sample-units">
+                                                    ${config.units.slice(0, 8).map(unit => 
+                                                        `<span class="sample-unit-tag">${unit}</span>`
+                                                    ).join('')}
+                                                    ${config.units.length > 8 ? `<span class="more-units">+${config.units.length - 8} more</span>` : ''}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </details>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Initialize unit management state
+            window.removeMode = false;
+            window.currentManagedPark = null;
+        }
+
+        function populateAccommodationUnits(parkName) {
+            const config = ACCOMMODATION_CONFIG[parkName];
+            if (!config) return;
+
+            const container = document.getElementById('accommodationUnitsCheckboxes');
+            container.innerHTML = '';
+
+            config.units.forEach(unit => {
+                const item = document.createElement('div');
+                item.className = 'unit-checkbox-item';
+                item.innerHTML = `
+                    <input type="checkbox" id="unit_${unit}" name="accommodationUnits" value="${unit}">
+                    <label for="unit_${unit}">${unit}</label>
+                `;
+                container.appendChild(item);
+            });
+
+            // Add event listeners to update count
+            const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateSelectedCount);
+            });
+
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const selected = document.querySelectorAll('input[name="accommodationUnits"]:checked').length;
+            document.getElementById('selectedCount').textContent = `${selected} units selected`;
+        }
+
+        function selectAllUnits() {
+            const checkboxes = document.querySelectorAll('input[name="accommodationUnits"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            updateSelectedCount();
+        }
+
+        function deselectAllUnits() {
+            const checkboxes = document.querySelectorAll('input[name="accommodationUnits"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateSelectedCount();
+        }
+
+        // Tab Management
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Remove active class from all nav tabs
+            const navTabs = document.querySelectorAll('.nav-tab');
+            navTabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked nav tab
+            event.target.classList.add('active');
+
+            // Initialize facility content if facilities tab is shown
+            if (tabName === 'facilities') {
+                initializeFacilityContent();
+            }
+        }
+
+        // Facility Management Functions
+        function showFacilityTab(facilityType) {
+            // Hide all facility tab contents
+            const facilityContents = document.querySelectorAll('.facility-tab-content');
+            facilityContents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Remove active class from all facility nav tabs
+            const facilityNavTabs = document.querySelectorAll('.facility-nav-tab');
+            facilityNavTabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected facility tab
+            document.getElementById(facilityType).classList.add('active');
+            
+            // Add active class to clicked facility nav tab
+            event.target.classList.add('active');
+
+            // Populate facility-specific content
+            populateFacilityContent(facilityType);
+        }
+
+        function initializeFacilityContent() {
+            // Initialize with laundry tab active
+            populateFacilityContent('laundry');
+        }
+
+        function populateFacilityContent(facilityType) {
+            // Get user's accessible parks
+            const accessibleParks = userAccessLevel ? userAccessLevel.parks : Object.keys(FACILITY_CONFIG);
+            
+            // Populate content for each park's facilities
+            accessibleParks.forEach(parkName => {
+                const facilityConfig = FACILITY_CONFIG[parkName];
+                if (facilityConfig && facilityConfig[facilityType]) {
+                    updateFacilityParkContent(facilityType, parkName, facilityConfig[facilityType]);
+                }
+            });
+        }
+
+        function updateFacilityParkContent(facilityType, parkName, facilityInfo) {
+            const contentId = `${facilityType}ParkContent`;
+            let container = document.getElementById(contentId);
+            
+            if (!container) return;
+
+            // Clear existing content
+            container.innerHTML = '';
+
+            // Create park-specific facility information
+            const parkFacilityDiv = document.createElement('div');
+            parkFacilityDiv.className = 'park-facility-info';
+            parkFacilityDiv.innerHTML = `
+                <h4>${parkName} - ${facilityInfo.name}</h4>
+                <p style="color: #B8B8B8; margin-bottom: 15px;">${facilityInfo.description}</p>
+                
+                <div class="facility-list">
+                    <div class="facility-item">
+                        <strong>Areas:</strong>
+                        <span>${facilityInfo.areas.join(', ')}</span>
+                    </div>
+                    <div class="facility-item">
+                        <strong>Equipment:</strong>
+                        <span>${facilityInfo.equipment.join(', ')}</span>
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(parkFacilityDiv);
+
+            // Add inspection form if user has access to this park
+            if (userAccessLevel && userAccessLevel.parks.includes(parkName)) {
+                addFacilityInspectionForm(container, facilityType, parkName, facilityInfo);
+            }
+        }
+
+        function addFacilityInspectionForm(container, facilityType, parkName, facilityInfo) {
+            const inspectionForm = document.createElement('div');
+            inspectionForm.className = 'facility-inspection-form';
+            inspectionForm.innerHTML = `
+                <div style="background: var(--smart-dark-grey); padding: 20px; border-radius: 10px; margin-top: 20px; border: 2px solid var(--success);">
+                    <h4 style="color: var(--success); margin-bottom: 15px;">Quick Facility Inspection</h4>
+                    <form class="facility-inspection" data-facility="${facilityType}" data-park="${parkName}">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                            <div class="form-group">
+                                <label style="color: var(--light-blue);">Inspection Date:</label>
+                                <input type="date" class="form-control facility-date" value="${new Date().toISOString().split('T')[0]}" required>
+                            </div>
+                            <div class="form-group">
+                                <label style="color: var(--light-blue);">Inspector:</label>
+                                <input type="text" class="form-control facility-inspector" value="${currentUser ? currentUser.name : ''}" required readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="facility-checklist">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                                <label class="facility-check-item">
+                                    <input type="checkbox" required> Safety systems operational
+                                </label>
+                                <label class="facility-check-item">
+                                    <input type="checkbox" required> Cleanliness standards met
+                                </label>
+                                <label class="facility-check-item">
+                                    <input type="checkbox" required> Equipment functioning properly
+                                </label>
+                                <label class="facility-check-item">
+                                    <input type="checkbox" required> No safety hazards identified
+                                </label>
+                                <label class="facility-check-item">
+                                    <input type="checkbox" required> Emergency procedures accessible
+                                </label>
+                                <label class="facility-check-item">
+                                    <input type="checkbox" required> Maintenance up to date
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 20px;">
+                            <label style="color: var(--light-blue);">Additional Notes:</label>
+                            <textarea class="form-control facility-notes" rows="3" placeholder="Any issues or observations..."></textarea>
+                        </div>
+
+                        <div style="display: flex; gap: 15px; margin-top: 20px;">
+                            <button type="button" class="btn btn-danger" onclick="flagFacilityMaintenance(this)">
+                                Flag Maintenance Issue
+                            </button>
+                            <button type="submit" class="btn btn-success">
+                                Submit Facility Inspection
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+
+            container.appendChild(inspectionForm);
+
+            // Add form submission handler
+            const form = inspectionForm.querySelector('.facility-inspection');
+            form.addEventListener('submit', handleFacilityInspectionSubmission);
+        }
+
+        function handleFacilityInspectionSubmission(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const facilityType = form.dataset.facility;
+            const parkName = form.dataset.park;
+            
+            // Gather form data
+            const inspectionData = {
+                id: `FAC_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                facilityType: facilityType,
+                parkName: parkName,
+                date: form.querySelector('.facility-date').value,
+                inspector: form.querySelector('.facility-inspector').value,
+                inspectorRole: userAccessLevel.description,
+                checksCompleted: form.querySelectorAll('input[type="checkbox"]:checked').length,
+                totalChecks: form.querySelectorAll('input[type="checkbox"]').length,
+                allChecksCompleted: form.querySelectorAll('input[type="checkbox"]:checked').length === form.querySelectorAll('input[type="checkbox"]').length,
+                additionalNotes: form.querySelector('.facility-notes').value,
+                submittedAt: new Date().toISOString()
+            };
+
+            // Validate all checks completed
+            if (!inspectionData.allChecksCompleted) {
+                showMessage('Please complete all facility checks before submitting.', 'danger');
+                return;
+            }
+
+            // Save to Firebase
+            saveFacilityInspection(inspectionData);
+        }
+
+        async function saveFacilityInspection(data) {
+            try {
+                showMessage('Submitting facility inspection...', 'info');
+                
+                const docRef = await db.collection('facility_inspections').add({
+                    ...data,
+                    submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                showMessage(`Facility inspection submitted successfully! Reference: ${docRef.id}`, 'success');
+                
+                // Reset form
+                const form = document.querySelector(`[data-facility="${data.facilityType}"][data-park="${data.parkName}"]`);
+                if (form) {
+                    form.reset();
+                    form.querySelector('.facility-date').value = new Date().toISOString().split('T')[0];
+                    form.querySelector('.facility-inspector').value = currentUser.name;
+                }
+                
+            } catch (error) {
+                console.error('Facility inspection submission error:', error);
+                showMessage('Error submitting facility inspection. Please try again.', 'danger');
+            }
+        }
+
+        async function flagFacilityMaintenance(button) {
+            const form = button.closest('.facility-inspection');
+            const facilityType = form.dataset.facility;
+            const parkName = form.dataset.park;
+            const facilityNotes = form.querySelector('.facility-notes').value;
+            
+            if (!confirm(`Flag maintenance issue for ${facilityType} at ${parkName}?`)) {
+                return;
+            }
+            
+            const now = new Date().toISOString();
+            
+            // Get facility name from config
+            const facilityConfig = FACILITY_CONFIG[parkName]?.[facilityType];
+            const facilityName = facilityConfig?.name || facilityType;
+            
+            // Create maintenance request for Firebase maintenanceRecords collection
+            const maintenanceRequest = {
+                id: Date.now().toString(),
+                title: `[Facility] ${facilityName} - ${parkName}`,
+                category: 'facility',
+                location: parkName,
+                priority: 'medium',
+                description: `Flagged from Accommodation Facility Inspection\n\nFacility: ${facilityName}\nType: ${facilityType}\nPark: ${parkName}\n\nInspector Notes: ${facilityNotes || 'No additional notes provided'}`,
+                reporter: currentUser.name,
+                contact: '',
+                status: 'pending',
+                dateSubmitted: now,
+                dateCompleted: null,
+                assignedTo: null,
+                notes: [],
+                // Source tracking
+                sourceModule: 'Facility Management',
+                sourcePage: 'accommodation.html',
+                facilityType: facilityType,
+                parkLocation: parkName,
+                submittedBy: {
+                    name: currentUser.name,
+                    role: userAccessLevel.role,
+                    park: parkName,
+                    accessCode: currentUser.accessCode || ''
+                }
+            };
+            
+            try {
+                // Save to Firebase maintenanceRecords
+                if (window.firebaseDb && window.firebaseInitialized) {
+                    await window.firebaseDb.collection('maintenanceRecords').doc(maintenanceRequest.id).set(maintenanceRequest);
+                    console.log('Maintenance request created in Firebase:', maintenanceRequest.id);
+                    showMessage('Maintenance request created successfully! Redirecting...', 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = 'maintenance.html';
+                    }, 1000);
+                } else {
+                    showMessage('Firebase not available. Please try again.', 'danger');
+                    console.error('Firebase not initialized');
+                }
+            } catch (error) {
+                console.error('Error creating maintenance request:', error);
+                showMessage('Error creating maintenance request. Please try again.', 'danger');
+            }
+        }
+
+        // Form Submission
+        function setupFormSubmission() {
+            const form = document.getElementById('accommodationChangeoverForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Validate form
+                    const selectedUnits = document.querySelectorAll('input[name="accommodationUnits"]:checked');
+                    const safetyChecks = document.querySelectorAll('input[name="safetyChecks"]:checked');
+                    
+                    if (selectedUnits.length === 0) {
+                        showMessage('Please select at least one accommodation unit.', 'danger');
+                        return;
+                    }
+                    
+                    // Check that each unchecked item has a reason
+                    let validationPassed = true;
+                    let missingReasons = [];
+                    
+                    for (let i = 1; i <= 9; i++) {
+                        const checkbox = document.getElementById(`check${i}`);
+                        const reasonText = document.getElementById(`reasonText${i}`);
+                        const reasonField = document.getElementById(`reason${i}`);
+                        
+                        // If checkbox is checked, this item passes - no reason needed
+                        if (checkbox && checkbox.checked) {
+                            continue;
+                        }
+                        
+                        // Checkbox is unchecked - check if reason is provided
+                        if (reasonText && reasonText.value && reasonText.value.trim() !== '') {
+                            // Reason provided - this item passes
+                            console.log(`✅ Check ${i}: Unchecked but has reason: "${reasonText.value.trim()}"`);
+                            continue;
+                        }
+                        
+                        // No checkbox AND no reason - fail validation
+                        validationPassed = false;
+                        const checkTitleEl = document.querySelector(`#checkItem${i} .checklist-title`);
+                        const checkTitle = checkTitleEl ? checkTitleEl.textContent : `Check ${i}`;
+                        missingReasons.push(checkTitle);
+                        
+                        // Show the reason field and highlight it
+                        if (reasonField) {
+                            reasonField.classList.add('visible');
+                        }
+                        if (reasonText) {
+                            reasonText.style.borderColor = '#DC3545';
+                        }
+                        console.log(`❌ Check ${i}: Unchecked and NO reason provided`);
+                    }
+                    
+                    if (!validationPassed) {
+                        showMessage(`Please provide a reason for unchecked items: ${missingReasons.join(', ')}`, 'danger');
+                        return;
+                    }
+                    
+                    console.log('✅ Validation passed - showing training modal');
+                    
+                    // Store form data for submission BEFORE showing modal
+                    pendingSubmission = gatherFormData();
+                    console.log('📦 Form data gathered:', pendingSubmission);
+                    
+                    // Show training agreement modal
+                    document.getElementById('trainingModal').style.display = 'block';
+                });
+            }
+
+            // Training agreement checkbox handler
+            const trainingCheckbox = document.getElementById('trainingAgreement');
+            const confirmBtn = document.getElementById('confirmSubmitBtn');
+            
+            if (trainingCheckbox && confirmBtn) {
+                trainingCheckbox.addEventListener('change', function() {
+                    validateSubmitButton();
+                    console.log('Training checkbox changed:', this.checked, 'Button disabled:', confirmBtn.disabled);
+                });
+            }
+        }
+
+        // Validate initials input and update submit button state
+        function validateInitialsInput() {
+            const initialsInput = document.getElementById('inspectorInitials');
+            if (initialsInput) {
+                // Force uppercase
+                initialsInput.value = initialsInput.value.toUpperCase();
+            }
+            validateSubmitButton();
+        }
+
+        // Check if both agreement is checked and initials are provided
+        function validateSubmitButton() {
+            const trainingCheckbox = document.getElementById('trainingAgreement');
+            const initialsInput = document.getElementById('inspectorInitials');
+            const confirmBtn = document.getElementById('confirmSubmitBtn');
+            
+            if (trainingCheckbox && initialsInput && confirmBtn) {
+                const hasAgreement = trainingCheckbox.checked;
+                const hasInitials = initialsInput.value.trim().length >= 2;
+                confirmBtn.disabled = !(hasAgreement && hasInitials);
+            }
+        }
+
+        function gatherFormData() {
+            const selectedUnits = Array.from(document.querySelectorAll('input[name="accommodationUnits"]:checked'))
+                .map(cb => cb.value);
+            
+            const safetyChecks = Array.from(document.querySelectorAll('input[name="safetyChecks"]:checked'))
+                .map(cb => cb.value);
+            
+            // Gather reasons for unchecked items
+            const uncheckedReasons = {};
+            const checkNames = {
+                1: 'fire_safety',
+                2: 'gas_safety',
+                3: 'electrical_safety',
+                4: 'water_systems',
+                5: 'structural_safety',
+                6: 'security_systems',
+                7: 'emergency_equipment',
+                8: 'general_condition',
+                9: 'pest_control'
+            };
+            
+            for (let i = 1; i <= 9; i++) {
+                const checkbox = document.getElementById(`check${i}`);
+                const reasonText = document.getElementById(`reasonText${i}`);
+                
+                if (!checkbox.checked && reasonText.value && reasonText.value.trim() !== '') {
+                    uncheckedReasons[checkNames[i]] = reasonText.value.trim();
+                }
+            }
+            
+            const parkName = userAccessLevel.level === 'admin' ? 
+                            document.getElementById('inspectionLocation').value : 
+                            userAccessLevel.parks[0];
+            
+            return {
+                id: `ACC_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                parkName: parkName,
+                accommodationUnit: selectedUnits.join(', '),
+                accommodationUnits: selectedUnits,
+                date: document.getElementById('inspectionDate').value,
+                inspector: currentUser.name,
+                inspectorRole: userAccessLevel.description,
+                inspectorInitials: '', // Will be set on confirmation
+                safetyChecks: safetyChecks,
+                uncheckedReasons: uncheckedReasons,
+                allChecksCompleted: safetyChecks.length === 9,
+                hasUncheckedWithReasons: Object.keys(uncheckedReasons).length > 0,
+                additionalNotes: document.getElementById('additionalNotes').value,
+                actionRequired: document.getElementById('actionRequired').checked,
+                actionNotes: document.getElementById('actionNotes').value,
+                trainingAgreed: false, // Will be set to true on confirmation
+                submittedAt: new Date().toISOString()
+            };
+        }
+
+        async function confirmSubmission() {
+            if (!pendingSubmission) {
+                showMessage('No pending submission found.', 'danger');
+                return;
+            }
+            
+            // Validate initials are provided
+            const initialsInput = document.getElementById('inspectorInitials');
+            const initials = initialsInput ? initialsInput.value.trim().toUpperCase() : '';
+            
+            if (initials.length < 2) {
+                showMessage('Please enter your initials (minimum 2 characters).', 'danger');
+                return;
+            }
+            
+            // Mark training as agreed and add initials
+            pendingSubmission.trainingAgreed = true;
+            pendingSubmission.inspectorInitials = initials;
+            
+            try {
+                showMessage('Submitting inspection data...', 'info');
+                console.log('📤 Submitting data:', pendingSubmission);
+                
+                const docId = await FirebaseDataManager.saveInspectionData(pendingSubmission);
+                
+                // Close modal
+                document.getElementById('trainingModal').style.display = 'none';
+                
+                // Reset form
+                document.getElementById('accommodationChangeoverForm').reset();
+                document.getElementById('trainingAgreement').checked = false;
+                document.getElementById('inspectorInitials').value = '';
+                document.getElementById('confirmSubmitBtn').disabled = true;
+                
+                // Reset all reason fields and visual states
+                for (let i = 1; i <= 9; i++) {
+                    const reasonField = document.getElementById(`reason${i}`);
+                    const reasonText = document.getElementById(`reasonText${i}`);
+                    const checkItem = document.getElementById(`checkItem${i}`);
+                    
+                    if (reasonField) {
+                        reasonField.classList.remove('visible');
+                    }
+                    if (reasonText) {
+                        reasonText.value = '';
+                        reasonText.style.borderColor = '';
+                    }
+                    if (checkItem) {
+                        checkItem.classList.remove('checked', 'has-reason');
+                    }
+                }
+                
+                // Reset Action Required section
+                document.getElementById('actionRequired').checked = false;
+                document.getElementById('actionNotes').value = '';
+                document.getElementById('actionDetails').classList.add('hidden');
+                
+                // Update selected count
+                updateSelectedCount();
+                
+                // Clear pending submission
+                pendingSubmission = null;
+                
+                console.log('✅ Submission successful:', docId);
+                showMessage(`Unit changeover inspection submitted successfully! Reference: ${docId}`, 'success');
+                
+            } catch (error) {
+                console.error('❌ Submission error:', error);
+                showMessage('Error submitting inspection. Please try again.', 'danger');
+            }
+        }
+
+        function cancelSubmission() {
+            document.getElementById('trainingModal').style.display = 'none';
+            document.getElementById('trainingAgreement').checked = false;
+            document.getElementById('inspectorInitials').value = '';
+            document.getElementById('confirmSubmitBtn').disabled = true;
+            pendingSubmission = null;
+            console.log('🚫 Submission cancelled');
+            showMessage('Submission cancelled.', 'info');
+        }
+
+        // Maintenance Integration - Links to maintenance module
+        function flagMaintenanceIssue() {
+            const parkName = userAccessLevel.level === 'admin' ? 
+                            document.getElementById('inspectionLocation').value : 
+                            userAccessLevel.parks[0];
+            
+            if (!parkName) {
+                showMessage('Please select an accommodation location first.', 'danger');
+                return;
+            }
+            
+            const selectedUnits = document.querySelectorAll('input[name="accommodationUnits"]:checked');
+            if (selectedUnits.length === 0) {
+                showMessage('Please select at least one accommodation unit first.', 'danger');
+                return;
+            }
+            
+            // Create maintenance context
+            const selectedUnitsList = Array.from(selectedUnits).map(cb => cb.value);
+            const maintenanceContext = {
+                sourceModule: 'Accommodation Management',
+                sourcePage: 'accommodation.html',
+                park: parkName,
+                accommodationUnits: selectedUnitsList,
+                accommodationUnit: selectedUnitsList.join(', '),
+                inspector: currentUser.name,
+                accessLevel: userAccessLevel.description,
+                role: userAccessLevel.role,
+                timestamp: new Date().toISOString(),
+                additionalNotes: document.getElementById('additionalNotes').value,
+                prefillDescription: `Maintenance issue flagged from Accommodation inspection - Unit(s): ${selectedUnitsList.join(', ')}`
+            };
+            
+            // Save context for the maintenance module to pick up
+            localStorage.setItem('maintenance_context', JSON.stringify(maintenanceContext));
+            
+            console.log('🔧 Navigating to maintenance system with context:', maintenanceContext);
+            showMessage('Opening maintenance system...', 'info');
+            
+            // Navigate to maintenance module
+            setTimeout(() => {
+                // Try relative path first (same directory)
+                window.location.href = 'maintenance.html';
+            }, 500);
+        }
+
+        // Admin Download Functions
+        async function downloadAllData(type) {
+            if (userAccessLevel.level !== 'admin') {
+                showMessage('Admin access required for data downloads.', 'danger');
+                return;
+            }
+            
+            showMessage('Preparing data download...', 'info');
+            
+            try {
+                const allData = await FirebaseDataManager.getAllInspectionData();
+                let filteredData = allData;
+                
+                if (type === 'completed') {
+                    filteredData = allData.filter(item => item.allChecksCompleted === true);
+                } else if (type === 'incomplete') {
+                    filteredData = allData.filter(item => item.allChecksCompleted !== true);
+                }
+                
+                // Create CSV content
+                const csvContent = generateCSV(filteredData);
+                
+                // Download file
+                const filename = `accommodation_inspections_${type}_${new Date().toISOString().split('T')[0]}.csv`;
+                downloadCSV(csvContent, filename);
+                
+                showMessage(`Downloaded ${filteredData.length} records as ${filename}`, 'success');
+                
+            } catch (error) {
+                console.error('Download error:', error);
+                showMessage('Error preparing download. Please try again.', 'danger');
+            }
+        }
+
+        function generateCSV(data) {
+            if (data.length === 0) {
+                return 'No data available\n';
+            }
+            
+            // CSV headers
+            const headers = [
+                'ID', 'Park Name', 'Accommodation Units', 'Date', 'Inspector', 'Initials', 'Inspector Role',
+                'All Checks Completed', 'Safety Checks', 'Action Required', 'Action Notes', 'Additional Notes', 'Submitted At', 'Training Agreed'
+            ];
+            
+            // CSV rows
+            const rows = data.map(item => [
+                item.id || '',
+                item.parkName || '',
+                item.accommodationUnit || '',
+                item.date || '',
+                item.inspector || '',
+                item.inspectorInitials || '',
+                item.inspectorRole || '',
+                item.allChecksCompleted ? 'Yes' : 'No',
+                (item.safetyChecks || []).join('; '),
+                item.actionRequired ? 'Yes' : 'No',
+                (item.actionNotes || '').replace(/"/g, '""'),
+                (item.additionalNotes || '').replace(/"/g, '""'),
+                item.submittedAt || '',
+                item.trainingAgreed ? 'Yes' : 'No'
+            ]);
+            
+            // Combine headers and rows
+            const csvData = [headers, ...rows];
+            
+            // Convert to CSV string
+            return csvData.map(row => 
+                row.map(field => `"${field}"`).join(',')
+            ).join('\n');
+        }
+
+        function downloadCSV(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        // Inspection History Management Functions
+        async function loadInspectionHistory() {
+            try {
+                const historyData = await FirebaseDataManager.getAllInspectionData();
+                displayInspectionHistory(historyData);
+                populateHistoryFilters();
+            } catch (error) {
+                console.error('Error loading inspection history:', error);
+                document.getElementById('inspectionHistoryContent').innerHTML = 
+                    '<div class="loading-message">Error loading history. Please try again.</div>';
+            }
+        }
+
+        function displayInspectionHistory(data) {
+            const historyContent = document.getElementById('inspectionHistoryContent');
+            
+            if (data.length === 0) {
+                historyContent.innerHTML = '<div class="loading-message">No inspection records found.</div>';
+                return;
+            }
+
+            const historyHtml = data.slice(0, 20).map((item, index) => {
+                const submittedDate = new Date(item.submittedAt).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                const checksCompleted = item.safetyChecks ? item.safetyChecks.length : 0;
+                const unitCount = item.accommodationUnits ? item.accommodationUnits.length : 1;
+                const initials = item.inspectorInitials || item.inspector?.substring(0, 2).toUpperCase() || '??';
+                const actionBadge = item.actionRequired ? `<span style="background: #DC3545; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; animation: pulse 2s infinite;">🔺 ACTION</span>` : '';
+                
+                return `
+                    <div class="history-item">
+                        <div class="history-summary">
+                            <div class="history-summary-info">
+                                <span class="history-summary-date">${submittedDate}</span>
+                                <span class="history-summary-initials">${initials}</span>
+                                <span class="history-summary-units">${unitCount} unit${unitCount > 1 ? 's' : ''}</span>
+                                <span class="history-summary-status ${item.allChecksCompleted ? 'complete' : 'incomplete'}">
+                                    ${item.allChecksCompleted ? '✓ Complete' : '⚠ Incomplete'}
+                                </span>
+                                ${actionBadge}
+                            </div>
+                            <button class="history-show-btn" onclick="toggleHistoryDetails(${index})">
+                                Show Details
+                            </button>
+                        </div>
+                        <div class="history-details-expanded" id="historyDetails_${index}">
+                            <div class="history-details">
+                                <div class="history-detail">
+                                    <strong>Park:</strong> ${item.park || item.parkName}
+                                </div>
+                                <div class="history-detail">
+                                    <strong>Inspector:</strong> ${item.inspector}${item.inspectorInitials ? ` (${item.inspectorInitials})` : ''}
+                                </div>
+                                <div class="history-detail">
+                                    <strong>Checks:</strong> ${checksCompleted}/9 completed
+                                </div>
+                                <div class="history-detail">
+                                    <strong>Units Checked:</strong> ${item.accommodationUnit || 'N/A'}
+                                </div>
+                            </div>
+                            ${item.safetyChecks && item.safetyChecks.length > 0 ? `
+                                <div class="history-checks">
+                                    ${item.safetyChecks.map(check => 
+                                        `<span class="check-badge">${check.replace(/_/g, ' ')}</span>`
+                                    ).join('')}
+                                </div>
+                            ` : ''}
+                            ${item.actionRequired ? `
+                                <div style="background: rgba(220,53,69,0.2); padding: 12px; border-radius: 6px; margin-top: 10px; border-left: 4px solid #DC3545;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                        <span style="color: #DC3545; font-size: 1.2rem;">⚠️</span>
+                                        <strong style="color: #DC3545; font-size: 1rem;">ACTION REQUIRED</strong>
+                                    </div>
+                                    ${item.actionNotes ? `
+                                        <div style="color: #E8E8E8; font-size: 0.95rem; line-height: 1.5; padding-left: 28px;">
+                                            ${item.actionNotes}
+                                        </div>
+                                    ` : '<div style="color: #B8B8B8; font-size: 0.9rem; padding-left: 28px;">No details provided</div>'}
+                                </div>
+                            ` : ''}
+                            ${item.additionalNotes ? `
+                                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #555; color: #B8B8B8;">
+                                    <strong>Notes:</strong> ${item.additionalNotes}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            historyContent.innerHTML = historyHtml;
+        }
+
+        function toggleHistoryDetails(index) {
+            const detailsEl = document.getElementById(`historyDetails_${index}`);
+            const btn = detailsEl.previousElementSibling.querySelector('.history-show-btn');
+            
+            if (detailsEl.classList.contains('visible')) {
+                detailsEl.classList.remove('visible');
+                btn.textContent = 'Show Details';
+            } else {
+                detailsEl.classList.add('visible');
+                btn.textContent = 'Hide Details';
+            }
+        }
+
+        function populateHistoryFilters() {
+            const parkFilter = document.getElementById('historyParkFilter');
+            const availableParks = userAccessLevel.parks;
+            
+            parkFilter.innerHTML = '<option value="">All Parks</option>' +
+                availableParks.map(park => `<option value="${park}">${park}</option>`).join('');
+        }
+
+        async function filterInspectionHistory() {
+            const selectedPark = document.getElementById('historyParkFilter').value;
+            const selectedTime = document.getElementById('historyTimeFilter')?.value || '24';
+            
+            try {
+                let historyData = await FirebaseDataManager.getAllInspectionData();
+                
+                // Apply time filter
+                if (selectedTime !== 'all') {
+                    const hoursAgo = parseInt(selectedTime);
+                    const cutoffTime = new Date(Date.now() - (hoursAgo * 60 * 60 * 1000));
+                    historyData = historyData.filter(item => {
+                        const itemDate = item.submittedAt?.toDate?.() || new Date(item.timestamp || item.dateSubmitted || 0);
+                        return itemDate >= cutoffTime;
+                    });
+                }
+                
+                // Apply park filter
+                if (selectedPark) {
+                    historyData = historyData.filter(item => 
+                        (item.park === selectedPark) || (item.parkName === selectedPark) || (item.parkLocation === selectedPark)
+                    );
+                }
+                
+                displayInspectionHistory(historyData);
+            } catch (error) {
+                console.error('Error filtering history:', error);
+            }
+        }
+
+        function refreshInspectionHistory() {
+            document.getElementById('inspectionHistoryContent').innerHTML = 
+                '<div class="loading-message">Refreshing data...</div>';
+            setTimeout(loadInspectionHistory, 500);
+        }
+
+        async function exportVisibleHistory() {
+            try {
+                const selectedPark = document.getElementById('historyParkFilter').value;
+                const selectedTime = document.getElementById('historyTimeFilter')?.value || '24';
+                let historyData = await FirebaseDataManager.getAllInspectionData();
+                
+                // Apply time filter
+                if (selectedTime !== 'all') {
+                    const hoursAgo = parseInt(selectedTime);
+                    const cutoffTime = new Date(Date.now() - (hoursAgo * 60 * 60 * 1000));
+                    historyData = historyData.filter(item => {
+                        const itemDate = item.submittedAt?.toDate?.() || new Date(item.timestamp || item.dateSubmitted || 0);
+                        return itemDate >= cutoffTime;
+                    });
+                }
+                
+                // Apply park filter
+                if (selectedPark) {
+                    historyData = historyData.filter(item => 
+                        (item.park === selectedPark) || (item.parkName === selectedPark) || (item.parkLocation === selectedPark)
+                    );
+                }
+                
+                const csvContent = generateCSV(historyData.slice(0, 20));
+                const filename = `inspection_history_${selectedPark || 'all_parks'}_${new Date().toISOString().split('T')[0]}.csv`;
+                downloadCSV(csvContent, filename);
+                
+                showMessage(`Exported ${Math.min(historyData.length, 20)} visible records`, 'success');
+            } catch (error) {
+                console.error('Export error:', error);
+                showMessage('Error exporting data. Please try again.', 'danger');
+            }
+        }
+
+        // Accommodation Unit Management Functions
+        function loadParkUnitsManagement(parkName) {
+            if (!parkName) {
+                document.getElementById('parkInfoDisplay').style.display = 'none';
+                document.getElementById('unitManagementSection').style.display = 'none';
+                return;
+            }
+            
+            const config = ACCOMMODATION_CONFIG[parkName];
+            window.currentManagedPark = parkName;
+            
+            // Show park info
+            document.getElementById('parkInfoContent').innerHTML = `
+                <strong>Managing: ${parkName}</strong><br>
+                Total Units: ${config.totalUnits} | Facilities: ${config.facilities.length} types
+            `;
+            document.getElementById('parkInfoDisplay').style.display = 'block';
+            
+            // Show management section and load units
+            document.getElementById('unitManagementSection').style.display = 'block';
+            displayUnitsForManagement(parkName);
+        }
+        
+        function displayUnitsForManagement(parkName) {
+            const config = ACCOMMODATION_CONFIG[parkName];
+            const unitsList = document.getElementById('unitsList');
+            
+            // Load unit details from storage
+            if (!window.unitDetailsStore) {
+                const savedDetails = localStorage.getItem('accommodation_unit_details');
+                if (savedDetails) {
+                    try {
+                        window.unitDetailsStore = JSON.parse(savedDetails);
+                    } catch (e) {
+                        window.unitDetailsStore = {};
+                    }
+                } else {
+                    window.unitDetailsStore = {};
+                }
+            }
+            
+            unitsList.innerHTML = config.units.map(unit => {
+                const detailKey = `${parkName}_${unit}`;
+                const details = window.unitDetailsStore[detailKey];
+                
+                let detailsHtml = '';
+                if (details) {
+                    const typeLabels = {
+                        'static': 'Static Caravan',
+                        'lodge': 'Lodge',
+                        'cottage': 'Holiday Cottage',
+                        'apartment': 'Apartment',
+                        'pitch': 'Touring Pitch',
+                        'pod': 'Glamping Pod',
+                        'other': 'Other'
+                    };
+                    detailsHtml = `
+                        <div class="unit-details-info">
+                            <small>${typeLabels[details.type] || details.type}</small>
+                            ${details.make && details.make !== 'Not specified' ? `<small>Make: ${details.make}</small>` : ''}
+                            ${details.bedrooms && details.bedrooms !== 'Not specified' ? `<small>${details.bedrooms} Bed</small>` : ''}
+                            ${details.sleeps && details.sleeps !== 'Not specified' ? `<small>Sleeps ${details.sleeps}</small>` : ''}
+                        </div>
+                    `;
+                }
+                
+                return `
+                    <div class="unit-item" data-unit="${unit}" onclick="handleUnitClick('${unit}')">
+                        <div class="unit-code">${unit}</div>
+                        ${detailsHtml}
+                    </div>
+                `;
+            }).join('');
+            
+            updateUnitsCount(parkName);
+        }
+        
+        function updateUnitsCount(parkName) {
+            const config = ACCOMMODATION_CONFIG[parkName];
+            document.getElementById('unitsCount').textContent = `${config.units.length} units total`;
+        }
+        
+        function showAddUnitForm() {
+            document.getElementById('addUnitForm').style.display = 'block';
+            document.getElementById('newUnitCode').focus();
+        }
+        
+        function hideAddUnitForm() {
+            document.getElementById('addUnitForm').style.display = 'none';
+            document.getElementById('newUnitCode').value = '';
+            document.getElementById('unitType').selectedIndex = 0;
+            document.getElementById('unitMake').value = '';
+            document.getElementById('unitBedrooms').selectedIndex = 0;
+            document.getElementById('unitSleeps').selectedIndex = 0;
+        }
+        
+        function addNewUnit() {
+            const unitCode = document.getElementById('newUnitCode').value.trim();
+            const unitType = document.getElementById('unitType').value;
+            const unitMake = document.getElementById('unitMake').value.trim();
+            const unitBedrooms = document.getElementById('unitBedrooms').value;
+            const unitSleeps = document.getElementById('unitSleeps').value;
+            
+            if (!unitCode) {
+                alert('Please enter a unit code/name');
+                return;
+            }
+            
+            if (!window.currentManagedPark) {
+                alert('Please select a park first');
+                return;
+            }
+            
+            const config = ACCOMMODATION_CONFIG[window.currentManagedPark];
+            
+            // Check for duplicates
+            if (config.units.includes(unitCode)) {
+                alert('This unit code already exists');
+                return;
+            }
+            
+            // Add to configuration
+            config.units.push(unitCode);
+            config.totalUnits = config.units.length;
+            
+            // Store unit details separately
+            if (!window.unitDetailsStore) {
+                window.unitDetailsStore = {};
+            }
+            
+            const detailKey = `${window.currentManagedPark}_${unitCode}`;
+            window.unitDetailsStore[detailKey] = {
+                code: unitCode,
+                type: unitType,
+                make: unitMake || 'Not specified',
+                bedrooms: unitBedrooms || 'Not specified',
+                sleeps: unitSleeps || 'Not specified',
+                park: window.currentManagedPark,
+                addedAt: new Date().toISOString()
+            };
+            
+            // Save to localStorage as backup
+            localStorage.setItem('accommodation_config_updates', JSON.stringify(ACCOMMODATION_CONFIG));
+            localStorage.setItem('accommodation_unit_details', JSON.stringify(window.unitDetailsStore));
+            
+            // Save to Firebase for persistence across devices/sessions
+            saveAccommodationConfigToFirebase(window.currentManagedPark);
+            
+            // Refresh display
+            displayUnitsForManagement(window.currentManagedPark);
+            hideAddUnitForm();
+            
+            // Update setup content to reflect changes
+            setupFormContent();
+            
+            showMessage(`Unit ${unitCode} added successfully to ${window.currentManagedPark}`, 'success');
+        }
+        
+        // Save accommodation config to Firebase
+        async function saveAccommodationConfigToFirebase(parkName) {
+            if (!window.firebaseDb || !window.firebaseInitialized) {
+                console.log('Firebase not available, using localStorage only');
+                return;
+            }
+            
+            try {
+                const config = ACCOMMODATION_CONFIG[parkName];
+                const parkKey = parkName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+                
+                // Save park units configuration
+                await window.firebaseDb.collection('accommodation_config').doc(parkKey).set({
+                    parkName: parkName,
+                    units: config.units,
+                    totalUnits: config.totalUnits,
+                    facilities: config.facilities,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedBy: sessionStorage.getItem('userName') || 'Unknown'
+                }, { merge: true });
+                
+                // Save unit details
+                const parkDetails = {};
+                Object.keys(window.unitDetailsStore || {}).forEach(key => {
+                    if (key.startsWith(parkName + '_')) {
+                        parkDetails[key] = window.unitDetailsStore[key];
+                    }
+                });
+                
+                if (Object.keys(parkDetails).length > 0) {
+                    await window.firebaseDb.collection('accommodation_config').doc(parkKey + '_details').set({
+                        parkName: parkName,
+                        unitDetails: parkDetails,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                }
+                
+                console.log(`✅ Accommodation config saved to Firebase for ${parkName}`);
+            } catch (error) {
+                console.error('Error saving accommodation config to Firebase:', error);
+            }
+        }
+        
+        // Load accommodation config from Firebase
+        async function loadAccommodationConfigFromFirebase() {
+            if (!window.firebaseDb || !window.firebaseInitialized) {
+                console.log('Firebase not available, using localStorage');
+                loadSavedAccommodationConfig();
+                return;
+            }
+            
+            try {
+                console.log('Loading accommodation config from Firebase...');
+                
+                // Get all park configs
+                const configSnapshot = await window.firebaseDb.collection('accommodation_config').get();
+                
+                let foundData = false;
+                configSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    
+                    // Skip details documents
+                    if (doc.id.endsWith('_details')) {
+                        // Load unit details
+                        if (data.unitDetails) {
+                            if (!window.unitDetailsStore) {
+                                window.unitDetailsStore = {};
+                            }
+                            Object.assign(window.unitDetailsStore, data.unitDetails);
+                            console.log(`Loaded unit details for ${data.parkName}`);
+                        }
+                    } else if (data.parkName && ACCOMMODATION_CONFIG[data.parkName]) {
+                        // Load park config
+                        ACCOMMODATION_CONFIG[data.parkName].units = data.units || [];
+                        ACCOMMODATION_CONFIG[data.parkName].totalUnits = data.totalUnits || data.units?.length || 0;
+                        console.log(`Loaded ${data.units?.length || 0} units for ${data.parkName}`);
+                        foundData = true;
+                    }
+                });
+                
+                if (foundData) {
+                    // Update localStorage to match Firebase
+                    localStorage.setItem('accommodation_config_updates', JSON.stringify(ACCOMMODATION_CONFIG));
+                    if (window.unitDetailsStore) {
+                        localStorage.setItem('accommodation_unit_details', JSON.stringify(window.unitDetailsStore));
+                    }
+                    console.log('✅ Accommodation config loaded from Firebase');
+                } else {
+                    console.log('No Firebase config found, using localStorage');
+                    loadSavedAccommodationConfig();
+                }
+            } catch (error) {
+                console.error('Error loading accommodation config from Firebase:', error);
+                // Fall back to localStorage
+                loadSavedAccommodationConfig();
+            }
+        }
+        
+        function toggleRemoveMode() {
+            window.removeMode = !window.removeMode;
+            const units = document.querySelectorAll('.unit-item');
+            const instructions = document.getElementById('removeModeInstructions');
+            
+            if (window.removeMode) {
+                units.forEach(unit => unit.classList.add('remove-mode'));
+                instructions.style.display = 'block';
+            } else {
+                units.forEach(unit => unit.classList.remove('remove-mode'));
+                instructions.style.display = 'none';
+            }
+        }
+        
+        function exitRemoveMode() {
+            window.removeMode = false;
+            const units = document.querySelectorAll('.unit-item');
+            units.forEach(unit => unit.classList.remove('remove-mode'));
+            document.getElementById('removeModeInstructions').style.display = 'none';
+        }
+        
+        function handleUnitClick(unitCode) {
+            if (!window.removeMode) return;
+            
+            if (confirm(`Are you sure you want to remove unit ${unitCode} from ${window.currentManagedPark}?`)) {
+                removeUnit(unitCode);
+            }
+        }
+        
+        function removeUnit(unitCode) {
+            const config = ACCOMMODATION_CONFIG[window.currentManagedPark];
+            const index = config.units.indexOf(unitCode);
+            
+            if (index > -1) {
+                config.units.splice(index, 1);
+                config.totalUnits = config.units.length;
+                
+                // Remove unit details
+                const detailKey = `${window.currentManagedPark}_${unitCode}`;
+                if (window.unitDetailsStore && window.unitDetailsStore[detailKey]) {
+                    delete window.unitDetailsStore[detailKey];
+                    localStorage.setItem('accommodation_unit_details', JSON.stringify(window.unitDetailsStore));
+                }
+                
+                // Save to localStorage
+                localStorage.setItem('accommodation_config_updates', JSON.stringify(ACCOMMODATION_CONFIG));
+                
+                // Save to Firebase for persistence
+                saveAccommodationConfigToFirebase(window.currentManagedPark);
+                
+                // Refresh display
+                displayUnitsForManagement(window.currentManagedPark);
+                
+                // Update setup content to reflect changes
+                setupFormContent();
+                
+                showMessage(`Unit ${unitCode} removed from ${window.currentManagedPark}`, 'success');
+            }
+        }
+        
+        // Checklist Management Functions
+        function selectAllChecks() {
+            const checkboxes = document.querySelectorAll('input[name="safetyChecks"]');
+            checkboxes.forEach((checkbox, index) => {
+                checkbox.checked = true;
+                updateChecklistItemVisual(checkbox);
+                // Hide reason field when checked
+                const reasonField = document.getElementById(`reason${index + 1}`);
+                if (reasonField) {
+                    reasonField.classList.remove('visible');
+                }
+            });
+            updateChecklistProgress();
+            showMessage('All safety checks selected', 'info');
+        }
+        
+        function deselectAllChecks() {
+            const checkboxes = document.querySelectorAll('input[name="safetyChecks"]');
+            checkboxes.forEach((checkbox, index) => {
+                checkbox.checked = false;
+                updateChecklistItemVisual(checkbox);
+                // Show reason field when unchecked
+                const reasonField = document.getElementById(`reason${index + 1}`);
+                if (reasonField) {
+                    reasonField.classList.add('visible');
+                }
+            });
+            updateChecklistProgress();
+            showMessage('All safety checks deselected - please provide reasons for each unchecked item', 'warning');
+        }
+        
+        // Toggle reason field visibility based on checkbox state
+        function toggleReasonField(checkNum) {
+            const checkbox = document.getElementById(`check${checkNum}`);
+            const reasonField = document.getElementById(`reason${checkNum}`);
+            const checkItem = document.getElementById(`checkItem${checkNum}`);
+            const reasonText = document.getElementById(`reasonText${checkNum}`);
+            
+            if (checkbox.checked) {
+                // Hide reason field when checked
+                reasonField.classList.remove('visible');
+                checkItem.classList.remove('has-reason');
+                checkItem.classList.add('checked');
+                // Clear the reason text
+                if (reasonText) {
+                    reasonText.value = '';
+                    reasonText.style.borderColor = '';
+                }
+            } else {
+                // Show reason field when unchecked
+                reasonField.classList.add('visible');
+                checkItem.classList.remove('checked');
+            }
+            
+            updateChecklistItemVisual(checkbox);
+            updateChecklistProgress();
+            updateActionSection(); // Update action section when checkbox changes
+        }
+        
+        // Validate reason field input
+        function validateReasonField(checkNum) {
+            const reasonText = document.getElementById(`reasonText${checkNum}`);
+            const checkItem = document.getElementById(`checkItem${checkNum}`);
+            
+            if (reasonText.value && reasonText.value.trim() !== '') {
+                // Valid reason provided
+                reasonText.style.borderColor = '#28A745';
+                checkItem.classList.add('has-reason');
+            } else {
+                // No reason provided
+                reasonText.style.borderColor = 'rgba(220, 53, 69, 0.5)';
+                checkItem.classList.remove('has-reason');
+            }
+            
+            updateActionSection(); // Update action section when reason changes
+        }
+        
+        // Update Action Section based on unchecked items with reasons
+        function updateActionSection() {
+            const checklistLabels = {
+                1: 'Fire Safety Systems',
+                2: 'Gas Safety',
+                3: 'Electrical Safety',
+                4: 'Water & Legionella',
+                5: 'Structural Safety',
+                6: 'Security Features',
+                7: 'Furniture & Equipment',
+                8: 'Outdoor Areas',
+                9: 'General Cleanliness & Condition'
+            };
+            
+            let issuesFound = [];
+            
+            // Check all 9 checklist items
+            for (let i = 1; i <= 9; i++) {
+                const checkbox = document.getElementById(`check${i}`);
+                const reasonText = document.getElementById(`reasonText${i}`);
+                
+                if (checkbox && !checkbox.checked && reasonText && reasonText.value.trim()) {
+                    issuesFound.push({
+                        num: i,
+                        label: checklistLabels[i],
+                        reason: reasonText.value.trim()
+                    });
+                }
+            }
+            
+            const actionCheckbox = document.getElementById('actionRequired');
+            const actionNotes = document.getElementById('actionNotes');
+            const actionDetails = document.getElementById('actionDetails');
+            
+            if (issuesFound.length > 0) {
+                // Auto-check the Action Required checkbox
+                if (actionCheckbox && !actionCheckbox.checked) {
+                    actionCheckbox.checked = true;
+                    if (actionDetails) {
+                        actionDetails.classList.remove('hidden');
+                    }
+                }
+                
+                // Build the action notes text
+                let notesText = 'ISSUES IDENTIFIED:\n\n';
+                issuesFound.forEach((issue, index) => {
+                    notesText += `${index + 1}. ${issue.label}\n`;
+                    notesText += `   Issue: ${issue.reason}\n\n`;
+                });
+                
+                // Only update if the field is empty or contains our auto-generated text
+                if (actionNotes) {
+                    const currentText = actionNotes.value.trim();
+                    if (!currentText || currentText.startsWith('ISSUES IDENTIFIED:')) {
+                        actionNotes.value = notesText;
+                    }
+                }
+            } else {
+                // No issues - clear if it was auto-populated
+                if (actionNotes) {
+                    const currentText = actionNotes.value.trim();
+                    if (currentText.startsWith('ISSUES IDENTIFIED:')) {
+                        actionNotes.value = '';
+                        if (actionCheckbox) {
+                            actionCheckbox.checked = false;
+                        }
+                        if (actionDetails) {
+                            actionDetails.classList.add('hidden');
+                        }
+                    }
+                }
+            }
+        }
+        
+        function updateChecklistProgress() {
+            const checkboxes = document.querySelectorAll('input[name="safetyChecks"]');
+            const checkedCount = document.querySelectorAll('input[name="safetyChecks"]:checked').length;
+            const totalCount = checkboxes.length;
+            
+            const progressElement = document.getElementById('checklistProgress');
+            if (progressElement) {
+                progressElement.textContent = `${checkedCount}/${totalCount} completed`;
+                
+                // Update visual styling based on progress
+                if (checkedCount === totalCount) {
+                    progressElement.style.background = 'rgba(40, 167, 69, 0.2)';
+                    progressElement.style.borderColor = '#28A745';
+                    progressElement.style.color = '#28A745';
+                } else if (checkedCount > 0) {
+                    progressElement.style.background = 'rgba(255, 193, 7, 0.2)';
+                    progressElement.style.borderColor = '#FFC107';
+                    progressElement.style.color = '#FFC107';
+                } else {
+                    progressElement.style.background = 'rgba(46, 134, 171, 0.1)';
+                    progressElement.style.borderColor = 'rgba(46, 134, 171, 0.3)';
+                    progressElement.style.color = 'var(--primary-blue)';
+                }
+            }
+        }
+        
+        function updateChecklistItemVisual(checkbox) {
+            const checklistItem = checkbox.closest('.checklist-item');
+            if (checkbox.checked) {
+                checklistItem.classList.add('completed');
+            } else {
+                checklistItem.classList.remove('completed');
+            }
+        }
+        
+        function initializeChecklistListeners() {
+            const checkboxes = document.querySelectorAll('input[name="safetyChecks"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    updateChecklistItemVisual(this);
+                    updateChecklistProgress();
+                });
+            });
+            updateChecklistProgress();
+        }
+        
+        // Load saved configuration on initialization
+        function loadSavedAccommodationConfig() {
+            const saved = localStorage.getItem('accommodation_config_updates');
+            if (saved) {
+                try {
+                    const savedConfig = JSON.parse(saved);
+                    // Merge saved changes with default config
+                    Object.keys(savedConfig).forEach(parkName => {
+                        if (ACCOMMODATION_CONFIG[parkName]) {
+                            ACCOMMODATION_CONFIG[parkName].units = savedConfig[parkName].units;
+                            ACCOMMODATION_CONFIG[parkName].totalUnits = savedConfig[parkName].totalUnits;
+                        }
+                    });
+                    console.log('Loaded saved accommodation configuration');
+                } catch (error) {
+                    console.error('Error loading saved accommodation config:', error);
+                }
+            }
+            
+            // Load unit details
+            const savedDetails = localStorage.getItem('accommodation_unit_details');
+            if (savedDetails) {
+                try {
+                    window.unitDetailsStore = JSON.parse(savedDetails);
+                    console.log('Loaded saved unit details');
+                } catch (error) {
+                    console.error('Error loading saved unit details:', error);
+                    window.unitDetailsStore = {};
+                }
+            } else {
+                window.unitDetailsStore = {};
+            }
+        }
+
+        // ========================================
+        // ADMIN RESET FUNCTIONS
+        // ========================================
+        
+        // Reset accommodation unit cache
+        function resetAccommodationCache() {
+            if (!confirm('This will clear all cached unit configuration data.\n\nUnits will be reset to defaults. Continue?')) {
+                return;
+            }
+            
+            try {
+                localStorage.removeItem('accommodation_config_updates');
+                localStorage.removeItem('accommodation_unit_details');
+                
+                // Reset in-memory config to defaults
+                Object.keys(ACCOMMODATION_CONFIG).forEach(parkName => {
+                    if (parkName !== 'Overburns Farm') {
+                        ACCOMMODATION_CONFIG[parkName].units = [];
+                        ACCOMMODATION_CONFIG[parkName].totalUnits = 0;
+                    }
+                });
+                window.unitDetailsStore = {};
+                
+                showMessage('Unit cache cleared successfully. Refresh page to see changes.', 'success');
+                console.log('✅ Accommodation cache reset');
+            } catch (error) {
+                console.error('Error resetting cache:', error);
+                showMessage('Error clearing cache: ' + error.message, 'danger');
+            }
+        }
+        
+        // Clear service workers
+        async function clearServiceWorkers() {
+            if (!confirm('This will unregister all service workers for this site.\n\nThis helps fix caching issues. Continue?')) {
+                return;
+            }
+            
+            try {
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    let count = 0;
+                    for (const registration of registrations) {
+                        await registration.unregister();
+                        count++;
+                        console.log('Unregistered service worker:', registration.scope);
+                    }
+                    
+                    // Also clear caches
+                    if ('caches' in window) {
+                        const cacheNames = await caches.keys();
+                        for (const cacheName of cacheNames) {
+                            await caches.delete(cacheName);
+                            console.log('Deleted cache:', cacheName);
+                        }
+                    }
+                    
+                    showMessage(`Cleared ${count} service worker(s) and all caches. Please refresh.`, 'success');
+                } else {
+                    showMessage('Service workers not supported in this browser.', 'warning');
+                }
+            } catch (error) {
+                console.error('Error clearing service workers:', error);
+                showMessage('Error: ' + error.message, 'danger');
+            }
+        }
+        
+        // Full system reset
+        async function fullSystemReset() {
+            if (!confirm('⚠️ FULL SYSTEM RESET ⚠️\n\nThis will:\n• Clear all unit configuration cache\n• Unregister all service workers\n• Clear all browser caches\n• Reload the page\n\nContinue?')) {
+                return;
+            }
+            
+            try {
+                // Clear localStorage
+                localStorage.removeItem('accommodation_config_updates');
+                localStorage.removeItem('accommodation_unit_details');
+                
+                // Clear service workers
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (const registration of registrations) {
+                        await registration.unregister();
+                    }
+                }
+                
+                // Clear caches
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    for (const cacheName of cacheNames) {
+                        await caches.delete(cacheName);
+                    }
+                }
+                
+                showMessage('Reset complete. Reloading...', 'success');
+                
+                // Force reload from server
+                setTimeout(() => {
+                    window.location.reload(true);
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error during full reset:', error);
+                showMessage('Partial reset completed. Please manually refresh with Ctrl+Shift+R', 'warning');
+            }
+        }
+
+        // Module loading function for docsafe.pro integration
+        function loadModule(url, title) {
+            // Create overlay
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.9);
+                z-index: 10000;
+                display: flex;
+                flex-direction: column;
+            `;
+            
+            // Create header with title and close button
+            const header = document.createElement('div');
+            header.style.cssText = `
+                background: #2A2A2A;
+                padding: 15px 20px;
+                color: #E8E8E8;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 2px solid #2E86AB;
+            `;
+            
+            const titleSpan = document.createElement('span');
+            titleSpan.textContent = title;
+            titleSpan.style.fontWeight = 'bold';
+            titleSpan.style.fontSize = '1.2rem';
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = '× Close';
+            closeBtn.style.cssText = `
+                background: #2E86AB;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-weight: bold;
+            `;
+            closeBtn.onclick = () => document.body.removeChild(overlay);
+            
+            header.appendChild(titleSpan);
+            header.appendChild(closeBtn);
+            
+            // Create iframe
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            iframe.style.cssText = `
+                flex: 1;
+                border: none;
+                width: 100%;
+                background: white;
+            `;
+            
+            overlay.appendChild(header);
+            overlay.appendChild(iframe);
+            document.body.appendChild(overlay);
+        }
+
+        // Utility Functions
+        function updateSystemStatus() {
+            const statusElement = document.getElementById('systemStatus');
+            if (!statusElement) return;
+            
+            const firebaseConnected = window.firebaseDb && window.firebaseInitialized;
+            const localStorageAvailable = typeof(Storage) !== "undefined";
+            
+            if (firebaseConnected) {
+                statusElement.innerHTML = '<span style="color: #28a745;">🟢 Firebase Connected</span>';
+            } else if (localStorageAvailable) {
+                statusElement.innerHTML = '<span style="color: #ffc107;">🟡 Local Storage Mode</span>';
+            } else {
+                statusElement.innerHTML = '<span style="color: #dc3545;">🔴 Limited Functionality</span>';
+            }
+        }
+
+        function showMessage(message, type = 'info') {
+            // Remove existing messages
+            const existingAlerts = document.querySelectorAll('.alert');
+            existingAlerts.forEach(alert => {
+                if (alert.textContent.includes('Loading') || alert.classList.contains('temp-message')) {
+                    alert.remove();
+                }
+            });
+            
+            // Create new message
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} temp-message`;
+            alertDiv.innerHTML = message;
+            
+            // Insert at top of main container
+            const mainContainer = document.querySelector('.main-container');
+            mainContainer.insertBefore(alertDiv, mainContainer.firstChild);
+            
+            // Auto-remove after 5 seconds for non-critical messages
+            if (type === 'success' || type === 'info') {
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.remove();
+                    }
+                }, 5000);
+            }
+        }
+
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Accommodation Management System Initializing...');
+            
+            // Initialize immediately without waiting for external auth
+            setTimeout(async function() {
+                try {
+                    // Load accommodation configuration - try Firebase first, then localStorage
+                    await loadAccommodationConfigFromFirebase();
+                    
+                    // Check authentication using session storage
+                    if (!(await checkAuthentication())) {
+                        return; // Will redirect if authentication fails
+                    }
+                    
+                    // Setup form submission handlers
+                    setupFormSubmission();
+                    
+                    // Setup unit selection button handlers
+                    const selectAllBtn = document.getElementById('selectAllUnits');
+                    const deselectAllBtn = document.getElementById('deselectAllUnits');
+                    
+                    if (selectAllBtn) {
+                        selectAllBtn.addEventListener('click', selectAllUnits);
+                    }
+                    
+                    if (deselectAllBtn) {
+                        deselectAllBtn.addEventListener('click', deselectAllUnits);
+                    }
+                    
+                    // Setup click outside modal to close
+                    window.onclick = function(event) {
+                        const modal = document.getElementById('trainingModal');
+                        if (event.target === modal) {
+                            cancelSubmission();
+                        }
+                    };
+            
+                    console.log('Accommodation Management System Initialized Successfully');
+                    showMessage('Accommodation Management System loaded successfully!', 'success');
+                    
+                    // Setup form content
+                    setupFormContent();
+                    
+                    // Initialize checklist listeners
+                    initializeChecklistListeners();
+                    
+                    // Setup Action Required checkbox toggle
+                    const actionRequiredCheckbox = document.getElementById('actionRequired');
+                    if (actionRequiredCheckbox) {
+                        actionRequiredCheckbox.addEventListener('change', function() {
+                            const actionDetails = document.getElementById('actionDetails');
+                            if (this.checked) {
+                                actionDetails.classList.remove('hidden');
+                            } else {
+                                actionDetails.classList.add('hidden');
+                            }
+                        });
+                    }
+                    
+                    // Load inspection history
+                    loadInspectionHistory();
+                    
+                    // Update system status
+                    updateSystemStatus();
+            
+                } catch (error) {
+                    console.error('Initialization error:', error);
+                    showMessage('Error initializing accommodation system. Please refresh the page.', 'danger');
+                }
+            }, 500); // Reduced wait time since we're using session storage
+        });
+
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('sw.js')
+                    .then(function(registration) {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(function(registrationError) {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
