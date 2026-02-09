@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SafeSystems.PRO — Register</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-orange: #CC5500;
+            --light-orange: #e06d1a;
+            --medium-grey: #888;
+            --sidebar-width: 350px;
+            --white: #FFFFFF;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #4a4a4a;
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.12) 2px, rgba(0,0,0,0.12) 4px), repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(255,255,255,0.04) 3px, rgba(255,255,255,0.04) 6px), radial-gradient(circle at 20% 80%, rgba(255,255,255,0.06) 0%, transparent 40%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 45%), linear-gradient(145deg, #555 0%, #4a4a4a 50%, #3f3f3f 100%);
+            min-height: 100vh; color: #fff;
+        }
+
+        /* ===== SCREENS ===== */
+        .screen { display: none; }
+        .screen.active { display: flex; }
+
+        /* ===== LOGIN SCREEN ===== */
+        #loginScreen { min-height: 100vh; align-items: center; justify-content: center; padding: 20px; }
+        .safepark-header { display: inline-flex; align-items: center; white-space: nowrap; line-height: 1; margin-bottom: 20px; }
+        .safepark-header .safe-part, .safepark-header .pro-part { font-family: 'Orbitron', monospace; font-size: 2.4rem; color: #C0C0C0; font-weight: 700; letter-spacing: 3px; text-shadow: 2px 2px 4px rgba(0,0,0,0.6); transform: scaleY(0.85); }
+        .safepark-header .systems-part { font-family: 'Orbitron', monospace; font-size: 2.4rem; color: var(--primary-orange); font-weight: 700; letter-spacing: 3px; text-shadow: 2px 2px 4px rgba(0,0,0,0.6), 0 0 20px rgba(204,85,0,0.3); transform: scaleY(0.85); }
+        .login-form-container { background: linear-gradient(165deg, #2a2a2a 0%, #1a1a1a 40%, #0e0e0e 100%); border-top: 2px solid #444; border-bottom: 4px solid #000; border-left: 5px solid var(--primary-orange); border-right: 1px solid #1a1a1a; border-radius: 16px; padding: 50px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.9), 0 12px 25px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.1); max-width: 600px; width: 90%; }
+        .login-subtitle { font-size: 1.1rem; color: #999; margin-bottom: 20px; }
+        .form-group { margin-bottom: 20px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 8px; color: var(--primary-orange); font-weight: 300; font-size: 0.95rem; }
+        .login-input { width: 100%; padding: 15px 20px; font-size: 1rem; background: linear-gradient(145deg, #0d0d0d, #161616); border: 1px solid #333; border-radius: 10px; color: var(--white); transition: all 0.2s ease; font-family: inherit; box-shadow: inset 0 3px 8px rgba(0,0,0,0.5); }
+        .login-input:focus { outline: none; border-color: var(--primary-orange); box-shadow: inset 0 3px 8px rgba(0,0,0,0.5), 0 0 15px rgba(204,85,0,0.3); }
+        .login-input::placeholder { color: #666; }
+        .login-btn { background: linear-gradient(165deg, #ff9248 0%, #CC5500 40%, #b34a00 100%); color: #fff; padding: 16px 32px; border: none; border-top: 2px solid #ffb070; border-bottom: 3px solid #7a3000; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 10px 25px rgba(0,0,0,0.7), 0 6px 12px rgba(204,85,0,0.4); text-transform: uppercase; letter-spacing: 1px; width: 60%; margin: 40px auto 0; display: block; }
+        .login-btn:hover { background: linear-gradient(165deg, #ffb070 0%, #ff9248 40%, #CC5500 100%); transform: translateY(-4px); }
+        .register-btn { background: linear-gradient(165deg, #2d8a4e 0%, #1a6b35 40%, #145a2b 100%); border-top-color: #4ebb76; border-bottom-color: #0d3d1c; }
+        .register-btn:hover { background: linear-gradient(165deg, #38a85e 0%, #2d8a4e 40%, #1a6b35 100%); }
+        .register-link-btn { background: linear-gradient(165deg, #2a2a2a 0%, #1a1a1a 40%, #0e0e0e 100%); color: #CC5500; padding: 12px 24px; border: 1px solid #444; border-top: 2px solid #555; border-bottom: 3px solid #000; border-radius: 10px; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 6px 15px rgba(0,0,0,0.5); width: 100%; }
+        .register-link-btn:hover { color: #ff9248; border-color: #CC5500; transform: translateY(-2px); }
+        .back-btn-link { background: none; border: none; color: #888; cursor: pointer; margin-top: 12px; font-size: 0.9rem; display: block; margin-left: auto; margin-right: auto; }
+        .back-btn-link:hover { color: #CC5500; }
+        .login-error { color: #ef5555; font-size: 0.9rem; margin-top: 15px; font-weight: 500; opacity: 0; transition: opacity 0.3s ease; }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(165deg, #2a2a2a 0%, #1a1a1a 40%, #0e0e0e 100%);
+            padding: 0; padding-bottom: 100px;
+            position: fixed; height: 100vh; overflow-y: auto;
+            border-right: 4px solid #000;
+            box-shadow: 8px 0 25px rgba(0,0,0,0.8), inset -1px 0 0 rgba(255,255,255,0.05);
+            z-index: 1000; transition: transform 0.3s ease;
+            left: 0; top: 0; transform: translateX(0);
+        }
+        .sidebar-header {
+            background: linear-gradient(165deg, #222 0%, #161616 40%, #0a0a0a 100%);
+            padding: 30px 15px; text-align: center; color: white;
+            border-bottom: 3px solid #000; border-top: 1px solid #444;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08);
+            position: relative; cursor: pointer; overflow: hidden;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .sidebar .safepark-header { margin-bottom: 5px; }
+        .sidebar .safepark-header .safe-part,
+        .sidebar .safepark-header .systems-part,
+        .sidebar .safepark-header .pro-part { font-size: 1.3rem !important; letter-spacing: 1px; }
+        .tagline { font-size: 0.85rem; opacity: 0.8; font-weight: 500; color: #ccc; position: relative; z-index: 1; }
+        .nav-section { padding: 20px; border-bottom: 2px solid #0a0a0a; }
+        .nav-section-title {
+            color: var(--primary-orange); font-family: 'Orbitron', monospace; font-size: 0.85rem;
+            font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 15px;
+            padding-left: 5px; cursor: pointer; display: flex; justify-content: space-between;
+            align-items: center; transition: all 0.2s ease; user-select: none;
+            text-shadow: 0 0 10px rgba(204,85,0,0.3);
+        }
+        .nav-section-title:hover { color: var(--light-orange); }
+        .nav-section-title::after { content: '▼'; font-size: 0.7rem; transition: transform 0.3s ease; color: var(--medium-grey); }
+        .nav-section-title.collapsed::after { transform: rotate(-90deg); }
+        .nav-section-content { overflow: hidden; transition: max-height 0.3s ease, opacity 0.3s ease; max-height: 2000px; opacity: 1; }
+        .nav-section-content.collapsed { max-height: 0; opacity: 0; }
+        .nav-btn {
+            width: 100%; background: linear-gradient(165deg, #2a2a2a 0%, #1a1a1a 40%, #0e0e0e 100%);
+            border: none; border-top: 2px solid #444; border-bottom: 3px solid #000;
+            border-left: 1px solid #333; border-right: 1px solid #111;
+            color: #E8E8E8; padding: 14px 16px; margin-bottom: 10px; border-radius: 8px;
+            cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.9rem;
+            font-weight: 500; letter-spacing: 0.5px; transition: all 0.2s ease; text-align: left;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.7), 0 4px 8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+            position: relative; overflow: hidden;
+        }
+        .nav-btn:hover {
+            background: linear-gradient(165deg, #353535 0%, #252525 40%, #1a1a1a 100%);
+            border-top: 2px solid #ff9a5a; border-bottom: 3px solid #7a3000;
+            border-left: 1px solid var(--primary-orange); border-right: 1px solid #8a4010;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.8), 0 0 20px rgba(204,85,0,0.3);
+        }
+        .nav-btn .lock { opacity: 0.4; font-size: 0.8rem; }
+        .nav-btn-active { border-left: 3px solid var(--primary-orange) !important; }
+        .sidebar .logout-nav-btn { margin-top: 10px; border-top: 1px solid #444; padding-top: 20px !important; }
+
+        /* ===== HAMBURGER ===== */
+        .mobile-menu-toggle {
+            display: none; position: fixed; top: 10px; left: 10px; z-index: 99999;
+            background: rgba(0,0,0,0.7); color: var(--primary-orange); border: 2px solid var(--primary-orange);
+            padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: 1.2rem; font-weight: bold;
+            width: 36px; height: 36px; align-items: center; justify-content: center;
+            transition: all 0.3s ease; pointer-events: auto !important;
+            -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+        }
+        .mobile-menu-toggle:hover { background: rgba(0,0,0,0.9); color: var(--light-orange); border-color: var(--light-orange); }
+        body.module-view .mobile-menu-toggle { display: flex !important; z-index: 999999 !important; }
+        .sidebar.open { z-index: 999998 !important; }
+
+        /* ===== MAIN CONTENT AREA ===== */
+        #dashboardScreen { display: none; flex-direction: column; min-height: 100vh; }
+        #dashboardScreen.active { display: block; }
+        .content-area { margin-left: var(--sidebar-width); padding: 20px; min-height: 100vh; }
+
+        .dashboard-header {
+            background: linear-gradient(165deg, #2a2a2a 0%, #1a1a1a 40%, #0e0e0e 100%);
+            border-top: 2px solid #444; border-bottom: 4px solid #000;
+            border-left: 5px solid var(--primary-orange); border-right: 1px solid #1a1a1a;
+            border-radius: 14px; padding: 20px 30px; text-align: center; margin-bottom: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+        .dashboard-header .park-name { color: #FCAE7C; font-size: 0.95rem; margin-top: 5px; }
+        .dashboard-title { font-size: 1.1rem; color: #ccc; margin-bottom: 15px; padding-left: 10px; }
+
+        /* ===== TILES ===== */
+        .tile-carousel { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin: 10px 0; padding: 10px; }
+        .stat-card {
+            background: linear-gradient(165deg, #2a2a2a 0%, #1a1a1a 40%, #0e0e0e 100%);
+            border-top: 2px solid #444; border-bottom: 4px solid #000;
+            border-left: 5px solid var(--primary-orange); border-right: 1px solid #1a1a1a;
+            border-radius: 14px; padding: 50px 30px; transition: all 0.25s ease; position: relative;
+            overflow: hidden; box-shadow: 0 15px 40px rgba(0,0,0,0.9), 0 8px 18px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.1);
+            min-height: 180px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 60px rgba(0,0,0,1), 0 0 35px rgba(204,85,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+            border-top: 2px solid #666; background: linear-gradient(165deg, #333 0%, #222 40%, #151515 100%);
+        }
+        .stat-card.locked { border-left-color: #555; opacity: 0.7; }
+        .stat-card.locked:hover { opacity: 0.9; box-shadow: 0 25px 60px rgba(0,0,0,1), 0 0 20px rgba(100,100,100,0.2); }
+        .stat-card .lock-icon { position: absolute; top: 12px; right: 14px; font-size: 1.1rem; opacity: 0.5; }
+        .stat-card-header { display: flex; justify-content: center; align-items: center; text-align: center; width: 100%; }
+        .stat-card-header h3 { font-size: 1.8rem; text-align: center; margin: 0; color: #a8a8b0 !important; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .stat-card-header h3 span { font-weight: 700; text-shadow: 0 0 10px rgba(255,107,26,0.3); }
+
+        /* ===== MODULE VIEW ===== */
+        #moduleScreen { display: none; flex-direction: column; min-height: 100vh; }
+        #moduleScreen.active { display: flex; }
+        .module-toolbar {
+            display: flex; gap: 10px; align-items: center; padding: 10px 15px;
+            background: rgba(0,0,0,0.3); border-radius: 8px; margin: 10px 15px;
+        }
+        .module-toolbar button { background: var(--primary-orange); color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 600; }
+        .module-toolbar span { color: #888; font-size: 0.9rem; }
+        #moduleIframe { width: calc(100% - 30px); height: 90vh; min-height: 85vh; border: none; background: transparent; border-radius: 8px; margin: 0 15px; }
+
+        /* ===== CONTACT & USER ===== */
+        .contact-bar { text-align: center; margin: 30px 0 0; padding: 20px; background: linear-gradient(145deg, rgba(107,91,149,0.2), rgba(107,91,149,0.1)); border-radius: 12px; border: 1px solid rgba(107,91,149,0.4); }
+        .contact-bar a { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(145deg, #6B5B95, #4A3F6B); color: white; text-decoration: none; padding: 12px 24px; border-radius: 25px; font-size: 0.9rem; font-weight: 600; transition: all 0.3s ease; }
+        .contact-bar a:hover { transform: translateY(-2px); }
+        .user-info-bar { text-align: center; margin: 20px 0; padding: 25px; background: rgba(255,255,255,0.05); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
+        .user-info-bar p { color: #888; font-size: 0.95rem; margin-bottom: 5px; }
+        .user-info-bar strong { color: #CC5500; }
+        .user-info-bar .logout-btn { background: none; border: 1px solid #555; color: #888; padding: 8px 20px; border-radius: 6px; cursor: pointer; margin-top: 10px; font-size: 0.85rem; transition: all 0.2s; }
+        .user-info-bar .logout-btn:hover { border-color: #CC5500; color: #CC5500; }
+
+        @keyframes moduleSpinner { to { transform: rotate(360deg); } }
+        .module-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; }
+        .module-loading .spinner { width: 50px; height: 50px; border: 4px solid rgba(204,85,0,0.2); border-top-color: #CC5500; border-radius: 50%; animation: moduleSpinner 1s linear infinite; }
+
+        /* ===== DESKTOP ===== */
+        @media (min-width: 1367px) {
+            .mobile-menu-toggle { display: none !important; }
+            body.module-view .mobile-menu-toggle { display: flex !important; }
+            .sidebar { transform: translateX(0) !important; display: block !important; }
+            body.module-view .sidebar { transform: translateX(-100%) !important; }
+            .content-area { margin-left: var(--sidebar-width) !important; width: calc(100% - var(--sidebar-width)) !important; }
+            body.module-view .content-area { margin-left: 0 !important; width: 100% !important; }
+        }
+
+        /* ===== SIDEBAR HEADER RESPONSIVE ===== */
+        @media (max-width: 1200px) {
+            .sidebar .safepark-header .safe-part,
+            .sidebar .safepark-header .systems-part,
+            .sidebar .safepark-header .pro-part { font-size: 1.15rem !important; letter-spacing: 0.5px; }
+        }
+
+        /* ===== TABLET ===== */
+        @media (min-width: 641px) and (max-width: 1366px) {
+            :root { --sidebar-width: 280px; }
+            .mobile-menu-toggle { display: flex !important; }
+            .sidebar { width: var(--sidebar-width); transform: translateX(-100%); z-index: 1002; transition: transform 0.3s ease; }
+            .sidebar.open { transform: translateX(0) !important; z-index: 100000 !important; }
+            .sidebar-header { padding: 45px 15px 20px 15px; text-align: center; }
+            .nav-btn { padding: 12px 15px; font-size: 1rem; }
+            .content-area { margin-left: 0 !important; width: 100% !important; padding: 15px !important; transition: margin-left 0.3s ease, width 0.3s ease; }
+        }
+
+        /* ===== MOBILE ===== */
+        @media (max-width: 640px) {
+            .mobile-menu-toggle { display: flex !important; }
+            .sidebar { transform: translateX(-100%); z-index: 1002; width: min(300px, 80vw); }
+            .sidebar.open { transform: translateX(0) !important; z-index: 100000 !important; }
+            .content-area { margin-left: 0 !important; width: 100% !important; padding: 10px !important; padding-top: 50px !important; box-sizing: border-box !important; }
+            .login-form-container { padding: 30px 25px; }
+            .safepark-header .safe-part, .safepark-header .systems-part, .safepark-header .pro-part { font-size: 1.7rem !important; }
+            .login-btn { width: 80%; }
+            .tile-carousel { grid-template-columns: 1fr; gap: 15px; }
+            .stat-card { padding: 25px 20px; min-height: 90px; }
+            .stat-card-header h3 { font-size: 1.3rem !important; }
+            .dashboard-header { padding: 15px 20px; }
+            iframe { width: 100% !important; min-height: 85vh !important; height: 88vh !important; border: none !important; border-radius: 0 !important; margin: 0 !important; }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar .safepark-header .safe-part,
+            .sidebar .safepark-header .systems-part,
+            .sidebar .safepark-header .pro-part { font-size: 1.0rem !important; letter-spacing: 0.5px; }
+            .safepark-header .safe-part, .safepark-header .systems-part, .safepark-header .pro-part { font-size: 1.4rem !important; }
+            .login-btn { width: 90%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== LOGIN SCREEN ==================== -->
+    <div id="loginScreen" class="screen active">
+        <div class="login-form-container">
+            <h1 class="safepark-header">
+                <span class="safe-part">safe</span><span class="systems-part">systems</span><span class="pro-part">.pro</span>
+            </h1>
+            <div class="login-subtitle">Safety & Compliance Platform</div>
+            <div id="loginForm">
+                <div class="form-group">
+                    <label for="accessCode">Enter Your Access Code</label>
+                    <input type="password" class="login-input" id="accessCode" placeholder="Your access code" maxlength="20" required autocomplete="off">
+                </div>
+                <button type="button" class="login-btn" onclick="handleLogin()">Enter .PRO</button>
+                <div class="login-error" id="loginError">Code not recognised.</div>
+                <div style="margin-top: 15px;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
+                        <div style="flex: 1; height: 1px; background: #444;"></div>
+                        <span style="color: #777; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">or</span>
+                        <div style="flex: 1; height: 1px; background: #444;"></div>
+                    </div>
+                    <button type="button" class="register-link-btn" onclick="showRegister()">Register — Free SafeWater Access</button>
+                </div>
+            </div>
+            <div id="registerForm" style="display: none;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 25px;">
+                    <div style="flex: 1; height: 1px; background: #444;"></div>
+                    <span style="color: #CC5500; font-size: 0.9rem; font-weight: 600; letter-spacing: 1px;">REGISTER</span>
+                    <div style="flex: 1; height: 1px; background: #444;"></div>
+                </div>
+                <div class="form-group"><label for="regParkName">Park Name</label><input type="text" class="login-input" id="regParkName" placeholder="e.g. Lakeside Holiday Park" maxlength="60" autocomplete="off"></div>
+                <div class="form-group"><label for="regUserName">Your Name</label><input type="text" class="login-input" id="regUserName" placeholder="e.g. John Smith" maxlength="40" autocomplete="off"></div>
+                <div class="form-group"><label for="regAccessCode">Choose Your Access Code</label><input type="text" class="login-input" id="regAccessCode" placeholder="Min 6 characters" maxlength="20" autocomplete="off"></div>
+                <div class="form-group"><label for="regEmail">Contact Email</label><input type="email" class="login-input" id="regEmail" placeholder="your@email.com" maxlength="60" autocomplete="off"></div>
+                <button type="button" class="login-btn register-btn" onclick="registerNewPark()">Register & Enter</button>
+                <button type="button" class="back-btn-link" onclick="showLogin()">← Back to Login</button>
+                <div class="login-error" id="regError">Registration error</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== VERIFICATION SCREEN ==================== -->
+    <div id="verifyScreen" class="screen">
+        <div class="login-form-container">
+            <h1 class="safepark-header">
+                <span class="safe-part">safe</span><span class="systems-part">systems</span><span class="pro-part">.pro</span>
+            </h1>
+            <div class="login-subtitle">Email Verification</div>
+            <div style="text-align: center; color: #B8B8B8; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.5;">
+                A 6-digit verification code has been sent to<br>
+                <strong id="verifyEmailDisplay" style="color: #CC5500;">your@email.com</strong>
+            </div>
+            <div class="form-group">
+                <label for="verifyCode">Enter Verification Code</label>
+                <input type="text" class="login-input" id="verifyCode" placeholder="000000" maxlength="6" autocomplete="off" style="text-align: center; font-size: 1.4rem; letter-spacing: 8px; font-family: 'Orbitron', monospace;">
+            </div>
+            <button type="button" class="login-btn" onclick="verifyEmail()">Verify & Enter</button>
+            <div style="margin-top: 15px; text-align: center;">
+                <button type="button" class="back-btn-link" id="resendBtn" onclick="resendCode()" style="color: #CC5500; font-size: 0.85rem;">Resend Code</button>
+            </div>
+            <div class="login-error" id="verifyError">Verification error</div>
+        </div>
+    </div>
+
+    <!-- ==================== DASHBOARD SCREEN ==================== -->
+    <div id="dashboardScreen" class="screen">
+        <!-- Hamburger -->
+        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
+
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header" onclick="backToDashboard()">
+                <div class="safepark-header">
+                    <span class="safe-part">safe</span><span class="systems-part">systems</span><span class="pro-part">.pro</span>
+                </div>
+                <div class="tagline" id="sidebarTagline">Loading...</div>
+            </div>
+
+            <!-- Dashboard -->
+            <div class="nav-section">
+                <div class="nav-section-title" onclick="toggleNavSection(this)">Dashboard</div>
+                <div class="nav-section-content">
+                    <button class="nav-btn nav-btn-active" onclick="backToDashboard()">Main Dashboard</button>
+                </div>
+            </div>
+
+            <!-- SafeCore -->
+            <div class="nav-section">
+                <div class="nav-section-title" onclick="toggleNavSection(this)">SafeCore</div>
+                <div class="nav-section-content">
+                    <button class="nav-btn" onclick="goModule('cozzzstays')" style="font-size:0"><span style="font-size:1.1rem">cozzZ<span style="color:#CC5500">stays</span>.pro</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('hpgs')" style="font-size:0"><span style="font-size:1.1rem;color:#CC5500">HPGS</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safeaction')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#CC5500">action</span>.pro</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safeclean')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#CC5500">clean</span>.pro</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safefacilities')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#CC5500">facilities</span>.pro</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safemaint')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#CC5500">maint</span>.pro</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safenews')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#CC5500">news</span>.pro</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safeoffice')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#CC5500">office</span>.pro</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safepark')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#CC5500">park</span>.pro</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safepassport')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#CC5500">passport</span>.pro</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safereport')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#CC5500">report</span>.pro</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn nav-btn-active" onclick="openSafeWater()" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#CC5500">water</span>.pro (HT)</span></button>
+                    <button class="nav-btn" onclick="goModule('safechef')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#CC5500">chef</span>.pro</span> <span class="lock">🔒</span></button>
+                </div>
+            </div>
+
+            <!-- SafeCore+ -->
+            <div class="nav-section">
+                <div class="nav-section-title collapsed" onclick="toggleNavSection(this)">SafeCore+</div>
+                <div class="nav-section-content collapsed">
+                    <button class="nav-btn" onclick="goModule('safeaid')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#f492f0">aid</span>.pro+</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safecafe')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#f492f0">cafe</span>.pro+</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safechem')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#f492f0">chem</span>.pro+</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safechild')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#f492f0">child</span>.pro+</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safecontractor')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#f492f0">contractor</span>.pro+</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safefire')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#f492f0">fire</span>.pro+</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safegrounds')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#f492f0">grounds</span>.pro+</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safelearn')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#f492f0">learn</span>.pro+</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safemanager')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#f492f0">manager</span>.pro+</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safepools')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#f492f0">pools</span>.pro+</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safeteams')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#f492f0">teams</span>.pro+</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safetraffic')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#f492f0">traffic</span>.pro+</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safevehicle')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#f492f0">vehicle</span>.pro+</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('ukas-trends')" style="font-size:0"><span style="font-size:1.1rem;color:#f492f0">UKAS Trends</span>+ <span class="lock">🔒</span></button>
+                </div>
+            </div>
+
+            <!-- SafeCore max -->
+            <div class="nav-section">
+                <div class="nav-section-title collapsed" onclick="toggleNavSection(this)">SafeCore max</div>
+                <div class="nav-section-content collapsed">
+                    <button class="nav-btn" onclick="goModule('lolersafe')" style="font-size:0"><span style="font-size:1.1rem"><span style="color:#0dcaf0">loler</span>safe.pro max</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('puwersafe')" style="font-size:0"><span style="font-size:1.1rem"><span style="color:#0dcaf0">puwer</span>safe.pro max</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safeaccess')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#0dcaf0">access</span>.pro max</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safecare')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#0dcaf0">care</span>.pro max</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safechef-max')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#0dcaf0">chef</span>.pro max</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safeflood')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#0dcaf0">flood</span>.pro max</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safegames')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#0dcaf0">games</span>.pro max</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safegas')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#0dcaf0">gas</span>.pro max</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safelettings')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#0dcaf0">lettings</span>.pro max</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safemiss')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#0dcaf0">miss</span>.pro max</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safepest')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#0dcaf0">pest</span>.pro max</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safepets')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#0dcaf0">pets</span>.pro max</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safesecure')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#0dcaf0">secure</span>.pro max</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safesites')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#0dcaf0">sites</span>.pro max</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safespark')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#0dcaf0">spark</span>.pro max</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('safewater-pws')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#0dcaf0">water</span>.pro (PWS) max</span> <span class="lock">🔒</span></button>
+                </div>
+            </div>
+
+            <!-- Communications -->
+            <div class="nav-section">
+                <div class="nav-section-title collapsed" onclick="toggleNavSection(this)">Communications</div>
+                <div class="nav-section-content collapsed">
+                    <button class="nav-btn" onclick="goModule('safenews')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#00bcd4">news</span>.pro</span> <span class="lock">🔒</span></button>
+                </div>
+            </div>
+
+            <!-- System -->
+            <div class="nav-section">
+                <div class="nav-section-title collapsed" onclick="toggleNavSection(this)">System</div>
+                <div class="nav-section-content collapsed">
+                    <button class="nav-btn" onclick="goModule('safeoffice')" style="font-size:0"><span style="font-size:1.1rem">safe<span style="color:#607d8b">office</span>.pro</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn" onclick="goModule('docsafe')" style="font-size:0"><span style="font-size:1.1rem">doc<span style="color:#795548">safe</span>.pro</span> <span class="lock">🔒</span></button>
+                    <button class="nav-btn sidebar logout-nav-btn" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main content area -->
+        <div class="content-area" id="contentArea">
+            <div class="dashboard-header">
+                <div class="safepark-header" style="margin-bottom: 5px;">
+                    <span class="safe-part">safe</span><span class="systems-part">systems</span><span class="pro-part">.pro</span>
+                </div>
+                <div class="park-name" id="dashParkName">Your Park</div>
+            </div>
+            <div class="dashboard-title">Quick Access Dashboard</div>
+            <div class="tile-carousel" id="tileGrid">
+                <div class="stat-card" onclick="openSafeWater()"><div class="stat-card-header"><h3>safe<span style="color: #CC5500;">water</span>.pro (HT)</h3></div></div>
+                <div class="stat-card locked" onclick="goModule('safemaint')"><span class="lock-icon">🔒</span><div class="stat-card-header"><h3>safe<span style="color: #CC5500;">maint</span>.pro</h3></div></div>
+                <div class="stat-card locked" onclick="goModule('safereport')"><span class="lock-icon">🔒</span><div class="stat-card-header"><h3>safe<span style="color: #CC5500;">report</span>.pro</h3></div></div>
+                <div class="stat-card locked" onclick="goModule('cozzzstays')"><span class="lock-icon">🔒</span><div class="stat-card-header"><h3>cozzZ<span style="color: #CC5500;">stays</span>.pro</h3></div></div>
+                <div class="stat-card locked" onclick="goModule('docsafe')"><span class="lock-icon">🔒</span><div class="stat-card-header"><h3><span style="color: #CC5500;">doc</span>safe.pro</h3></div></div>
+                <div class="stat-card locked" onclick="goModule('safeaction')"><span class="lock-icon">🔒</span><div class="stat-card-header"><h3>safe<span style="color: #CC5500;">action</span>.pro</h3></div></div>
+                <div class="stat-card locked" onclick="goModule('safepark')"><span class="lock-icon">🔒</span><div class="stat-card-header"><h3>safe<span style="color: #CC5500;">park</span>.pro</h3></div></div>
+                <div class="stat-card locked" onclick="goModule('safegas')"><span class="lock-icon">🔒</span><div class="stat-card-header"><h3>safe<span style="color: #CC5500;">gas</span>.pro</h3></div></div>
+                <div class="stat-card locked" onclick="goModule('safespray')"><span class="lock-icon">🔒</span><div class="stat-card-header"><h3>safe<span style="color: #CC5500;">spray</span>.pro</h3></div></div>
+                <div class="stat-card locked" onclick="goModule('safechem')"><span class="lock-icon">🔒</span><div class="stat-card-header"><h3>safe<span style="color: #f492f0;">chem</span>.pro+</h3></div></div>
+                <div class="stat-card locked" onclick="goModule('safelearn')"><span class="lock-icon">🔒</span><div class="stat-card-header"><h3>safe<span style="color: #f492f0;">learn</span>.pro+</h3></div></div>
+                <div class="stat-card locked" onclick="goModule('safeteams')"><span class="lock-icon">🔒</span><div class="stat-card-header"><h3>safe<span style="color: #f492f0;">teams</span>.pro+</h3></div></div>
+                <div class="stat-card locked" onclick="goModule('safecare')"><span class="lock-icon">🔒</span><div class="stat-card-header"><h3>safe<span style="color: #0dcaf0;">care</span>.pro max</h3></div></div>
+                <div class="stat-card locked" onclick="goModule('safegrounds')"><span class="lock-icon">🔒</span><div class="stat-card-header"><h3>safe<span style="color: #f492f0;">grounds</span>.pro+</h3></div></div>
+                <div class="stat-card locked" onclick="goModule('safevehicle')"><span class="lock-icon">🔒</span><div class="stat-card-header"><h3>safe<span style="color: #f492f0;">vehicle</span>.pro+</h3></div></div>
+                <div class="stat-card locked" onclick="goModule('safecontractor')"><span class="lock-icon">🔒</span><div class="stat-card-header"><h3 style="font-size: 1.4rem;">safe<span style="color: #f492f0;">contractor</span>.pro+</h3></div></div>
+                <div class="stat-card locked" onclick="goModule('safechef')"><span class="lock-icon">🔒</span><div class="stat-card-header"><h3>safe<span style="color: #CC5500;">chef</span>.pro</h3></div></div>
+            </div>
+            <div class="contact-bar">
+                <p style="color: #8E7CC3; font-size: 0.95rem; margin-bottom: 12px;">Need help or want to upgrade?</p>
+                <a href="mailto:safesystems.pro@omnibosh.com?subject=SafeSystems.PRO Enquiry">Contact the SafeSystems Team</a>
+            </div>
+            <div class="user-info-bar">
+                <p>Current User: <strong id="dashUserName">-</strong></p>
+                <p>Park: <strong id="dashParkLabel">-</strong> | Access: <strong>SafeWater</strong></p>
+                <button class="logout-btn" onclick="logout()">Log Out</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODULE SCREEN (iframe) ==================== -->
+    <div id="moduleScreen" class="screen">
+        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
+        <div class="module-toolbar">
+            <button onclick="backToDashboard()">← Dashboard</button>
+            <span id="moduleTitle">SafeWater.PRO</span>
+        </div>
+        <div id="moduleLoading" class="module-loading">
+            <div class="spinner"></div>
+            <p style="color: #CC5500; margin-top: 20px;">Loading SafeWater.PRO...</p>
+        </div>
+        <iframe id="moduleIframe" style="display: none;"></iframe>
+    </div>
+
+    <script>
+        let db;
+        let currentPark = '';
+        let currentUser = '';
+        
+        // ==================== EmailJS Configuration ====================
+        // REPLACE THESE WITH YOUR EMAILJS CREDENTIALS:
+        // 1. Sign up at https://www.emailjs.com
+        // 2. Add an email service (Gmail/Outlook) → copy Service ID
+        // 3. Create a template using variables: {{to_email}}, {{park_name}}, {{user_name}}, {{verification_code}}
+        // 4. Copy Template ID and Public Key from your account
+        const EMAILJS_PUBLIC_KEY = '09Cn2Ei564ae5AGhO';
+        const EMAILJS_SERVICE_ID = 'service_bntssyy';
+        const EMAILJS_TEMPLATE_ID = 'template_674ufci';
+        
+        // Verification state
+        let pendingVerification = null; // { parkName, userName, accessCode, email, docId }
+
+        // Firebase init
+        async function initFirebase() {
+            let attempts = 0;
+            const check = setInterval(async () => {
+                attempts++;
+                if (window.firebaseDb) {
+                    db = window.firebaseDb;
+                    clearInterval(check);
+                    console.log('✅ Firebase ready');
+                    
+                    // Auto-login if redirected from index.html with ?auto=true&code=XXX
+                    const params = new URLSearchParams(window.location.search);
+                    if (params.get('auto') === 'true' && params.get('code')) {
+                        try {
+                            const snap = await db.collection('registered_parks')
+                                .where('accessCode', '==', params.get('code'))
+                                .where('active', '==', true)
+                                .get();
+                            if (!snap.empty) {
+                                const doc = snap.docs[0];
+                                const d = doc.data();
+                                if (d.verified !== true) {
+                                    // Unverified — send code and show verify screen
+                                    pendingVerification = { parkName: d.parkName, userName: d.userName, accessCode: params.get('code'), email: d.email, docId: doc.id };
+                                    await generateAndSendCode();
+                                } else {
+                                    console.log('🔑 Auto-login:', d.parkName);
+                                    enterDashboard(d.parkName, d.userName, params.get('code'));
+                                }
+                            }
+                        } catch(e) { console.error('Auto-login error:', e); }
+                    }
+                    
+                    // New user redirected from index.html — show registration form
+                    if (params.get('new') === 'true') {
+                        showRegister();
+                    }
+                }
+                else if (attempts >= 20) { clearInterval(check); console.error('❌ Firebase timeout'); }
+            }, 250);
+        }
+        document.addEventListener('DOMContentLoaded', initFirebase);
+
+        const reservedCodes = ['CQR365SPP25','BN2025HH','OB2025HH','TY2025HH','OF2025HH','HR2025','HRBN2025','HROB2025','HRTY2025','HROF2025','HRALL2025','365','demo2025','DEMO2025','STAFF2025','1010','1020','1030','9999'];
+
+        // Screen management
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if (id !== 'moduleScreen') document.body.classList.remove('module-view');
+        }
+
+        // Login/Register toggle
+        function showRegister() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            document.getElementById('regParkName').focus();
+        }
+        function showLogin() {
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+            ['regParkName','regUserName','regAccessCode','regEmail'].forEach(id => document.getElementById(id).value = '');
+        }
+
+        function showError(elId, msg) {
+            const el = document.getElementById(elId);
+            el.textContent = msg; el.style.opacity = '1';
+            setTimeout(() => el.style.opacity = '0', 3000);
+        }
+
+        function enterDashboard(parkName, userName, accessCode) {
+            currentPark = parkName;
+            currentUser = userName;
+            sessionStorage.setItem('currentAccessCode', accessCode);
+            sessionStorage.setItem('currentUser', userName);
+            sessionStorage.setItem('currentPark', parkName);
+            sessionStorage.setItem('userAccessLevel', 'safewater_only');
+            document.getElementById('dashParkName').textContent = parkName;
+            document.getElementById('dashUserName').textContent = userName;
+            document.getElementById('dashParkLabel').textContent = parkName;
+            document.getElementById('sidebarTagline').textContent = parkName;
+            showScreen('dashboardScreen');
+        }
+
+        async function handleLogin() {
+            const code = document.getElementById('accessCode').value.trim();
+            if (!code) return;
+            if (reservedCodes.includes(code)) { showError('loginError','Code not recognised.'); document.getElementById('accessCode').value=''; return; }
+            try {
+                const fdb = db || window.firebaseDb;
+                if (!fdb) { showError('loginError','System loading. Please wait.'); return; }
+                const snap = await fdb.collection('registered_parks').where('accessCode','==',code).where('active','==',true).get();
+                if (!snap.empty) {
+                    const doc = snap.docs[0];
+                    const d = doc.data();
+                    if (d.verified !== true) {
+                        // Not yet verified — resend code and show verification screen
+                        pendingVerification = { parkName: d.parkName, userName: d.userName, accessCode: code, email: d.email, docId: doc.id };
+                        await generateAndSendCode();
+                        return;
+                    }
+                    enterDashboard(d.parkName, d.userName, code);
+                }
+                else { showError('loginError','Code not recognised.'); document.getElementById('accessCode').value=''; }
+            } catch(e) { console.error('Login error:', e); showError('loginError','Connection error.'); }
+        }
+
+        async function registerNewPark() {
+            const parkName = document.getElementById('regParkName').value.trim();
+            const userName = document.getElementById('regUserName').value.trim();
+            const newCode = document.getElementById('regAccessCode').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            if (!parkName || !userName || !newCode || !email) { showError('regError','Please complete all fields.'); return; }
+            if (newCode.length < 6) { showError('regError','Access code must be at least 6 characters.'); return; }
+            if (reservedCodes.includes(newCode)) { showError('regError','That code is reserved.'); return; }
+            // Basic email format check
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showError('regError','Please enter a valid email address.'); return; }
+            try {
+                const fdb = db || window.firebaseDb;
+                if (!fdb) { showError('regError','System loading. Please wait.'); return; }
+                const existing = await fdb.collection('registered_parks').where('accessCode','==',newCode).get();
+                if (!existing.empty) { showError('regError','That code is already taken.'); return; }
+                // Save with verified: false — access blocked until email confirmed
+                const docRef = await fdb.collection('registered_parks').add({
+                    parkName, userName, accessCode: newCode, email,
+                    level: 'safewater_only',
+                    registeredAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    active: true,
+                    verified: false
+                });
+                console.log('✅ Registered (unverified):', parkName);
+                
+                // Set up verification state and send code
+                pendingVerification = { parkName, userName, accessCode: newCode, email, docId: docRef.id };
+                await generateAndSendCode();
+                
+            } catch(e) { console.error('Registration error:', e); showError('regError','Registration failed.'); }
+        }
+
+        // Generate 6-digit code, save to Firebase, send via EmailJS, show verify screen
+        async function generateAndSendCode() {
+            const v = pendingVerification;
+            if (!v) return;
+            
+            const code = String(Math.floor(100000 + Math.random() * 900000));
+            const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+            
+            try {
+                const fdb = db || window.firebaseDb;
+                // Store verification code in Firebase
+                await fdb.collection('registered_parks').doc(v.docId).update({
+                    verificationCode: code,
+                    codeExpiresAt: firebase.firestore.Timestamp.fromDate(expiresAt)
+                });
+                
+                // Send email via EmailJS
+                emailjs.init(EMAILJS_PUBLIC_KEY);
+                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                    to_email: v.email,
+                    park_name: v.parkName,
+                    user_name: v.userName,
+                    verification_code: code
+                });
+                console.log('📧 Verification email sent to:', v.email);
+                
+            } catch(e) {
+                console.error('Email send error:', e);
+                // Still show verify screen — they can resend
+            }
+            
+            // Show verification screen
+            document.getElementById('verifyEmailDisplay').textContent = v.email;
+            document.getElementById('verifyCode').value = '';
+            showScreen('verifyScreen');
+            document.getElementById('verifyCode').focus();
+        }
+
+        // Verify the code entered by the user
+        async function verifyEmail() {
+            const enteredCode = document.getElementById('verifyCode').value.trim();
+            if (!enteredCode || enteredCode.length !== 6) { showError('verifyError', 'Please enter the 6-digit code.'); return; }
+            if (!pendingVerification) { showError('verifyError', 'Session expired. Please register again.'); return; }
+            
+            try {
+                const fdb = db || window.firebaseDb;
+                const doc = await fdb.collection('registered_parks').doc(pendingVerification.docId).get();
+                
+                if (!doc.exists) { showError('verifyError', 'Registration not found.'); return; }
+                
+                const data = doc.data();
+                
+                // Check expiry
+                if (data.codeExpiresAt && data.codeExpiresAt.toDate() < new Date()) {
+                    showError('verifyError', 'Code expired. Click Resend Code.');
+                    return;
+                }
+                
+                // Check code match
+                if (data.verificationCode !== enteredCode) {
+                    showError('verifyError', 'Incorrect code. Please try again.');
+                    document.getElementById('verifyCode').value = '';
+                    document.getElementById('verifyCode').focus();
+                    return;
+                }
+                
+                // Verified! Update Firebase and enter dashboard
+                await fdb.collection('registered_parks').doc(pendingVerification.docId).update({
+                    verified: true,
+                    verifiedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    verificationCode: firebase.firestore.FieldValue.delete(),
+                    codeExpiresAt: firebase.firestore.FieldValue.delete()
+                });
+                
+                console.log('✅ Email verified:', pendingVerification.parkName);
+                enterDashboard(pendingVerification.parkName, pendingVerification.userName, pendingVerification.accessCode);
+                pendingVerification = null;
+                
+            } catch(e) { console.error('Verification error:', e); showError('verifyError', 'Verification failed. Please try again.'); }
+        }
+
+        // Resend verification code
+        async function resendCode() {
+            if (!pendingVerification) return;
+            const btn = document.getElementById('resendBtn');
+            btn.textContent = 'Sending...';
+            btn.disabled = true;
+            await generateAndSendCode();
+            btn.textContent = 'Code Resent ✓';
+            setTimeout(() => { btn.textContent = 'Resend Code'; btn.disabled = false; }, 5000);
+        }
+
+        // Module URL mapping to omnibosh.com pages
+        const moduleUrls = {
+            'cozzzstays': 'modules/cozzzstays.html',
+            'hpgs': 'modules/safehpgs.html',
+            'safeaction': 'modules/safeaction.html',
+            'safeclean': 'modules/all-modules.html',
+            'safefacilities': 'modules/safefacilities.html',
+            'safemaint': 'modules/safemaint.html',
+            'safenews': 'modules/all-modules.html',
+            'safeoffice': 'modules/all-modules.html',
+            'safepark': 'modules/safepark.html',
+            'safepassport': 'modules/all-modules.html',
+            'safereport': 'modules/safereport.html',
+            'safechef': 'modules/safechef.html',
+            'safeaid': 'modules/all-modules.html',
+            'safecafe': 'modules/all-modules.html',
+            'safechem': 'modules/safechem.html',
+            'safechild': 'modules/all-modules.html',
+            'safecontractor': 'modules/safecontractor.html',
+            'safefire': 'modules/safefire.html',
+            'safegrounds': 'modules/safegrounds.html',
+            'safelearn': 'modules/safelearn.html',
+            'safemanager': 'modules/all-modules.html',
+            'safepools': 'modules/safepool.html',
+            'safeteams': 'modules/safeteam.html',
+            'safetraffic': 'modules/all-modules.html',
+            'safevehicle': 'modules/safevehicle.html',
+            'ukas-trends': 'modules/safeukas.html',
+            'lolersafe': 'modules/safeloler.html',
+            'puwersafe': 'modules/safepuwer.html',
+            'safeaccess': 'modules/all-modules.html',
+            'safecare': 'modules/safecare.html',
+            'safechef-max': 'modules/safechef.html',
+            'safeflood': 'modules/all-modules.html',
+            'safegames': 'modules/all-modules.html',
+            'safegas': 'modules/safegas.html',
+            'safelettings': 'modules/all-modules.html',
+            'safemiss': 'modules/safemiss.html',
+            'safepest': 'modules/all-modules.html',
+            'safepets': 'modules/all-modules.html',
+            'safesecure': 'modules/all-modules.html',
+            'safesites': 'modules/all-modules.html',
+            'safespark': 'modules/safeelectric.html',
+            'safewater-pws': 'modules/safewater.html',
+            'safespray': 'modules/safespray.html'
+        };
+
+        // Navigate to omnibosh.com module page
+        function goModule(moduleName) {
+            closeMobileMenu();
+            const path = moduleUrls[moduleName] || 'modules/all-modules.html';
+            window.open('https://www.omnibosh.com/' + path, '_blank');
+        }
+
+        // Open SafeWater in iframe
+        function openSafeWater() {
+            closeMobileMenu();
+            const code = sessionStorage.getItem('currentAccessCode') || '';
+            const user = sessionStorage.getItem('currentUser') || '';
+            const park = sessionStorage.getItem('currentPark') || '';
+            let url = 'https://cqr365.github.io/SafePark.PRO/hot-tub.html';
+            url += '?code=' + encodeURIComponent(code) + '&access_code=' + encodeURIComponent(code) + '&user=' + encodeURIComponent(user) + '&park=' + encodeURIComponent(park) + '&auth_source=safesystems';
+            document.getElementById('moduleTitle').textContent = 'SafeWater.PRO — ' + park;
+            document.getElementById('moduleLoading').style.display = 'flex';
+            const iframe = document.getElementById('moduleIframe');
+            iframe.style.display = 'none';
+            iframe.src = url;
+            iframe.onload = function() {
+                document.getElementById('moduleLoading').style.display = 'none';
+                iframe.style.display = 'block';
+                setTimeout(function() {
+                    try { iframe.contentWindow.postMessage({ type: 'safecore-auth-success', userName: user, accessCode: code, authContext: { user: user, accessCode: code, authenticated: true, source: 'safesystems' } }, '*'); } catch(e) {}
+                }, 1000);
+            };
+            document.body.classList.add('module-view');
+            showScreen('moduleScreen');
+        }
+
+        function backToDashboard() {
+            document.getElementById('moduleIframe').src = '';
+            document.body.classList.remove('module-view');
+            showScreen('dashboardScreen');
+            closeMobileMenu();
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            currentPark = ''; currentUser = '';
+            document.body.classList.remove('module-view');
+            showScreen('loginScreen');
+        }
+
+        // Sidebar toggle
+        function toggleNavSection(el) {
+            const content = el.nextElementSibling;
+            if (el.classList.contains('collapsed')) { el.classList.remove('collapsed'); content.classList.remove('collapsed'); }
+            else { el.classList.add('collapsed'); content.classList.add('collapsed'); }
+        }
+
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const btn = document.querySelector('.mobile-menu-toggle');
+            sidebar.classList.toggle('open');
+            if (sidebar.classList.contains('open')) {
+                document.body.style.overflow = 'hidden';
+                sidebar.style.transform = 'translateX(0)';
+                sidebar.style.zIndex = '100000';
+                btn.innerHTML = '✕'; btn.style.background = 'rgba(220,53,69,0.8)'; btn.style.borderColor = '#dc3545'; btn.style.zIndex = '100001';
+            } else {
+                document.body.style.overflow = '';
+                sidebar.style.transform = 'translateX(-100%)';
+                btn.innerHTML = '☰'; btn.style.background = 'rgba(0,0,0,0.5)'; btn.style.borderColor = 'var(--primary-orange)'; btn.style.zIndex = '99999';
+            }
+        }
+
+        function closeMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const btn = document.querySelector('.mobile-menu-toggle');
+            if (!sidebar) return;
+            sidebar.classList.remove('open');
+            if (window.innerWidth <= 1366) sidebar.style.transform = 'translateX(-100%)';
+            else sidebar.style.transform = 'translateX(0)';
+            document.body.style.overflow = '';
+            if (btn) { btn.innerHTML = '☰'; btn.style.background = 'rgba(0,0,0,0.5)'; btn.style.borderColor = 'var(--primary-orange)'; }
+        }
+
+        // Enter key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && document.getElementById('loginScreen').classList.contains('active')) {
+                if (document.getElementById('loginForm').style.display !== 'none') handleLogin();
+                else registerNewPark();
+            }
+        });
+    </script>
+</body>
+</html>
