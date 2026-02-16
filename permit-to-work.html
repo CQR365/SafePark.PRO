@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#f492f0">
+    <title>SafeContractor.PRO+ — Permit to Work</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Source+Code+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{
+            --primary:#f492f0;--primary-dark:#d470d0;--primary-glow:rgba(244,146,240,0.3);--accent:#5e429c;
+            --dark-bg:#1a1a1a;--card-bg:#2d2d2d;--border:#444;
+            --text:#fff;--text-muted:#999;
+            --success:#28a745;--warning:#ffc107;--danger:#dc3545;--info:#17a2b8;
+        }
+        body{font-family:'Source Code Pro',monospace;background:var(--dark-bg);color:var(--text);min-height:100vh;line-height:1.6}
+        
+        /* Header */
+        .header{background:linear-gradient(135deg,#1a1a1a,#2d2d2d);padding:15px 20px;border-bottom:3px solid var(--primary);position:sticky;top:0;z-index:100;display:flex;justify-content:space-between;align-items:center}
+        .header h1{font-family:'Orbitron',monospace;font-size:20px;letter-spacing:2px}
+        .header .sub{font-size:11px;color:var(--text-muted);margin-top:3px;letter-spacing:0.5px}
+        .firebase-status{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted)}
+        .status-dot{width:8px;height:8px;border-radius:50%;background:var(--warning);animation:pulse 2s infinite}
+        .status-dot.connected{background:var(--success);animation:none}
+        .status-dot.error{background:var(--danger);animation:none}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+        
+        /* Layout */
+        .container{max-width:1200px;margin:0 auto;padding:20px}
+        .tabs{display:flex;gap:5px;margin-bottom:20px;background:var(--card-bg);padding:8px;border-radius:10px;border:1px solid var(--border);flex-wrap:wrap}
+        .tab-btn{padding:12px 18px;background:transparent;border:none;color:var(--text-muted);font-size:13px;font-weight:500;cursor:pointer;border-radius:6px;transition:all .2s;white-space:nowrap;font-family:'Source Code Pro',monospace}
+        .tab-btn:hover{background:rgba(255,255,255,.05);color:#fff}
+        .tab-btn.active{background:linear-gradient(180deg,var(--primary),var(--accent));color:#000;font-weight:600;box-shadow:0 2px 8px var(--primary-glow)}
+        
+        /* Stats */
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:15px;margin-bottom:20px}
+        .stat-card{background:linear-gradient(180deg,#353535,#2d2d2d);border-radius:10px;padding:18px;text-align:center;border:1px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.05)}
+        .stat-card.open{border-left:4px solid var(--warning)}.stat-card.closed{border-left:4px solid var(--success)}.stat-card.total{border-left:4px solid var(--primary)}.stat-card.expired{border-left:4px solid var(--danger)}
+        .stat-value{font-family:'Orbitron',monospace;font-size:2rem;font-weight:700;text-shadow:0 2px 4px rgba(0,0,0,.3)}
+        .stat-card.open .stat-value{color:var(--warning)}.stat-card.closed .stat-value{color:var(--success)}.stat-card.total .stat-value{color:var(--primary)}.stat-card.expired .stat-value{color:var(--danger)}
+        .stat-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+        
+        /* Cards */
+        .card{background:var(--card-bg);border-radius:10px;border:1px solid var(--border);margin-bottom:15px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+        .card-header{padding:15px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(180deg,#353535,#2d2d2d)}
+        .card-header h2{font-family:'Orbitron',monospace;font-size:15px;color:var(--primary);margin:0}
+        .card-body{padding:20px}
+        
+        /* Forms */
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:18px}
+        .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:18px}
+        .form-group{margin-bottom:18px}
+        .form-group:last-child{margin-bottom:0}
+        label{display:block;margin-bottom:6px;font-weight:600;font-size:13px;color:var(--text)}
+        .req{color:var(--primary)}
+        
+        input[type="text"],input[type="email"],input[type="tel"],input[type="date"],input[type="time"],input[type="number"],select,textarea{
+            width:100%;padding:12px 14px;border:1px solid #555;border-top-color:#333;border-left-color:#3a3a3a;border-bottom-color:#666;border-right-color:#666;
+            border-radius:6px;background:linear-gradient(180deg,#333 0%,#3e3e3e 4%,#4a4a4a 100%);color:var(--text);font-family:'Source Code Pro',monospace;font-size:14px;
+            transition:all .2s;box-shadow:inset 0 2px 4px rgba(0,0,0,.4),inset 0 1px 1px rgba(0,0,0,.3),0 1px 0 rgba(255,255,255,.05)
+        }
+        input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:inset 0 2px 4px rgba(0,0,0,.4),inset 0 1px 1px rgba(0,0,0,.3),0 0 0 3px var(--primary-glow)}
+        textarea{min-height:80px;resize:vertical}
+        select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");background-repeat:no-repeat;background-position:right 10px center;background-size:18px}
+        option{background:#2d2d2d;color:#fff}
+        
+        .checkbox-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+        .chk-item{display:flex;align-items:center;gap:8px;padding:10px 14px;background:linear-gradient(180deg,#3a3a3a,#333);border-radius:6px;border:1px solid #555;border-bottom-color:#666;box-shadow:0 2px 4px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.05);cursor:pointer;font-size:13px;transition:all .2s}
+        .chk-item:hover{border-color:var(--primary);box-shadow:0 2px 8px rgba(0,0,0,.3),0 0 0 2px var(--primary-glow)}
+        input[type="checkbox"]{accent-color:var(--primary);cursor:pointer;width:16px;height:16px}
+        
+        .info-box{background:linear-gradient(180deg,#352e3a,#2d2830);border:1px solid rgba(244,146,240,.25);border-radius:8px;padding:14px;font-size:13px;color:var(--text-muted);margin:15px 0;box-shadow:inset 0 2px 4px rgba(0,0,0,.2)}
+        .info-box strong{color:var(--primary)}
+        
+        /* Buttons */
+        .btn{padding:10px 24px;border:none;border-radius:6px;font-family:'Source Code Pro',monospace;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+        .btn-primary{background:linear-gradient(180deg,var(--primary),var(--accent));color:#000;box-shadow:0 4px 12px var(--primary-glow),inset 0 1px 0 rgba(255,255,255,.2)}
+        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 16px var(--primary-glow)}
+        .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+        .btn-success{background:linear-gradient(180deg,var(--success),#1e7e34);color:#fff;box-shadow:0 3px 8px rgba(40,167,69,.3)}
+        .btn-success:hover{transform:translateY(-2px)}
+        .btn-danger{background:linear-gradient(180deg,var(--danger),#b71c1c);color:#fff;box-shadow:0 3px 8px rgba(220,53,69,.3)}
+        .btn-danger:hover{transform:translateY(-2px)}
+        .btn-warning{background:linear-gradient(180deg,var(--warning),#e0a800);color:#000;box-shadow:0 3px 8px rgba(255,193,7,.3)}
+        .btn-warning:hover{transform:translateY(-2px)}
+        .btn-sm{padding:6px 14px;font-size:12px}
+        
+        /* Permit cards */
+        .permit-card{background:linear-gradient(180deg,#353535,#2d2d2d);border-radius:10px;padding:20px;margin-bottom:12px;border:1px solid var(--border);box-shadow:0 3px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.04);transition:transform .2s}
+        .permit-card:hover{transform:translateX(4px)}
+        .permit-card.open{border-left:4px solid var(--warning)}
+        .permit-card.closed{border-left:4px solid var(--success)}
+        .permit-card.expired{border-left:4px solid var(--danger)}
+        .permit-card h4{font-family:'Orbitron',monospace;font-size:13px;margin:0 0 8px 0}
+        .permit-card.open h4{color:var(--warning)}.permit-card.closed h4{color:var(--success)}.permit-card.expired h4{color:var(--danger)}
+        .permit-card .meta{font-size:12px;color:var(--text-muted);line-height:1.8}
+        .permit-card .meta strong{color:var(--text)}
+        .permit-card .actions{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+        
+        .badge{padding:4px 12px;border-radius:12px;font-size:11px;font-weight:600;text-transform:uppercase}
+        .badge-open{background:rgba(255,193,7,.15);color:var(--warning)}
+        .badge-closed{background:rgba(40,167,69,.15);color:var(--success)}
+        .badge-expired{background:rgba(220,53,69,.15);color:var(--danger)}
+        
+        .permit-type-badge{padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+        .type-hot-works{background:rgba(255,107,53,.15);color:#ff6b35}
+        .type-working-at-height{background:rgba(23,162,184,.15);color:var(--info)}
+        .type-electrical{background:rgba(255,193,7,.15);color:var(--warning)}
+        .type-confined-space{background:rgba(220,53,69,.15);color:var(--danger)}
+        .type-excavation{background:rgba(139,69,19,.3);color:#d4a373}
+        .type-gas-works{background:rgba(255,165,0,.15);color:#ffa500}
+        .type-general{background:rgba(244,146,240,.15);color:var(--primary)}
+        
+        /* Modal */
+        .modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.85);z-index:200;justify-content:center;align-items:center;padding:20px}
+        .modal-overlay.show{display:flex}
+        .modal{background:var(--card-bg);border-radius:12px;padding:30px;max-width:550px;width:100%;border:1px solid var(--border);box-shadow:0 8px 30px rgba(0,0,0,.4)}
+        .modal h2{font-family:'Orbitron',monospace;font-size:16px;color:var(--primary);margin-bottom:20px}
+        .modal-actions{margin-top:20px;display:flex;gap:10px;justify-content:flex-end}
+        
+        /* Footer */
+        .footer{text-align:center;padding:20px;color:var(--text-muted);font-size:12px;border-top:1px solid var(--border);margin-top:20px}
+        
+        /* Filter bar */
+        .filter-bar{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+        .filter-bar select,.filter-bar input{max-width:200px}
+        .filter-bar label{font-size:12px;color:var(--text-muted);margin-bottom:0}
+        
+        /* Empty state */
+        .empty{text-align:center;padding:40px;color:var(--text-muted)}
+        
+        @media(max-width:768px){
+            .container{padding:12px}.header{padding:12px 15px;flex-wrap:wrap;gap:8px}.header h1{font-size:17px}
+            .tabs{flex-direction:column}.form-row,.form-row-3{grid-template-columns:1fr}.checkbox-grid{grid-template-columns:1fr}
+            .stats-grid{grid-template-columns:repeat(2,1fr)}.filter-bar{flex-direction:column}.filter-bar select,.filter-bar input{max-width:100%}
+            .permit-card .meta{font-size:11px}
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1><span style="color:#C0C0C0">safe</span><span style="color:var(--primary)">contractor</span><span style="color:#C0C0C0;font-weight:400">.pro</span><span style="color:var(--primary);font-weight:400">+</span></h1>
+            <div class="sub">Permit to Work System</div>
+        </div>
+        <div class="firebase-status"><div class="status-dot" id="statusDot"></div><span id="statusText">Connecting...</span></div>
+    </div>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('dashboard',this)">Dashboard</button>
+            <button class="tab-btn" onclick="switchTab('issue',this)">Issue Permit</button>
+            <button class="tab-btn" onclick="switchTab('open',this)">Open Permits</button>
+            <button class="tab-btn" onclick="switchTab('all',this)">All Permits</button>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="tab-dashboard" class="content-section">
+            <div class="stats-grid" id="dashStats"></div>
+            <div class="card"><div class="card-header"><h2>Open Permits Requiring Attention</h2></div><div class="card-body" id="dashOpen"><p class="empty">Loading...</p></div></div>
+        </div>
+
+        <!-- Issue Permit -->
+        <div id="tab-issue" class="content-section" style="display:none">
+            <div class="card">
+                <div class="card-header"><h2>Issue New Permit to Work</h2></div>
+                <div class="card-body">
+                    <form id="permitForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Permit Type <span class="req">*</span></label>
+                                <select name="permitType" id="permitType" required onchange="updateHazardChecklist()">
+                                    <option value="">Select permit type...</option>
+                                    <option value="hot-works">🔥 Hot Works</option>
+                                    <option value="working-at-height">🪜 Working at Height</option>
+                                    <option value="electrical-isolation">⚡ Electrical Isolation</option>
+                                    <option value="confined-space">🕳️ Confined Space Entry</option>
+                                    <option value="excavation">⛏️ Excavation / Ground Disturbance</option>
+                                    <option value="gas-works">🔥 Gas Works / LPG</option>
+                                    <option value="general-high-risk">⚠️ General High-Risk</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Park <span class="req">*</span></label>
+                                <select name="park" id="parkSelect" required>
+                                    <option value="">Select park...</option>
+                                    <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                                    <option value="Oban Holiday Park">Oban Holiday Park</option>
+                                    <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                                    <option value="Overburns Farm">Overburns Farm</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Contractor <span class="req">*</span></label>
+                                <select name="contractor" id="contractorSelect" required>
+                                    <option value="">Select approved contractor...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Specific Location <span class="req">*</span></label>
+                                <input type="text" name="location" required placeholder="e.g. Lodge 12 roof, Main reception, Boiler room...">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Description of Work <span class="req">*</span></label>
+                            <textarea name="workDescription" required placeholder="Describe the work to be carried out in detail..."></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Start Date <span class="req">*</span></label>
+                                <input type="date" name="startDate" id="startDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Start Time <span class="req">*</span></label>
+                                <input type="time" name="startTime" required value="08:00">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>End Date <span class="req">*</span></label>
+                                <input type="date" name="endDate" id="endDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label>End Time <span class="req">*</span></label>
+                                <input type="time" name="endTime" required value="17:00">
+                            </div>
+                        </div>
+
+                        <!-- Dynamic hazards section -->
+                        <div id="hazardsSection" style="display:none">
+                            <div class="card" style="margin-bottom:18px">
+                                <div class="card-header"><h2 id="hazardsTitle">Hazards Identified</h2></div>
+                                <div class="card-body"><div class="checkbox-grid" id="hazardsGrid"></div></div>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic controls section -->
+                        <div id="controlsSection" style="display:none">
+                            <div class="card" style="margin-bottom:18px">
+                                <div class="card-header"><h2 id="controlsTitle">Control Measures</h2></div>
+                                <div class="card-body"><div class="checkbox-grid" id="controlsGrid"></div></div>
+                            </div>
+                        </div>
+
+                        <!-- PPE -->
+                        <div class="card" style="margin-bottom:18px">
+                            <div class="card-header"><h2>PPE Required</h2></div>
+                            <div class="card-body">
+                                <div class="checkbox-grid" id="ppeGrid">
+                                    <label class="chk-item"><input type="checkbox" name="ppe" value="hard-hat"> Hard Hat</label>
+                                    <label class="chk-item"><input type="checkbox" name="ppe" value="safety-boots"> Safety Boots</label>
+                                    <label class="chk-item"><input type="checkbox" name="ppe" value="hi-vis"> Hi-Vis Vest/Jacket</label>
+                                    <label class="chk-item"><input type="checkbox" name="ppe" value="safety-glasses"> Safety Glasses</label>
+                                    <label class="chk-item"><input type="checkbox" name="ppe" value="gloves"> Protective Gloves</label>
+                                    <label class="chk-item"><input type="checkbox" name="ppe" value="ear-protection"> Ear Protection</label>
+                                    <label class="chk-item"><input type="checkbox" name="ppe" value="face-shield"> Face Shield/Visor</label>
+                                    <label class="chk-item"><input type="checkbox" name="ppe" value="harness"> Safety Harness</label>
+                                    <label class="chk-item"><input type="checkbox" name="ppe" value="respirator"> Respirator/Mask</label>
+                                    <label class="chk-item"><input type="checkbox" name="ppe" value="fire-extinguisher"> Fire Extinguisher on site</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Emergency Procedures / Additional Notes</label>
+                            <textarea name="emergencyNotes" placeholder="Nearest fire point, assembly point, first aider, any specific emergency procedures..."></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Issued By (Your Name) <span class="req">*</span></label>
+                                <input type="text" name="issuedBy" required placeholder="Full name of permit issuer...">
+                            </div>
+                            <div class="form-group">
+                                <label>Position / Role <span class="req">*</span></label>
+                                <input type="text" name="issuerRole" required placeholder="e.g. Park Manager, Safety Officer...">
+                            </div>
+                        </div>
+
+                        <div class="info-box">
+                            <strong>Declaration:</strong> I confirm that the above hazards have been assessed, control measures are in place, and the contractor named above is authorised to carry out the specified work under the conditions of this permit.
+                        </div>
+
+                        <div style="text-align:center;padding-top:10px">
+                            <button type="submit" class="btn btn-primary" id="issueBtn" style="padding:14px 40px;font-size:14px">ISSUE PERMIT</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Open Permits -->
+        <div id="tab-open" class="content-section" style="display:none">
+            <div id="openPermitsList"></div>
+        </div>
+
+        <!-- All Permits -->
+        <div id="tab-all" class="content-section" style="display:none">
+            <div class="filter-bar">
+                <div class="form-group" style="margin-bottom:0">
+                    <label>Park</label>
+                    <select id="filterPark" onchange="renderAllPermits()"><option value="">All Parks</option><option value="Ben Nevis Holiday Park">Ben Nevis</option><option value="Oban Holiday Park">Oban</option><option value="Tyndrum Holiday Park">Tyndrum</option><option value="Overburns Farm">Overburns</option></select>
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                    <label>Type</label>
+                    <select id="filterType" onchange="renderAllPermits()"><option value="">All Types</option><option value="hot-works">Hot Works</option><option value="working-at-height">Working at Height</option><option value="electrical-isolation">Electrical</option><option value="confined-space">Confined Space</option><option value="excavation">Excavation</option><option value="gas-works">Gas Works</option><option value="general-high-risk">General</option></select>
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                    <label>Status</label>
+                    <select id="filterStatus" onchange="renderAllPermits()"><option value="">All</option><option value="open">Open</option><option value="closed">Closed</option><option value="expired">Expired</option></select>
+                </div>
+            </div>
+            <div id="allPermitsList"></div>
+        </div>
+    </div>
+
+    <!-- Close-out Modal -->
+    <div class="modal-overlay" id="closeModal">
+        <div class="modal">
+            <h2>Close Out Permit</h2>
+            <div id="closePermitInfo" style="font-size:13px;color:var(--text-muted);margin-bottom:15px"></div>
+            <div class="form-group">
+                <label>Area Left Safe & Clean? <span class="req">*</span></label>
+                <div style="display:flex;gap:10px;margin-top:6px">
+                    <label class="chk-item" style="flex:1;justify-content:center"><input type="checkbox" id="closeAreaSafe"> Yes — area inspected and left safe</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Close-out Notes</label>
+                <textarea id="closeNotes" placeholder="Any observations, remaining issues, or notes..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Closed By <span class="req">*</span></label>
+                <input type="text" id="closeBy" placeholder="Your full name...">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-danger btn-sm" onclick="closeModalHide()">Cancel</button>
+                <button class="btn btn-success" id="confirmCloseBtn" onclick="confirmCloseOut()">Close Out Permit</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer"><p><strong>SafeSystems.PRO</strong> — Permit to Work System — Powered by Omnibosh Safety Solutions Ltd</p></div>
+
+<script>
+    let db = null, permits = [], contractors = [];
+    let closingPermitId = null;
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+        authDomain: "safepark-pro.firebaseapp.com",
+        projectId: "safepark-pro",
+        storageBucket: "safepark-pro.firebasestorage.app",
+        messagingSenderId: "511221743341",
+        appId: "1:511221743341:web:95bcc7e83d4861578016e4"
+    };
+
+    // ===== HAZARD & CONTROL DATA PER PERMIT TYPE =====
+    const PERMIT_DATA = {
+        'hot-works': {
+            hazards: ['Fire / ignition of materials','Burn injuries','Smoke / fume inhalation','Damage to adjacent structures','Hot slag / sparks travel','Explosion risk (gas/vapour)','Damage to fire detection systems'],
+            controls: ['Area cleared of combustibles (min 6m radius)','Fire extinguisher present & checked','Fire watch maintained during work','Fire watch 60 min after work ceases','Fire detection isolated (with notification)','Fire-resistant sheeting/blankets in place','Hot work equipment inspected','Ventilation adequate','Adjacent rooms/spaces checked']
+        },
+        'working-at-height': {
+            hazards: ['Falls from height','Falling objects/tools','Unstable working platform','Fragile surfaces/roofs','Adverse weather conditions','Overhead power lines','Public/guest access below'],
+            controls: ['Edge protection installed','Safety harness & lanyard required','Scaffold inspected & tagged','Ladder secured & footed','Tool tethering in use','Exclusion zone below work area','Weather conditions assessed','Rescue plan in place','Fragile roof warning signs']
+        },
+        'electrical-isolation': {
+            hazards: ['Electric shock','Arc flash','Burns','Residual stored energy','Inadvertent re-energisation','Working on wrong circuit','Damage to other systems'],
+            controls: ['Circuit isolated at source','Lock-out/tag-out applied','Isolation verified (test equipment)','Proving unit tested before & after','Permit-to-work displayed at isolation point','Adjacent live equipment identified','Insulated tools used','Competent person supervising','Emergency rescue equipment available']
+        },
+        'confined-space': {
+            hazards: ['Oxygen depletion','Toxic atmosphere','Flammable atmosphere','Engulfment/drowning','Restricted access/egress','Heat stress','Mechanical hazards within space'],
+            controls: ['Atmosphere tested before entry','Continuous gas monitoring','Forced ventilation in place','Standby person at entry point','Communication system tested','Rescue plan & equipment ready','Emergency services notified','Entry/exit log maintained','Time limits set for entry']
+        },
+        'excavation': {
+            hazards: ['Collapse of excavation sides','Underground services (gas/electric/water)','Falling into excavation','Flooding','Vehicle proximity','Ground contamination','Adjacent structure instability'],
+            controls: ['Underground services located & marked (CAT scan)','Sides battered/shored/supported','Edge protection installed','Barriers & warning signs around excavation','Safe means of access/egress','Spoil stored away from edge (min 1m)','Vehicles kept clear / stop blocks','Daily inspection of excavation','Pumping equipment available if needed']
+        },
+        'general-high-risk': {
+            hazards: ['Slip/trip/fall hazards','Manual handling injury','Chemical exposure','Noise exposure','Vibration exposure','Interaction with public/guests','Working near water'],
+            controls: ['Risk assessment completed & briefed','Method statement reviewed','Area cordoned/signed off','Welfare facilities provided','Supervision arrangements in place','Emergency procedures communicated','Work area lighting adequate','First aid provision confirmed','Waste management plan in place']
+        },
+        'gas-works': {
+            hazards: ['Gas leak / uncontrolled release','Explosion / flash fire','Carbon monoxide exposure','Burns from hot surfaces or flame','Asphyxiation in enclosed space','Damage to existing gas installation','LPG storage proximity risk','Inadequate ventilation'],
+            controls: ['Contractor Gas Safe registered (ID verified)','Gas supply isolated at meter/valve','Gas tightness test before & after work','Purging carried out safely','CO monitor in use throughout','Adequate ventilation confirmed','No ignition sources in work area','Emergency gas shut-off location identified','LPG cylinders secured & upright','Leak detection fluid/equipment available','Appliance commissioned & safety checked','Gas Safe notification/records completed']
+        }
+    };
+
+    const TYPE_LABELS = {
+        'hot-works':'Hot Works','working-at-height':'Working at Height','electrical-isolation':'Electrical Isolation',
+        'confined-space':'Confined Space Entry','excavation':'Excavation / Ground Disturbance','gas-works':'Gas Works / LPG','general-high-risk':'General High-Risk'
+    };
+
+    // ===== INIT =====
+    async function init() {
+        try {
+            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            await firebase.auth().signInAnonymously();
+            document.getElementById('statusDot').className = 'status-dot connected';
+            document.getElementById('statusText').textContent = 'Connected';
+        } catch (e) {
+            console.error('[PTW] Firebase error:', e);
+            document.getElementById('statusDot').className = 'status-dot error';
+            document.getElementById('statusText').textContent = 'Error';
+        }
+
+        document.getElementById('startDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('endDate').value = new Date().toISOString().split('T')[0];
+
+        await loadContractors();
+        await loadPermits();
+        renderDashboard();
+    }
+
+    async function loadContractors() {
+        if (!db) return;
+        try {
+            const snap = await db.collection('contractorRecords').where('status','==','active').get();
+            contractors = [];
+            snap.forEach(d => contractors.push({ id: d.id, ...d.data() }));
+            const sel = document.getElementById('contractorSelect');
+            sel.innerHTML = '<option value="">Select approved contractor...</option>';
+            contractors.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c['contractor-name'] || c.name || '';
+                opt.textContent = `${c['contractor-name'] || c.name || 'Unknown'} — ${c['contractor-type'] || c['trade-skills'] || ''}`;
+                opt.dataset.id = c.id;
+                sel.appendChild(opt);
+            });
+            console.log('[PTW] Loaded', contractors.length, 'approved contractors');
+        } catch (e) { console.error('[PTW] Load contractors:', e); }
+    }
+
+    async function loadPermits() {
+        if (!db) return;
+        try {
+            const snap = await db.collection('permitToWork').orderBy('createdAt','desc').get();
+            permits = [];
+            snap.forEach(d => {
+                const data = { id: d.id, ...d.data() };
+                // Auto-expire open permits past end date/time
+                if (data.status === 'open') {
+                    const endDT = new Date(data.endDate + 'T' + (data.endTime || '23:59'));
+                    if (endDT < new Date()) {
+                        data.status = 'expired';
+                        db.collection('permitToWork').doc(d.id).update({ status: 'expired' });
+                    }
+                }
+                permits.push(data);
+            });
+            console.log('[PTW] Loaded', permits.length, 'permits');
+        } catch (e) { console.error('[PTW] Load permits:', e); }
+    }
+
+    // ===== TAB SWITCHING =====
+    function switchTab(name, btn) {
+        document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
+        const t = document.getElementById('tab-' + name);
+        if (t) t.style.display = 'block';
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        if (name === 'dashboard') renderDashboard();
+        else if (name === 'open') renderOpenPermits();
+        else if (name === 'all') renderAllPermits();
+    }
+
+    // ===== DYNAMIC HAZARD/CONTROL CHECKLISTS =====
+    function updateHazardChecklist() {
+        const type = document.getElementById('permitType').value;
+        const data = PERMIT_DATA[type];
+        const hSec = document.getElementById('hazardsSection');
+        const cSec = document.getElementById('controlsSection');
+
+        if (!data) { hSec.style.display = 'none'; cSec.style.display = 'none'; return; }
+
+        hSec.style.display = 'block';
+        cSec.style.display = 'block';
+        document.getElementById('hazardsTitle').textContent = 'Hazards — ' + (TYPE_LABELS[type] || type);
+        document.getElementById('controlsTitle').textContent = 'Control Measures — ' + (TYPE_LABELS[type] || type);
+
+        document.getElementById('hazardsGrid').innerHTML = data.hazards.map((h, i) =>
+            `<label class="chk-item"><input type="checkbox" name="hazard" value="${h}"> ${h}</label>`
+        ).join('');
+
+        document.getElementById('controlsGrid').innerHTML = data.controls.map((c, i) =>
+            `<label class="chk-item"><input type="checkbox" name="control" value="${c}"> ${c}</label>`
+        ).join('');
+    }
+
+    // ===== ISSUE PERMIT =====
+    document.getElementById('permitForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        if (!db) { alert('No database connection.'); return; }
+
+        const btn = document.getElementById('issueBtn');
+        btn.textContent = 'ISSUING...';
+        btn.disabled = true;
+
+        try {
+            const fd = new FormData(this);
+            const data = {};
+            for (let [k, v] of fd.entries()) {
+                if (data[k]) {
+                    if (Array.isArray(data[k])) data[k].push(v); else data[k] = [data[k], v];
+                } else { data[k] = v; }
+            }
+            // Ensure arrays
+            if (data.hazard && !Array.isArray(data.hazard)) data.hazard = [data.hazard];
+            if (data.control && !Array.isArray(data.control)) data.control = [data.control];
+            if (data.ppe && !Array.isArray(data.ppe)) data.ppe = [data.ppe];
+
+            data.status = 'open';
+            data.createdAt = new Date().toISOString();
+            data.lastUpdated = new Date().toISOString();
+            data.closedBy = null;
+            data.closedAt = null;
+            data.closeOutNotes = null;
+            data.areaLeftSafe = null;
+
+            // Generate permit number
+            const typePrefix = {
+                'hot-works':'HW','working-at-height':'WAH','electrical-isolation':'EI',
+                'confined-space':'CS','excavation':'EX','gas-works':'GW','general-high-risk':'GHR'
+            };
+            const prefix = typePrefix[data.permitType] || 'PTW';
+            const num = String(permits.length + 1).padStart(4, '0');
+            data.permitNumber = prefix + '-' + num;
+
+            const docRef = await db.collection('permitToWork').add(data);
+            data.id = docRef.id;
+            permits.unshift(data);
+
+            alert('Permit ' + data.permitNumber + ' issued successfully.');
+            this.reset();
+            document.getElementById('hazardsSection').style.display = 'none';
+            document.getElementById('controlsSection').style.display = 'none';
+            document.getElementById('startDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('endDate').value = new Date().toISOString().split('T')[0];
+
+            switchTab('dashboard', document.querySelector('.tab-btn'));
+        } catch (err) {
+            console.error('[PTW] Issue error:', err);
+            alert('Error issuing permit. Please try again.');
+        } finally {
+            btn.textContent = 'ISSUE PERMIT';
+            btn.disabled = false;
+        }
+    });
+
+    // ===== RENDER FUNCTIONS =====
+    function renderDashboard() {
+        const open = permits.filter(p => p.status === 'open').length;
+        const closed = permits.filter(p => p.status === 'closed').length;
+        const expired = permits.filter(p => p.status === 'expired').length;
+        const total = permits.length;
+
+        document.getElementById('dashStats').innerHTML = `
+            <div class="stat-card total"><div class="stat-value">${total}</div><div class="stat-label">Total Permits</div></div>
+            <div class="stat-card open"><div class="stat-value">${open}</div><div class="stat-label">Open</div></div>
+            <div class="stat-card closed"><div class="stat-value">${closed}</div><div class="stat-label">Closed</div></div>
+            <div class="stat-card expired"><div class="stat-value">${expired}</div><div class="stat-label">Expired</div></div>
+        `;
+
+        const openPermits = permits.filter(p => p.status === 'open' || p.status === 'expired');
+        if (openPermits.length === 0) {
+            document.getElementById('dashOpen').innerHTML = '<p class="empty">No open permits.</p>';
+        } else {
+            document.getElementById('dashOpen').innerHTML = openPermits.map(p => renderPermitCard(p, true)).join('');
+        }
+    }
+
+    function renderOpenPermits() {
+        const open = permits.filter(p => p.status === 'open' || p.status === 'expired');
+        if (open.length === 0) {
+            document.getElementById('openPermitsList').innerHTML = '<p class="empty">No open permits.</p>';
+            return;
+        }
+        document.getElementById('openPermitsList').innerHTML = open.map(p => renderPermitCard(p, true)).join('');
+    }
+
+    function renderAllPermits() {
+        let filtered = [...permits];
+        const fp = document.getElementById('filterPark').value;
+        const ft = document.getElementById('filterType').value;
+        const fs = document.getElementById('filterStatus').value;
+        if (fp) filtered = filtered.filter(p => p.park === fp);
+        if (ft) filtered = filtered.filter(p => p.permitType === ft);
+        if (fs) filtered = filtered.filter(p => p.status === fs);
+
+        if (filtered.length === 0) {
+            document.getElementById('allPermitsList').innerHTML = '<p class="empty">No permits match your filters.</p>';
+            return;
+        }
+        document.getElementById('allPermitsList').innerHTML = filtered.map(p => renderPermitCard(p, p.status === 'open' || p.status === 'expired')).join('');
+    }
+
+    function renderPermitCard(p, showActions) {
+        const typeClass = 'type-' + (p.permitType || '').replace(/\s+/g, '-');
+        const statusClass = p.status === 'open' ? 'open' : p.status === 'closed' ? 'closed' : 'expired';
+        const badgeClass = 'badge-' + statusClass;
+        const typeLabel = TYPE_LABELS[p.permitType] || p.permitType || '-';
+
+        const endDT = new Date(p.endDate + 'T' + (p.endTime || '23:59'));
+        const now = new Date();
+        const hoursLeft = Math.round((endDT - now) / (1000 * 60 * 60));
+        let timeInfo = '';
+        if (p.status === 'open') {
+            if (hoursLeft < 0) timeInfo = '<span style="color:var(--danger)">OVERDUE</span>';
+            else if (hoursLeft < 4) timeInfo = `<span style="color:var(--warning)">${hoursLeft}h remaining</span>`;
+            else timeInfo = `${hoursLeft}h remaining`;
+        }
+
+        return `
+            <div class="permit-card ${statusClass}">
+                <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:8px">
+                    <div>
+                        <h4>${p.permitNumber || 'PTW'} — ${p.contractor || '-'}</h4>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+                            <span class="permit-type-badge ${typeClass}">${typeLabel}</span>
+                            <span class="badge ${badgeClass}">${(p.status||'').toUpperCase()}</span>
+                        </div>
+                    </div>
+                    <div style="text-align:right;font-size:12px;color:var(--text-muted)">${timeInfo}</div>
+                </div>
+                <div class="meta">
+                    <strong>Park:</strong> ${p.park || '-'} &nbsp;|&nbsp; <strong>Location:</strong> ${p.location || '-'}<br>
+                    <strong>Work:</strong> ${(p.workDescription || '-').substring(0, 120)}${(p.workDescription||'').length > 120 ? '...' : ''}<br>
+                    <strong>Period:</strong> ${p.startDate || '-'} ${p.startTime || ''} → ${p.endDate || '-'} ${p.endTime || ''}<br>
+                    <strong>Issued by:</strong> ${p.issuedBy || '-'} (${p.issuerRole || '-'}) — ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '-'}
+                    ${p.status === 'closed' ? `<br><strong>Closed by:</strong> ${p.closedBy || '-'} — ${p.closedAt ? new Date(p.closedAt).toLocaleDateString() : '-'} ${p.areaLeftSafe ? '✅ Area left safe' : ''}` : ''}
+                </div>
+                ${showActions && (p.status === 'open' || p.status === 'expired') ? `
+                    <div class="actions">
+                        <button class="btn btn-success btn-sm" onclick="openCloseModal('${p.id}')">✓ Close Out</button>
+                        <button class="btn btn-warning btn-sm" onclick="extendPermit('${p.id}')">⏰ Extend</button>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
+
+    // ===== CLOSE OUT =====
+    function openCloseModal(id) {
+        closingPermitId = id;
+        const p = permits.find(x => x.id === id);
+        document.getElementById('closePermitInfo').textContent = p ? `${p.permitNumber} — ${p.contractor} — ${TYPE_LABELS[p.permitType] || p.permitType}` : '';
+        document.getElementById('closeAreaSafe').checked = false;
+        document.getElementById('closeNotes').value = '';
+        document.getElementById('closeBy').value = '';
+        document.getElementById('closeModal').classList.add('show');
+    }
+
+    function closeModalHide() {
+        closingPermitId = null;
+        document.getElementById('closeModal').classList.remove('show');
+    }
+
+    async function confirmCloseOut() {
+        if (!closingPermitId) return;
+        const safe = document.getElementById('closeAreaSafe').checked;
+        const notes = document.getElementById('closeNotes').value.trim();
+        const by = document.getElementById('closeBy').value.trim();
+
+        if (!safe) { alert('Please confirm the area has been left safe.'); return; }
+        if (!by) { alert('Please enter who is closing this permit.'); return; }
+
+        try {
+            await db.collection('permitToWork').doc(closingPermitId).update({
+                status: 'closed',
+                closedBy: by,
+                closedAt: new Date().toISOString(),
+                closeOutNotes: notes,
+                areaLeftSafe: true,
+                lastUpdated: new Date().toISOString()
+            });
+
+            const p = permits.find(x => x.id === closingPermitId);
+            if (p) {
+                p.status = 'closed';
+                p.closedBy = by;
+                p.closedAt = new Date().toISOString();
+                p.closeOutNotes = notes;
+                p.areaLeftSafe = true;
+            }
+
+            closeModalHide();
+            renderDashboard();
+            alert('Permit closed out successfully.');
+        } catch (e) {
+            console.error('[PTW] Close error:', e);
+            alert('Error closing permit.');
+        }
+    }
+
+    // ===== EXTEND PERMIT =====
+    async function extendPermit(id) {
+        const hours = prompt('Extend by how many hours?', '4');
+        if (!hours || isNaN(hours)) return;
+
+        const p = permits.find(x => x.id === id);
+        if (!p) return;
+
+        const currentEnd = new Date(p.endDate + 'T' + (p.endTime || '17:00'));
+        currentEnd.setHours(currentEnd.getHours() + parseInt(hours));
+
+        const newDate = currentEnd.toISOString().split('T')[0];
+        const newTime = currentEnd.toTimeString().substring(0, 5);
+
+        try {
+            await db.collection('permitToWork').doc(id).update({
+                endDate: newDate,
+                endTime: newTime,
+                status: 'open',
+                lastUpdated: new Date().toISOString()
+            });
+            p.endDate = newDate;
+            p.endTime = newTime;
+            p.status = 'open';
+            renderDashboard();
+            alert('Permit extended to ' + newDate + ' ' + newTime);
+        } catch (e) {
+            console.error('[PTW] Extend error:', e);
+            alert('Error extending permit.');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
