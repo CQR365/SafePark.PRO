@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#e53935">
+    <title>SafeFire.PRO+ — Fire Safety Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{
+            --primary:#e53935;--primary-dark:#c62828;--primary-light:#ef5350;--primary-glow:rgba(229,57,53,0.25);
+            --accent:#7f1d1d;--accent-light:#991b1b;
+            --dark-bg:#1a1a1a;--card-bg:#2d2d2d;--border:#444;
+            --text:#fff;--text-muted:#999;--text-dim:#777;
+            --success:#28a745;--warning:#ffc107;--danger:#dc3545;--info:#17a2b8;
+        }
+        body{font-family:'Fira Sans',sans-serif;background:var(--dark-bg);color:var(--text);min-height:100vh;overflow:auto}
+
+        /* ===== HEADER BAR ===== */
+        .header{background:linear-gradient(180deg,#2a1a1a,#1a1a1a);padding:12px 20px;border-bottom:3px solid var(--primary);display:flex;justify-content:space-between;align-items:center;z-index:200;position:relative}
+        .header-left{display:flex;align-items:center;gap:14px}
+        .header-left h1{font-family:'Orbitron',sans-serif;font-size:20px;letter-spacing:2px;color:var(--primary)}
+        .header-left .sub{font-size:13px;color:var(--text-muted);margin-top:2px}
+        .header-right{display:flex;align-items:center;gap:12px}
+        .park-badge{background:var(--accent);color:#fff;padding:5px 14px;border-radius:20px;font-size:13px;font-weight:600;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .user-badge{color:var(--text-muted);font-size:13px}
+        .back-btn{padding:8px 16px;background:rgba(255,255,255,.08);color:#fff;border:1px solid var(--border);border-radius:6px;font-family:'Fira Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:none;align-items:center;gap:6px}
+        .back-btn:hover{background:rgba(255,255,255,.12)}
+        .back-btn.visible{display:inline-flex}
+        .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--warning);animation:pulse 2s infinite}
+        .status-dot.connected{background:var(--success);animation:none}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+        /* ===== MODULE CHOOSER ===== */
+        .chooser{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 60px);padding:30px;background:radial-gradient(ellipse at 50% 30%,rgba(229,57,53,.06) 0%,transparent 70%)}
+        .chooser-inner{max-width:900px;width:100%;text-align:center}
+        .chooser-logo{font-size:52px;margin-bottom:14px;filter:drop-shadow(0 0 20px rgba(229,57,53,.3))}
+        .chooser-title{font-family:'Orbitron',sans-serif;font-size:28px;letter-spacing:4px;color:var(--primary);margin-bottom:6px}
+        .chooser-sub{font-size:16px;color:var(--text-muted);margin-bottom:40px;line-height:1.6}
+        .chooser-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:30px}
+        .module-card{background:linear-gradient(180deg,#353535,#2d2d2d);border:2px solid var(--border);border-radius:14px;padding:36px 28px;cursor:pointer;transition:all .3s ease;position:relative;overflow:hidden;text-align:center}
+        .module-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(229,57,53,.08) 0%,transparent 60%);opacity:0;transition:opacity .3s}
+        .module-card:hover{border-color:var(--primary-light);transform:translateY(-4px);box-shadow:0 12px 40px rgba(229,57,53,.15)}
+        .module-card:hover::before{opacity:1}
+        .module-card:active{transform:translateY(-1px)}
+        .module-card .mc-icon{font-size:48px;margin-bottom:16px;display:block;position:relative;z-index:1}
+        .module-card .mc-title{font-family:'Orbitron',sans-serif;font-size:16px;letter-spacing:1.5px;color:#fff;margin-bottom:10px;position:relative;z-index:1}
+        .module-card .mc-desc{font-size:14px;color:var(--text-muted);line-height:1.6;position:relative;z-index:1;margin-bottom:16px}
+        .module-card .mc-features{list-style:none;text-align:left;font-size:13px;color:#bbb;position:relative;z-index:1}
+        .module-card .mc-features li{padding:4px 0;padding-left:20px;position:relative}
+        .module-card .mc-features li::before{content:'✓';position:absolute;left:0;color:var(--primary);font-weight:700}
+        .module-card .mc-badge{position:absolute;top:14px;right:14px;background:var(--primary);color:#fff;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;letter-spacing:.5px;font-family:'Orbitron',sans-serif}
+
+        /* Stats bar */
+        .stats-bar{display:flex;justify-content:center;gap:30px;padding:18px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:10px}
+        .stats-bar .sb-item{text-align:center}
+        .stats-bar .sb-num{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:700}
+        .stats-bar .sb-label{font-size:12px;color:var(--text-muted);margin-top:2px}
+
+        /* ===== MODULE FRAME ===== */
+        .module-frame{display:none;width:100%;height:calc(100vh - 60px);border:none;background:var(--dark-bg)}
+        .module-frame.active{display:block}
+
+        /* Legal link */
+        .legal-link{font-size:13px;color:var(--text-dim);margin-top:20px}
+        .legal-link a{color:var(--primary);text-decoration:none}
+        .legal-link a:hover{text-decoration:underline}
+
+        /* ===== RESPONSIVE ===== */
+        @media(max-width:768px){
+            .chooser{padding:20px;min-height:calc(100vh - 60px)}
+            .chooser-grid{grid-template-columns:1fr;gap:16px}
+            .chooser-title{font-size:22px;letter-spacing:2px}
+            .chooser-sub{font-size:14px;margin-bottom:24px}
+            .module-card{padding:24px 20px}
+            .module-card .mc-icon{font-size:36px}
+            .module-card .mc-title{font-size:14px}
+            .header-left h1{font-size:16px}
+            .stats-bar{flex-wrap:wrap;gap:16px}
+            .module-frame{height:calc(100vh - 56px)}
+            .back-btn{padding:10px 18px;font-size:14px;background:var(--primary);border-color:var(--primary);color:#fff;border-radius:8px}
+            .back-btn:hover{background:var(--primary-dark)}
+        }
+        @media(max-width:480px){
+            .chooser{padding:14px}
+            .header{padding:10px 14px;flex-wrap:wrap;gap:6px}
+            .header-left{width:100%;justify-content:space-between}
+            .back-btn.visible{display:inline-flex}
+            .header-right{width:100%;justify-content:flex-end;gap:8px}
+            .park-badge{font-size:11px;max-width:160px}
+            .module-frame{height:calc(100vh - 80px)}
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<div class="header">
+    <div class="header-left">
+        <button class="back-btn" id="backBtn" onclick="returnToChooser()">← Back</button>
+        <div>
+            <h1>SafeFire.PRO+</h1>
+            <div class="sub" id="headerSub">Fire Safety Management</div>
+        </div>
+    </div>
+    <div class="header-right">
+        <span class="user-badge" id="headerUser"></span>
+        <span class="park-badge" id="headerPark"></span>
+        <span class="status-dot" id="fbStatus" title="Firebase"></span>
+    </div>
+</div>
+
+<!-- ===== MODULE CHOOSER ===== -->
+<div class="chooser" id="chooserScreen">
+    <div class="chooser-inner">
+        <div class="chooser-logo">🔥</div>
+        <div class="chooser-title">SafeFire.PRO+</div>
+        <div class="chooser-sub">Comprehensive fire safety management — equipment compliance, risk assessment, and regulatory conformance across all your sites.</div>
+
+        <div class="chooser-grid">
+            <!-- Fire Equipment Module -->
+            <div class="module-card" onclick="loadModule('equipment')">
+                <span class="mc-badge">LIVE</span>
+                <span class="mc-icon">🧯</span>
+                <div class="mc-title">FIRE EQUIPMENT</div>
+                <div class="mc-desc">Fire extinguisher and fire point compliance management with BS 5306-3 service tracking.</div>
+                <ul class="mc-features">
+                    <li>Fire point register with signage compliance</li>
+                    <li>Extinguisher inventory and service tracking</li>
+                    <li>Fire blanket management</li>
+                    <li>Monthly inspection workflow</li>
+                    <li>Service record management</li>
+                </ul>
+            </div>
+
+            <!-- Fire Risk Assessment Module -->
+            <div class="module-card" onclick="loadModule('fra')">
+                <span class="mc-badge">LIVE</span>
+                <span class="mc-icon">📋</span>
+                <div class="mc-title">FIRE RISK ASSESSMENT</div>
+                <div class="mc-desc">Comprehensive FRA with parent/child site hierarchy, continuous risk scoring, and SafeFire data integration.</div>
+                <ul class="mc-features">
+                    <li>Site &amp; unit assessments with parent/child linking</li>
+                    <li>11-section checklist aligned to UK legislation</li>
+                    <li>Continuous auto-calculated risk scoring</li>
+                    <li>Live SafeFire equipment intelligence</li>
+                    <li>Downloadable PDF reports</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Live stats from Firebase -->
+        <div class="stats-bar" id="statsBar">
+            <div class="sb-item"><div class="sb-num" style="color:var(--primary)" id="sbFirePoints">—</div><div class="sb-label">Fire Points</div></div>
+            <div class="sb-item"><div class="sb-num" style="color:var(--info)" id="sbExtinguishers">—</div><div class="sb-label">Extinguishers</div></div>
+            <div class="sb-item"><div class="sb-num" style="color:#fd7e14" id="sbBlankets">—</div><div class="sb-label">Blankets</div></div>
+            <div class="sb-item"><div class="sb-num" style="color:var(--success)" id="sbCompliant">—</div><div class="sb-label">Compliant</div></div>
+            <div class="sb-item"><div class="sb-num" style="color:var(--danger)" id="sbIssues">—</div><div class="sb-label">Issues</div></div>
+            <div class="sb-item"><div class="sb-num" style="color:var(--primary)" id="sbFRAs">—</div><div class="sb-label">FRAs</div></div>
+        </div>
+
+        <div class="legal-link">
+            <a href="fra-reference.html" target="_blank">📖 UK Fire Safety Legislation Reference</a>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODULE IFRAMES ===== -->
+<iframe class="module-frame" id="frameEquipment" src="" allow="camera;microphone"></iframe>
+<iframe class="module-frame" id="frameFRA" src="" allow="camera;microphone"></iframe>
+
+<script>
+// ==================== CONFIG ====================
+const firebaseConfig = {
+    apiKey: "AIzaSyCMthEsz4WxTSMGSfIEJgtP4JJisMuvmAg",
+    authDomain: "safeparkpro.firebaseapp.com",
+    projectId: "safeparkpro",
+    storageBucket: "safeparkpro.firebasestorage.app",
+    messagingSenderId: "837498aborting",
+    appId: "1:837498aborting:web:placeholder"
+};
+
+// Module paths — update these to match your deployment
+const MODULE_PATHS = {
+    equipment: 'fireextinguisher.html',
+    fra: 'FRA.html'
+};
+
+// ==================== STATE ====================
+let db;
+let currentPark = '';
+let currentUser = '';
+let userLevel = '';
+let currentModule = null;
+
+// ==================== INITIALISATION ====================
+document.addEventListener('DOMContentLoaded', function() {
+    // Read session from parent system (index.html)
+    currentPark = sessionStorage.getItem('currentPark') || '';
+    currentUser = sessionStorage.getItem('currentUser') || '';
+    userLevel = sessionStorage.getItem('userAccessLevel') || '';
+    const accessCode = sessionStorage.getItem('currentAccessCode') || '';
+
+    // Also check URL params (index.html passes these to iframed modules)
+    const params = new URLSearchParams(window.location.search);
+    if (!currentPark && params.get('access_code')) {
+        // Store from URL params into sessionStorage so child iframes inherit
+        const code = params.get('access_code');
+        const user = params.get('user') || '';
+        sessionStorage.setItem('currentAccessCode', code);
+        if (user) sessionStorage.setItem('currentUser', user);
+        currentUser = user;
+    }
+
+    // Update header
+    document.getElementById('headerPark').textContent = currentPark || 'No Park Selected';
+    document.getElementById('headerUser').textContent = currentUser || '';
+
+    // Init Firebase
+    initFirebase();
+});
+
+async function initFirebase() {
+    try {
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+        try { await firebase.auth().signInAnonymously(); } catch(e) { console.warn('Auth:', e); }
+        document.getElementById('fbStatus').classList.add('connected');
+        document.getElementById('fbStatus').title = 'Firebase connected';
+        loadDashboardStats();
+    } catch(e) {
+        console.warn('Firebase init:', e.message);
+    }
+}
+
+// ==================== DASHBOARD STATS ====================
+async function loadDashboardStats() {
+    if (!db) return;
+    const parkLower = (currentPark || '').toLowerCase();
+    const parkWord = parkLower.split(' ')[0];
+
+    try {
+        // Fire points
+        const fpSnap = await db.collection('firePoints').get();
+        let fps = [], exts = [];
+        fpSnap.forEach(doc => {
+            const d = doc.data();
+            const fpPark = (d.park || '').toLowerCase();
+            if (!parkWord || fpPark.includes(parkWord) || parkLower.includes(fpPark.split(' ')[0])) {
+                fps.push({ id: doc.id, ...d });
+            }
+        });
+
+        // Extinguishers
+        const extSnap = await db.collection('fireExtinguishers').get();
+        extSnap.forEach(doc => {
+            const d = doc.data();
+            const extPark = (d.park || '').toLowerCase();
+            if (!parkWord || extPark.includes(parkWord) || parkLower.includes(extPark.split(' ')[0])) {
+                exts.push({ id: doc.id, ...d });
+            }
+        });
+
+        // Calculate stats
+        const blankets = exts.filter(e => (e.type || '') === 'Fire Blanket');
+        const extOnly = exts.filter(e => (e.type || '') !== 'Fire Blanket');
+        const now = new Date();
+        let compliant = 0, issues = 0;
+        extOnly.forEach(e => {
+            const status = getExtStatus(e, now);
+            if (status === 'compliant' || status === 'due-soon') compliant++;
+            if (status === 'overdue' || status === 'expired') issues++;
+        });
+        // Add fire point compliance fails
+        fps.forEach(fp => {
+            if (fp.signage === 'fail' || fp.boxSign === 'fail' || fp.actionsNotice === 'fail' || fp.alarmMeans === 'fail' || fp.boxCondition === 'fail') issues++;
+        });
+
+        document.getElementById('sbFirePoints').textContent = fps.length;
+        document.getElementById('sbExtinguishers').textContent = extOnly.length;
+        document.getElementById('sbBlankets').textContent = blankets.length;
+        document.getElementById('sbCompliant').textContent = compliant;
+        document.getElementById('sbIssues').textContent = issues;
+
+        // FRA count
+        const fraSnap = await db.collection('fra-assessments')
+            .where('parkCode', '==', currentPark)
+            .get();
+        document.getElementById('sbFRAs').textContent = fraSnap.size;
+
+    } catch(e) {
+        console.warn('Stats load:', e.message);
+    }
+}
+
+function getExtStatus(e, now) {
+    if (e.runOutDate) { const r = new Date(e.runOutDate); if (r <= now) return 'expired'; }
+    if (!e.nextServiceDue) return 'no-record';
+    const d = Math.ceil((new Date(e.nextServiceDue) - now) / 864e5);
+    if (d < 0) return 'overdue';
+    if (d <= 30) return 'due-soon';
+    return 'compliant';
+}
+
+// ==================== MODULE LOADING ====================
+function loadModule(moduleKey) {
+    const path = MODULE_PATHS[moduleKey];
+    if (!path) return;
+
+    currentModule = moduleKey;
+    const frameId = moduleKey === 'equipment' ? 'frameEquipment' : 'frameFRA';
+    const frame = document.getElementById(frameId);
+
+    // Build URL with auth params (same pattern as index.html)
+    const url = new URL(path, window.location.href);
+    const accessCode = sessionStorage.getItem('currentAccessCode') || '';
+    if (accessCode) {
+        url.searchParams.set('access_code', accessCode);
+        url.searchParams.set('user', currentUser);
+        url.searchParams.set('auth_source', 'safefire');
+    }
+
+    // Only set src if not already loaded (avoids reload on back/forth)
+    if (!frame.src || frame.src === '' || frame.src === 'about:blank' || !frame.dataset.loaded) {
+        frame.src = url.toString();
+        frame.dataset.loaded = '1';
+    }
+
+    // Hide chooser, show frame
+    document.getElementById('chooserScreen').style.display = 'none';
+    document.querySelectorAll('.module-frame').forEach(f => f.classList.remove('active'));
+    frame.classList.add('active');
+
+    // Update header
+    const titles = { equipment: 'Fire Equipment Management', fra: 'Fire Risk Assessment' };
+    document.getElementById('headerSub').textContent = titles[moduleKey] || 'Fire Safety Management';
+    document.getElementById('backBtn').classList.add('visible');
+
+    // Allow scrolling for module content
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+}
+
+function returnToChooser() {
+    currentModule = null;
+
+    // Hide all frames, show chooser
+    document.querySelectorAll('.module-frame').forEach(f => f.classList.remove('active'));
+    document.getElementById('chooserScreen').style.display = 'flex';
+
+    // Update header
+    document.getElementById('headerSub').textContent = 'Fire Safety Management';
+    document.getElementById('backBtn').classList.remove('visible');
+
+    // Reset overflow
+    document.body.style.overflow = 'auto';
+    document.documentElement.style.overflow = 'auto';
+
+    // Refresh stats
+    loadDashboardStats();
+}
+
+// Handle browser back button
+window.addEventListener('popstate', function() {
+    if (currentModule) {
+        returnToChooser();
+    }
+});
+
+// Push state when loading module so back button works
+const origLoadModule = loadModule;
+loadModule = function(moduleKey) {
+    history.pushState({ module: moduleKey }, '');
+    origLoadModule(moduleKey);
+};
+</script>
+
+</body>
+</html>
