@@ -1,0 +1,2149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#e53935">
+    <title>SafeFRA.PRO+ — Fire Risk Assessment</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{
+            --primary:#e53935;--primary-dark:#c62828;--primary-light:#ef5350;--primary-glow:rgba(229,57,53,0.25);
+            --accent:#7f1d1d;--accent-light:#991b1b;
+            --dark-bg:#1a1a1a;--card-bg:#2d2d2d;--card-bg-hover:#333;--border:#444;--border-light:#555;
+            --text:#fff;--text-muted:#999;--text-dim:#777;
+            --success:#28a745;--warning:#ffc107;--danger:#dc3545;--info:#17a2b8;
+            --input-bg:#353535;--input-border:#555;--input-focus:var(--primary);
+        }
+        body{font-family:'Fira Sans',sans-serif;background:var(--dark-bg);color:var(--text);min-height:100vh;line-height:1.6;font-size:16px}
+        a{color:var(--primary);text-decoration:none}
+
+        /* ===== LOGIN SCREEN ===== */
+        .login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#1a1a1a 0%,#2d1a1a 50%,#1a1a1a 100%);display:flex;align-items:center;justify-content:center;z-index:1000;flex-direction:column}
+        .login-box{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:40px;width:90%;max-width:400px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+        .login-box h1{font-family:'Orbitron',sans-serif;font-size:22px;letter-spacing:3px;margin-bottom:6px;color:var(--primary)}
+        .login-box .sub{font-size:14px;color:var(--text-muted);margin-bottom:28px}
+        .login-box input{width:100%;padding:14px 16px;background:var(--input-bg);border:2px solid var(--input-border);border-radius:8px;color:#fff;font-family:'Fira Sans',sans-serif;font-size:14px;text-align:center;letter-spacing:2px;margin-bottom:16px;transition:border-color .2s}
+        .login-box input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-glow)}
+        .login-box input::placeholder{color:var(--text-dim);letter-spacing:1px}
+        .login-box button{width:100%;padding:14px;background:linear-gradient(180deg,var(--primary),var(--accent));color:#fff;border:none;border-radius:8px;font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all .2s;box-shadow:0 4px 12px var(--primary-glow)}
+        .login-box button:hover{transform:translateY(-1px);box-shadow:0 6px 20px var(--primary-glow)}
+        .login-error{color:var(--danger);font-size:14px;margin-top:10px;min-height:18px}
+
+        /* ===== HEADER ===== */
+        .header{background:linear-gradient(180deg,#2a1a1a,#1a1a1a);padding:14px 20px;border-bottom:3px solid var(--primary);position:sticky;top:0;z-index:100;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+        .header-left h1{font-family:'Orbitron',sans-serif;font-size:20px;letter-spacing:2px;color:var(--primary)}
+        .header-left .sub{font-size:13px;color:var(--text-muted);margin-top:2px}
+        .header-right{display:flex;align-items:center;gap:12px}
+        .park-badge{background:var(--accent);color:#fff;padding:5px 14px;border-radius:20px;font-size:13px;font-weight:600;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .user-badge{color:var(--text-muted);font-size:13px}
+        .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--warning);animation:pulse 2s infinite}
+        .status-dot.connected{background:var(--success);animation:none}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+        /* ===== MAIN APP ===== */
+        .main-app{display:none}
+        .container{max-width:1200px;margin:0 auto;padding:20px}
+
+        /* ===== TABS ===== */
+        .tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--card-bg);padding:6px;border-radius:10px;border:1px solid var(--border);flex-wrap:wrap}
+        .tab-btn{padding:11px 16px;background:transparent;border:none;color:var(--text-muted);font-size:15px;font-weight:500;cursor:pointer;border-radius:6px;transition:all .2s;white-space:nowrap;font-family:'Fira Sans',sans-serif}
+        .tab-btn:hover{background:rgba(255,255,255,.05);color:#fff}
+        .tab-btn.active{background:linear-gradient(180deg,var(--primary),var(--accent));color:#fff;font-weight:600;box-shadow:0 2px 8px var(--primary-glow)}
+        .tab-content{display:none}
+        .tab-content.active{display:block}
+
+        /* ===== STATS GRID ===== */
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+        .stat-card{background:linear-gradient(180deg,#353535,#2d2d2d);border-radius:10px;padding:16px;text-align:center;border:1px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.04)}
+        .stat-card .num{font-family:'Orbitron',sans-serif;font-size:28px;font-weight:700}
+        .stat-card .num.red{color:var(--primary)}.stat-card .num.green{color:var(--success)}.stat-card .num.amber{color:var(--warning)}.stat-card .num.blue{color:var(--info)}
+        .stat-card .label{font-size:13px;color:var(--text-muted);margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+
+        /* ===== CARDS ===== */
+        .card{background:var(--card-bg);border-radius:10px;border:1px solid var(--border);overflow:hidden;margin-bottom:16px;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+        .card-header{padding:16px 20px;background:linear-gradient(180deg,#3a3a3a,#2d2d2d);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+        .card-header h2{font-family:'Orbitron',sans-serif;font-size:14px;letter-spacing:1px}
+        .card-body{padding:20px}
+
+        /* ===== FORM ELEMENTS ===== */
+        .form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-bottom:14px}
+        .form-group{display:flex;flex-direction:column;gap:5px}
+        .form-group label{font-size:14px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+        .form-group input,.form-group select,.form-group textarea{padding:12px 14px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;color:#fff;font-family:'Fira Sans',sans-serif;font-size:15px;transition:border-color .2s}
+        .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-glow)}
+        .form-group textarea{min-height:80px;resize:vertical}
+        .form-group select{cursor:pointer;-webkit-appearance:none;-moz-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;min-height:44px}
+        .form-group select option{background:var(--card-bg);color:#fff;padding:8px}
+        select{cursor:pointer;-webkit-appearance:none;-moz-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;background-color:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;color:#fff;font-family:'Fira Sans',sans-serif;font-size:14px;min-height:44px;padding:10px 32px 10px 12px}
+
+        /* ===== ASSESSMENT TYPE SELECTOR ===== */
+        .type-selector{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:20px 0}
+        .type-card{background:var(--card-bg);border:2px solid var(--border);border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:all .2s}
+        .type-card:hover{border-color:var(--primary-light);background:var(--card-bg-hover);transform:translateY(-2px)}
+        .type-card.selected{border-color:var(--primary);background:rgba(229,57,53,.08);box-shadow:0 0 16px var(--primary-glow)}
+        .type-card .icon{font-size:36px;margin-bottom:10px}
+        .type-card h3{font-family:'Orbitron',sans-serif;font-size:15px;letter-spacing:1px;margin-bottom:6px}
+        .type-card p{font-size:14px;color:var(--text-muted);line-height:1.5}
+
+        /* ===== ASSESSMENT SECTIONS (collapsible) ===== */
+        .fra-section{background:var(--card-bg);border-radius:8px;margin-bottom:10px;border:1px solid var(--border);overflow:hidden}
+        .fra-section-header{padding:14px 18px;background:linear-gradient(180deg,#383838,#2d2d2d);display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none;transition:background .2s}
+        .fra-section-header:hover{background:linear-gradient(180deg,#404040,#333)}
+        .fra-section-header .sec-num{background:linear-gradient(180deg,var(--primary),var(--accent));color:#fff;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;box-shadow:0 2px 4px rgba(0,0,0,.3)}
+        .fra-section-header .sec-title{font-weight:600;font-size:15px;flex:1}
+        .fra-section-header .sec-status{font-size:13px;padding:3px 10px;border-radius:12px;font-weight:600}
+        .sec-status.complete{background:rgba(40,167,69,.15);color:var(--success)}
+        .sec-status.partial{background:rgba(255,193,7,.15);color:var(--warning)}
+        .sec-status.empty{background:rgba(255,255,255,.05);color:var(--text-dim)}
+        .fra-section-header .chevron{color:var(--text-muted);transition:transform .2s;font-size:16px}
+        .fra-section.open .chevron{transform:rotate(180deg)}
+        .fra-section-body{display:none;padding:18px;border-top:1px solid var(--border)}
+        .fra-section.open .fra-section-body{display:block}
+
+        /* ===== CHECKLIST ITEMS ===== */
+        .check-item{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+        .check-item:last-child{border-bottom:none}
+        .check-question{font-size:15px;font-weight:500;margin-bottom:8px;color:#ddd}
+        .check-options{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+        .check-opt{padding:8px 16px;border:1px solid var(--border);border-radius:4px;font-size:14px;cursor:pointer;transition:all .15s;background:transparent;color:var(--text-muted);font-family:'Fira Sans',sans-serif}
+        .check-opt:hover{border-color:var(--text-muted);color:#fff}
+        .check-opt.yes{border-color:var(--success);color:var(--success);background:rgba(40,167,69,.1)}
+        .check-opt.partial{border-color:var(--warning);color:var(--warning);background:rgba(255,193,7,.1)}
+        .check-opt.no{border-color:var(--danger);color:var(--danger);background:rgba(220,53,69,.1)}
+        .check-opt.na{border-color:var(--info);color:var(--info);background:rgba(23,162,184,.1)}
+        .check-comment{width:100%;padding:10px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:4px;color:#fff;font-size:14px;font-family:'Fira Sans',sans-serif;margin-top:4px;resize:vertical;min-height:36px}
+        .check-comment:focus{outline:none;border-color:var(--primary)}
+        .check-photo-btn{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:4px;color:var(--text-muted);font-size:13px;cursor:pointer;margin-top:4px;transition:all .15s;font-family:'Fira Sans',sans-serif}
+        .check-photo-btn:hover{border-color:var(--primary);color:var(--primary)}
+        .check-photos{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+        .check-photos img{width:50px;height:50px;object-fit:cover;border-radius:4px;border:1px solid var(--border);cursor:pointer}
+
+        /* ===== AUTO RISK SCORE ===== */
+        .risk-score-display{text-align:center;padding:24px;border-radius:10px;border:2px solid var(--border);margin:16px 0;background:rgba(255,255,255,.02)}
+        .risk-gauge{position:relative;width:200px;height:100px;margin:0 auto 16px;overflow:hidden}
+        .risk-gauge-bg{width:200px;height:100px;border-radius:100px 100px 0 0;background:conic-gradient(from 180deg at 50% 100%,#28a745 0deg,#28a745 45deg,#ffc107 45deg,#ffc107 90deg,#e65100 90deg,#e65100 135deg,#b71c1c 135deg,#b71c1c 180deg);position:absolute;top:0;left:0}
+        .risk-gauge-mask{width:160px;height:80px;border-radius:80px 80px 0 0;background:var(--card-bg);position:absolute;bottom:0;left:20px}
+        .risk-gauge-needle{width:4px;height:80px;background:var(--text);position:absolute;bottom:0;left:98px;transform-origin:bottom center;transition:transform .8s ease;border-radius:2px;box-shadow:0 0 6px rgba(0,0,0,.5)}
+        .risk-gauge-center{width:16px;height:16px;background:var(--text);border-radius:50%;position:absolute;bottom:-8px;left:92px;z-index:2}
+        .risk-score-num{font-family:'Orbitron',sans-serif;font-size:42px;font-weight:900;margin:8px 0}
+        .risk-score-label{font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px}
+        .risk-score-pct{font-size:14px;color:var(--text-muted)}
+        .risk-breakdown{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:16px 0}
+        .risk-break-item{text-align:center;padding:12px;background:rgba(255,255,255,.03);border-radius:8px;border:1px solid rgba(255,255,255,.06)}
+        .risk-break-item .rb-num{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:700}
+        .risk-break-item .rb-label{font-size:12px;color:var(--text-muted);margin-top:2px}
+        .risk-explain{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:18px;margin:16px 0;font-size:14px;line-height:1.7}
+        .risk-explain h4{font-family:'Orbitron',sans-serif;font-size:13px;margin-bottom:10px;color:var(--primary);letter-spacing:1px}
+        .risk-explain .band{display:flex;align-items:center;gap:10px;padding:6px 0}
+        .risk-explain .band-dot{width:14px;height:14px;border-radius:3px;flex-shrink:0}
+        .risk-override{background:rgba(229,57,53,.06);border:1px solid rgba(229,57,53,.2);border-radius:8px;padding:18px;margin:16px 0}
+        .risk-override h4{font-family:'Orbitron',sans-serif;font-size:13px;margin-bottom:10px;color:var(--primary);letter-spacing:1px}
+        .risk-low{background:#2e7d32;color:#fff}.risk-med{background:#f9a825;color:#000}.risk-high{background:#e65100;color:#fff}.risk-critical{background:#b71c1c;color:#fff}
+
+        /* ===== SAFEFIRE INTELLIGENCE PANEL ===== */
+        .intel-panel{background:linear-gradient(180deg,#2a2020,#2d2d2d);border:1px solid rgba(229,57,53,.3);border-radius:10px;overflow:hidden;margin-bottom:16px}
+        .intel-header{padding:14px 18px;background:linear-gradient(180deg,rgba(229,57,53,.15),rgba(229,57,53,.05));border-bottom:1px solid rgba(229,57,53,.2);display:flex;align-items:center;gap:10px}
+        .intel-header h3{font-family:'Orbitron',sans-serif;font-size:13px;letter-spacing:1px;color:var(--primary)}
+        .intel-header .intel-badge{background:var(--primary);color:#fff;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:600}
+        .intel-body{padding:18px}
+        .intel-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:14px}
+        .intel-stat{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:12px;text-align:center}
+        .intel-stat .is-num{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:700}
+        .intel-stat .is-label{font-size:12px;color:var(--text-muted);margin-top:2px}
+        .intel-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+        .intel-table th{background:rgba(229,57,53,.1);color:var(--primary);padding:8px 10px;text-align:left;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid rgba(229,57,53,.2)}
+        .intel-table td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04)}
+        .intel-table tr:hover td{background:rgba(255,255,255,.02)}
+        .intel-status{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+        .ist-pass{background:rgba(40,167,69,.15);color:var(--success)}
+        .ist-fail{background:rgba(220,53,69,.15);color:var(--danger)}
+        .ist-na{background:rgba(255,255,255,.05);color:var(--text-dim)}
+        .ist-compliant{background:rgba(40,167,69,.15);color:var(--success)}
+        .ist-due-soon{background:rgba(255,193,7,.15);color:var(--warning)}
+        .ist-overdue{background:rgba(230,81,0,.15);color:#e65100}
+        .ist-expired{background:rgba(220,53,69,.15);color:var(--danger)}
+        .ist-no-record{background:rgba(255,255,255,.05);color:var(--text-dim)}
+        .unit-picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:10px;max-height:300px;overflow-y:auto;padding:4px}
+        .unit-pick{padding:10px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:6px;cursor:pointer;text-align:center;font-size:13px;transition:all .15s}
+        .unit-pick:hover{border-color:var(--primary-light);background:rgba(229,57,53,.06)}
+        .unit-pick.selected{border-color:var(--primary);background:rgba(229,57,53,.1);box-shadow:0 0 8px var(--primary-glow)}
+        .unit-pick .up-icon{font-size:20px;margin-bottom:4px}
+        .unit-pick .up-name{font-weight:600;font-size:13px}
+        .unit-pick .up-type{font-size:11px;color:var(--text-muted)}
+        .intel-loading{text-align:center;padding:20px;color:var(--text-muted);font-size:14px}
+
+        /* ===== PARENT-CHILD TREE ===== */
+        .assessment-tree{margin:16px 0}
+        .tree-parent{background:var(--card-bg);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:12px}
+        .tree-parent-header{padding:14px 18px;background:linear-gradient(180deg,#383838,#2e2e2e);display:flex;align-items:center;gap:12px;cursor:pointer}
+        .tree-parent-header .p-icon{font-size:20px}
+        .tree-parent-header .p-name{font-weight:600;font-size:16px;flex:1}
+        .tree-parent-header .p-risk{padding:3px 10px;border-radius:12px;font-size:13px;font-weight:600}
+        .tree-parent-header .p-date{font-size:13px;color:var(--text-muted)}
+        .tree-children{padding:0 18px 14px;display:none}
+        .tree-parent.open .tree-children{display:block}
+        .tree-child{display:flex;align-items:center;gap:10px;padding:10px 14px;margin-top:6px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:6px;cursor:pointer;transition:all .15s}
+        .tree-child:hover{background:rgba(229,57,53,.06);border-color:rgba(229,57,53,.2)}
+        .tree-child .c-icon{font-size:16px}
+        .tree-child .c-name{flex:1;font-size:15px}
+        .tree-child .c-type{font-size:13px;color:var(--text-dim);background:rgba(255,255,255,.05);padding:2px 8px;border-radius:10px}
+        .tree-child .c-risk{padding:2px 8px;border-radius:10px;font-size:13px;font-weight:600}
+
+        /* ===== ACTION TRACKER ===== */
+        .action-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:10px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05);align-items:center;font-size:15px}
+        .action-row.header{font-weight:600;font-size:13px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+        .action-priority{padding:3px 10px;border-radius:10px;font-size:13px;font-weight:600;text-align:center}
+        .priority-high{background:rgba(220,53,69,.15);color:var(--danger)}
+        .priority-medium{background:rgba(255,193,7,.15);color:var(--warning)}
+        .priority-low{background:rgba(40,167,69,.15);color:var(--success)}
+        .action-status{padding:3px 10px;border-radius:10px;font-size:13px;font-weight:600}
+        .status-open{background:rgba(220,53,69,.15);color:var(--danger)}
+        .status-progress{background:rgba(255,193,7,.15);color:var(--warning)}
+        .status-complete{background:rgba(40,167,69,.15);color:var(--success)}
+
+        /* ===== BUTTONS ===== */
+        .btn{padding:10px 20px;border:none;border-radius:6px;font-family:'Fira Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+        .btn-primary{background:linear-gradient(180deg,var(--primary),var(--accent));color:#fff;box-shadow:0 2px 8px var(--primary-glow)}
+        .btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 14px var(--primary-glow)}
+        .btn-secondary{background:rgba(255,255,255,.08);color:#fff;border:1px solid var(--border)}
+        .btn-secondary:hover{background:rgba(255,255,255,.12)}
+        .btn-success{background:linear-gradient(180deg,#28a745,#1e7e34);color:#fff}
+        .btn-sm{padding:6px 12px;font-size:14px}
+        .btn-group{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state{text-align:center;padding:60px 20px;color:var(--text-muted)}
+        .empty-state .icon{font-size:48px;margin-bottom:12px;opacity:.4}
+        .empty-state p{font-size:16px;margin-bottom:16px}
+
+        /* ===== TOAST ===== */
+        .toast{position:fixed;top:20px;right:20px;padding:14px 20px;border-radius:8px;color:#fff;font-size:15px;font-weight:500;z-index:500;transform:translateX(120%);transition:transform .3s ease;max-width:350px;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+        .toast.show{transform:translateX(0)}
+        .toast.success{background:#28a745}.toast.error{background:#dc3545}.toast.warning{background:#e67e00}
+
+        /* ===== MODAL ===== */
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;display:none;align-items:center;justify-content:center;padding:20px}
+        .modal-overlay.show{display:flex}
+        .modal{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;width:100%;max-width:600px;max-height:80vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+        .modal-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+        .modal-header h3{font-family:'Orbitron',sans-serif;font-size:14px;letter-spacing:1px}
+        .modal-close{background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;padding:4px 8px}
+        .modal-body{padding:20px}
+
+        /* ===== RESPONSIVE ===== */
+        @media(max-width:768px){
+            .container{padding:12px}
+            .header{padding:10px 14px}
+            .header-left h1{font-size:16px}
+            .form-row{grid-template-columns:1fr}
+            .action-row{grid-template-columns:1fr;gap:6px}
+            .action-row.header{display:none}
+            .type-selector{grid-template-columns:1fr}
+            .stats-grid{grid-template-columns:repeat(2,1fr)}
+            .tree-parent-header{flex-wrap:wrap}
+        }
+        @media(max-width:480px){
+            .tabs{gap:2px;padding:4px}
+            .tab-btn{padding:8px 10px;font-size:14px}
+            .stats-grid{grid-template-columns:repeat(2,1fr)}
+        }
+    </style>
+</head>
+<body>
+
+<!-- ==================== LOGIN SCREEN ==================== -->
+<div class="login-screen" id="loginScreen">
+    <div class="login-box">
+        <h1>SafeFRA.PRO+</h1>
+        <div class="sub">Fire Risk Assessment Module</div>
+        <form onsubmit="handleLogin(event)">
+            <input type="text" id="accessCode" placeholder="Enter access code" autocomplete="off" autofocus>
+            <button type="submit">ACCESS MODULE</button>
+        </form>
+        <div class="login-error" id="loginError"></div>
+    </div>
+</div>
+
+<!-- ==================== MAIN APPLICATION ==================== -->
+<div class="main-app" id="mainApp">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <h1>SafeFRA.PRO+</h1>
+            <div class="sub">Fire Risk Assessment — <span id="headerPark">Loading...</span></div>
+        </div>
+        <div class="header-right">
+            <span class="user-badge" id="headerUser"></span>
+            <span class="park-badge" id="headerParkBadge"></span>
+            <span class="status-dot" id="fbStatus" title="Firebase"></span>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
+            <button class="tab-btn" onclick="switchTab('new-assessment')">New Assessment</button>
+            <button class="tab-btn" onclick="switchTab('all-assessments')">All Assessments</button>
+            <button class="tab-btn" onclick="switchTab('actions')">Action Tracker</button>
+            <button class="tab-btn" onclick="window.open('fra-reference.html','_blank')">📖 Why FRA?</button>
+        </div>
+
+        <!-- ==================== TAB: DASHBOARD ==================== -->
+        <div class="tab-content active" id="tab-dashboard">
+            <div class="stats-grid">
+                <div class="stat-card"><div class="num red" id="statTotal">0</div><div class="label">Total FRAs</div></div>
+                <div class="stat-card"><div class="num green" id="statCurrent">0</div><div class="label">Current</div></div>
+                <div class="stat-card"><div class="num amber" id="statDue">0</div><div class="label">Review Due</div></div>
+                <div class="stat-card"><div class="num red" id="statOverdue">0</div><div class="label">Overdue</div></div>
+                <div class="stat-card"><div class="num blue" id="statActions">0</div><div class="label">Open Actions</div></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Site Assessments</h2>
+                    <button class="btn btn-primary btn-sm" onclick="switchTab('new-assessment')">+ New FRA</button>
+                </div>
+                <div class="card-body">
+                    <div id="dashboardTree">
+                        <div class="empty-state">
+                            <div class="icon">🔥</div>
+                            <p>No fire risk assessments yet</p>
+                            <button class="btn btn-primary" onclick="switchTab('new-assessment')">Create First Assessment</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB: NEW ASSESSMENT ==================== -->
+        <div class="tab-content" id="tab-new-assessment">
+
+            <!-- Step 1: Choose Assessment Type -->
+            <div id="assessStep1">
+                <div class="card">
+                    <div class="card-header"><h2>Step 1 — Assessment Type</h2></div>
+                    <div class="card-body">
+                        <p style="color:var(--text-muted);margin-bottom:16px">Select the type of fire risk assessment you wish to carry out.</p>
+                        <div class="type-selector">
+                            <div class="type-card" onclick="selectAssessType('parent')" id="typeParent">
+                                <div class="icon">🏕️</div>
+                                <h3>SITE ASSESSMENT</h3>
+                                <p>Full site / holiday park assessment covering communal areas, roads, fire points, site infrastructure. This becomes a <strong>parent</strong> assessment to which individual unit assessments can be linked.</p>
+                            </div>
+                            <div class="type-card" onclick="selectAssessType('child')" id="typeChild">
+                                <div class="icon">🏠</div>
+                                <h3>UNIT / BUILDING</h3>
+                                <p>Assessment of an individual unit, building, or facility — lodge, static caravan, office, reception, laundry, amenity block. Link to an existing <strong>parent</strong> site assessment.</p>
+                            </div>
+                            <div class="type-card" onclick="selectAssessType('standalone')" id="typeStandalone">
+                                <div class="icon">📋</div>
+                                <h3>STANDALONE</h3>
+                                <p>Independent assessment not linked to a parent. Suitable for single premises, individual buildings, or locations that don't form part of a larger site hierarchy.</p>
+                            </div>
+                        </div>
+
+                        <!-- Parent selector (shown when child is selected) -->
+                        <div id="parentSelector" style="display:none;margin-top:16px">
+                            <div class="form-group">
+                                <label>Link to Parent Site Assessment</label>
+                                <select id="parentSelect">
+                                    <option value="">— Select parent assessment —</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Unit picker from accommodation_config (shown when child is selected) -->
+                        <div id="unitPickerSection" style="display:none;margin-top:16px">
+                            <div class="card" style="border-color:rgba(229,57,53,.3)">
+                                <div class="card-header" style="background:linear-gradient(180deg,rgba(229,57,53,.1),transparent)">
+                                    <h2 style="font-size:13px">Select Unit / Building from Firebase</h2>
+                                    <span style="font-size:12px;color:var(--text-muted)" id="unitPickerCount"></span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group" style="margin-bottom:10px">
+                                        <input type="text" id="unitSearchInput" placeholder="🔍 Search units..." oninput="filterUnitPicker()" style="font-size:14px">
+                                    </div>
+                                    <div class="unit-picker-grid" id="unitPickerGrid">
+                                        <div class="intel-loading">Loading units from Firebase...</div>
+                                    </div>
+                                    <div style="margin-top:10px;font-size:12px;color:var(--text-muted)">
+                                        Or <a href="#" onclick="event.preventDefault();skipUnitPicker()" style="color:var(--primary)">enter manually</a> if the unit is not listed
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="btn-group" style="justify-content:flex-end">
+                            <button class="btn btn-primary" onclick="goToStep2()" id="btnStep1Next" disabled>Continue to Step 2 →</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Premises & Assessor Details -->
+            <div id="assessStep2" style="display:none">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Step 2 — Premises &amp; Assessor Details</h2>
+                        <button class="btn btn-secondary btn-sm" onclick="goBackStep1()">← Back</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Premises / Site Name *</label>
+                                <input type="text" id="fraName" placeholder="e.g. Ben Nevis Holiday Park or Lodge 12">
+                            </div>
+                            <div class="form-group">
+                                <label>Premises Type</label>
+                                <select id="fraPremType">
+                                    <option value="holiday-park">Holiday Park / Caravan Site</option>
+                                    <option value="lodge">Lodge / Cabin</option>
+                                    <option value="static-caravan">Static Caravan</option>
+                                    <option value="touring-pitch">Touring Pitch Area</option>
+                                    <option value="glamping">Glamping Pod / Yurt / Shepherd's Hut</option>
+                                    <option value="reception">Reception / Office</option>
+                                    <option value="amenity-block">Amenity Block / Toilet Block</option>
+                                    <option value="laundry">Laundry Room</option>
+                                    <option value="leisure">Leisure Facility / Games Room</option>
+                                    <option value="restaurant">Restaurant / Bar / Café</option>
+                                    <option value="workshop">Workshop / Maintenance Building</option>
+                                    <option value="storage">Storage / Plant Room</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Address / Location</label>
+                                <input type="text" id="fraAddress" placeholder="Full address or site location reference">
+                            </div>
+                            <div class="form-group">
+                                <label>Applicable Legislation</label>
+                                <select id="fraLegislation">
+                                    <option value="scotland">Scotland — Fire (Scotland) Act 2005</option>
+                                    <option value="england">England — RR(FS)O 2005 (as amended)</option>
+                                    <option value="wales">Wales — RR(FS)O 2005 (as amended)</option>
+                                    <option value="ni">Northern Ireland — FR Services (NI) Order 2006</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Assessor Name *</label>
+                                <input type="text" id="fraAssessor" placeholder="Name of competent person">
+                            </div>
+                            <div class="form-group">
+                                <label>Assessor Qualifications</label>
+                                <input type="text" id="fraQuals" placeholder="e.g. CMIOSH, BAFE SP205, IFE Member">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Date of Assessment *</label>
+                                <input type="date" id="fraDate">
+                            </div>
+                            <div class="form-group">
+                                <label>Proposed Review Date *</label>
+                                <input type="date" id="fraReviewDate">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Previous FRA Reference (if any)</label>
+                                <input type="text" id="fraPrevRef" placeholder="Reference number of previous assessment">
+                            </div>
+                            <div class="form-group">
+                                <label>Assessment Reference</label>
+                                <input type="text" id="fraRef" readonly placeholder="Auto-generated on save">
+                            </div>
+                        </div>
+                        <div class="btn-group" style="justify-content:flex-end">
+                            <button class="btn btn-primary" onclick="goToStep3()">Continue to Assessment →</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: The Assessment Form (12 sections) -->
+            <div id="assessStep3" style="display:none">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+                    <div>
+                        <h2 style="font-family:'Orbitron',sans-serif;font-size:18px;letter-spacing:1px" id="step3Title">Assessment</h2>
+                        <div style="font-size:14px;color:var(--text-muted)" id="step3Sub"></div>
+                    </div>
+                    <div class="btn-group" style="margin:0">
+                        <button class="btn btn-secondary btn-sm" onclick="goBackStep2()">← Premises</button>
+                        <button class="btn btn-secondary btn-sm" onclick="expandAllSections()">Expand All</button>
+                        <button class="btn btn-secondary btn-sm" onclick="collapseAllSections()">Collapse All</button>
+                    </div>
+                </div>
+
+                <div id="fraFormSections"></div>
+
+                <!-- SafeFire Intelligence Panel -->
+                <div class="intel-panel" id="intelPanel" style="display:none">
+                    <div class="intel-header">
+                        <span style="font-size:18px">🔥</span>
+                        <h3>SafeFire Intelligence</h3>
+                        <span class="intel-badge" id="intelBadge">LIVE DATA</span>
+                    </div>
+                    <div class="intel-body">
+                        <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">Data pulled from SafeFire module — fire points, extinguishers, blankets, and signage status for this assessment scope. Use this to inform your responses above.</p>
+                        <div class="intel-grid" id="intelStats"></div>
+
+                        <div id="intelFirePoints" style="margin-top:14px"></div>
+                        <div id="intelExtinguishers" style="margin-top:14px"></div>
+                        <div id="intelComplianceIssues" style="margin-top:14px"></div>
+                    </div>
+                </div>
+
+                <!-- Risk Score & Sign-Off -->
+                <div class="card" style="margin-top:16px;border-color:var(--primary)">
+                    <div class="card-header" style="background:linear-gradient(180deg,var(--accent),#4a0e0e)">
+                        <h2 style="color:#fff">Risk Score &amp; Sign-Off</h2>
+                    </div>
+                    <div class="card-body">
+
+                        <!-- Live auto-calculated score -->
+                        <div class="risk-score-display" id="riskScoreDisplay">
+                            <div class="risk-gauge" id="riskGauge">
+                                <div class="risk-gauge-bg"></div>
+                                <div class="risk-gauge-mask"></div>
+                                <div class="risk-gauge-needle" id="riskNeedle" style="transform:rotate(-90deg)"></div>
+                                <div class="risk-gauge-center"></div>
+                            </div>
+                            <div class="risk-score-label" id="riskLabel" style="color:var(--text-muted)">Not Yet Assessed</div>
+                            <div class="risk-score-num" id="riskScoreNum" style="color:var(--text-muted)">—</div>
+                            <div class="risk-score-pct" id="riskScorePct">Answer questions above to generate score</div>
+                        </div>
+
+                        <!-- Breakdown by response type -->
+                        <div class="risk-breakdown" id="riskBreakdown">
+                            <div class="risk-break-item"><div class="rb-num" id="rbYes" style="color:var(--success)">0</div><div class="rb-label">Compliant (Yes)</div></div>
+                            <div class="risk-break-item"><div class="rb-num" id="rbPartial" style="color:var(--warning)">0</div><div class="rb-label">Partial</div></div>
+                            <div class="risk-break-item"><div class="rb-num" id="rbNo" style="color:var(--danger)">0</div><div class="rb-label">Non-Compliant (No)</div></div>
+                            <div class="risk-break-item"><div class="rb-num" id="rbNa" style="color:var(--info)">0</div><div class="rb-label">Not Applicable</div></div>
+                            <div class="risk-break-item"><div class="rb-num" id="rbUnanswered" style="color:var(--text-dim)">0</div><div class="rb-label">Unanswered</div></div>
+                        </div>
+
+                        <!-- Scoring explanation -->
+                        <div class="risk-explain">
+                            <h4>How the Score is Calculated</h4>
+                            <p style="margin-bottom:12px;color:#bbb">The risk score is calculated continuously from your assessment answers. Each question is weighted equally. <strong>Yes</strong> scores 0 risk points (fully compliant), <strong>Partial</strong> scores 1 point (some deficiency), <strong>No</strong> scores 3 points (non-compliant — higher weighting reflects increased risk). <strong>N/A</strong> items are excluded from the calculation. The compliance percentage and risk rating are derived from the total risk points against the maximum possible score.</p>
+                            <div class="band"><div class="band-dot" style="background:#2e7d32"></div><strong style="width:80px">LOW</strong> <span style="color:#bbb">85–100% compliance — fire safety measures are generally satisfactory with minor improvements recommended</span></div>
+                            <div class="band"><div class="band-dot" style="background:#f9a825"></div><strong style="width:80px">MEDIUM</strong> <span style="color:#bbb">65–84% compliance — some deficiencies identified requiring action within a reasonable timescale</span></div>
+                            <div class="band"><div class="band-dot" style="background:#e65100"></div><strong style="width:80px">HIGH</strong> <span style="color:#bbb">40–64% compliance — significant deficiencies requiring urgent remedial action</span></div>
+                            <div class="band"><div class="band-dot" style="background:#b71c1c"></div><strong style="width:80px">CRITICAL</strong> <span style="color:#bbb">Below 40% compliance — serious and imminent risk to life, immediate action required</span></div>
+                        </div>
+
+                        <!-- Override section -->
+                        <div class="risk-override">
+                            <h4>⚙ Assessor Override</h4>
+                            <p style="font-size:14px;color:#bbb;margin-bottom:12px">If professional judgement requires a different risk rating from the calculated score, you may override it here. A justification is required and will be recorded on the assessment.</p>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Override Risk Rating</label>
+                                    <select id="fraOverrideRating" onchange="applyOverride()">
+                                        <option value="">— Use calculated score —</option>
+                                        <option value="low">LOW — Fire safety measures satisfactory</option>
+                                        <option value="medium">MEDIUM — Some deficiencies, action required</option>
+                                        <option value="high">HIGH — Significant deficiencies, urgent action</option>
+                                        <option value="critical">CRITICAL — Serious &amp; imminent risk to life</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Override Justification *</label>
+                                    <textarea id="fraOverrideJustification" rows="2" placeholder="Explain why professional judgement requires a different rating..." style="min-height:44px"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hidden fields for data capture -->
+                        <input type="hidden" id="fraOverallRisk" value="">
+                        <input type="hidden" id="fraRiskScore" value="0">
+                        <input type="hidden" id="fraCompliancePct" value="0">
+
+                        <div class="form-group" style="margin-top:14px">
+                            <label>Assessor's Summary &amp; Significant Findings</label>
+                            <textarea id="fraSummary" rows="4" placeholder="Summarise the significant findings of this assessment and any immediate actions required..."></textarea>
+                        </div>
+
+                        <div class="form-row" style="margin-top:14px">
+                            <div class="form-group">
+                                <label>Assessor Signature (Type Name)</label>
+                                <input type="text" id="fraSignature" placeholder="Signed on original — electronic signature">
+                            </div>
+                            <div class="form-group">
+                                <label>Date Signed</label>
+                                <input type="date" id="fraSignDate">
+                            </div>
+                        </div>
+
+                        <div class="btn-group" style="justify-content:flex-end;margin-top:20px">
+                            <button class="btn btn-secondary" onclick="downloadAssessment()">📄 Download Report</button>
+                            <button class="btn btn-secondary" onclick="saveDraft()">💾 Save Draft</button>
+                            <button class="btn btn-success" onclick="completeAssessment()">✓ Complete &amp; Save Assessment</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB: ALL ASSESSMENTS ==================== -->
+        <div class="tab-content" id="tab-all-assessments">
+            <div class="card">
+                <div class="card-header">
+                    <h2>All Assessments</h2>
+                    <div style="display:flex;gap:8px">
+                        <select id="filterType" onchange="loadAssessments()" style="padding:10px 32px 10px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;color:#fff;font-size:14px;font-family:'Fira Sans',sans-serif;min-height:40px">
+                            <option value="all">All Types</option>
+                            <option value="parent">Site (Parent)</option>
+                            <option value="child">Unit (Child)</option>
+                            <option value="standalone">Standalone</option>
+                        </select>
+                        <select id="filterStatus" onchange="loadAssessments()" style="padding:10px 32px 10px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;color:#fff;font-size:14px;font-family:'Fira Sans',sans-serif;min-height:40px">
+                            <option value="all">All Statuses</option>
+                            <option value="complete">Current</option>
+                            <option value="review-due">Review Due</option>
+                            <option value="overdue">Overdue</option>
+                            <option value="in-progress">In Progress</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body" id="allAssessmentsList">
+                    <div class="empty-state">
+                        <div class="icon">📋</div>
+                        <p>No assessments found</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB: ACTION TRACKER ==================== -->
+        <div class="tab-content" id="tab-actions">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Action Tracker</h2>
+                    <div style="display:flex;gap:8px">
+                        <select id="actionFilter" onchange="loadActions()" style="padding:10px 32px 10px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;color:#fff;font-size:14px;font-family:'Fira Sans',sans-serif;min-height:40px">
+                            <option value="open">Open Actions</option>
+                            <option value="all">All Actions</option>
+                            <option value="overdue">Overdue</option>
+                            <option value="complete">Completed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="action-row header">
+                        <div>Action Required</div>
+                        <div>Priority</div>
+                        <div>Due Date</div>
+                        <div>Status</div>
+                        <div></div>
+                    </div>
+                    <div id="actionsList">
+                        <div class="empty-state" style="padding:30px">
+                            <p>No actions recorded yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /container -->
+</div><!-- /main-app -->
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="modalTitle">Modal</h3>
+            <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+    </div>
+</div>
+
+<script>
+// ==================== CONFIGURATION ====================
+const firebaseConfig = {
+    apiKey: "AIzaSyCMthEsz4WxTSMGSfIEJgtP4JJisMuvmAg",
+    authDomain: "safeparkpro.firebaseapp.com",
+    projectId: "safeparkpro",
+    storageBucket: "safeparkpro.firebasestorage.app",
+    messagingSenderId: "837498aborting",
+    appId: "1:837498aborting:web:placeholder"
+};
+
+// ==================== GLOBAL STATE ====================
+let db, storage;
+let currentPark = '';
+let currentUser = '';
+let userLevel = '';
+let selectedAssessType = null;
+let currentAssessment = null;
+let allAssessments = [];
+let parkUnits = [];
+let parkFirePoints = [];
+let parkExtinguishers = [];
+let parkServiceRecords = [];
+let selectedUnit = null;
+
+// Assessment form section definitions
+const FRA_SECTIONS = [
+    { id: 'building', num: 1, title: 'Building Description & Use', items: [
+        'Describe the premises (construction type, age, number of storeys, approximate floor area)',
+        'What is the primary use of the premises?',
+        'Are there any recent alterations, extensions, or changes of use?',
+        'Is the building listed or of special historical/architectural interest?',
+        'Is the premises subject to a licence or registration?',
+        'Are there any Alterations Notices, Enforcement Notices, or Prohibition Notices in force?'
+    ]},
+    { id: 'persons', num: 2, title: 'Persons at Risk', items: [
+        'What is the maximum number of persons likely to be present (guests, staff, visitors)?',
+        'Are there persons sleeping on the premises?',
+        'Are vulnerable persons likely to be present (children, elderly, disabled)?',
+        'Is there day-to-day management supervision/control on the premises?',
+        'Are contractors or temporary workers likely to be present?',
+        'Are persons familiar with the layout and fire safety arrangements?'
+    ]},
+    { id: 'ignition', num: 3, title: 'Sources of Ignition', items: [
+        'Are there any naked flames or radiant heat sources (cooking, heating, open fires)?',
+        'Is electrical equipment in good condition and properly maintained?',
+        'Are portable heaters used? If so, are they properly controlled?',
+        'Is smoking permitted on the premises? Are controls adequate?',
+        'Is there a risk of deliberate fire-raising (arson)?',
+        'Are there any hot work processes or equipment?',
+        'Is LPG or other fuel gas used? Are installations properly maintained?',
+        'Are there any other significant sources of ignition?'
+    ]},
+    { id: 'fuel', num: 4, title: 'Sources of Fuel', items: [
+        'Are combustible materials (furniture, textiles, paper, cardboard) adequately controlled?',
+        'Are flammable liquids and gases (LPG, cleaning chemicals, aerosols) stored safely?',
+        'Are waste and rubbish storage arrangements adequate?',
+        'Is the space beneath and between units kept free of combustible materials?',
+        'Are wall and ceiling linings of appropriate fire performance?',
+        'Is vegetation around units and buildings adequately managed?',
+        'Are there significant quantities of upholstered furniture or soft furnishings?'
+    ]},
+    { id: 'oxygen', num: 5, title: 'Sources of Oxygen', items: [
+        'Are there mechanical ventilation or air conditioning systems?',
+        'Are there any stored oxidising materials (medical oxygen, pool chemicals)?',
+        'Are there significant draughts or openings that could feed a fire?',
+        'Is oxygen a particular concern for this premises type?'
+    ]},
+    { id: 'detection', num: 6, title: 'Fire Detection & Warning', items: [
+        'Is an automatic fire detection system installed? (State BS 5839 category)',
+        'Is the system designed, installed, and maintained to the appropriate British Standard?',
+        'Are manual call points provided and correctly positioned?',
+        'Are sounders adequate to rouse sleeping occupants (75 dB(A) at bed-head)?',
+        'Is the system regularly tested (weekly user test, periodic professional service)?',
+        'Are test records maintained and available for inspection?',
+        'Is there an adequate means of raising the alarm in external/site areas?'
+    ]},
+    { id: 'firefighting', num: 7, title: 'Firefighting Equipment', items: [
+        'Are portable fire extinguishers provided (appropriate type, number, location)?',
+        'Are fire points established within 30m of all units and site buildings?',
+        'Are fire point locations clearly marked and weatherproofed?',
+        'Are hose reels or water supplies provided at fire points?',
+        'Is firefighting equipment serviced annually by a competent person?',
+        'Are fire blankets provided in cooking areas?',
+        'Is there an automatic suppression system (sprinklers)?'
+    ]},
+    { id: 'escape', num: 8, title: 'Escape Routes & Emergency Lighting', items: [
+        'Are escape routes adequate (number, width, direction of travel)?',
+        'Are escape routes free from obstruction and available at all times?',
+        'Do final exit doors open outwards without the need for a key?',
+        'Are fire doors in good condition with appropriate self-closing devices?',
+        'Are fire doors kept closed (or held open only by approved devices)?',
+        'Is emergency escape lighting installed where required?',
+        'Is emergency lighting regularly tested (monthly flick test, annual 3-hour test)?',
+        'Are escape route signs adequate and correctly positioned?',
+        'Is emergency vehicle access adequate (within 50m/90m of all units)?'
+    ]},
+    { id: 'structural', num: 9, title: 'Structural Fire Protection', items: [
+        'Is there adequate compartmentation to restrict fire spread?',
+        'Are fire-resisting walls, floors, and ceilings in good condition?',
+        'Are service penetrations through fire-resisting elements properly sealed?',
+        'Are separation distances between units adequate (5m/6m minimum)?',
+        'Are porches, awnings, and decking compliant with spacing requirements?'
+    ]},
+    { id: 'management', num: 10, title: 'Fire Safety Management', items: [
+        'Is there a written emergency fire action plan?',
+        'Are fire action notices displayed at appropriate locations?',
+        'Do staff receive fire safety induction and regular refresher training?',
+        'Are fire drills conducted at appropriate intervals?',
+        'Are fire drill records maintained?',
+        'Is there a procedure for reporting fire safety defects?',
+        'Are guests provided with fire safety information on arrival?',
+        'Is there a fire log book or equivalent recording system?',
+        'Are maintenance and testing records kept for at least 3 years?'
+    ]},
+    { id: 'dangerous', num: 11, title: 'Dangerous Substances & Special Risks', items: [
+        'Are any dangerous substances stored or used on the premises?',
+        'Is LPG bulk storage compliant with LPGA codes of practice?',
+        'Are gas cylinder positions outside the separation boundary of adjoining units?',
+        'Are BBQ/open fire policies in place and communicated to guests?',
+        'Are there any special risks specific to this premises (e.g. thatched roof, timber frame)?',
+        'Are DSEAR (Dangerous Substances and Explosive Atmospheres) risks adequately controlled?'
+    ]}
+];
+
+// ==================== INITIALISATION ====================
+document.addEventListener('DOMContentLoaded', function() {
+    // Check for sessionStorage from parent system
+    const storedPark = sessionStorage.getItem('currentPark');
+    const storedUser = sessionStorage.getItem('currentUser');
+    const storedLevel = sessionStorage.getItem('userAccessLevel');
+
+    // Also check URL params (passed by index.html or safefire.html when loading in iframe)
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlCode = urlParams.get('access_code');
+    const urlUser = urlParams.get('user');
+
+    if (storedPark && storedUser) {
+        currentPark = storedPark;
+        currentUser = storedUser;
+        userLevel = storedLevel || 'admin';
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        initApp();
+    } else if (urlCode) {
+        // Passed via URL from parent — resolve park from access code or use code as park
+        currentUser = urlUser || 'FRA Assessor';
+        userLevel = 'admin';
+        // Try to resolve from sessionStorage first (safefire.html sets these)
+        currentPark = sessionStorage.getItem('currentPark') || urlCode;
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        initApp();
+    }
+
+    // Set today's date
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('fraDate').value = today;
+    document.getElementById('fraSignDate').value = today;
+    // Default review in 12 months
+    const review = new Date();
+    review.setFullYear(review.getFullYear() + 1);
+    document.getElementById('fraReviewDate').value = review.toISOString().split('T')[0];
+
+    // Build assessment form sections
+    buildFormSections();
+
+    // Init Firebase
+    try {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+        storage = firebase.storage();
+        document.getElementById('fbStatus').classList.add('connected');
+        document.getElementById('fbStatus').title = 'Firebase connected';
+    } catch(e) {
+        console.warn('Firebase init:', e.message);
+    }
+});
+
+// ==================== LOGIN ====================
+function handleLogin(e) {
+    e.preventDefault();
+    const code = document.getElementById('accessCode').value.trim();
+    const err = document.getElementById('loginError');
+
+    if (!code) { err.textContent = 'Please enter an access code'; return; }
+
+    // Try sessionStorage codes first, then accept any code as demo
+    const stored = sessionStorage.getItem('currentPark');
+    if (stored) {
+        currentPark = stored;
+        currentUser = sessionStorage.getItem('currentUser') || 'User';
+        userLevel = sessionStorage.getItem('userAccessLevel') || 'admin';
+    } else {
+        // Generic access — store the code as a park identifier
+        currentPark = code;
+        currentUser = 'FRA Assessor';
+        userLevel = 'admin';
+        sessionStorage.setItem('currentPark', code);
+        sessionStorage.setItem('currentUser', currentUser);
+        sessionStorage.setItem('userAccessLevel', userLevel);
+    }
+
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    initApp();
+}
+
+function initApp() {
+    document.getElementById('headerPark').textContent = currentPark;
+    document.getElementById('headerParkBadge').textContent = currentPark;
+    document.getElementById('headerUser').textContent = currentUser;
+    loadAssessments();
+    loadActions();
+    loadParkData();
+}
+
+// ==================== TAB SWITCHING ====================
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    const tab = document.getElementById('tab-' + tabId);
+    if (tab) {
+        tab.classList.add('active');
+        // Find matching button
+        document.querySelectorAll('.tab-btn').forEach(b => {
+            if (b.textContent.toLowerCase().includes(tabId.replace('-', ' ').split(' ')[0])) b.classList.add('active');
+        });
+    }
+    if (tabId === 'all-assessments') loadAssessments();
+    if (tabId === 'actions') loadActions();
+    if (tabId === 'new-assessment') resetAssessmentForm();
+}
+
+// ==================== ASSESSMENT TYPE SELECTION ====================
+function selectAssessType(type) {
+    selectedAssessType = type;
+    document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('type' + type.charAt(0).toUpperCase() + type.slice(1)).classList.add('selected');
+    document.getElementById('btnStep1Next').disabled = false;
+
+    // Show parent selector for child type
+    document.getElementById('parentSelector').style.display = type === 'child' ? 'block' : 'none';
+    document.getElementById('unitPickerSection').style.display = (type === 'child' || type === 'standalone') ? 'block' : 'none';
+    if (type === 'child') populateParentSelect();
+    if (type === 'child' || type === 'standalone') renderUnitPicker();
+
+    // Reset unit selection
+    selectedUnit = null;
+
+    // Default premises type based on assessment type
+    const pt = document.getElementById('fraPremType');
+    if (type === 'parent') pt.value = 'holiday-park';
+    else if (type === 'child') pt.value = 'lodge';
+    else pt.value = 'other';
+}
+
+function populateParentSelect() {
+    const sel = document.getElementById('parentSelect');
+    sel.innerHTML = '<option value="">— Select parent assessment —</option>';
+    const parents = allAssessments.filter(a => a.type === 'parent');
+    parents.forEach(p => {
+        sel.innerHTML += `<option value="${p.id}">${p.name} (${p.dateStr})</option>`;
+    });
+}
+
+// ==================== STEP NAVIGATION ====================
+function goToStep2() {
+    if (!selectedAssessType) { showToast('Select an assessment type', 'warning'); return; }
+    if (selectedAssessType === 'child' && !document.getElementById('parentSelect').value) {
+        showToast('Select a parent site assessment', 'warning'); return;
+    }
+    document.getElementById('assessStep1').style.display = 'none';
+    document.getElementById('assessStep2').style.display = 'block';
+    // Generate ref
+    const ref = 'FRA-' + currentPark.substring(0, 3).toUpperCase() + '-' + Date.now().toString(36).toUpperCase();
+    document.getElementById('fraRef').value = ref;
+}
+
+function goBackStep1() {
+    document.getElementById('assessStep2').style.display = 'none';
+    document.getElementById('assessStep1').style.display = 'block';
+}
+
+function goToStep3() {
+    const name = document.getElementById('fraName').value.trim();
+    const assessor = document.getElementById('fraAssessor').value.trim();
+    if (!name) { showToast('Enter the premises/site name', 'warning'); return; }
+    if (!assessor) { showToast('Enter the assessor name', 'warning'); return; }
+
+    document.getElementById('assessStep2').style.display = 'none';
+    document.getElementById('assessStep3').style.display = 'block';
+
+    const typeLabel = selectedAssessType === 'parent' ? 'Site Assessment' : selectedAssessType === 'child' ? 'Unit/Building Assessment' : 'Standalone Assessment';
+    document.getElementById('step3Title').textContent = name;
+    document.getElementById('step3Sub').textContent = typeLabel + ' — ' + document.getElementById('fraAssessor').value;
+
+    // Render SafeFire intelligence panel
+    renderIntelPanel();
+}
+
+function goBackStep2() {
+    document.getElementById('assessStep3').style.display = 'none';
+    document.getElementById('assessStep2').style.display = 'block';
+}
+
+// ==================== BUILD FORM SECTIONS ====================
+function buildFormSections() {
+    const container = document.getElementById('fraFormSections');
+    container.innerHTML = '';
+
+    FRA_SECTIONS.forEach(section => {
+        let itemsHtml = '';
+        section.items.forEach((q, qi) => {
+            itemsHtml += `
+            <div class="check-item" data-section="${section.id}" data-q="${qi}">
+                <div class="check-question">${section.num}.${qi + 1} — ${q}</div>
+                <div class="check-options">
+                    <button class="check-opt" onclick="setCheck(this,'yes')">Yes ✓</button>
+                    <button class="check-opt" onclick="setCheck(this,'partial')">Partial ⚠</button>
+                    <button class="check-opt" onclick="setCheck(this,'no')">No ✗</button>
+                    <button class="check-opt" onclick="setCheck(this,'na')">N/A</button>
+                </div>
+                <textarea class="check-comment" placeholder="Comments / observations..." data-field="${section.id}-${qi}-comment"></textarea>
+                <label class="check-photo-btn">
+                    📷 Add Photo
+                    <input type="file" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(this,'${section.id}',${qi})">
+                </label>
+                <div class="check-photos" id="photos-${section.id}-${qi}"></div>
+            </div>`;
+        });
+
+        container.innerHTML += `
+        <div class="fra-section" id="sec-${section.id}">
+            <div class="fra-section-header" onclick="toggleSection('${section.id}')">
+                <div class="sec-num">${section.num}</div>
+                <div class="sec-title">${section.title}</div>
+                <span class="sec-status empty" id="secStatus-${section.id}">Not started</span>
+                <span class="chevron">▼</span>
+            </div>
+            <div class="fra-section-body">${itemsHtml}</div>
+        </div>`;
+    });
+}
+
+function toggleSection(id) {
+    document.getElementById('sec-' + id).classList.toggle('open');
+}
+function expandAllSections() {
+    document.querySelectorAll('.fra-section').forEach(s => s.classList.add('open'));
+}
+function collapseAllSections() {
+    document.querySelectorAll('.fra-section').forEach(s => s.classList.remove('open'));
+}
+
+// ==================== CHECKLIST INTERACTIONS ====================
+function setCheck(btn, val) {
+    const opts = btn.parentElement.querySelectorAll('.check-opt');
+    opts.forEach(o => o.className = 'check-opt');
+    btn.classList.add(val);
+    btn.closest('.check-item').dataset.answer = val;
+    updateSectionStatus(btn.closest('.fra-section').id.replace('sec-', ''));
+    recalculateRiskScore();
+}
+
+function updateSectionStatus(sectionId) {
+    const items = document.querySelectorAll(`#sec-${sectionId} .check-item`);
+    let answered = 0;
+    items.forEach(i => { if (i.dataset.answer) answered++; });
+    const statusEl = document.getElementById('secStatus-' + sectionId);
+    if (answered === 0) {
+        statusEl.className = 'sec-status empty'; statusEl.textContent = 'Not started';
+    } else if (answered === items.length) {
+        statusEl.className = 'sec-status complete'; statusEl.textContent = 'Complete';
+    } else {
+        statusEl.className = 'sec-status partial'; statusEl.textContent = answered + '/' + items.length;
+    }
+}
+
+// ==================== PHOTO HANDLING ====================
+function handlePhoto(input, sectionId, qIndex) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const container = document.getElementById(`photos-${sectionId}-${qIndex}`);
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.title = file.name;
+        img.onclick = function() {
+            window.open(e.target.result, '_blank');
+        };
+        container.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+}
+
+// ==================== AUTO RISK SCORE CALCULATION ====================
+function recalculateRiskScore() {
+    let yesCount = 0, partialCount = 0, noCount = 0, naCount = 0, unanswered = 0;
+
+    document.querySelectorAll('#fraFormSections .check-item').forEach(item => {
+        const answer = item.dataset.answer;
+        if (answer === 'yes') yesCount++;
+        else if (answer === 'partial') partialCount++;
+        else if (answer === 'no') noCount++;
+        else if (answer === 'na') naCount++;
+        else unanswered++;
+    });
+
+    // Update breakdown
+    document.getElementById('rbYes').textContent = yesCount;
+    document.getElementById('rbPartial').textContent = partialCount;
+    document.getElementById('rbNo').textContent = noCount;
+    document.getElementById('rbNa').textContent = naCount;
+    document.getElementById('rbUnanswered').textContent = unanswered;
+
+    const answeredRelevant = yesCount + partialCount + noCount;
+    if (answeredRelevant === 0) {
+        // Nothing answered yet
+        document.getElementById('riskLabel').textContent = 'Not Yet Assessed';
+        document.getElementById('riskLabel').style.color = 'var(--text-muted)';
+        document.getElementById('riskScoreNum').textContent = '—';
+        document.getElementById('riskScoreNum').style.color = 'var(--text-muted)';
+        document.getElementById('riskScorePct').textContent = 'Answer questions above to generate score';
+        document.getElementById('riskNeedle').style.transform = 'rotate(-90deg)';
+        document.getElementById('fraOverallRisk').value = '';
+        document.getElementById('fraRiskScore').value = '0';
+        document.getElementById('fraCompliancePct').value = '0';
+        return;
+    }
+
+    // Scoring: Yes=0, Partial=1, No=3
+    const riskPoints = (partialCount * 1) + (noCount * 3);
+    const maxPoints = answeredRelevant * 3; // worst case all No
+    const compliancePct = Math.round(((maxPoints - riskPoints) / maxPoints) * 100);
+
+    // Determine rating
+    let rating, ratingColor;
+    if (compliancePct >= 85) { rating = 'LOW'; ratingColor = '#2e7d32'; }
+    else if (compliancePct >= 65) { rating = 'MEDIUM'; ratingColor = '#f9a825'; }
+    else if (compliancePct >= 40) { rating = 'HIGH'; ratingColor = '#e65100'; }
+    else { rating = 'CRITICAL'; ratingColor = '#b71c1c'; }
+
+    // Update display
+    document.getElementById('riskScoreNum').textContent = compliancePct + '%';
+    document.getElementById('riskScoreNum').style.color = ratingColor;
+    document.getElementById('riskLabel').textContent = rating;
+    document.getElementById('riskLabel').style.color = ratingColor;
+    document.getElementById('riskScorePct').textContent = `${yesCount} compliant, ${partialCount} partial, ${noCount} non-compliant of ${answeredRelevant} assessed (${naCount} N/A, ${unanswered} unanswered)`;
+
+    // Gauge needle: -90deg = 100% (left/green), +90deg = 0% (right/red)
+    const needleDeg = -90 + ((100 - compliancePct) * 1.8);
+    document.getElementById('riskNeedle').style.transform = `rotate(${needleDeg}deg)`;
+
+    // Update display border
+    const display = document.getElementById('riskScoreDisplay');
+    display.style.borderColor = ratingColor;
+    display.style.boxShadow = `0 0 16px ${ratingColor}33`;
+
+    // Store calculated values (may be overridden)
+    document.getElementById('fraOverallRisk').value = rating.toLowerCase();
+    document.getElementById('fraRiskScore').value = compliancePct;
+    document.getElementById('fraCompliancePct').value = compliancePct;
+
+    // Check if override is active
+    applyOverride();
+}
+
+function applyOverride() {
+    const override = document.getElementById('fraOverrideRating').value;
+    if (!override) {
+        // No override — use calculated score
+        return;
+    }
+    const justification = document.getElementById('fraOverrideJustification').value.trim();
+    const labels = { low: 'LOW', medium: 'MEDIUM', high: 'HIGH', critical: 'CRITICAL' };
+    const colors = { low: '#2e7d32', medium: '#f9a825', high: '#e65100', critical: '#b71c1c' };
+
+    // Only apply if we have calculated data
+    const currentCalc = document.getElementById('fraCompliancePct').value;
+    if (!currentCalc || currentCalc === '0') return;
+
+    const label = document.getElementById('riskLabel');
+    const num = document.getElementById('riskScoreNum');
+    const pct = document.getElementById('riskScorePct');
+
+    label.textContent = labels[override] + ' (OVERRIDE)';
+    label.style.color = colors[override];
+    num.style.color = colors[override];
+    pct.textContent = (pct.textContent.split('|')[0].trim()) + ' | Assessor override applied';
+
+    document.getElementById('fraOverallRisk').value = override;
+
+    // Gauge needle position for override
+    const overridePct = { low: 92, medium: 75, high: 52, critical: 20 };
+    const needleDeg = -90 + ((100 - overridePct[override]) * 1.8);
+    document.getElementById('riskNeedle').style.transform = `rotate(${needleDeg}deg)`;
+
+    const display = document.getElementById('riskScoreDisplay');
+    display.style.borderColor = colors[override];
+    display.style.boxShadow = `0 0 16px ${colors[override]}33`;
+}
+
+// ==================== DOWNLOAD ASSESSMENT ====================
+function downloadAssessment(assessmentId) {
+    let data;
+    if (assessmentId) {
+        data = allAssessments.find(a => a.id === assessmentId);
+        if (!data) { showToast('Assessment not found', 'error'); return; }
+    } else {
+        // Download current in-progress assessment
+        data = collectFormData();
+        data.compliancePct = document.getElementById('fraCompliancePct').value || '0';
+        data.overrideRating = document.getElementById('fraOverrideRating').value || '';
+        data.overrideJustification = document.getElementById('fraOverrideJustification').value || '';
+    }
+    generatePDF(data);
+}
+
+function generatePDF(data) {
+    const legislationLabels = {
+        'scotland': 'Scotland — Fire (Scotland) Act 2005',
+        'england': 'England — Regulatory Reform (Fire Safety) Order 2005',
+        'wales': 'Wales — Regulatory Reform (Fire Safety) Order 2005',
+        'ni': 'Northern Ireland — Fire & Rescue Services (NI) Order 2006'
+    };
+    const riskColors = { low:'#2e7d32', medium:'#f9a825', high:'#e65100', critical:'#b71c1c' };
+    const riskBg = { low:'#e8f5e9', medium:'#fff8e1', high:'#fff3e0', critical:'#ffebee' };
+    const riskTxt = { low:'#1b5e20', medium:'#f57f17', high:'#bf360c', critical:'#b71c1c' };
+    const risk = (data.overallRisk || 'not-assessed').toLowerCase();
+    const compPct = data.compliancePct || data.riskScore || '—';
+
+    let sectionsHTML = '';
+    if (data.sections) {
+        FRA_SECTIONS.forEach(sec => {
+            const items = data.sections[sec.id];
+            if (!items) return;
+            let rowsHTML = '';
+            items.forEach((item, i) => {
+                const ans = item.answer || '—';
+                const ansColor = ans === 'yes' ? '#2e7d32' : ans === 'partial' ? '#f57f17' : ans === 'no' ? '#c62828' : '#666';
+                const ansLabel = ans === 'yes' ? '✓ Yes' : ans === 'partial' ? '⚠ Partial' : ans === 'no' ? '✗ No' : ans === 'na' ? 'N/A' : '—';
+                const bgCol = i % 2 === 0 ? '#fff' : '#f8f8f8';
+                rowsHTML += `<tr style="background:${bgCol}">
+                    <td style="padding:8px 12px;border:1px solid #ddd;font-size:12px;color:#333">${sec.num}.${i+1}</td>
+                    <td style="padding:8px 12px;border:1px solid #ddd;font-size:12px;color:#333">${item.question}</td>
+                    <td style="padding:8px 12px;border:1px solid #ddd;font-size:12px;font-weight:700;color:${ansColor};text-align:center">${ansLabel}</td>
+                    <td style="padding:8px 12px;border:1px solid #ddd;font-size:11px;color:#555">${item.comment || ''}</td>
+                </tr>`;
+            });
+            sectionsHTML += `
+                <h3 style="margin:24px 0 8px;font-size:14px;color:#333;border-bottom:2px solid #c62828;padding-bottom:4px">Section ${sec.num}: ${sec.title}</h3>
+                <table style="width:100%;border-collapse:collapse;margin-bottom:8px">
+                    <tr style="background:#7f1d1d;color:#fff">
+                        <th style="padding:8px;border:1px solid #ddd;width:40px;font-size:11px">#</th>
+                        <th style="padding:8px;border:1px solid #ddd;font-size:11px;text-align:left">Question</th>
+                        <th style="padding:8px;border:1px solid #ddd;width:80px;font-size:11px">Rating</th>
+                        <th style="padding:8px;border:1px solid #ddd;width:200px;font-size:11px;text-align:left">Comments</th>
+                    </tr>
+                    ${rowsHTML}
+                </table>`;
+        });
+    }
+
+    const overrideNote = (data.overrideRating || data.overrideJustification)
+        ? `<div style="background:#fff3e0;border:1px solid #e65100;border-radius:6px;padding:12px;margin-top:12px">
+            <strong style="color:#e65100">⚙ Assessor Override Applied</strong><br>
+            <span style="font-size:12px">Rating overridden to: <strong>${(data.overrideRating || '').toUpperCase()}</strong><br>
+            Justification: ${data.overrideJustification || 'None provided'}</span>
+           </div>` : '';
+
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+        <title>FRA — ${data.name || 'Assessment'}</title>
+        <style>
+            @media print { body{margin:0;padding:0} .no-print{display:none!important} @page{margin:15mm 12mm} }
+            body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;color:#333;line-height:1.5;padding:20px;max-width:900px;margin:0 auto}
+        </style>
+    </head><body>
+        <div class="no-print" style="background:#c62828;color:#fff;padding:12px 20px;border-radius:8px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-weight:600">Fire Risk Assessment Report</span>
+            <button onclick="window.print()" style="background:#fff;color:#c62828;border:none;padding:8px 20px;border-radius:6px;font-weight:700;cursor:pointer;font-size:14px">🖨 Print / Save as PDF</button>
+        </div>
+
+        <!-- Header -->
+        <div style="text-align:center;border-bottom:3px solid #c62828;padding-bottom:16px;margin-bottom:20px">
+            <h1 style="margin:0;font-size:22px;color:#c62828;letter-spacing:1px">FIRE RISK ASSESSMENT</h1>
+            <p style="margin:4px 0 0;font-size:13px;color:#666">Generated by SafeFRA.PRO+ — SafeSystems.PRO</p>
+        </div>
+
+        <!-- Premises Details -->
+        <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+            <tr><td style="padding:8px 12px;border:1px solid #ddd;background:#f5f5f5;font-weight:600;width:35%;font-size:13px">Premises / Site Name</td><td style="padding:8px 12px;border:1px solid #ddd;font-size:13px">${data.name || ''}</td></tr>
+            <tr><td style="padding:8px 12px;border:1px solid #ddd;background:#f5f5f5;font-weight:600;font-size:13px">Assessment Type</td><td style="padding:8px 12px;border:1px solid #ddd;font-size:13px">${(data.type || '').replace(/-/g,' ').replace(/\b\w/g,l=>l.toUpperCase())}</td></tr>
+            <tr><td style="padding:8px 12px;border:1px solid #ddd;background:#f5f5f5;font-weight:600;font-size:13px">Premises Type</td><td style="padding:8px 12px;border:1px solid #ddd;font-size:13px">${(data.premisesType || '').replace(/-/g,' ').replace(/\b\w/g,l=>l.toUpperCase())}</td></tr>
+            <tr><td style="padding:8px 12px;border:1px solid #ddd;background:#f5f5f5;font-weight:600;font-size:13px">Address / Location</td><td style="padding:8px 12px;border:1px solid #ddd;font-size:13px">${data.address || ''}</td></tr>
+            <tr><td style="padding:8px 12px;border:1px solid #ddd;background:#f5f5f5;font-weight:600;font-size:13px">Applicable Legislation</td><td style="padding:8px 12px;border:1px solid #ddd;font-size:13px">${legislationLabels[data.legislation] || data.legislation || ''}</td></tr>
+            <tr><td style="padding:8px 12px;border:1px solid #ddd;background:#f5f5f5;font-weight:600;font-size:13px">Reference</td><td style="padding:8px 12px;border:1px solid #ddd;font-size:13px">${data.reference || ''}</td></tr>
+            <tr><td style="padding:8px 12px;border:1px solid #ddd;background:#f5f5f5;font-weight:600;font-size:13px">Previous FRA Reference</td><td style="padding:8px 12px;border:1px solid #ddd;font-size:13px">${data.previousRef || 'N/A'}</td></tr>
+            <tr><td style="padding:8px 12px;border:1px solid #ddd;background:#f5f5f5;font-weight:600;font-size:13px">Assessor</td><td style="padding:8px 12px;border:1px solid #ddd;font-size:13px">${data.assessor || ''} ${data.qualifications ? '(' + data.qualifications + ')' : ''}</td></tr>
+            <tr><td style="padding:8px 12px;border:1px solid #ddd;background:#f5f5f5;font-weight:600;font-size:13px">Date of Assessment</td><td style="padding:8px 12px;border:1px solid #ddd;font-size:13px">${data.dateOfAssessment || ''}</td></tr>
+            <tr><td style="padding:8px 12px;border:1px solid #ddd;background:#f5f5f5;font-weight:600;font-size:13px">Review Date</td><td style="padding:8px 12px;border:1px solid #ddd;font-size:13px">${data.reviewDate || ''}</td></tr>
+        </table>
+
+        <!-- Risk Rating Box -->
+        <div style="background:${riskBg[risk] || '#f5f5f5'};border:2px solid ${riskColors[risk] || '#999'};border-radius:8px;padding:20px;text-align:center;margin-bottom:20px">
+            <div style="font-size:12px;text-transform:uppercase;letter-spacing:2px;color:#666;margin-bottom:4px">Overall Risk Rating</div>
+            <div style="font-size:32px;font-weight:900;color:${riskTxt[risk] || '#333'}">${(data.overallRisk || 'NOT ASSESSED').toUpperCase()}</div>
+            <div style="font-size:14px;color:#666;margin-top:4px">Compliance Score: ${compPct}%</div>
+            ${overrideNote}
+        </div>
+
+        <!-- Assessment Sections -->
+        ${sectionsHTML}
+
+        <!-- SafeFire Data Snapshot -->
+        ${buildSafeFireReportHTML(data)}
+
+        <!-- Summary & Sign-off -->
+        <div style="margin-top:24px;border-top:3px solid #c62828;padding-top:16px">
+            <h3 style="font-size:14px;color:#333;margin-bottom:8px">Assessor's Summary &amp; Significant Findings</h3>
+            <div style="background:#f8f8f8;border:1px solid #ddd;border-radius:6px;padding:14px;min-height:60px;font-size:13px;white-space:pre-wrap">${data.summary || 'No summary provided.'}</div>
+        </div>
+
+        <div style="margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:20px">
+            <div>
+                <div style="font-size:12px;color:#666;margin-bottom:4px">Assessor Signature</div>
+                <div style="border-bottom:2px solid #333;padding-bottom:4px;font-size:14px;font-weight:600">${data.signature || 'Signed on original — electronic signature'}</div>
+            </div>
+            <div>
+                <div style="font-size:12px;color:#666;margin-bottom:4px">Date</div>
+                <div style="border-bottom:2px solid #333;padding-bottom:4px;font-size:14px;font-weight:600">${data.signDate || ''}</div>
+            </div>
+        </div>
+
+        <div style="margin-top:30px;text-align:center;font-size:11px;color:#999;border-top:1px solid #ddd;padding-top:12px">
+            Generated by SafeFRA.PRO+ — SafeSystems.PRO — Omnibosh Safety Solutions Ltd<br>
+            This document forms a record of fire risk assessment under the ${legislationLabels[data.legislation] || 'applicable fire safety legislation'}
+        </div>
+    </body></html>`;
+
+    const win = window.open('', '_blank');
+    if (win) {
+        win.document.write(html);
+        win.document.close();
+    } else {
+        showToast('Pop-up blocked — please allow pop-ups', 'error');
+    }
+}
+
+function buildSafeFireReportHTML(data) {
+    const sf = data.safeFireSnapshot;
+    if (!sf || (!sf.firePoints?.length && !sf.extinguishers?.length)) return '';
+
+    const s = sf.summary || {};
+    let html = `
+        <div style="page-break-before:auto;margin-top:24px">
+        <h3 style="font-size:14px;color:#333;border-bottom:2px solid #c62828;padding-bottom:4px;margin-bottom:12px">Appendix: SafeFire Equipment Data (at time of assessment)</h3>
+        <div style="background:#f8f8f8;border:1px solid #ddd;border-radius:6px;padding:14px;margin-bottom:12px;display:flex;gap:20px;flex-wrap:wrap;font-size:13px">
+            <div><strong>${s.totalFirePoints || 0}</strong> Fire Points</div>
+            <div><strong>${s.totalExtinguishers || 0}</strong> Extinguishers</div>
+            <div><strong>${s.totalBlankets || 0}</strong> Fire Blankets</div>
+            <div style="color:${(s.complianceIssues || 0) > 0 ? '#c62828' : '#2e7d32'}"><strong>${s.complianceIssues || 0}</strong> Compliance Issues</div>
+            <div style="color:#666">Captured: ${sf.capturedAt ? new Date(sf.capturedAt).toLocaleDateString('en-GB') : '—'}</div>
+        </div>`;
+
+    if (sf.firePoints?.length) {
+        html += `<table style="width:100%;border-collapse:collapse;margin-bottom:12px">
+            <tr style="background:#7f1d1d;color:#fff">
+                <th style="padding:6px 8px;border:1px solid #ddd;font-size:11px">Code</th>
+                <th style="padding:6px 8px;border:1px solid #ddd;font-size:11px">Location</th>
+                <th style="padding:6px 8px;border:1px solid #ddd;font-size:11px">Signage</th>
+                <th style="padding:6px 8px;border:1px solid #ddd;font-size:11px">Box Sign</th>
+                <th style="padding:6px 8px;border:1px solid #ddd;font-size:11px">Actions</th>
+                <th style="padding:6px 8px;border:1px solid #ddd;font-size:11px">Alarm</th>
+                <th style="padding:6px 8px;border:1px solid #ddd;font-size:11px">Box Cond</th>
+            </tr>`;
+        sf.firePoints.forEach((fp, i) => {
+            const bg = i % 2 === 0 ? '#fff' : '#f8f8f8';
+            const chk = v => v === 'pass' ? '<span style="color:#2e7d32;font-weight:700">✓</span>' : v === 'fail' ? '<span style="color:#c62828;font-weight:700">✗</span>' : '<span style="color:#999">—</span>';
+            html += `<tr style="background:${bg}">
+                <td style="padding:6px 8px;border:1px solid #ddd;font-size:12px;font-weight:600">${fp.code || ''}</td>
+                <td style="padding:6px 8px;border:1px solid #ddd;font-size:12px">${fp.locationDescription || ''}${fp.unitNumber ? ' — ' + fp.unitNumber : ''}</td>
+                <td style="padding:6px 8px;border:1px solid #ddd;text-align:center">${chk(fp.signage)}</td>
+                <td style="padding:6px 8px;border:1px solid #ddd;text-align:center">${chk(fp.boxSign)}</td>
+                <td style="padding:6px 8px;border:1px solid #ddd;text-align:center">${chk(fp.actionsNotice)}</td>
+                <td style="padding:6px 8px;border:1px solid #ddd;text-align:center">${chk(fp.alarmMeans)}</td>
+                <td style="padding:6px 8px;border:1px solid #ddd;text-align:center">${chk(fp.boxCondition)}</td>
+            </tr>`;
+        });
+        html += '</table>';
+    }
+
+    if (sf.extinguishers?.length) {
+        html += `<table style="width:100%;border-collapse:collapse;margin-bottom:12px">
+            <tr style="background:#7f1d1d;color:#fff">
+                <th style="padding:6px 8px;border:1px solid #ddd;font-size:11px">Code</th>
+                <th style="padding:6px 8px;border:1px solid #ddd;font-size:11px">Type</th>
+                <th style="padding:6px 8px;border:1px solid #ddd;font-size:11px">Fire Pt</th>
+                <th style="padding:6px 8px;border:1px solid #ddd;font-size:11px">Last Service</th>
+                <th style="padding:6px 8px;border:1px solid #ddd;font-size:11px">Next Due</th>
+                <th style="padding:6px 8px;border:1px solid #ddd;font-size:11px">Run-Out</th>
+                <th style="padding:6px 8px;border:1px solid #ddd;font-size:11px">Status</th>
+            </tr>`;
+        sf.extinguishers.forEach((e, i) => {
+            const bg = i % 2 === 0 ? '#fff' : '#f8f8f8';
+            const sc = { compliant:'#2e7d32', 'due-soon':'#f57f17', overdue:'#e65100', expired:'#c62828', 'no-record':'#999' };
+            html += `<tr style="background:${bg}">
+                <td style="padding:6px 8px;border:1px solid #ddd;font-size:12px;font-weight:600">${e.code || ''}</td>
+                <td style="padding:6px 8px;border:1px solid #ddd;font-size:12px">${e.type || ''}${e.weight ? ' (' + e.weight + ')' : ''}</td>
+                <td style="padding:6px 8px;border:1px solid #ddd;font-size:12px">${e.firePointCode || '—'}</td>
+                <td style="padding:6px 8px;border:1px solid #ddd;font-size:12px">${e.lastServiceDate || '—'}</td>
+                <td style="padding:6px 8px;border:1px solid #ddd;font-size:12px">${e.nextServiceDue || '—'}</td>
+                <td style="padding:6px 8px;border:1px solid #ddd;font-size:12px">${e.runOutDate || '—'}</td>
+                <td style="padding:6px 8px;border:1px solid #ddd;font-size:12px;font-weight:700;color:${sc[e.status] || '#999'}">${(e.status || '—').replace('-', ' ')}</td>
+            </tr>`;
+        });
+        html += '</table>';
+    }
+
+    html += '</div>';
+    return html;
+}
+
+// ==================== SAVE / COMPLETE ====================
+function collectFormData() {
+    const sections = {};
+    FRA_SECTIONS.forEach(section => {
+        const items = [];
+        document.querySelectorAll(`#sec-${section.id} .check-item`).forEach((item, i) => {
+            items.push({
+                question: section.items[i],
+                answer: item.dataset.answer || null,
+                comment: item.querySelector('.check-comment').value || ''
+            });
+        });
+        sections[section.id] = items;
+    });
+
+    return {
+        type: selectedAssessType,
+        parentId: selectedAssessType === 'child' ? document.getElementById('parentSelect').value : null,
+        parkCode: currentPark,
+        selectedUnit: selectedUnit ? { name: selectedUnit.name, type: selectedUnit.type || '' } : null,
+        name: document.getElementById('fraName').value.trim(),
+        premisesType: document.getElementById('fraPremType').value,
+        address: document.getElementById('fraAddress').value.trim(),
+        legislation: document.getElementById('fraLegislation').value,
+        assessor: document.getElementById('fraAssessor').value.trim(),
+        qualifications: document.getElementById('fraQuals').value.trim(),
+        dateOfAssessment: document.getElementById('fraDate').value,
+        reviewDate: document.getElementById('fraReviewDate').value,
+        previousRef: document.getElementById('fraPrevRef').value.trim(),
+        reference: document.getElementById('fraRef').value,
+        sections: sections,
+        overallRisk: document.getElementById('fraOverallRisk').value.toLowerCase() || 'not-assessed',
+        riskScore: document.getElementById('fraRiskScore').value || '0',
+        compliancePct: document.getElementById('fraCompliancePct').value || '0',
+        overrideRating: document.getElementById('fraOverrideRating').value || '',
+        overrideJustification: document.getElementById('fraOverrideJustification').value || '',
+        safeFireSnapshot: buildSafeFireSnapshot(),
+        summary: document.getElementById('fraSummary').value,
+        signature: document.getElementById('fraSignature').value.trim(),
+        signDate: document.getElementById('fraSignDate').value,
+        createdBy: currentUser,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+}
+
+async function saveDraft() {
+    const data = collectFormData();
+    data.status = 'in-progress';
+    try {
+        if (currentAssessment) {
+            await db.collection('fra-assessments').doc(currentAssessment).update(data);
+        } else {
+            const ref = await db.collection('fra-assessments').add(data);
+            currentAssessment = ref.id;
+        }
+        showToast('Draft saved successfully', 'success');
+    } catch(e) {
+        console.error(e);
+        showToast('Save failed: ' + e.message, 'error');
+    }
+}
+
+async function completeAssessment() {
+    const name = document.getElementById('fraName').value.trim();
+    const sig = document.getElementById('fraSignature').value.trim();
+    const risk = document.getElementById('fraOverallRisk').value;
+
+    if (!name) { showToast('Premises name is required', 'warning'); return; }
+    if (!sig) { showToast('Assessor signature is required', 'warning'); return; }
+    if (!risk) { showToast('Answer some assessment questions to generate a risk score', 'warning'); return; }
+    const override = document.getElementById('fraOverrideRating').value;
+    const justification = document.getElementById('fraOverrideJustification').value.trim();
+    if (override && !justification) { showToast('Override justification is required when overriding the risk rating', 'warning'); return; }
+
+    const data = collectFormData();
+    data.status = 'complete';
+
+    try {
+        if (currentAssessment) {
+            await db.collection('fra-assessments').doc(currentAssessment).update(data);
+        } else {
+            const ref = await db.collection('fra-assessments').add(data);
+            currentAssessment = ref.id;
+        }
+        showToast('Assessment completed and saved', 'success');
+        switchTab('dashboard');
+        loadAssessments();
+    } catch(e) {
+        console.error(e);
+        showToast('Save failed: ' + e.message, 'error');
+    }
+}
+
+// ==================== LOAD ASSESSMENTS ====================
+async function loadAssessments() {
+    if (!db) return;
+    try {
+        const snap = await db.collection('fra-assessments')
+            .where('parkCode', '==', currentPark)
+            .orderBy('createdAt', 'desc')
+            .get();
+
+        allAssessments = [];
+        snap.forEach(doc => {
+            const d = doc.data();
+            allAssessments.push({
+                id: doc.id,
+                ...d,
+                dateStr: d.dateOfAssessment || 'No date'
+            });
+        });
+
+        updateDashboard();
+        renderAllAssessments();
+    } catch(e) {
+        console.warn('Load assessments:', e.message);
+    }
+}
+
+function updateDashboard() {
+    const now = new Date().toISOString().split('T')[0];
+    const oneMonth = new Date();
+    oneMonth.setMonth(oneMonth.getMonth() + 1);
+    const soonDate = oneMonth.toISOString().split('T')[0];
+
+    let total = 0, current = 0, due = 0, overdue = 0, openActions = 0;
+
+    allAssessments.forEach(a => {
+        total++;
+        if (a.status === 'complete') {
+            if (a.reviewDate && a.reviewDate < now) { overdue++; a.displayStatus = 'overdue'; }
+            else if (a.reviewDate && a.reviewDate < soonDate) { due++; a.displayStatus = 'review-due'; }
+            else { current++; a.displayStatus = 'current'; }
+        } else {
+            a.displayStatus = 'in-progress';
+        }
+    });
+
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statCurrent').textContent = current;
+    document.getElementById('statDue').textContent = due;
+    document.getElementById('statOverdue').textContent = overdue;
+    document.getElementById('statActions').textContent = openActions;
+
+    renderDashboardTree();
+}
+
+function renderDashboardTree() {
+    const container = document.getElementById('dashboardTree');
+    const parents = allAssessments.filter(a => a.type === 'parent');
+    const standalones = allAssessments.filter(a => a.type === 'standalone');
+
+    if (allAssessments.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="icon">🔥</div><p>No fire risk assessments yet</p><button class="btn btn-primary" onclick="switchTab(\'new-assessment\')">Create First Assessment</button></div>';
+        return;
+    }
+
+    let html = '';
+
+    // Parent assessments with children
+    parents.forEach(p => {
+        const children = allAssessments.filter(a => a.type === 'child' && a.parentId === p.id);
+        const riskClass = p.overallRisk === 'low' ? 'risk-low' : p.overallRisk === 'medium' ? 'risk-med' : p.overallRisk === 'high' ? 'risk-high' : p.overallRisk === 'critical' ? 'risk-critical' : '';
+        const statusBadge = getStatusBadge(p.displayStatus);
+
+        html += `<div class="tree-parent open">
+            <div class="tree-parent-header" onclick="this.parentElement.classList.toggle('open')">
+                <span class="p-icon">🏕️</span>
+                <span class="p-name">${p.name}</span>
+                <span class="p-risk ${riskClass}" style="padding:4px 12px;border-radius:12px;font-size:13px">${p.overallRisk || 'N/A'}</span>
+                ${statusBadge}
+                <span class="p-date">${p.dateStr}</span>
+                <span style="color:var(--text-muted)">▼</span>
+            </div>
+            <div class="tree-children">
+                ${children.map(c => {
+                    const cRisk = c.overallRisk === 'low' ? 'risk-low' : c.overallRisk === 'medium' ? 'risk-med' : c.overallRisk === 'high' ? 'risk-high' : c.overallRisk === 'critical' ? 'risk-critical' : '';
+                    return `<div class="tree-child" onclick="viewAssessment('${c.id}')">
+                        <span class="c-icon">${getPremIcon(c.premisesType)}</span>
+                        <span class="c-name">${c.name}</span>
+                        <span class="c-type">${formatPremType(c.premisesType)}</span>
+                        <span class="c-risk ${cRisk}" style="padding:3px 10px;border-radius:10px">${c.overallRisk || 'N/A'}</span>
+                    </div>`;
+                }).join('')}
+                <div class="tree-child" onclick="startChildAssessment('${p.id}')" style="border-style:dashed;opacity:.6">
+                    <span class="c-icon">➕</span>
+                    <span class="c-name">Add unit/building assessment</span>
+                </div>
+            </div>
+        </div>`;
+    });
+
+    // Standalone assessments
+    standalones.forEach(s => {
+        const riskClass = s.overallRisk === 'low' ? 'risk-low' : s.overallRisk === 'medium' ? 'risk-med' : s.overallRisk === 'high' ? 'risk-high' : s.overallRisk === 'critical' ? 'risk-critical' : '';
+        html += `<div class="tree-parent">
+            <div class="tree-parent-header" onclick="viewAssessment('${s.id}')">
+                <span class="p-icon">📋</span>
+                <span class="p-name">${s.name}</span>
+                <span class="p-risk ${riskClass}" style="padding:4px 12px;border-radius:12px;font-size:13px">${s.overallRisk || 'N/A'}</span>
+                ${getStatusBadge(s.displayStatus)}
+                <span class="p-date">${s.dateStr}</span>
+            </div>
+        </div>`;
+    });
+
+    container.innerHTML = html;
+}
+
+function renderAllAssessments() {
+    const container = document.getElementById('allAssessmentsList');
+    const typeFilter = document.getElementById('filterType').value;
+    const statusFilter = document.getElementById('filterStatus').value;
+
+    let filtered = allAssessments;
+    if (typeFilter !== 'all') filtered = filtered.filter(a => a.type === typeFilter);
+    if (statusFilter !== 'all') filtered = filtered.filter(a => a.displayStatus === statusFilter || a.status === statusFilter);
+
+    if (filtered.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>No assessments match the filter</p></div>';
+        return;
+    }
+
+    container.innerHTML = filtered.map(a => {
+        const riskClass = a.overallRisk === 'low' ? 'risk-low' : a.overallRisk === 'medium' ? 'risk-med' : a.overallRisk === 'high' ? 'risk-high' : a.overallRisk === 'critical' ? 'risk-critical' : '';
+        const typeIcon = a.type === 'parent' ? '🏕️' : a.type === 'child' ? getPremIcon(a.premisesType) : '📋';
+        return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer" onclick="viewAssessment('${a.id}')">
+            <span style="font-size:18px">${typeIcon}</span>
+            <div style="flex:1">
+                <div style="font-weight:600;font-size:16px">${a.name}</div>
+                <div style="font-size:13px;color:var(--text-muted)">${a.reference || ''} · ${a.assessor || ''} · ${a.dateStr}</div>
+            </div>
+            <span class="${riskClass}" style="padding:4px 12px;border-radius:12px;font-size:13px">${(a.overallRisk || 'N/A').toUpperCase()}</span>
+            ${getStatusBadge(a.displayStatus)}
+        </div>`;
+    }).join('');
+}
+
+// ==================== ACTIONS ====================
+async function loadActions() {
+    const container = document.getElementById('actionsList');
+    if (allAssessments.length === 0) {
+        container.innerHTML = '<div class="empty-state" style="padding:30px"><p>Complete an assessment to generate actions</p></div>';
+    }
+}
+
+// ==================== LOAD PARK DATA FROM FIREBASE ====================
+async function loadParkData() {
+    if (!db) return;
+    const parkLower = currentPark.toLowerCase();
+
+    // 1. Load accommodation_config for unit names
+    try {
+        const configSnap = await db.collection('accommodation_config').get();
+        parkUnits = [];
+        configSnap.forEach(doc => {
+            const d = doc.data();
+            const configPark = (d.parkName || doc.id || '').toLowerCase();
+            if (configPark.includes(parkLower.split(' ')[0]) || parkLower.includes(configPark.split(' ')[0])) {
+                const units = d.units || [];
+                units.forEach(u => {
+                    if (typeof u === 'string') {
+                        parkUnits.push({ name: u, type: 'unit', parkName: d.parkName || doc.id });
+                    } else if (u && u.name) {
+                        parkUnits.push({ ...u, parkName: d.parkName || doc.id });
+                    }
+                });
+            }
+        });
+        console.log('Loaded', parkUnits.length, 'accommodation units');
+    } catch(e) { console.warn('accommodation_config:', e.message); }
+
+    // 2. Load fire points for this park
+    try {
+        const fpSnap = await db.collection('firePoints').get();
+        parkFirePoints = [];
+        fpSnap.forEach(doc => {
+            const d = doc.data();
+            const fpPark = (d.park || '').toLowerCase();
+            if (fpPark.includes(parkLower.split(' ')[0]) || parkLower.includes(fpPark.split(' ')[0])) {
+                parkFirePoints.push({ id: doc.id, ...d });
+            }
+        });
+        console.log('Loaded', parkFirePoints.length, 'fire points');
+    } catch(e) { console.warn('firePoints:', e.message); }
+
+    // 3. Load extinguishers for this park
+    try {
+        const extSnap = await db.collection('fireExtinguishers').get();
+        parkExtinguishers = [];
+        extSnap.forEach(doc => {
+            const d = doc.data();
+            const extPark = (d.park || '').toLowerCase();
+            if (extPark.includes(parkLower.split(' ')[0]) || parkLower.includes(extPark.split(' ')[0])) {
+                parkExtinguishers.push({ id: doc.id, ...d });
+            }
+        });
+        console.log('Loaded', parkExtinguishers.length, 'extinguishers/blankets');
+    } catch(e) { console.warn('fireExtinguishers:', e.message); }
+
+    // 4. Load service records
+    try {
+        const svcSnap = await db.collection('fireServiceRecords').orderBy('serviceDate', 'desc').limit(200).get();
+        parkServiceRecords = [];
+        svcSnap.forEach(doc => {
+            parkServiceRecords.push({ id: doc.id, ...doc.data() });
+        });
+        console.log('Loaded', parkServiceRecords.length, 'service records');
+    } catch(e) { console.warn('fireServiceRecords:', e.message); }
+
+    // Update unit picker if visible
+    renderUnitPicker();
+}
+
+function getExtStatusFRA(e) {
+    const t = new Date();
+    if (e.runOutDate) { const r = new Date(e.runOutDate); if (r <= t) return 'expired'; }
+    if (!e.nextServiceDue) return 'no-record';
+    const d = Math.ceil((new Date(e.nextServiceDue) - t) / 864e5);
+    if (d < 0) return 'overdue';
+    if (d <= 30) return 'due-soon';
+    return 'compliant';
+}
+
+function fmtDateShort(ds) {
+    if (!ds) return '—';
+    const d = new Date(ds);
+    if (isNaN(d)) return ds;
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+// ==================== UNIT PICKER ====================
+function renderUnitPicker(filter) {
+    const grid = document.getElementById('unitPickerGrid');
+    const countEl = document.getElementById('unitPickerCount');
+    if (!grid) return;
+
+    let units = parkUnits;
+    if (filter) {
+        const f = filter.toLowerCase();
+        units = units.filter(u => (u.name || '').toLowerCase().includes(f) || (u.type || '').toLowerCase().includes(f));
+    }
+
+    countEl.textContent = parkUnits.length + ' units found';
+
+    if (units.length === 0 && parkUnits.length === 0) {
+        grid.innerHTML = '<div class="intel-loading">No units found in Firebase for this park.<br>You can enter details manually in Step 2.</div>';
+        return;
+    }
+    if (units.length === 0) {
+        grid.innerHTML = '<div class="intel-loading">No units match your search.</div>';
+        return;
+    }
+
+    grid.innerHTML = units.map((u, i) => {
+        const icon = guessUnitIcon(u.name, u.type);
+        const sel = selectedUnit && selectedUnit.name === u.name ? 'selected' : '';
+        return `<div class="unit-pick ${sel}" onclick="selectUnit(${i})" title="${u.name}">
+            <div class="up-icon">${icon}</div>
+            <div class="up-name">${u.name}</div>
+            <div class="up-type">${u.type || ''}</div>
+        </div>`;
+    }).join('');
+}
+
+function guessUnitIcon(name, type) {
+    const n = (name || '').toLowerCase();
+    const t = (type || '').toLowerCase();
+    if (n.includes('lodge') || t.includes('lodge')) return '🏠';
+    if (n.includes('cabin') || t.includes('cabin')) return '🏡';
+    if (n.includes('caravan') || n.includes('static')) return '🏘️';
+    if (n.includes('glamping') || n.includes('pod') || n.includes('yurt')) return '🛖';
+    if (n.includes('reception') || n.includes('office')) return '🏢';
+    if (n.includes('amenity') || n.includes('toilet') || n.includes('shower')) return '🚿';
+    if (n.includes('laundry')) return '🧺';
+    if (n.includes('restaurant') || n.includes('bar') || n.includes('cafe')) return '🍽️';
+    if (n.includes('workshop') || n.includes('maintenance')) return '🔧';
+    if (n.includes('storage') || n.includes('plant')) return '📦';
+    if (n.includes('leisure') || n.includes('game') || n.includes('play')) return '🎮';
+    return '🏠';
+}
+
+function selectUnit(index) {
+    selectedUnit = parkUnits[index];
+    if (!selectedUnit) return;
+
+    // Update visual selection
+    document.querySelectorAll('.unit-pick').forEach(el => el.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+
+    // Pre-fill Step 2 fields
+    document.getElementById('fraName').value = selectedUnit.name || '';
+
+    // Try to guess premises type
+    const n = (selectedUnit.name || '').toLowerCase();
+    const pt = document.getElementById('fraPremType');
+    if (n.includes('lodge') || n.includes('cabin')) pt.value = 'lodge';
+    else if (n.includes('caravan') || n.includes('static')) pt.value = 'static-caravan';
+    else if (n.includes('glamping') || n.includes('pod') || n.includes('yurt') || n.includes('shepherd')) pt.value = 'glamping';
+    else if (n.includes('reception') || n.includes('office')) pt.value = 'reception';
+    else if (n.includes('amenity') || n.includes('toilet')) pt.value = 'amenity-block';
+    else if (n.includes('laundry')) pt.value = 'laundry';
+    else if (n.includes('restaurant') || n.includes('bar') || n.includes('cafe')) pt.value = 'restaurant';
+    else if (n.includes('workshop') || n.includes('maintenance')) pt.value = 'workshop';
+    else if (n.includes('leisure') || n.includes('game')) pt.value = 'leisure';
+
+    showToast('Selected: ' + selectedUnit.name, 'success');
+}
+
+function filterUnitPicker() {
+    const val = document.getElementById('unitSearchInput').value;
+    renderUnitPicker(val);
+}
+
+function skipUnitPicker() {
+    selectedUnit = null;
+    document.getElementById('unitPickerSection').style.display = 'none';
+    showToast('Enter unit details manually in Step 2', 'success');
+}
+
+// ==================== SAFEFIRE INTELLIGENCE PANEL ====================
+function renderIntelPanel() {
+    const panel = document.getElementById('intelPanel');
+
+    // Determine scope: for child assessments, filter to the selected unit; for parent, show all
+    let scopedFPs = parkFirePoints;
+    let scopedExts = parkExtinguishers;
+    let scopeLabel = currentPark;
+
+    if (selectedAssessType === 'child' && selectedUnit) {
+        const unitName = (selectedUnit.name || '').toLowerCase();
+        scopedFPs = parkFirePoints.filter(fp => {
+            const fpUnit = (fp.unitNumber || '').toLowerCase();
+            const fpLoc = (fp.locationDescription || '').toLowerCase();
+            const fpType = (fp.locationType || '');
+            return fpUnit.includes(unitName) || fpLoc.includes(unitName) || (fpType === 'accommodation' && fpUnit === unitName);
+        });
+        // Get all extinguishers at those fire points, plus any directly tagged to unit
+        const fpIds = new Set(scopedFPs.map(fp => fp.id));
+        scopedExts = parkExtinguishers.filter(e => {
+            return fpIds.has(e.firePointId) || (e.unitNumber || '').toLowerCase().includes(unitName);
+        });
+        scopeLabel = selectedUnit.name;
+    }
+
+    if (scopedFPs.length === 0 && scopedExts.length === 0 && parkFirePoints.length === 0) {
+        panel.style.display = 'none';
+        return;
+    }
+
+    panel.style.display = 'block';
+    document.getElementById('intelBadge').textContent = scopedFPs.length === parkFirePoints.length ? 'FULL SITE' : 'UNIT SCOPE';
+
+    // Stats
+    const extOnly = scopedExts.filter(e => (e.type || '') !== 'Fire Blanket');
+    const blankets = scopedExts.filter(e => (e.type || '') === 'Fire Blanket');
+    const compliant = extOnly.filter(e => getExtStatusFRA(e) === 'compliant').length;
+    const dueSoon = extOnly.filter(e => getExtStatusFRA(e) === 'due-soon').length;
+    const overdue = extOnly.filter(e => getExtStatusFRA(e) === 'overdue').length;
+    const expired = extOnly.filter(e => getExtStatusFRA(e) === 'expired').length;
+    const fpFails = scopedFPs.filter(fp => fp.signage === 'fail' || fp.boxSign === 'fail' || fp.actionsNotice === 'fail' || fp.alarmMeans === 'fail' || fp.boxCondition === 'fail').length;
+
+    document.getElementById('intelStats').innerHTML = `
+        <div class="intel-stat"><div class="is-num" style="color:var(--primary)">${scopedFPs.length}</div><div class="is-label">Fire Points</div></div>
+        <div class="intel-stat"><div class="is-num" style="color:var(--info)">${extOnly.length}</div><div class="is-label">Extinguishers</div></div>
+        <div class="intel-stat"><div class="is-num" style="color:#fd7e14">${blankets.length}</div><div class="is-label">Fire Blankets</div></div>
+        <div class="intel-stat"><div class="is-num" style="color:var(--success)">${compliant}</div><div class="is-label">Compliant</div></div>
+        <div class="intel-stat"><div class="is-num" style="color:var(--warning)">${dueSoon}</div><div class="is-label">Due Soon</div></div>
+        <div class="intel-stat"><div class="is-num" style="color:${overdue + expired > 0 ? 'var(--danger)' : 'var(--text-dim)'}">${overdue + expired}</div><div class="is-label">Overdue/Expired</div></div>
+        <div class="intel-stat"><div class="is-num" style="color:${fpFails > 0 ? 'var(--danger)' : 'var(--success)'}">${fpFails}</div><div class="is-label">Signage Fails</div></div>
+    `;
+
+    // Fire Points table
+    if (scopedFPs.length > 0) {
+        let fpRows = scopedFPs.map(fp => {
+            const exCount = scopedExts.filter(e => e.firePointId === fp.id).length;
+            const signBadge = fp.signage === 'pass' ? '<span class="intel-status ist-pass">✓</span>' : fp.signage === 'fail' ? '<span class="intel-status ist-fail">✗</span>' : '<span class="intel-status ist-na">—</span>';
+            const boxBadge = fp.boxSign === 'pass' ? '<span class="intel-status ist-pass">✓</span>' : fp.boxSign === 'fail' ? '<span class="intel-status ist-fail">✗</span>' : '<span class="intel-status ist-na">—</span>';
+            const actBadge = fp.actionsNotice === 'pass' ? '<span class="intel-status ist-pass">✓</span>' : fp.actionsNotice === 'fail' ? '<span class="intel-status ist-fail">✗</span>' : '<span class="intel-status ist-na">—</span>';
+            const almBadge = fp.alarmMeans === 'pass' ? '<span class="intel-status ist-pass">✓</span>' : fp.alarmMeans === 'fail' ? '<span class="intel-status ist-fail">✗</span>' : '<span class="intel-status ist-na">—</span>';
+            return `<tr>
+                <td><strong>${fp.code || '—'}</strong></td>
+                <td>${(fp.locationDescription || '')}${fp.unitNumber ? ' — ' + fp.unitNumber : ''}</td>
+                <td style="text-align:center">${exCount}</td>
+                <td style="text-align:center">${signBadge}</td>
+                <td style="text-align:center">${boxBadge}</td>
+                <td style="text-align:center">${actBadge}</td>
+                <td style="text-align:center">${almBadge}</td>
+            </tr>`;
+        }).join('');
+
+        document.getElementById('intelFirePoints').innerHTML = `
+            <div style="font-weight:600;font-size:14px;margin-bottom:8px;color:var(--primary)">🧯 Fire Points</div>
+            <div style="overflow-x:auto">
+            <table class="intel-table">
+                <tr><th>Code</th><th>Location</th><th>Exts</th><th>Signs</th><th>Box</th><th>Action</th><th>Alarm</th></tr>
+                ${fpRows}
+            </table></div>`;
+    } else {
+        document.getElementById('intelFirePoints').innerHTML = '';
+    }
+
+    // Extinguishers & blankets table
+    if (scopedExts.length > 0) {
+        let extRows = scopedExts.map(e => {
+            const status = getExtStatusFRA(e);
+            const statusBadge = `<span class="intel-status ist-${status}">${status.replace('-', ' ')}</span>`;
+            const isBlanket = (e.type || '') === 'Fire Blanket';
+            return `<tr>
+                <td><strong>${e.code || '—'}</strong></td>
+                <td>${e.type || '—'}${e.weight ? ' (' + e.weight + ')' : ''}</td>
+                <td>${e.firePointCode || '—'}</td>
+                <td>${fmtDateShort(e.lastServiceDate)}</td>
+                <td>${fmtDateShort(e.nextServiceDue)}</td>
+                <td>${isBlanket ? '—' : fmtDateShort(e.runOutDate)}</td>
+                <td>${statusBadge}</td>
+            </tr>`;
+        }).join('');
+
+        document.getElementById('intelExtinguishers').innerHTML = `
+            <div style="font-weight:600;font-size:14px;margin-bottom:8px;color:var(--primary)">🔥 Extinguishers &amp; Blankets</div>
+            <div style="overflow-x:auto">
+            <table class="intel-table">
+                <tr><th>Code</th><th>Type</th><th>Fire Pt</th><th>Last Service</th><th>Next Due</th><th>Run-Out</th><th>Status</th></tr>
+                ${extRows}
+            </table></div>`;
+    } else {
+        document.getElementById('intelExtinguishers').innerHTML = '';
+    }
+
+    // Compliance issues summary
+    let issues = [];
+    scopedFPs.forEach(fp => {
+        if (fp.signage === 'fail') issues.push(`${fp.code}: Signage missing/incomplete (${fp.signagePresent || 0}/${fp.signageRequired || 0})`);
+        if (fp.boxSign === 'fail') issues.push(`${fp.code}: Firebox/cabinet ID sign missing`);
+        if (fp.actionsNotice === 'fail') issues.push(`${fp.code}: Fire action notice missing (${fp.actionsPresent || 0}/${fp.actionsRequired || 0})`);
+        if (fp.alarmMeans === 'fail') issues.push(`${fp.code}: Alarm means missing/defective`);
+        if (fp.boxCondition === 'fail') issues.push(`${fp.code}: Firebox/cabinet condition defective`);
+    });
+    scopedExts.forEach(e => {
+        const s = getExtStatusFRA(e);
+        if (s === 'expired') issues.push(`${e.code}: ${e.type} — EXPIRED (run-out: ${fmtDateShort(e.runOutDate)})`);
+        if (s === 'overdue') issues.push(`${e.code}: ${e.type} — SERVICE OVERDUE (due: ${fmtDateShort(e.nextServiceDue)})`);
+    });
+
+    if (issues.length > 0) {
+        document.getElementById('intelComplianceIssues').innerHTML = `
+            <div style="background:rgba(220,53,69,.08);border:1px solid rgba(220,53,69,.3);border-radius:8px;padding:14px;margin-top:10px">
+                <div style="font-weight:600;font-size:14px;color:var(--danger);margin-bottom:8px">⚠ ${issues.length} Compliance Issue${issues.length > 1 ? 's' : ''} Detected</div>
+                ${issues.map(i => '<div style="font-size:13px;color:#ddd;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)">• ' + i + '</div>').join('')}
+            </div>`;
+    } else if (scopedFPs.length > 0) {
+        document.getElementById('intelComplianceIssues').innerHTML = `
+            <div style="background:rgba(40,167,69,.08);border:1px solid rgba(40,167,69,.3);border-radius:8px;padding:14px;margin-top:10px;text-align:center">
+                <span style="font-size:14px;color:var(--success);font-weight:600">✓ No compliance issues detected from SafeFire data</span>
+            </div>`;
+    } else {
+        document.getElementById('intelComplianceIssues').innerHTML = '';
+    }
+}
+
+// ==================== VIEW ASSESSMENT ====================
+function viewAssessment(id) {
+    const a = allAssessments.find(x => x.id === id);
+    if (!a) return;
+
+    const riskColors = { low:'#2e7d32', medium:'#f9a825', high:'#e65100', critical:'#b71c1c' };
+    const risk = (a.overallRisk || '').toLowerCase();
+    const compPct = a.compliancePct || a.riskScore || '—';
+    const override = a.overrideRating ? `<div style="margin-top:8px;padding:6px 10px;background:rgba(230,81,0,.1);border-radius:4px;font-size:13px"><strong>Override:</strong> ${a.overrideRating.toUpperCase()} — ${a.overrideJustification || 'No justification'}</div>` : '';
+
+    // Count answers
+    let yes=0,partial=0,no=0,na=0;
+    if (a.sections) {
+        Object.values(a.sections).forEach(items => {
+            items.forEach(item => {
+                if (item.answer === 'yes') yes++;
+                else if (item.answer === 'partial') partial++;
+                else if (item.answer === 'no') no++;
+                else if (item.answer === 'na') na++;
+            });
+        });
+    }
+
+    document.getElementById('modalTitle').textContent = a.name;
+    document.getElementById('modalBody').innerHTML = `
+        <div style="text-align:center;padding:16px;border:2px solid ${riskColors[risk] || '#555'};border-radius:10px;margin-bottom:16px">
+            <div style="font-size:13px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px">Risk Rating</div>
+            <div style="font-size:28px;font-weight:900;color:${riskColors[risk] || 'var(--text-muted)'};font-family:'Orbitron',sans-serif">${(a.overallRisk || 'NOT ASSESSED').toUpperCase()}</div>
+            <div style="font-size:14px;color:var(--text-muted)">Compliance: ${compPct}%</div>
+            ${override}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:14px;margin-bottom:16px">
+            <div><strong style="color:var(--text-muted)">Reference:</strong> ${a.reference || '—'}</div>
+            <div><strong style="color:var(--text-muted)">Type:</strong> ${(a.type || '').replace(/\b\w/g,l=>l.toUpperCase())}</div>
+            <div><strong style="color:var(--text-muted)">Assessor:</strong> ${a.assessor || '—'}</div>
+            <div><strong style="color:var(--text-muted)">Date:</strong> ${a.dateOfAssessment || '—'}</div>
+            <div><strong style="color:var(--text-muted)">Review:</strong> ${a.reviewDate || '—'}</div>
+            <div><strong style="color:var(--text-muted)">Status:</strong> ${a.status || '—'}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
+            <div style="text-align:center;padding:10px;background:rgba(40,167,69,.1);border-radius:6px"><div style="font-size:20px;font-weight:700;color:var(--success)">${yes}</div><div style="font-size:11px;color:var(--text-muted)">Yes</div></div>
+            <div style="text-align:center;padding:10px;background:rgba(255,193,7,.1);border-radius:6px"><div style="font-size:20px;font-weight:700;color:var(--warning)">${partial}</div><div style="font-size:11px;color:var(--text-muted)">Partial</div></div>
+            <div style="text-align:center;padding:10px;background:rgba(220,53,69,.1);border-radius:6px"><div style="font-size:20px;font-weight:700;color:var(--danger)">${no}</div><div style="font-size:11px;color:var(--text-muted)">No</div></div>
+            <div style="text-align:center;padding:10px;background:rgba(23,162,184,.1);border-radius:6px"><div style="font-size:20px;font-weight:700;color:var(--info)">${na}</div><div style="font-size:11px;color:var(--text-muted)">N/A</div></div>
+        </div>
+        ${a.summary ? `<div style="margin-bottom:16px"><strong style="color:var(--text-muted);font-size:13px">Summary:</strong><div style="margin-top:6px;padding:12px;background:rgba(255,255,255,.03);border-radius:6px;font-size:14px;white-space:pre-wrap">${a.summary}</div></div>` : ''}
+        <div class="btn-group" style="justify-content:center">
+            <button class="btn btn-primary" onclick="downloadAssessment('${a.id}')">📄 Download Report</button>
+            <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+        </div>
+    `;
+    document.getElementById('modalOverlay').classList.add('show');
+}
+
+function startChildAssessment(parentId) {
+    switchTab('new-assessment');
+    setTimeout(() => {
+        selectAssessType('child');
+        setTimeout(() => {
+            document.getElementById('parentSelect').value = parentId;
+        }, 100);
+    }, 100);
+}
+
+// ==================== RESET FORM ====================
+function resetAssessmentForm() {
+    selectedAssessType = null;
+    currentAssessment = null;
+    document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('btnStep1Next').disabled = true;
+    document.getElementById('parentSelector').style.display = 'none';
+    document.getElementById('unitPickerSection').style.display = 'none';
+    document.getElementById('intelPanel').style.display = 'none';
+    selectedUnit = null;
+    document.getElementById('assessStep1').style.display = 'block';
+    document.getElementById('assessStep2').style.display = 'none';
+    document.getElementById('assessStep3').style.display = 'none';
+    // Reset form fields
+    ['fraName','fraAddress','fraAssessor','fraQuals','fraPrevRef','fraSummary','fraSignature','fraOverallRisk','fraRiskScore','fraCompliancePct','fraOverrideJustification'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    document.getElementById('fraOverrideRating').value = '';
+    document.getElementById('fraOverallRisk').style.color = '';
+    // Reset score display
+    document.getElementById('riskLabel').textContent = 'Not Yet Assessed';
+    document.getElementById('riskLabel').style.color = 'var(--text-muted)';
+    document.getElementById('riskScoreNum').textContent = '—';
+    document.getElementById('riskScoreNum').style.color = 'var(--text-muted)';
+    document.getElementById('riskScorePct').textContent = 'Answer questions above to generate score';
+    document.getElementById('riskNeedle').style.transform = 'rotate(-90deg)';
+    document.getElementById('riskScoreDisplay').style.borderColor = 'var(--border)';
+    document.getElementById('riskScoreDisplay').style.boxShadow = 'none';
+    ['rbYes','rbPartial','rbNo','rbNa','rbUnanswered'].forEach(id => { document.getElementById(id).textContent = '0'; });
+    document.querySelectorAll('.check-item').forEach(i => {
+        delete i.dataset.answer;
+        i.querySelectorAll('.check-opt').forEach(o => o.className = 'check-opt');
+        i.querySelector('.check-comment').value = '';
+    });
+    document.querySelectorAll('.check-photos').forEach(p => p.innerHTML = '');
+    FRA_SECTIONS.forEach(s => {
+        const el = document.getElementById('secStatus-' + s.id);
+        if (el) { el.className = 'sec-status empty'; el.textContent = 'Not started'; }
+    });
+    buildFormSections();
+}
+
+// ==================== SAFEFIRE DATA SNAPSHOT ====================
+function buildSafeFireSnapshot() {
+    let scopedFPs = parkFirePoints;
+    let scopedExts = parkExtinguishers;
+
+    if (selectedAssessType === 'child' && selectedUnit) {
+        const unitName = (selectedUnit.name || '').toLowerCase();
+        scopedFPs = parkFirePoints.filter(fp => {
+            const fpUnit = (fp.unitNumber || '').toLowerCase();
+            const fpLoc = (fp.locationDescription || '').toLowerCase();
+            return fpUnit.includes(unitName) || fpLoc.includes(unitName);
+        });
+        const fpIds = new Set(scopedFPs.map(fp => fp.id));
+        scopedExts = parkExtinguishers.filter(e => fpIds.has(e.firePointId) || (e.unitNumber || '').toLowerCase().includes(unitName));
+    }
+
+    return {
+        capturedAt: new Date().toISOString(),
+        firePoints: scopedFPs.map(fp => ({
+            code: fp.code, locationType: fp.locationType, locationDescription: fp.locationDescription,
+            unitNumber: fp.unitNumber, signage: fp.signage, boxSign: fp.boxSign,
+            actionsNotice: fp.actionsNotice, alarmMeans: fp.alarmMeans, boxCondition: fp.boxCondition
+        })),
+        extinguishers: scopedExts.map(e => ({
+            code: e.code, type: e.type, weight: e.weight, firePointCode: e.firePointCode,
+            lastServiceDate: e.lastServiceDate, nextServiceDue: e.nextServiceDue,
+            runOutDate: e.runOutDate, status: getExtStatusFRA(e)
+        })),
+        summary: {
+            totalFirePoints: scopedFPs.length,
+            totalExtinguishers: scopedExts.filter(e => (e.type || '') !== 'Fire Blanket').length,
+            totalBlankets: scopedExts.filter(e => (e.type || '') === 'Fire Blanket').length,
+            complianceIssues: scopedFPs.filter(fp => fp.signage === 'fail' || fp.boxSign === 'fail' || fp.actionsNotice === 'fail').length +
+                scopedExts.filter(e => { const s = getExtStatusFRA(e); return s === 'expired' || s === 'overdue'; }).length
+        }
+    };
+}
+
+// ==================== UTILITY ====================
+function getStatusBadge(status) {
+    if (status === 'current') return '<span style="background:rgba(40,167,69,.15);color:var(--success);padding:3px 10px;border-radius:12px;font-size:13px;font-weight:600">Current</span>';
+    if (status === 'review-due') return '<span style="background:rgba(255,193,7,.15);color:var(--warning);padding:3px 10px;border-radius:12px;font-size:13px;font-weight:600">Review Due</span>';
+    if (status === 'overdue') return '<span style="background:rgba(220,53,69,.15);color:var(--danger);padding:3px 10px;border-radius:12px;font-size:13px;font-weight:600">Overdue</span>';
+    if (status === 'in-progress') return '<span style="background:rgba(23,162,184,.15);color:var(--info);padding:3px 10px;border-radius:12px;font-size:13px;font-weight:600">In Progress</span>';
+    return '';
+}
+
+function getPremIcon(type) {
+    const icons = {
+        'holiday-park':'🏕️','lodge':'🏠','static-caravan':'🏘️','touring-pitch':'⛺',
+        'glamping':'🛖','reception':'🏢','amenity-block':'🚿','laundry':'🧺',
+        'leisure':'🎮','restaurant':'🍽️','workshop':'🔧','storage':'📦','other':'📋'
+    };
+    return icons[type] || '📋';
+}
+
+function formatPremType(type) {
+    return (type || '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + type + ' show';
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('show');
+}
+</script>
+
+</body>
+</html>

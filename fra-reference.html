@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#e53935">
+    <title>SafeFRA.PRO+ — Why Fire Risk Assessment?</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{
+            --primary:#e53935;--primary-dark:#c62828;--primary-glow:rgba(229,57,53,0.25);--accent:#7f1d1d;
+            --dark-bg:#1a1a1a;--card-bg:#2d2d2d;--border:#444;
+            --text:#fff;--text-muted:#999;--success:#28a745;--warning:#ffc107;--danger:#dc3545;--info:#17a2b8;
+        }
+        body{font-family:'Fira Sans',sans-serif;background:var(--dark-bg);color:var(--text);min-height:100vh;line-height:1.8}
+
+        /* Header */
+        .header{background:linear-gradient(135deg,#1a1a1a,#2d2d2d);padding:15px 20px;border-bottom:3px solid var(--primary);position:sticky;top:0;z-index:100;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+        .header-left h1{font-family:'Orbitron',monospace;font-size:20px;letter-spacing:2px}
+        .header-left .sub{font-size:11px;color:var(--text-muted);margin-top:2px;letter-spacing:.5px}
+        .back-btn{padding:8px 18px;background:linear-gradient(180deg,var(--primary),var(--accent));color:#000;border:none;border-radius:6px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:1px;text-decoration:none;display:inline-block;box-shadow:0 2px 8px var(--primary-glow)}
+        .back-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px var(--primary-glow)}
+
+        .container{max-width:960px;margin:0 auto;padding:20px}
+
+        /* Hero */
+        .hero{background:linear-gradient(135deg,rgba(127,29,29,.3),rgba(229,57,53,.12));border:1px solid var(--primary);border-radius:12px;padding:40px 30px;margin-bottom:30px;text-align:center;box-shadow:0 0 30px rgba(229,57,53,.08)}
+        .hero h2{font-family:'Orbitron',monospace;font-size:24px;letter-spacing:3px;margin-bottom:12px}
+        .hero p{color:var(--text-muted);font-size:14px;max-width:700px;margin:0 auto;line-height:1.8}
+
+        /* TOC */
+        .toc{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:24px;margin-bottom:30px}
+        .toc h3{font-family:'Orbitron',monospace;font-size:14px;margin-bottom:14px;color:var(--primary)}
+        .toc-list{list-style:none;columns:2;column-gap:30px}
+        .toc-list li{margin-bottom:8px;break-inside:avoid}
+        .toc-list a{color:var(--text-muted);text-decoration:none;font-size:13px;transition:color .2s}
+        .toc-list a:hover{color:var(--primary)}
+        .toc-list .num{color:var(--primary);font-weight:600;margin-right:6px}
+
+        /* Sections */
+        .section{background:var(--card-bg);border-radius:10px;border:1px solid var(--border);margin-bottom:20px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+        .section-head{padding:20px 24px;background:linear-gradient(180deg,#3a3a3a,#2d2d2d);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+        .section-head .num{background:linear-gradient(180deg,var(--primary),var(--accent));color:#000;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;box-shadow:0 2px 4px rgba(0,0,0,.3)}
+        .section-head h3{font-family:'Orbitron',monospace;font-size:14px;letter-spacing:1px}
+        .section-body{padding:24px}
+        .section-body p{font-size:13px;color:#ccc;margin-bottom:14px}
+        .section-body p:last-child{margin-bottom:0}
+
+        /* Legislation table */
+        .leg-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:12px}
+        .leg-table th{background:linear-gradient(180deg,var(--accent),#4a0e0e);color:#fff;padding:12px 14px;text-align:left;font-family:'Orbitron',monospace;font-size:11px;letter-spacing:1px;border:1px solid rgba(255,255,255,.1)}
+        .leg-table td{padding:10px 14px;border:1px solid var(--border);color:#ccc;vertical-align:top}
+        .leg-table tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+        .leg-table .nation{font-weight:600;color:var(--primary);white-space:nowrap}
+
+        /* Callout boxes */
+        .callout{border-radius:8px;padding:18px 20px;margin:16px 0;font-size:13px;border-left:4px solid}
+        .callout.warning{background:rgba(255,193,7,.08);border-color:var(--warning);color:#e0c865}
+        .callout.danger{background:rgba(220,53,69,.08);border-color:var(--danger);color:#f08080}
+        .callout.info{background:rgba(23,162,184,.08);border-color:var(--info);color:#7ec8d4}
+        .callout.success{background:rgba(40,167,69,.08);border-color:var(--success);color:#7ec8a0}
+        .callout strong{display:block;margin-bottom:6px;font-size:12px;text-transform:uppercase;letter-spacing:1px}
+
+        /* Lists within sections */
+        .section-body ul{list-style:none;margin:10px 0}
+        .section-body ul li{padding:6px 0 6px 22px;position:relative;font-size:13px;color:#ccc}
+        .section-body ul li::before{content:'▸';position:absolute;left:0;color:var(--primary);font-size:14px}
+
+        /* Region boxes */
+        .region-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px;margin:16px 0}
+        .region-box{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:18px;border-top:3px solid}
+        .region-box.scotland{border-top-color:#005eb8}
+        .region-box.england{border-top-color:#c8102e}
+        .region-box.wales{border-top-color:#00a651}
+        .region-box.ni{border-top-color:#ff8200}
+        .region-box h4{font-family:'Orbitron',monospace;font-size:12px;margin-bottom:10px;letter-spacing:1px}
+        .region-box p,.region-box ul{font-size:12px;color:#bbb}
+        .region-box ul{list-style:none;margin:8px 0 0 0}
+        .region-box ul li{padding:3px 0 3px 16px;position:relative}
+        .region-box ul li::before{content:'•';position:absolute;left:0;color:var(--primary)}
+
+        /* Holiday park specifics */
+        .hp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;margin:16px 0}
+        .hp-card{background:rgba(229,57,53,.04);border:1px solid rgba(229,57,53,.2);border-radius:8px;padding:18px}
+        .hp-card h4{font-family:'Orbitron',monospace;font-size:11px;color:var(--primary);margin-bottom:8px;letter-spacing:1px}
+        .hp-card p{font-size:12px;color:#bbb;line-height:1.7}
+
+        /* Footer reference */
+        .ref-section{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:24px;margin-top:30px;margin-bottom:30px}
+        .ref-section h3{font-family:'Orbitron',monospace;font-size:13px;color:var(--primary);margin-bottom:14px;letter-spacing:1px}
+        .ref-list{list-style:none}
+        .ref-list li{padding:6px 0;font-size:12px;color:var(--text-muted);border-bottom:1px solid rgba(255,255,255,.05)}
+        .ref-list li:last-child{border-bottom:none}
+        .ref-list a{color:var(--info);text-decoration:none}
+        .ref-list a:hover{text-decoration:underline}
+
+        .doc-footer{text-align:center;padding:30px;color:var(--text-muted);font-size:11px;border-top:1px solid var(--border)}
+        .doc-footer .brand{font-family:'Orbitron',monospace;color:var(--primary);font-size:13px;letter-spacing:2px}
+
+        /* Responsive */
+        @media(max-width:768px){
+            .hero{padding:25px 18px}
+            .hero h2{font-size:18px}
+            .toc-list{columns:1}
+            .section-body{padding:18px}
+            .leg-table{font-size:11px}
+            .leg-table th,.leg-table td{padding:8px}
+            .region-grid,.hp-grid{grid-template-columns:1fr}
+        }
+    </style>
+</head>
+<body>
+
+<!-- ========== HEADER ========== -->
+<div class="header">
+    <div class="header-left">
+        <h1>SafeFRA.PRO+</h1>
+        <div class="sub">Fire Risk Assessment — Legislative Reference Guide</div>
+    </div>
+    <a href="FRA.html" class="back-btn">← BACK TO FRA MODULE</a>
+</div>
+
+<div class="container">
+
+    <!-- ========== HERO ========== -->
+    <div class="hero">
+        <h2>WHY FIRE RISK ASSESSMENT?</h2>
+        <p>Fire risk assessment is not optional. It is a legal duty placed on every person who has control of non-domestic premises across all four nations of the United Kingdom. For holiday parks and hospitality premises, the requirements are particularly significant because you are responsible for people who are sleeping in an unfamiliar environment. This guide explains the law, the regional variances, the local council requirements, and the specific challenges that make holiday parks a unique fire safety environment.</p>
+    </div>
+
+    <!-- ========== TABLE OF CONTENTS ========== -->
+    <div class="toc">
+        <h3>CONTENTS</h3>
+        <ol class="toc-list">
+            <li><a href="#s1"><span class="num">01</span> The Legal Duty — Who Must Comply?</a></li>
+            <li><a href="#s2"><span class="num">02</span> UK Legislation — Four Nations, Four Frameworks</a></li>
+            <li><a href="#s3"><span class="num">03</span> What Changed After Grenfell?</a></li>
+            <li><a href="#s4"><span class="num">04</span> Regional Variances — Key Differences</a></li>
+            <li><a href="#s5"><span class="num">05</span> Local Council Licensing — Caravan Site Licences</a></li>
+            <li><a href="#s6"><span class="num">06</span> Holiday Park Specific Requirements</a></li>
+            <li><a href="#s7"><span class="num">07</span> The FRA Process — What Must Be Assessed?</a></li>
+            <li><a href="#s8"><span class="num">08</span> Recording, Review &amp; Enforcement</a></li>
+            <li><a href="#s9"><span class="num">09</span> Penalties for Non-Compliance</a></li>
+            <li><a href="#s10"><span class="num">10</span> Why SafeFRA.PRO+ Exists</a></li>
+        </ol>
+    </div>
+
+    <!-- ========== SECTION 1 ========== -->
+    <div class="section" id="s1">
+        <div class="section-head">
+            <div class="num">1</div>
+            <h3>THE LEGAL DUTY — WHO MUST COMPLY?</h3>
+        </div>
+        <div class="section-body">
+            <p>Across the entire United Kingdom, fire safety legislation places a mandatory duty on specific individuals to carry out fire risk assessments. These individuals are known by different titles depending on which nation's legislation applies, but the duty itself is universal: if you have control of non-domestic premises, you must assess the risks from fire and take appropriate measures.</p>
+
+            <div class="callout danger">
+                <strong>Critical — This Is Not Guidance, It Is Law</strong>
+                Fire risk assessment is a statutory duty, not a recommendation. Failure to carry out an FRA, or failure to act on its findings, is a criminal offence in every part of the United Kingdom.
+            </div>
+
+            <p>The person on whom this duty falls is defined as:</p>
+            <ul>
+                <li><strong>Scotland:</strong> The "dutyholder" — any person who has control to any extent of relevant premises (Fire (Scotland) Act 2005, Sections 53 &amp; 54)</li>
+                <li><strong>England &amp; Wales:</strong> The "responsible person" — the employer, owner, or any person who has control of the premises (Regulatory Reform (Fire Safety) Order 2005, Article 3)</li>
+                <li><strong>Northern Ireland:</strong> The "appropriate person" — the employer or any person who has control of relevant premises (Fire and Rescue Services (Northern Ireland) Order 2006, Article 25 &amp; 26)</li>
+            </ul>
+
+            <p>For holiday parks, this will typically be the site owner, the operating company, and/or the park manager. Where multiple parties share control — for example, a management company operating on behalf of a landowner — multiple parties may hold concurrent fire safety duties.</p>
+
+            <div class="callout info">
+                <strong>Holiday Parks — Dual Duty</strong>
+                Holiday parks present a dual assessment scenario. The site itself is relevant premises requiring an FRA covering communal areas, roads, fire points, and site infrastructure. Individual letting units (lodges, static caravans, pods) that are let out as holiday accommodation are also relevant premises requiring their own consideration within the overall assessment.
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SECTION 2 ========== -->
+    <div class="section" id="s2">
+        <div class="section-head">
+            <div class="num">2</div>
+            <h3>UK LEGISLATION — FOUR NATIONS, FOUR FRAMEWORKS</h3>
+        </div>
+        <div class="section-body">
+            <p>Fire safety legislation is devolved. Each of the four UK nations operates under its own primary legislation and secondary regulations. While the underlying principles are broadly similar — identify hazards, assess risks, implement measures, record findings — the specific legal requirements, terminology, guidance documents, and enforcement structures differ significantly.</p>
+
+            <table class="leg-table">
+                <thead>
+                    <tr>
+                        <th>NATION</th>
+                        <th>PRIMARY LEGISLATION</th>
+                        <th>SECONDARY REGULATIONS</th>
+                        <th>DUTY HOLDER TERM</th>
+                        <th>ENFORCING AUTHORITY</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="nation">🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland</td>
+                        <td>Fire (Scotland) Act 2005, Part 3</td>
+                        <td>Fire Safety (Scotland) Regulations 2006</td>
+                        <td>Dutyholder</td>
+                        <td>Scottish Fire &amp; Rescue Service (SFRS)</td>
+                    </tr>
+                    <tr>
+                        <td class="nation">🏴󠁧󠁢󠁥󠁮󠁧󠁿 England</td>
+                        <td>Regulatory Reform (Fire Safety) Order 2005 (as amended)</td>
+                        <td>Fire Safety (England) Regulations 2022; Fire Safety Act 2021; Building Safety Act 2022 (S.156)</td>
+                        <td>Responsible Person</td>
+                        <td>Local Fire &amp; Rescue Authority</td>
+                    </tr>
+                    <tr>
+                        <td class="nation">🏴󠁧󠁢󠁷󠁬󠁳󠁿 Wales</td>
+                        <td>Regulatory Reform (Fire Safety) Order 2005 (as amended)</td>
+                        <td>Fire Safety Act 2021 (applies to England &amp; Wales); Mobile Homes (Wales) Act 2013 (residential sites)</td>
+                        <td>Responsible Person</td>
+                        <td>Three Welsh Fire &amp; Rescue Services</td>
+                    </tr>
+                    <tr>
+                        <td class="nation">Northern Ireland</td>
+                        <td>Fire and Rescue Services (Northern Ireland) Order 2006</td>
+                        <td>Fire Safety Regulations (Northern Ireland) 2010</td>
+                        <td>Appropriate Person</td>
+                        <td>Northern Ireland Fire &amp; Rescue Service (NIFRS)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="callout warning">
+                <strong>Cross-Border Operators Take Note</strong>
+                If your organisation operates holiday parks across multiple UK nations, you must comply with the specific legislation of each nation where premises are located. A fire risk assessment conducted under English guidance may not satisfy Scottish requirements, and vice versa. The Scottish Government and DCLG/Home Office publish separate guidance documents with different chapter structures, different benchmark standards, and different terminology.
+            </div>
+
+            <p><strong>Sector-Specific Guidance Documents:</strong></p>
+            <ul>
+                <li><strong>Scotland:</strong> Practical Fire Safety Guidance for Existing Premises with Sleeping Accommodation (Scottish Government, 2022 consolidated edition) — includes Annex 3 specifically for holiday camping and caravan sites</li>
+                <li><strong>England:</strong> Fire Safety Risk Assessment — Sleeping Accommodation (HM Government guide) plus Model Standards 2008 for Caravan Sites in England</li>
+                <li><strong>Wales:</strong> All Wales Self-Catering Holiday Accommodation Guidance (jointly published by all three Welsh FRS); RRO applies as in England. Development of Tourism and Regulation of Visitor Accommodation (Wales) Bill introduces new licensing from 2026</li>
+                <li><strong>Northern Ireland:</strong> NIFRS Fire Safety Guides by premises type (downloadable from NIFRS website), following the same broad structure as the Home Office guides</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ========== SECTION 3 ========== -->
+    <div class="section" id="s3">
+        <div class="section-head">
+            <div class="num">3</div>
+            <h3>WHAT CHANGED AFTER GRENFELL?</h3>
+        </div>
+        <div class="section-body">
+            <p>The Grenfell Tower fire of 14 June 2017 fundamentally changed fire safety law in England and Wales. While the legislative response was primarily focused on high-rise residential buildings, several amendments have wider implications for all responsible persons, including holiday park operators.</p>
+
+            <p><strong>Fire Safety Act 2021</strong> (England &amp; Wales) — commenced 16 May 2022. Clarified that the Regulatory Reform (Fire Safety) Order 2005 applies to the structure, external walls (including cladding, balconies, and windows), and individual flat entrance doors opening into common parts of multi-occupied residential buildings.</p>
+
+            <p><strong>Fire Safety (England) Regulations 2022</strong> — came into force 23 January 2023. Introduced specific new duties for responsible persons of multi-occupied residential buildings, including provision of fire safety instructions to residents, information about fire doors, building plans to fire services, and regular checks on firefighting equipment.</p>
+
+            <p><strong>Building Safety Act 2022, Section 156</strong> — came into force 1 October 2023. Made critical amendments to the Fire Safety Order affecting <em>all</em> regulated premises:</p>
+
+            <div class="callout danger">
+                <strong>Universal Change from 1 October 2023 (England)</strong>
+                All responsible persons must now record <em>all</em> findings from their fire risk assessment — not just significant findings. Previously, recording was only required where 5+ employees were present, or premises were licensed, or an Alterations Notice had been served. This threshold has been removed. Every regulated premises in England must now have a fully recorded FRA. The responsible person's name and a UK address must also be recorded in the FRA.
+            </div>
+
+            <p><strong>Impact on Scotland:</strong> Scotland's legislation already required recording of significant findings where 5+ employees are employed or the premises are subject to licensing or registration. The Scottish Government has not replicated the universal recording requirement introduced in England, but given that most holiday parks fall within the licensing/registration categories, the practical difference for the holiday park sector is minimal.</p>
+
+            <p><strong>Impact on Northern Ireland:</strong> Northern Ireland's legislation mirrors the Scottish approach. The Fire and Rescue Services (NI) Order 2006 requires recording in similar circumstances. Post-Grenfell amendments have not been applied to the NI framework at the same pace as England.</p>
+        </div>
+    </div>
+
+    <!-- ========== SECTION 4 ========== -->
+    <div class="section" id="s4">
+        <div class="section-head">
+            <div class="num">4</div>
+            <h3>REGIONAL VARIANCES — KEY DIFFERENCES</h3>
+        </div>
+        <div class="section-body">
+            <p>While the core duty — assess fire risks, implement measures, keep records — is consistent across the UK, the detail varies in ways that matter operationally. The following highlights the key differences that holiday park operators must understand.</p>
+
+            <div class="region-grid">
+                <div class="region-box scotland">
+                    <h4>🏴󠁧󠁢󠁳󠁣󠁴󠁿 SCOTLAND</h4>
+                    <ul>
+                        <li>Single national enforcing authority: SFRS</li>
+                        <li>Dedicated Annex 3 guidance for holiday camping and caravan sites</li>
+                        <li>Caravan site licensing under Caravan Sites and Control of Development Act 1960 — fire safety now enforced via Fire (Scotland) Act rather than through licence conditions</li>
+                        <li>Recording required where 5+ employees or premises licensed/registered</li>
+                        <li>Scottish Government recommends UKAS-accredited assessors or Professional Registration Scheme members</li>
+                        <li>BS 5839 Part 1 Category L2 recommended for most sleeping accommodation</li>
+                        <li>Short-term let licensing (Civic Government (Scotland) Act 1982) since October 2022 requires fire risk assessment as a condition of STL licence</li>
+                    </ul>
+                </div>
+
+                <div class="region-box england">
+                    <h4>🏴󠁧󠁢󠁥󠁮󠁧󠁿 ENGLAND</h4>
+                    <ul>
+                        <li>44 local Fire &amp; Rescue Authorities enforce the FSO</li>
+                        <li>Model Standards 2008 for Caravan Sites in England (residential) — separate 1989 model standards still referenced for holiday sites</li>
+                        <li>Since October 2023: <em>all</em> FRA findings must be recorded (not just significant findings)</li>
+                        <li>Responsible person's name and UK address must appear in FRA</li>
+                        <li>Higher fines: unlimited fines for certain offences post-Building Safety Act</li>
+                        <li>BAFE SP205 scheme for competent fire risk assessors</li>
+                        <li>Home Office published new simplified guides (2023) for small sleeping accommodation</li>
+                    </ul>
+                </div>
+
+                <div class="region-box wales">
+                    <h4>🏴󠁧󠁢󠁷󠁬󠁳󠁿 WALES</h4>
+                    <ul>
+                        <li>RRO 2005 applies (shared with England) but enforced by 3 Welsh FRS</li>
+                        <li>All Wales Self-Catering Holiday Accommodation Guidance — standardised advice across all three FRS areas</li>
+                        <li>Mobile Homes (Wales) Act 2013 for residential sites (not holiday)</li>
+                        <li>Holiday sites still licensed under 1960 Act</li>
+                        <li>Visitor Accommodation Registration from autumn 2026 (Visitor Accommodation (Register and Levy) Etc. (Wales) Act 2025)</li>
+                        <li>New visitor levy powers for councils from April 2027</li>
+                        <li>Council tax premiums up to 150% on second homes in high-demand areas</li>
+                        <li>Self-catering must be available 252 days/year, let 182 days to qualify for business rates</li>
+                    </ul>
+                </div>
+
+                <div class="region-box ni">
+                    <h4>NORTHERN IRELAND</h4>
+                    <ul>
+                        <li>Single enforcing authority: NIFRS</li>
+                        <li>Legislation came into effect 15 November 2010 — newest of the four frameworks</li>
+                        <li>Requirements closely mirror Scotland's approach</li>
+                        <li>NIFRS provides premises-specific fire safety guides</li>
+                        <li>The "appropriate person" terminology is unique to NI</li>
+                        <li>Post-Grenfell changes have not been applied at the same pace as England/Wales</li>
+                        <li>RQIA (for regulated accommodation) recommends UKAS-accredited TPCB assessors</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SECTION 5 ========== -->
+    <div class="section" id="s5">
+        <div class="section-head">
+            <div class="num">5</div>
+            <h3>LOCAL COUNCIL LICENSING — CARAVAN SITE LICENCES</h3>
+        </div>
+        <div class="section-body">
+            <p>Beyond the fire safety legislation itself, holiday parks must hold a caravan site licence issued by their local authority under the Caravan Sites and Control of Development Act 1960. This licence typically includes conditions relating to fire safety, and these conditions can vary between councils.</p>
+
+            <div class="callout warning">
+                <strong>Critical Interaction Between Licensing and Fire Safety Regimes</strong>
+                In England and Wales, where the Regulatory Reform (Fire Safety) Order 2005 applies to the site, the fire authority (not the local council) is responsible for enforcing fire safety. This means the local council cannot duplicate fire safety conditions through the site licence for matters already covered by the RRO. However, the council can — and routinely does — require the site licence applicant to provide a copy of their current fire risk assessment as part of the licensing process. In Scotland, fire safety was similarly removed from the caravan site licensing regime and is now enforced exclusively through the Fire (Scotland) Act 2005 by SFRS.
+            </div>
+
+            <p><strong>What Varies Between Councils:</strong></p>
+            <ul>
+                <li><strong>Licence conditions:</strong> Based on "Model Standards" published by central government, but councils have discretion to vary conditions based on local circumstances. Conditions for holiday sites differ from residential sites.</li>
+                <li><strong>Occupancy periods:</strong> Determined by planning permission — typically 8-10 months for holiday sites, but varies by council area. Some Scottish councils permit 11-month seasons.</li>
+                <li><strong>Separation distances:</strong> Model Standards specify minimum 5m (aluminium) or 6m (plywood/mixed) between units, but some councils apply stricter requirements based on local fire authority advice.</li>
+                <li><strong>Fire point provision:</strong> Model Standards require fire points within 30m of any unit, but councils may impose additional requirements for larger sites or sites with limited water supply.</li>
+                <li><strong>Inspection regimes:</strong> Frequency and scope of council site inspections varies significantly. Some councils inspect annually; others only on complaint or change of licence.</li>
+                <li><strong>Density limits:</strong> The 1989 Model Standards specify a maximum of 60 caravans per hectare for holiday sites. Some councils apply lower limits.</li>
+            </ul>
+
+            <p><strong>Scotland-Specific:</strong> The Civic Government (Scotland) Act 1982 (Licensing of Short-term Lets) Order 2022 introduced mandatory licensing for short-term lets from 1 October 2022. Individual letting units on holiday parks that are marketed as self-catering accommodation may fall within the scope of this licensing regime. The STL licence application requires confirmation that a fire risk assessment is in place.</p>
+
+            <p><strong>Wales-Specific:</strong> The Development of Tourism and Regulation of Visitor Accommodation (Wales) Bill will introduce a new licensing framework from 2026/27. This will require providers of self-contained visitor accommodation to hold a licence and demonstrate compliance with "fitness for visitor accommodation" standards, including fire risk assessment, gas/electrical safety certificates, carbon monoxide alarms, and public liability insurance.</p>
+        </div>
+    </div>
+
+    <!-- ========== SECTION 6 ========== -->
+    <div class="section" id="s6">
+        <div class="section-head">
+            <div class="num">6</div>
+            <h3>HOLIDAY PARK SPECIFIC REQUIREMENTS</h3>
+        </div>
+        <div class="section-body">
+            <p>Holiday parks present a unique fire safety environment that differs significantly from hotels, offices, or other non-domestic premises. The Scottish Government's Annex 3 and the English Model Standards provide specific guidance, but the following factors make holiday parks a distinct fire risk assessment challenge:</p>
+
+            <div class="hp-grid">
+                <div class="hp-card">
+                    <h4>SLEEPING ACCOMMODATION</h4>
+                    <p>Guests are sleeping in an unfamiliar environment. They do not know the layout, the escape routes, or the fire safety systems. They may have consumed alcohol. They may be unfamiliar with LPG appliances. Children and elderly visitors may be present. The Scottish guidance explicitly identifies "short-term occupiers of premises where there is no day-to-day management control or supervision" as a specific risk category.</p>
+                </div>
+                <div class="hp-card">
+                    <h4>SEPARATION DISTANCES</h4>
+                    <p>Fire can spread rapidly between caravans and lodges. Minimum separation of 6m between units (5m for aluminium-clad units with fire-resistant properties). Porches may protrude 1m into the gap. Awnings must maintain 3m clearance to adjacent units. Eaves and bay windows may reduce the gap to a minimum of 5.25m between extremities. One car maximum between adjoining units. No combustible storage beneath or between units.</p>
+                </div>
+                <div class="hp-card">
+                    <h4>FIRE POINTS</h4>
+                    <p>No unit or site building should be more than 30m from a fire point. Fire points must be weatherproofed, easily accessible, and conspicuously marked "FIRE POINT". Where water supply permits (sufficient pressure for a 5-6m jet at 30 litres/min), standpipes with 30m hose reels must be provided. Where water supply is insufficient, alternative provision of 2x 9-litre water extinguishers or 500-litre water tanks is required. Each fire point must have a manual alarm device.</p>
+                </div>
+                <div class="hp-card">
+                    <h4>LPG MANAGEMENT</h4>
+                    <p>Many holiday units rely on LPG for heating and cooking. Storage and use must comply with LPGA codes of practice. Exposed gas cylinders must not be within the separation boundary of an adjoining unit. Metered supplies from common storage tanks have additional requirements. The interaction of LPG with the fire triangle (ignition source + fuel + oxygen) creates a heightened risk profile unique to holiday park environments.</p>
+                </div>
+                <div class="hp-card">
+                    <h4>VEGETATION &amp; SITE MANAGEMENT</h4>
+                    <p>Grass and vegetation must be cut at frequent intervals to prevent fire spread. Open fires should be prohibited or strictly controlled. BBQ facilities should be restricted to purpose-designed areas, remote from units. Waste storage must use purpose-designed containers with regular removal. The space beneath caravans must be kept clear of combustible materials.</p>
+                </div>
+                <div class="hp-card">
+                    <h4>EMERGENCY ACCESS</h4>
+                    <p>Emergency vehicles must be able to reach within 50m (Scotland) or 90m (England Model Standards 2008) of any unit. Site roads must be adequate for fire appliance access. Road widths, turning circles, and height clearances must accommodate emergency vehicles. Gateways must be a minimum of 3.1m wide with 3.7m height clearance.</p>
+                </div>
+                <div class="hp-card">
+                    <h4>DETECTION &amp; WARNING</h4>
+                    <p>Individual letting units require appropriate automatic fire detection. For smaller self-catering units, a Grade F1 system (long-life sealed battery) under BS 5839 Part 6 may be suitable. Larger premises or those with higher risk profiles may require BS 5839 Part 1 Category L2 systems. Sounders must achieve 75 dB(A) at the bed-head to rouse sleeping occupants. Site-wide alarm arrangements may be needed for larger parks.</p>
+                </div>
+                <div class="hp-card">
+                    <h4>GUEST INFORMATION</h4>
+                    <p>Fire action notices must be displayed in every letting unit and at key locations across the site. Notices must indicate: evacuation procedure, alarm location, fire assembly point, and emergency contact numbers. Site plans showing fire points, assembly points, and emergency routes should be prominently displayed. Guests should receive fire safety information at check-in — verbally, in writing, or via a welcome pack.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SECTION 7 ========== -->
+    <div class="section" id="s7">
+        <div class="section-head">
+            <div class="num">7</div>
+            <h3>THE FRA PROCESS — WHAT MUST BE ASSESSED?</h3>
+        </div>
+        <div class="section-body">
+            <p>The Scottish Government's guidance and the Home Office guides both follow a structured five-step approach to fire risk assessment. While the language and chapter structure varies between nations, the core methodology is consistent:</p>
+
+            <ul>
+                <li><strong>Step 1 — Identify persons at risk:</strong> Staff, guests (including children, elderly, disabled visitors), contractors, visitors. Consider people sleeping, people unfamiliar with the premises, people with mobility/sensory impairments.</li>
+                <li><strong>Step 2 — Identify fire hazards:</strong> The fire triangle — sources of ignition (electrical equipment, cooking, heating, smoking, deliberate fire-raising), sources of fuel (furnishings, LPG, flammable liquids, waste, structural materials), and sources of oxygen (natural ventilation, air conditioning, stored oxidisers, medical oxygen).</li>
+                <li><strong>Step 3 — Evaluate the risk:</strong> Consider the likelihood of fire occurring and the potential consequences to persons. Evaluate whether existing fire safety measures (detection, warning, escape routes, firefighting equipment, structural protection, management arrangements) are adequate or need improvement.</li>
+                <li><strong>Step 4 — Record, plan, instruct, train:</strong> Record significant findings. Prepare an emergency fire action plan. Provide information and instruction to staff. Deliver fire safety training. Establish maintenance and testing regimes.</li>
+                <li><strong>Step 5 — Review:</strong> The FRA must be kept under regular review. It must be reviewed when there is reason to suspect it is no longer valid, when there has been a significant change to the premises or activities, or following a fire or near-miss incident.</li>
+            </ul>
+
+            <p>The SafeFRA.PRO+ module structures the assessment form around these steps, expanded into 12 detailed sections that align with the Scottish Government's chapter structure while maintaining compatibility with the Home Office approach used in England, Wales, and Northern Ireland.</p>
+        </div>
+    </div>
+
+    <!-- ========== SECTION 8 ========== -->
+    <div class="section" id="s8">
+        <div class="section-head">
+            <div class="num">8</div>
+            <h3>RECORDING, REVIEW &amp; ENFORCEMENT</h3>
+        </div>
+        <div class="section-body">
+            <p><strong>Recording:</strong></p>
+            <ul>
+                <li><strong>England (from October 2023):</strong> All findings must be recorded, for all regulated premises, regardless of size or employee count.</li>
+                <li><strong>Scotland:</strong> Recording required where 5+ employees, or premises subject to licensing/registration, or an Alterations Notice is in force. Since most holiday parks are licensed, recording is effectively mandatory.</li>
+                <li><strong>Wales:</strong> Follows England (RRO applies).</li>
+                <li><strong>Northern Ireland:</strong> Follows Scotland's threshold approach.</li>
+            </ul>
+
+            <p><strong>Review Frequency:</strong> No fixed statutory interval is prescribed in any UK nation. However, the consensus across all guidance documents is that FRAs should be reviewed:</p>
+            <ul>
+                <li>At least annually for sleeping accommodation premises</li>
+                <li>Following any significant change to the premises, occupancy, or activities</li>
+                <li>Following a fire, near-miss, or enforcement action</li>
+                <li>When the assessor believes the existing assessment is no longer valid</li>
+            </ul>
+
+            <p><strong>Competence of Assessors:</strong> Both the Scottish Government and SFRS recommend using assessors who are third-party certificated by a UKAS-accredited certification body or registered with a Professional Registration Scheme. In England, the BAFE SP205 scheme provides a recognised standard. There is no statutory requirement to use a registered assessor — dutyholders may assess their own premises if competent to do so — but the use of unqualified assessors has been identified as a significant concern across the sector.</p>
+
+            <div class="callout info">
+                <strong>Maintaining Records</strong>
+                Test and maintenance records should be retained for at least three years. This includes fire alarm testing (weekly), emergency lighting testing (monthly/annually), extinguisher servicing (annual), fire drill records, and staff training records. SafeFRA.PRO+ integrates with SafeFire and other SafeSystems.PRO modules to maintain these records digitally.
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SECTION 9 ========== -->
+    <div class="section" id="s9">
+        <div class="section-head">
+            <div class="num">9</div>
+            <h3>PENALTIES FOR NON-COMPLIANCE</h3>
+        </div>
+        <div class="section-body">
+            <p>The consequences of failing to comply with fire safety legislation are severe and have been strengthened significantly in recent years.</p>
+
+            <table class="leg-table">
+                <thead>
+                    <tr>
+                        <th>OFFENCE</th>
+                        <th>SCOTLAND</th>
+                        <th>ENGLAND &amp; WALES</th>
+                        <th>NORTHERN IRELAND</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Failure to carry out FRA</td>
+                        <td>Fine and/or imprisonment</td>
+                        <td>Unlimited fine and/or up to 2 years imprisonment</td>
+                        <td>Fine and/or imprisonment</td>
+                    </tr>
+                    <tr>
+                        <td>Failure to comply with enforcement notice</td>
+                        <td>Fine and/or imprisonment up to 2 years</td>
+                        <td>Unlimited fine and/or up to 2 years imprisonment</td>
+                        <td>Fine and/or imprisonment</td>
+                    </tr>
+                    <tr>
+                        <td>Failure to record FRA findings (where required)</td>
+                        <td>Fine</td>
+                        <td>Unlimited fine (from Oct 2023: applies to ALL premises)</td>
+                        <td>Fine</td>
+                    </tr>
+                    <tr>
+                        <td>Putting persons at risk of death/serious injury from fire</td>
+                        <td>Unlimited fine and/or imprisonment up to 2 years</td>
+                        <td>Unlimited fine and/or up to 2 years imprisonment</td>
+                        <td>Unlimited fine and/or imprisonment</td>
+                    </tr>
+                    <tr>
+                        <td>Impersonating an inspector / obstruction</td>
+                        <td>Fine</td>
+                        <td>Unlimited fine (increased from £1,000 in Oct 2023)</td>
+                        <td>Fine</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="callout danger">
+                <strong>Personal Liability</strong>
+                In England and Wales, where a fire safety offence is committed by a body corporate (such as a limited company) and is proved to have been committed with the consent or connivance of, or to be attributable to any neglect on the part of, any director, manager, secretary, or similar officer, that individual as well as the body corporate is guilty of the offence and liable to be proceeded against and punished accordingly. This means directors and managers can face personal criminal prosecution.
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SECTION 10 ========== -->
+    <div class="section" id="s10">
+        <div class="section-head">
+            <div class="num">10</div>
+            <h3>WHY SafeFRA.PRO+ EXISTS</h3>
+        </div>
+        <div class="section-body">
+            <p>The legislative landscape described in this document creates a clear picture: fire risk assessment for holiday parks is complex, multi-jurisdictional, and carries serious consequences for non-compliance. It requires not just a one-off form to be completed, but an ongoing, dynamic process of assessment, action, review, and record-keeping across multiple premises and multiple regulatory frameworks.</p>
+
+            <p>SafeFRA.PRO+ was built to address these challenges directly:</p>
+
+            <ul>
+                <li><strong>Structured assessment aligned to legislation:</strong> The assessment form follows the five-step methodology endorsed by the Scottish Government and Home Office, expanded into 12 comprehensive sections covering every aspect of fire risk in holiday park environments.</li>
+                <li><strong>Evidence capture:</strong> Photographic evidence of fire doors, signage, escape routes, fire points, detection systems, and deficiencies can be uploaded directly during the assessment — providing a visual record that goes beyond a simple tick-box exercise.</li>
+                <li><strong>Action tracking:</strong> Findings that require remedial action are automatically fed into the Action Tracker with assigned responsibility, priority rating, target completion date, and status tracking. Nothing falls through the cracks.</li>
+                <li><strong>Review scheduling:</strong> The system tracks when each assessment is due for review, alerts when reviews are overdue, and maintains a complete audit trail of all previous assessments and reviews.</li>
+                <li><strong>Multi-site management:</strong> Operators managing multiple parks can view dashboard statistics across all sites, compare risk profiles, and identify systemic issues.</li>
+                <li><strong>Compliance dashboard:</strong> At-a-glance visibility of FRA status across all premises — current, due for review, overdue — with the ability to drill down to individual assessments and actions.</li>
+                <li><strong>Digital record keeping:</strong> All assessment data, evidence photographs, action records, and review history stored securely in Firebase with real-time synchronisation. Records are available for inspection by enforcing authorities at any time.</li>
+            </ul>
+
+            <div class="callout success">
+                <strong>Professional Standards</strong>
+                SafeFRA.PRO+ is developed by Omnibosh Safety Solutions Ltd, a Scottish health and safety consultancy specialising in holiday parks and hospitality. The module is designed to be used by competent fire risk assessors conducting professional assessments, by trained site managers conducting in-house reviews, and by operators who need to demonstrate ongoing compliance to enforcing authorities, licensing bodies, and insurers.
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== REFERENCES ========== -->
+    <div class="ref-section">
+        <h3>LEGISLATION &amp; GUIDANCE REFERENCES</h3>
+        <ul class="ref-list">
+            <li><strong>Scotland:</strong> Fire (Scotland) Act 2005 — <a href="https://www.legislation.gov.uk/asp/2005/5/contents" target="_blank">legislation.gov.uk</a></li>
+            <li><strong>Scotland:</strong> Fire Safety (Scotland) Regulations 2006 — <a href="https://www.legislation.gov.uk/ssi/2006/456/contents" target="_blank">legislation.gov.uk</a></li>
+            <li><strong>Scotland:</strong> Practical Fire Safety Guidance for Existing Premises with Sleeping Accommodation (2022) — <a href="https://www.gov.scot/publications/practical-fire-safety-guidance-existing-premises-sleeping-accommodation-2/" target="_blank">gov.scot</a></li>
+            <li><strong>Scotland:</strong> Fire Safety Risk Assessment Forms and Guidance — <a href="https://www.gov.scot/publications/fire-safety-risk-assessment-forms-and-guidance/" target="_blank">gov.scot</a></li>
+            <li><strong>Scotland:</strong> SFRS Fire Risk Assessment Guidance — <a href="https://www.firescotland.gov.uk/businesses-and-landlords/fire-risk-assessment/" target="_blank">firescotland.gov.uk</a></li>
+            <li><strong>England &amp; Wales:</strong> Regulatory Reform (Fire Safety) Order 2005 — <a href="https://www.legislation.gov.uk/uksi/2005/1541/contents" target="_blank">legislation.gov.uk</a></li>
+            <li><strong>England:</strong> Fire Safety (England) Regulations 2022 — <a href="https://www.gov.uk/government/publications/fire-safety-england-regulations-2022" target="_blank">gov.uk</a></li>
+            <li><strong>England:</strong> Building Safety Act 2022 Section 156 Guidance — <a href="https://www.gov.uk/government/publications/check-your-fire-safety-responsibilities-under-section-156-of-the-building-safety-act-2022" target="_blank">gov.uk</a></li>
+            <li><strong>England:</strong> Model Standards 2008 for Caravan Sites in England</li>
+            <li><strong>England:</strong> Model Standards 1989: Holiday Caravan Sites</li>
+            <li><strong>Wales:</strong> All Wales Self-Catering Holiday Accommodation Guidance — <a href="https://www.southwales-fire.gov.uk/app/uploads/2021/05/Final-Self-Catering-Holiday-Accommodation-Guidance_en_web.pdf" target="_blank">southwales-fire.gov.uk</a></li>
+            <li><strong>Wales:</strong> Mobile Homes (Wales) Act 2013</li>
+            <li><strong>Northern Ireland:</strong> Fire and Rescue Services (Northern Ireland) Order 2006 — <a href="https://www.legislation.gov.uk/nisi/2006/1254/made" target="_blank">legislation.gov.uk</a></li>
+            <li><strong>Northern Ireland:</strong> Fire Safety Regulations (Northern Ireland) 2010 — <a href="https://www.legislation.gov.uk/nisr/2010/325/contents/made" target="_blank">legislation.gov.uk</a></li>
+            <li><strong>Northern Ireland:</strong> NIFRS Fire Safety Guides — <a href="https://www.nifrs.org/home/staying-safe/business-fire-safety/fire-safety-guides/" target="_blank">nifrs.org</a></li>
+            <li><strong>UK-wide:</strong> Caravan Sites and Control of Development Act 1960</li>
+            <li><strong>UK-wide:</strong> BS 5839 Part 1 — Fire Detection and Fire Alarm Systems for Buildings</li>
+            <li><strong>UK-wide:</strong> BS 5839 Part 6 — Fire Detection in Dwellings</li>
+            <li><strong>UK-wide:</strong> BS 5306 — Fire Extinguishing Installations and Equipment</li>
+            <li><strong>UK-wide:</strong> BAFE SP205 — Fire Risk Assessment Competency Scheme — <a href="https://www.bafe.org.uk" target="_blank">bafe.org.uk</a></li>
+        </ul>
+    </div>
+
+    <!-- ========== FOOTER ========== -->
+    <div class="doc-footer">
+        <div class="brand">SafeSystems.PRO</div>
+        <p style="margin-top:8px">SafeFRA.PRO+ Legislative Reference Guide — Version 1.0</p>
+        <p>Developed by Omnibosh Safety Solutions Ltd</p>
+        <p style="margin-top:8px;font-size:10px">This document is provided as general guidance and does not constitute legal advice. Dutyholders should consult the legislation directly and seek professional advice where appropriate. Always refer to the most current version of the applicable legislation and sector-specific guidance for your nation and premises type.</p>
+    </div>
+
+</div>
+
+</body>
+</html>
