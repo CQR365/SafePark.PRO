@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>SafePets.PRO - Dog Profile & Care Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+<style>
+:root{--primary:#E8654A;--primary-dark:#D4503A;--primary-light:#FDEAE6;--accent:#F5A623;--accent-light:#FFF4E0;--green:#2ECC71;--green-light:#E8F8EE;--blue:#4A90D9;--blue-light:#EBF3FC;--red:#E74C3C;--red-light:#FDECEB;--purple:#9B59B6;--purple-light:#F3E8F9;--bg:#F8F9FB;--white:#FFF;--border:#E8ECF1;--text:#2C3E50;--text-light:#7F8C9B;--text-lighter:#A8B5C2;--shadow-sm:0 1px 3px rgba(0,0,0,.06);--shadow-md:0 4px 12px rgba(0,0,0,.08);--shadow-lg:0 8px 30px rgba(0,0,0,.1);--radius:12px;--radius-sm:8px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6;-webkit-font-smoothing:antialiased}
+
+/* LOGIN */
+#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#FFF5F3 0%,#F8F9FB 40%,#EBF3FC 100%);padding:20px}
+.login-card{background:var(--white);border-radius:20px;padding:44px 36px;max-width:440px;width:100%;text-align:center;box-shadow:var(--shadow-lg);border:1px solid var(--border)}
+.login-logo{width:76px;height:76px;border-radius:50%;margin:0 auto 16px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:34px;box-shadow:0 6px 20px rgba(232,101,74,.3)}
+.login-brand{font-size:28px;font-weight:800;color:var(--text);margin-bottom:2px}
+.login-brand span{color:var(--primary)}
+.login-sub{color:var(--text-light);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:32px}
+.login-field{text-align:left;margin-bottom:12px}
+.login-field label{font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:6px}
+.login-input{width:100%;padding:14px 16px;border:2px solid var(--border);border-radius:var(--radius);font-size:18px;text-align:center;letter-spacing:3px;font-weight:700;text-transform:uppercase;background:var(--bg);color:var(--text);transition:all .2s}
+.login-input:focus{outline:none;border-color:var(--primary);background:var(--white)}
+.login-input::placeholder{font-size:13px;letter-spacing:0;font-weight:400;text-transform:none;color:var(--text-lighter)}
+.login-btn{width:100%;padding:14px;border-radius:var(--radius);border:none;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px;transition:all .2s;box-shadow:0 4px 15px rgba(232,101,74,.35)}
+.login-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(232,101,74,.45)}
+.login-error{color:var(--red);font-size:12px;margin-top:8px}
+.login-hint{color:var(--text-lighter);font-size:11px;margin-top:20px;line-height:1.6}
+
+/* HEADER */
+.header{background:var(--white);padding:14px 20px;border-bottom:3px solid var(--primary);position:sticky;top:0;z-index:100;box-shadow:var(--shadow-sm)}
+.header-inner{max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.header-brand{font-size:20px;font-weight:800;color:var(--text)}
+.header-brand span{color:var(--primary)}
+.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.status-pill{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-light);background:var(--bg);padding:4px 10px;border-radius:20px}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+.status-dot.connected{background:var(--green);animation:none}
+.status-dot.error{background:var(--red);animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.role-badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+.role-admin{background:var(--purple-light);color:var(--purple)}
+.role-company{background:var(--blue-light);color:var(--blue)}
+.role-customer{background:var(--green-light);color:#1E8449}
+.role-boarder{background:var(--accent-light);color:#9A7B20}
+
+/* PROGRESS */
+.progress-container{background:var(--white);padding:16px 20px;border-bottom:1px solid var(--border)}
+.progress-inner{max-width:1100px;margin:0 auto}
+.progress-info{display:flex;justify-content:space-between;margin-bottom:8px}
+.progress-step{font-size:13px;font-weight:600;color:var(--text)}
+.progress-pct{font-size:12px;color:var(--text-light)}
+.progress-track{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:3px;transition:width .4s ease}
+
+/* MAIN */
+.main{max-width:1100px;margin:0 auto;padding:24px 20px 120px}
+
+/* BUTTONS */
+.btn{padding:10px 20px;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px;font-family:inherit}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-success{background:var(--green);color:#fff}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-purple{background:var(--purple);color:#fff}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-secondary{background:#666;color:#fff}
+.btn-outline{background:var(--white);border:2px solid var(--border);color:var(--text-light)}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-xs{padding:4px 10px;font-size:11px}
+.btn-block{width:100%;justify-content:center}
+.btn-back{background:none;border:1px solid var(--border);color:var(--text-light);padding:6px 14px;border-radius:var(--radius-sm);font-size:12px;cursor:pointer;font-weight:500}
+
+/* CARDS */
+.card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow-sm)}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;background:var(--bg)}
+.card-header h2{font-size:16px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.card-body{padding:20px}
+
+.form-card{background:var(--white);border-radius:var(--radius);padding:28px 24px;box-shadow:var(--shadow-md);border:1px solid var(--border)}
+
+/* SECTION HEADERS */
+.sec-header{margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid var(--primary-light)}
+.sec-icon{font-size:28px;margin-bottom:4px}
+.sec-title{font-size:22px;font-weight:800;color:var(--text);margin-bottom:2px}
+.sec-desc{font-size:13px;color:var(--text-light)}
+.subsec{margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
+.subsec-title{font-size:14px;font-weight:700;color:var(--primary);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+
+/* FORMS */
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:5px}
+.fg label .req{color:var(--red);font-weight:700}
+.fg .help{font-size:11px;color:var(--text-lighter);margin-top:3px;font-style:italic}
+.fc{width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--bg);color:var(--text);transition:all .2s;font-family:inherit}
+.fc:focus{outline:none;border-color:var(--primary);background:var(--white)}
+.fc::placeholder{color:var(--text-lighter)}
+select.fc{cursor:pointer}
+textarea.fc{resize:vertical;min-height:70px}
+.fr{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.fr3{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+
+.pill-group{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.pill{padding:7px 16px;border-radius:20px;font-size:13px;border:2px solid var(--border);background:var(--white);color:var(--text-light);cursor:pointer;transition:all .15s;font-weight:500}
+.pill:hover{border-color:var(--primary);color:var(--primary)}
+.pill.active{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600}
+.chip-group{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.chip{padding:6px 14px;border-radius:20px;font-size:12px;border:1.5px solid var(--border);background:var(--white);color:var(--text-light);cursor:pointer;transition:all .15s}
+.chip:hover{border-color:var(--accent)}
+.chip.active{background:var(--accent-light);color:#B8860B;border-color:var(--accent);font-weight:600}
+.rating-row{display:flex;align-items:center;gap:6px;margin-top:6px}
+.rating-lbl{font-size:10px;color:var(--text-lighter);min-width:55px}
+.rating-lbl.r{text-align:right}
+.rating-dot{width:34px;height:34px;border-radius:50%;border:2px solid var(--border);background:var(--white);color:var(--text-lighter);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.rating-dot:hover{border-color:var(--primary);color:var(--primary)}
+.rating-dot.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+.info-box{background:var(--blue-light);border:1px solid #C3DAEF;border-radius:var(--radius-sm);padding:14px 16px;font-size:13px;color:#2C6FAC;margin-bottom:16px}
+.warn-box{background:var(--accent-light);border:1px solid #EDD9A3;border-radius:var(--radius-sm);padding:14px 16px;font-size:13px;color:#9A7B20;margin-bottom:16px}
+.alert-box{background:var(--red-light);border:1px solid #E8A9A4;border-radius:var(--radius-sm);padding:14px 16px;font-size:13px;color:#B53A2F;margin-bottom:16px}
+.ok-box{background:var(--green-light);border:1px solid #A3DFB8;border-radius:var(--radius-sm);padding:14px 16px;font-size:13px;color:#1E8449;margin-bottom:16px}
+
+/* PHOTO & DOCS */
+.photo-upload{width:140px;height:140px;border-radius:50%;border:3px dashed var(--border);background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;margin:0 auto 16px;overflow:hidden;position:relative}
+.photo-upload:hover{border-color:var(--primary);background:var(--primary-light)}
+.photo-upload img{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0}
+.photo-upload .ph{text-align:center;color:var(--text-lighter);font-size:11px;z-index:1}
+.photo-upload .ph span{font-size:28px;display:block;margin-bottom:2px}
+.doc-list{list-style:none}
+.doc-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);border-radius:var(--radius-sm);margin-bottom:6px;font-size:13px;border:1px solid var(--border)}
+.doc-name{display:flex;align-items:center;gap:8px;font-weight:500}
+.doc-remove{background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;font-weight:700}
+
+/* Photo gallery for boarders */
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:8px}
+.photo-thumb{width:100%;aspect-ratio:1;border-radius:var(--radius-sm);overflow:hidden;position:relative;border:1px solid var(--border);cursor:pointer}
+.photo-thumb img{width:100%;height:100%;object-fit:cover}
+.photo-thumb .remove{position:absolute;top:4px;right:4px;background:var(--red);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.photo-add{width:100%;aspect-ratio:1;border-radius:var(--radius-sm);border:2px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:var(--bg);transition:all .2s;font-size:11px;color:var(--text-lighter)}
+.photo-add:hover{border-color:var(--primary);background:var(--primary-light)}
+.photo-add span{font-size:24px;display:block}
+
+/* NAV BAR */
+.nav-bar{position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--white);border-top:1px solid var(--border);padding:12px 20px;box-shadow:0 -2px 10px rgba(0,0,0,.06)}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
+.nav-btn{padding:10px 24px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
+.nav-prev{background:var(--white);border:2px solid var(--border);color:var(--text-light)}
+.nav-prev:hover{border-color:var(--primary);color:var(--primary)}
+.nav-prev:disabled,.nav-next:disabled{opacity:.3;cursor:default}
+.nav-next{background:var(--primary);border:none;color:#fff;box-shadow:0 3px 10px rgba(232,101,74,.3)}
+.nav-next:hover{background:var(--primary-dark);transform:translateY(-1px)}
+.nav-dots{display:flex;gap:4px}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .2s;border:none}
+.nav-dot.done{background:var(--green)}
+.nav-dot.current{background:var(--primary);width:20px;border-radius:4px}
+
+/* PROFILE VIEW */
+.profile-hero{text-align:center;padding:32px 20px;background:linear-gradient(135deg,var(--primary-light) 0%,#FFF 60%);border-radius:var(--radius);margin-bottom:20px;border:1px solid var(--border)}
+.profile-photo-lg{width:120px;height:120px;border-radius:50%;border:4px solid var(--white);box-shadow:var(--shadow-md);object-fit:cover;margin:0 auto 12px;display:block;background:var(--bg)}
+.profile-name{font-size:26px;font-weight:800;color:var(--text)}
+.profile-sub{font-size:14px;color:var(--text-light);margin-top:2px}
+.profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.profile-section{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden}
+.profile-section-header{padding:12px 16px;font-weight:700;font-size:14px;background:var(--bg);border-bottom:1px solid var(--border);color:var(--primary)}
+.profile-section-body{padding:16px}
+.profile-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px}
+.profile-row:last-child{border-bottom:none}
+.profile-row .lbl{color:var(--text-light);font-weight:500;min-width:100px}
+.profile-row .val{color:var(--text);font-weight:600;text-align:right;max-width:60%}
+
+/* ADMIN / COMPANY DASHBOARD */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:var(--white);border-radius:var(--radius);padding:18px;text-align:center;border:1px solid var(--border);box-shadow:var(--shadow-sm)}
+.stat-val{font-size:2rem;font-weight:800;color:var(--primary)}
+.stat-lbl{font-size:11px;color:var(--text-light);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+
+.entity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.entity-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;transition:all .2s}
+.entity-card:hover{box-shadow:var(--shadow-md);transform:translateY(-3px)}
+.entity-card-top{padding:20px;display:flex;align-items:center;gap:14px}
+.entity-card-icon{width:56px;height:56px;border-radius:50%;border:2px solid var(--border);background:var(--bg);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden}
+.entity-card-icon img{width:100%;height:100%;object-fit:cover}
+.entity-card-info h3{font-size:16px;font-weight:700;color:var(--text);margin-bottom:2px}
+.entity-card-info p{font-size:12px;color:var(--text-light)}
+.entity-card-bottom{padding:10px 20px;background:var(--bg);border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:11px;color:var(--text-light)}
+
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:20px;flex-wrap:wrap;background:var(--white);padding:6px;border-radius:var(--radius);border:1px solid var(--border)}
+.tab-btn{padding:10px 18px;background:transparent;border:none;color:var(--text-light);font-size:13px;font-weight:600;cursor:pointer;border-radius:var(--radius-sm);transition:all .2s;white-space:nowrap;font-family:inherit}
+.tab-btn:hover{background:var(--bg);color:var(--text)}
+.tab-btn.active{background:var(--primary);color:#fff}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.active{display:flex}
+.modal{background:var(--white);border-radius:var(--radius);width:100%;max-width:600px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)}
+.modal-header{padding:20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--white);z-index:1}
+.modal-header h3{font-size:18px;font-weight:700;color:var(--text)}
+.modal-close{background:none;border:none;font-size:24px;cursor:pointer;color:var(--text-light)}
+.modal-close:hover{color:var(--red)}
+.modal-body{padding:20px}
+.modal-footer{padding:16px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+
+/* TABLE */
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.table-responsive{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.data-table th{background:var(--bg);padding:10px 14px;text-align:left;font-weight:600;color:var(--text);border-bottom:2px solid var(--border)}
+.data-table td{padding:10px 14px;border-bottom:1px solid var(--border)}
+.data-table tr:hover{background:var(--primary-light)}
+.code-badge{background:var(--bg);border:1px solid var(--border);padding:2px 8px;border-radius:4px;font-family:monospace;font-size:12px;font-weight:700;letter-spacing:1px}
+
+/* AVAILABILITY */
+.avail-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px}
+.avail-day{text-align:center;padding:8px 4px;border-radius:var(--radius-sm);border:1px solid var(--border);cursor:pointer;transition:all .15s;font-size:11px;font-weight:600}
+.avail-day.available{background:var(--green-light);border-color:var(--green);color:#1E8449}
+.avail-day.unavailable{background:var(--red-light);border-color:var(--red);color:#B53A2F}
+.avail-day:hover{transform:scale(1.05)}
+
+.hidden{display:none !important}
+.text-center{text-align:center}
+.mb-8{margin-bottom:8px}
+.mb-16{margin-bottom:16px}
+.mt-16{margin-top:16px}
+.mt-24{margin-top:24px}
+
+@media(max-width:600px){
+    .login-card{padding:32px 24px}
+    .form-card{padding:20px 16px}
+    .fr,.fr3{grid-template-columns:1fr}
+    .nav-dots{display:none}
+    .profile-grid,.entity-grid,.dog-grid{grid-template-columns:1fr}
+    .stats-row{grid-template-columns:repeat(2,1fr)}
+    .tabs{overflow-x:auto;flex-wrap:nowrap}
+}
+@media print{.header,.nav-bar,.progress-container{display:none}body{background:#fff}.main{padding:0}}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+    <div class="login-card">
+        <div class="login-logo">🐾</div>
+        <div class="login-brand">safe<span>pets</span>.pro</div>
+        <div class="login-sub">Dog Profile &amp; Care Management</div>
+        <div class="login-field">
+            <label>🐾 Pawsome Access Code</label>
+            <input type="text" id="loginCode" class="login-input" placeholder="Enter your Pawsome Access Code" maxlength="20" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <div id="loginError" class="login-error"></div>
+        <button class="login-btn" onclick="doLogin()">Access SafePets.PRO →</button>
+        <p class="login-hint">Your Pawsome Access Code was provided by your service provider or boarding company.<br>Contact them if you haven't received one.</p>
+    </div>
+</div>
+
+<div id="appScreen" class="hidden">
+    <header class="header">
+        <div class="header-inner">
+            <div class="header-brand">safe<span>pets</span>.pro</div>
+            <div class="header-right">
+                <div class="status-pill"><div class="status-dot" id="statusDot"></div><span id="statusText">Connecting...</span></div>
+                <span class="role-badge" id="roleBadge"></span>
+                <button class="btn-back" onclick="doLogout()">Logout</button>
+            </div>
+        </div>
+    </header>
+    <div class="progress-container hidden" id="progressBar">
+        <div class="progress-inner"><div class="progress-info"><span class="progress-step" id="progressLabel"></span><span class="progress-pct" id="progressPct"></span></div><div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div></div>
+    </div>
+    <main class="main" id="mainContent"></main>
+    <div class="nav-bar hidden" id="navBar">
+        <div class="nav-inner"><button class="nav-btn nav-prev" id="btnPrev" onclick="prevSection()">← Back</button><div class="nav-dots" id="navDots"></div><button class="nav-btn nav-next" id="btnNext" onclick="nextSection()">Next →</button></div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <div class="modal-header"><h3 id="modalTitle"></h3><button class="modal-close" onclick="closeModal()">×</button></div>
+        <div class="modal-body" id="modalBody"></div>
+        <div class="modal-footer" id="modalFooter"></div>
+    </div>
+</div>
+
+<script>
+// ============================================
+// CONFIG & STATE
+// ============================================
+const firebaseConfig={apiKey:"AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",authDomain:"safepark-pro.firebaseapp.com",projectId:"safepark-pro",storageBucket:"safepark-pro.firebasestorage.app",messagingSenderId:"511221743341",appId:"1:511221743341:web:95bcc7e83d4861578016e4"};
+let db,storage,fbReady=false;
+let role='',companyId='',accessCode='',currentSection=0;
+let formData={},companies=[],dogs=[],boarders=[],uploadedDocs=[],photoFile=null,photoUrl=null;
+let boarderPhotos=[];
+const ADMIN_CODE='SAFEPETS2025'; // Master admin code
+
+// ============================================
+// DOG QUESTIONNAIRE SECTIONS
+// ============================================
+const DOG_SECTIONS=[
+    {id:'owner',title:'Owner Details',icon:'👤',desc:'Primary contact information'},
+    {id:'dog_id',title:'Dog Identity',icon:'🐕',desc:'Essential identification'},
+    {id:'photo',title:'Photo & Documents',icon:'📸',desc:'Upload photo and documents'},
+    {id:'vet',title:'Veterinary',icon:'🏥',desc:'Vet practice details'},
+    {id:'insurance',title:'Insurance',icon:'🛡️',desc:'Pet insurance'},
+    {id:'health',title:'Health & Medical',icon:'💊',desc:'Vaccinations, conditions, medications'},
+    {id:'feeding',title:'Feeding',icon:'🍖',desc:'Diet, meals, treats'},
+    {id:'behaviour',title:'Behaviour',icon:'🧠',desc:'Personality and triggers'},
+    {id:'training',title:'Training & Commands',icon:'🎓',desc:'Commands and exact words'},
+    {id:'routine',title:'Daily Routine',icon:'⏰',desc:'Typical schedule'},
+    {id:'toileting',title:'Toileting',icon:'🌿',desc:'House training'},
+    {id:'sleeping',title:'Sleeping',icon:'🌙',desc:'Sleep habits'},
+    {id:'likes',title:'Likes & Dislikes',icon:'❤️',desc:'Favourites and fears'},
+    {id:'exercise',title:'Exercise & Grooming',icon:'🏃',desc:'Activity and grooming'},
+    {id:'social',title:'Socialisation',icon:'🐾',desc:'Social experience'},
+    {id:'emergency',title:'Emergency Consent',icon:'🚨',desc:'Emergency authorisations'},
+    {id:'review',title:'Review & Submit',icon:'✅',desc:'Check and submit'}
+];
+
+// BOARDER SECTIONS
+const BOARDER_SECTIONS=[
+    {id:'b_personal',title:'Personal Details',icon:'👤',desc:'Your contact information'},
+    {id:'b_property',title:'Property & Home',icon:'🏠',desc:'Your home and facilities'},
+    {id:'b_household',title:'Household',icon:'👨‍👩‍👧‍👦',desc:'People and pets in your home'},
+    {id:'b_experience',title:'Experience & Qualifications',icon:'🏆',desc:'Your boarding experience'},
+    {id:'b_insurance',title:'Insurance & Licensing',icon:'📋',desc:'Required insurance and licences'},
+    {id:'b_capacity',title:'Boarding Capacity',icon:'🐕',desc:'What dogs you take and how many'},
+    {id:'b_facilities',title:'Facilities & Routine',icon:'🏡',desc:'Sleeping, exercise, daily routine'},
+    {id:'b_emergency',title:'Emergency Procedures',icon:'🚨',desc:'Emergency vet and procedures'},
+    {id:'b_availability',title:'Availability & Pricing',icon:'📅',desc:'When you\'re available and rates'},
+    {id:'b_photos',title:'Photos of Home',icon:'📸',desc:'Show off your boarding environment'},
+    {id:'b_testimonials',title:'Testimonials',icon:'⭐',desc:'References and reviews'},
+    {id:'b_review',title:'Review & Submit',icon:'✅',desc:'Check and submit'}
+];
+
+const BREEDS=["Affenpinscher","Afghan Hound","Airedale Terrier","Akita","Australian Shepherd","Basenji","Basset Hound","Beagle","Bearded Collie","Belgian Malinois","Bernese Mountain Dog","Bichon Frise","Border Collie","Border Terrier","Boxer","Bulldog","Bullmastiff","Cairn Terrier","Cane Corso","Cavalier King Charles Spaniel","Chihuahua","Cockapoo","Cocker Spaniel","Collie","Corgi (Pembroke)","Dachshund","Dalmatian","Dobermann","English Springer Spaniel","French Bulldog","German Shepherd","Golden Retriever","Great Dane","Greyhound","Havanese","Hungarian Vizsla","Irish Setter","Jack Russell Terrier","Labradoodle","Labrador Retriever","Lurcher","Maltese","Miniature Schnauzer","Newfoundland","Old English Sheepdog","Pomeranian","Poodle (Standard)","Poodle (Miniature)","Pug","Rhodesian Ridgeback","Rottweiler","Saint Bernard","Samoyed","Scottish Terrier","Shar Pei","Shetland Sheepdog","Shiba Inu","Shih Tzu","Siberian Husky","Springer Spaniel","Staffordshire Bull Terrier","Tibetan Terrier","Weimaraner","West Highland White Terrier","Whippet","Yorkshire Terrier","Crossbreed / Mixed","Other"];
+
+let activeSections=DOG_SECTIONS; // switches between dog and boarder
+let activeFormType='dog'; // 'dog' or 'boarder'
+
+// ============================================
+// HELPERS
+// ============================================
+function $(id){return document.getElementById(id)}
+function show(id){$(id)?.classList.remove('hidden')}
+function hide(id){$(id)?.classList.add('hidden')}
+function val(f){return formData[f]||''}
+function set(f,v){formData[f]=v}
+function updateStatus(m,s){$('statusText').textContent=m;const d=$('statusDot');d.className='status-dot';if(s==='connected')d.classList.add('connected');if(s==='error')d.classList.add('error')}
+function fmtDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'})}
+function genCode(len){len=len||8;const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let r='';for(let i=0;i<len;i++)r+=c[Math.floor(Math.random()*c.length)];return r}
+
+// ============================================
+// FIREBASE
+// ============================================
+async function initFB(){
+    try{
+        updateStatus('Connecting...','connecting');
+        let a=0;while(typeof firebase==='undefined'&&a<50){await new Promise(r=>setTimeout(r,100));a++}
+        if(typeof firebase==='undefined')throw new Error('Firebase not loaded');
+        if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
+        db=firebase.firestore();storage=firebase.storage();
+        try{await firebase.auth().signInAnonymously()}catch(e){}
+        fbReady=true;updateStatus('Connected','connected');
+    }catch(e){console.error('[SafePets]',e);updateStatus('Offline','error')}
+}
+
+// ============================================
+// LOGIN
+// ============================================
+async function doLogin(){
+    const code=$('loginCode').value.trim().toUpperCase();
+    if(code.length<3){$('loginError').textContent='Please enter a valid Pawsome Access Code';return}
+    accessCode=code;
+    $('loginError').textContent='Checking code...';
+    hide('loginScreen');show('appScreen');
+    await initFB();
+    if(!fbReady){$('loginError').textContent='Cannot connect to server';show('loginScreen');hide('appScreen');return}
+
+    // Check admin
+    if(code===ADMIN_CODE){role='admin';setRoleBadge();loadAdminData();return}
+
+    // Check company code
+    try{
+        var compSnap=await db.collection('safepets_companies').where('accessCode','==',code).limit(1).get();
+        if(!compSnap.empty){role='company';companyId=compSnap.docs[0].id;formData=compSnap.docs[0].data();setRoleBadge();loadCompanyData();return}
+    }catch(e){console.warn('[SafePets] Company lookup:',e.message)}
+
+    // Check customer code
+    try{
+        var custSnap=await db.collection('safepets_dogs').where('accessCode','==',code).limit(1).get();
+        if(!custSnap.empty){role='customer';var d=custSnap.docs[0];formData={...d.data(),_id:d.id};companyId=formData.companyId||'';photoUrl=formData.photoUrl||null;uploadedDocs=formData.documents||[];setRoleBadge();renderDogProfile(formData);return}
+    }catch(e){console.warn('[SafePets] Dog lookup:',e.message)}
+
+    // Check boarder code
+    try{
+        var bSnap=await db.collection('safepets_boarders').where('accessCode','==',code).limit(1).get();
+        if(!bSnap.empty){role='boarder';var d=bSnap.docs[0];formData={...d.data(),_id:d.id};companyId=formData.companyId||'';boarderPhotos=formData.homePhotos||[];setRoleBadge();renderBoarderProfile(formData);return}
+    }catch(e){console.warn('[SafePets] Boarder lookup:',e.message)}
+
+    // Invalid code
+    show('loginScreen');hide('appScreen');$('loginError').textContent='Invalid Pawsome Access Code. Please check and try again.';
+}
+function doLogout(){location.reload()}
+function setRoleBadge(){
+    const b=$('roleBadge');
+    const labels={admin:'👑 Admin',company:'🏢 Company',customer:'🐕 Dog Owner',boarder:'🏠 Boarder'};
+    b.textContent=labels[role]||role;b.className='role-badge role-'+role;
+}
+
+// ============================================
+// FORM GENERATORS
+// ============================================
+function fieldText(f,label,ph,req,help,type){type=type||'text';return'<div class="fg"><label>'+label+(req?' <span class="req">*</span>':'')+'</label><input type="'+type+'" class="fc" value="'+(val(f)||'')+'" placeholder="'+(ph||'')+'" onchange="set(\''+f+'\',this.value)">'+(help?'<div class="help">'+help+'</div>':'')+'</div>'}
+function fieldTA(f,label,ph,rows,help){return'<div class="fg"><label>'+label+'</label><textarea class="fc" rows="'+(rows||3)+'" placeholder="'+(ph||'')+'" onchange="set(\''+f+'\',this.value)">'+(val(f)||'')+'</textarea>'+(help?'<div class="help">'+help+'</div>':'')+'</div>'}
+function fieldSel(f,label,opts,req,help){var o=opts.map(function(x){return'<option value="'+x+'"'+(val(f)===x?' selected':'')+'>'+x+'</option>'}).join('');return'<div class="fg"><label>'+label+(req?' <span class="req">*</span>':'')+'</label><select class="fc" onchange="set(\''+f+'\',this.value)"><option value="">— Select —</option>'+o+'</select>'+(help?'<div class="help">'+help+'</div>':'')+'</div>'}
+function fieldPills(f,label,opts,req,help){var p=opts.map(function(x){return'<div class="pill'+(val(f)===x?' active':'')+'" onclick="set(\''+f+'\',\''+x+'\');renderSection()">'+x+'</div>'}).join('');return'<div class="fg"><label>'+label+(req?' <span class="req">*</span>':'')+'</label>'+(help?'<div class="help" style="margin-bottom:4px">'+help+'</div>':'')+'<div class="pill-group">'+p+'</div></div>'}
+function fieldChips(f,label,opts,help){var cur=formData[f]||[];var c=opts.map(function(x){return'<div class="chip'+(cur.includes(x)?' active':'')+'" onclick="toggleChip(\''+f+'\',\''+x+'\')">'+(cur.includes(x)?'✓ ':'')+x+'</div>'}).join('');return'<div class="fg"><label>'+label+'</label>'+(help?'<div class="help" style="margin-bottom:4px">'+help+'</div>':'')+'<div class="chip-group">'+c+'</div></div>'}
+function fieldRating(f,label,l1,l2){var d=[1,2,3,4,5].map(function(n){return'<div class="rating-dot'+(val(f)==n?' active':'')+'" onclick="set(\''+f+'\','+n+');renderSection()">'+n+'</div>'}).join('');return'<div class="fg"><label>'+label+'</label><div class="rating-row"><span class="rating-lbl">'+l1+'</span>'+d+'<span class="rating-lbl r">'+l2+'</span></div></div>'}
+function toggleChip(f,v){var a=formData[f]||[];var i=a.indexOf(v);if(i>=0)a.splice(i,1);else a.push(v);formData[f]=a;renderSection()}
+function secH(i,t,d){return'<div class="sec-header"><div class="sec-icon">'+i+'</div><div class="sec-title">'+t+'</div><div class="sec-desc">'+d+'</div></div>'}
+function subS(i,t){return'<div class="subsec"><div class="subsec-title">'+i+' '+t+'</div></div>'}
+
+// ============================================
+// PHOTO & DOC HANDLERS
+// ============================================
+function triggerPhoto(){var i=document.createElement('input');i.type='file';i.accept='image/*';i.onchange=function(e){photoFile=e.target.files[0];if(photoFile){var r=new FileReader();r.onload=function(ev){photoUrl=ev.target.result;renderSection()};r.readAsDataURL(photoFile)}};i.click()}
+function triggerDoc(t){var i=document.createElement('input');i.type='file';i.accept='.pdf,.jpg,.jpeg,.png,.doc,.docx';i.onchange=function(e){var f=e.target.files[0];if(f){uploadedDocs.push({type:t,fileName:f.name,_file:f});renderSection()}};i.click()}
+function removeDoc(i){uploadedDocs.splice(i,1);renderSection()}
+function triggerBoarderPhoto(){var i=document.createElement('input');i.type='file';i.accept='image/*';i.multiple=true;i.onchange=function(e){Array.from(e.target.files).forEach(function(f){var r=new FileReader();r.onload=function(ev){boarderPhotos.push({preview:ev.target.result,_file:f});renderSection()};r.readAsDataURL(f)})};i.click()}
+function removeBoarderPhoto(i){boarderPhotos.splice(i,1);renderSection()}
+
+// ============================================
+// ADMIN DASHBOARD
+// ============================================
+async function loadAdminData(){
+    hide('progressBar');hide('navBar');
+    // Render immediately with empty data so page isn't blank
+    renderAdminDash();
+    // Then try loading data in background
+    try{
+        var snap=await db.collection('safepets_companies').get();
+        companies=[];snap.forEach(function(d){companies.push({_id:d.id,...d.data()})});
+        console.log('[SafePets] Loaded '+companies.length+' companies');
+    }catch(e){console.warn('[SafePets] Companies:',e.message);companies=[]}
+    try{
+        var dSnap=await db.collection('safepets_dogs').get();
+        dogs=[];dSnap.forEach(function(d){dogs.push({_id:d.id,...d.data()})});
+        console.log('[SafePets] Loaded '+dogs.length+' dogs');
+    }catch(e){console.warn('[SafePets] Dogs:',e.message);dogs=[]}
+    try{
+        var bSnap=await db.collection('safepets_boarders').get();
+        boarders=[];bSnap.forEach(function(d){boarders.push({_id:d.id,...d.data()})});
+        console.log('[SafePets] Loaded '+boarders.length+' boarders');
+    }catch(e){console.warn('[SafePets] Boarders:',e.message);boarders=[]}
+    // Re-render with loaded data
+    renderAdminDash();
+}
+
+function renderAdminDash(){
+    var mc=$('mainContent');
+    var h='<div style="margin-bottom:20px"><h2 style="font-size:22px;font-weight:800">🐾 SafePets.PRO — System Admin</h2><p style="color:var(--text-light);font-size:13px">Manage companies, dog profiles, and boarding families</p></div>';
+    h+='<div class="stats-row">';
+    h+='<div class="stat-card"><div class="stat-val">'+companies.length+'</div><div class="stat-lbl">Companies</div></div>';
+    h+='<div class="stat-card"><div class="stat-val" style="color:var(--green)">'+dogs.length+'</div><div class="stat-lbl">Dogs</div></div>';
+    h+='<div class="stat-card"><div class="stat-val" style="color:var(--accent)">'+boarders.length+'</div><div class="stat-lbl">Boarders</div></div>';
+    h+='</div>';
+
+    h+='<div class="tabs"><button class="tab-btn active" onclick="adminTab(\'companies\',this)">🏢 Companies</button><button class="tab-btn" onclick="adminTab(\'dogs\',this)">🐕 All Dogs</button><button class="tab-btn" onclick="adminTab(\'boarders\',this)">🏠 All Boarders</button></div>';
+    h+='<div id="adminTabContent"></div>';
+    mc.innerHTML=h;
+    adminTab('companies',document.querySelector('.tab-btn'));
+}
+
+function adminTab(tab,btn){
+    document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active')});
+    if(btn)btn.classList.add('active');
+    var tc=$('adminTabContent'),h='';
+    if(tab==='companies'){
+        h+='<div style="margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-blue" onclick="openAddCompanyModal()">+ Register Company</button></div>';
+        if(companies.length===0)h+='<div class="text-center" style="padding:40px;color:var(--text-lighter)">No companies registered yet</div>';
+        else{
+            h+='<div class="entity-grid">';
+            companies.forEach(function(c,i){
+                var dCount=dogs.filter(function(d){return d.companyId===c._id}).length;
+                var bCount=boarders.filter(function(b){return b.companyId===c._id}).length;
+                h+='<div class="entity-card" onclick="viewCompanyAdmin(\''+c._id+'\')"><div class="entity-card-top"><div class="entity-card-icon">🏢</div><div class="entity-card-info"><h3>'+c.companyName+'</h3><p>'+c.contactName+'</p></div></div><div class="entity-card-bottom"><span>🐕 '+dCount+' dogs</span><span>🏠 '+bCount+' boarders</span><span class="code-badge">'+c.accessCode+'</span></div></div>';
+            });
+            h+='</div>';
+        }
+    } else if(tab==='dogs'){
+        h+='<div style="margin-bottom:12px"><input type="text" class="fc" placeholder="🔍 Search dogs..." oninput="filterAdminDogs(this.value)" style="max-width:400px"></div>';
+        h+='<div class="entity-grid" id="adminDogGrid">';
+        dogs.forEach(function(d,i){h+=dogCardHtml(d,i)});
+        h+='</div>';
+        if(!dogs.length)h+='<div class="text-center" style="padding:40px;color:var(--text-lighter)">No dogs registered</div>';
+    } else if(tab==='boarders'){
+        h+='<div class="entity-grid">';
+        boarders.forEach(function(b,i){
+            h+='<div class="entity-card" onclick="viewBoarderAdmin('+i+')"><div class="entity-card-top"><div class="entity-card-icon">'+(b.profilePhotoUrl?'<img src="'+b.profilePhotoUrl+'">':'🏠')+'</div><div class="entity-card-info"><h3>'+(b.b_first||'')+' '+(b.b_last||'')+'</h3><p>'+(b.b_address_town||'')+'</p></div></div><div class="entity-card-bottom"><span>Max: '+(b.b_max_dogs||'?')+' dogs</span><span>'+(b.b_licensed==='Yes'?'✅ Licensed':'⚠️ No licence')+'</span><span class="code-badge">'+(b.accessCode||'—')+'</span></div></div>';
+        });
+        h+='</div>';
+        if(!boarders.length)h+='<div class="text-center" style="padding:40px;color:var(--text-lighter)">No boarders registered</div>';
+    }
+    tc.innerHTML=h;
+}
+
+function dogCardHtml(d,i){
+    var co=companies.find(function(c){return c._id===d.companyId});
+    return'<div class="entity-card" onclick="viewDogAdmin('+i+')"><div class="entity-card-top"><div class="entity-card-icon">'+(d.photoUrl?'<img src="'+d.photoUrl+'">':'🐕')+'</div><div class="entity-card-info"><h3>'+(d.dog_name||'Unknown')+'</h3><p>'+(d.dog_breed||'')+'</p><p style="font-size:11px">Owner: '+(d.owner_first||'')+' '+(d.owner_last||'')+'</p></div></div><div class="entity-card-bottom"><span>'+(co?co.companyName:'—')+'</span><span class="code-badge">'+(d.accessCode||'—')+'</span></div></div>';
+}
+function filterAdminDogs(q){q=q.toLowerCase();var g=$('adminDogGrid');var f=q?dogs.filter(function(d){return(d.dog_name||'').toLowerCase().indexOf(q)>=0||(d.dog_breed||'').toLowerCase().indexOf(q)>=0||(d.owner_first||'').toLowerCase().indexOf(q)>=0||(d.owner_last||'').toLowerCase().indexOf(q)>=0}):dogs;g.innerHTML=f.map(function(d){return dogCardHtml(d,dogs.indexOf(d))}).join('')}
+function viewDogAdmin(i){formData=dogs[i];uploadedDocs=formData.documents||[];photoUrl=formData.photoUrl||null;renderDogProfile(formData)}
+function viewBoarderAdmin(i){formData=boarders[i];boarderPhotos=formData.homePhotos||[];renderBoarderProfile(formData)}
+function viewCompanyAdmin(cid){companyId=cid;role='company';formData=companies.find(function(c){return c._id===cid})||{};setRoleBadge();loadCompanyData()}
+
+// ============================================
+// ADD COMPANY MODAL
+// ============================================
+function openAddCompanyModal(){
+    var code=genCode(8);
+    $('modalTitle').textContent='Register New Company';
+    $('modalBody').innerHTML='<div class="fg"><label>Company Name <span class="req">*</span></label><input type="text" class="fc" id="newCompName" placeholder="e.g. Pawsome Boarding Ltd"></div>'
+        +'<div class="fg"><label>Contact Name <span class="req">*</span></label><input type="text" class="fc" id="newCompContact"></div>'
+        +'<div class="fr"><div class="fg"><label>Phone <span class="req">*</span></label><input type="tel" class="fc" id="newCompPhone"></div><div class="fg"><label>Email <span class="req">*</span></label><input type="email" class="fc" id="newCompEmail"></div></div>'
+        +'<div class="fg"><label>Address</label><textarea class="fc" rows="2" id="newCompAddr"></textarea></div>'
+        +'<div class="fg"><label>Company Pawsome Access Code</label><div class="info-box">This code will be given to the company to log in.<br><strong style="font-size:16px;letter-spacing:2px">'+code+'</strong></div><input type="hidden" id="newCompCode" value="'+code+'"></div>';
+    $('modalFooter').innerHTML='<button class="btn btn-outline" onclick="closeModal()">Cancel</button><button class="btn btn-blue" onclick="saveCompany()">Register Company</button>';
+    openModal();
+}
+
+async function saveCompany(){
+    var name=$('newCompName').value.trim();
+    var contact=$('newCompContact').value.trim();
+    if(!name||!contact){alert('Company name and contact are required');return}
+    var data={companyName:name,contactName:contact,phone:$('newCompPhone').value.trim(),email:$('newCompEmail').value.trim(),address:$('newCompAddr').value.trim(),accessCode:$('newCompCode').value,createdAt:new Date().toISOString(),status:'active'};
+    try{var ref=await db.collection('safepets_companies').add(data);data._id=ref.id;companies.unshift(data);closeModal();renderAdminDash();alert('Company registered! Their Pawsome Access Code is: '+data.accessCode)}catch(e){alert('Error: '+e.message)}
+}
+
+// ============================================
+// COMPANY DASHBOARD
+// ============================================
+async function loadCompanyData(){
+    hide('progressBar');hide('navBar');
+    renderCompanyDash();
+    try{
+        var dSnap=await db.collection('safepets_dogs').where('companyId','==',companyId).get();
+        dogs=[];dSnap.forEach(function(d){dogs.push({_id:d.id,...d.data()})});
+    }catch(e){console.warn('[SafePets] Dogs:',e.message);dogs=[]}
+    try{
+        var bSnap=await db.collection('safepets_boarders').where('companyId','==',companyId).get();
+        boarders=[];bSnap.forEach(function(d){boarders.push({_id:d.id,...d.data()})});
+    }catch(e){console.warn('[SafePets] Boarders:',e.message);boarders=[]}
+    renderCompanyDash();
+}
+
+function renderCompanyDash(){
+    var mc=$('mainContent'),cn=formData.companyName||'Company';
+    var h='<div style="margin-bottom:20px"><h2 style="font-size:22px;font-weight:800">🏢 '+cn+'</h2><p style="color:var(--text-light);font-size:13px">Manage your customers\' dog profiles and boarding families</p></div>';
+    h+='<div class="stats-row"><div class="stat-card"><div class="stat-val" style="color:var(--green)">'+dogs.length+'</div><div class="stat-lbl">Dog Profiles</div></div><div class="stat-card"><div class="stat-val" style="color:var(--accent)">'+boarders.length+'</div><div class="stat-lbl">Boarding Families</div></div></div>';
+    h+='<div class="tabs"><button class="tab-btn active" onclick="companyTab(\'dogs\',this)">🐕 Dog Profiles</button><button class="tab-btn" onclick="companyTab(\'boarders\',this)">🏠 Boarding Families</button><button class="tab-btn" onclick="companyTab(\'codes\',this)">🐾 Pawsome Codes</button></div>';
+    h+='<div id="companyTabContent"></div>';
+    mc.innerHTML=h;
+    companyTab('dogs',document.querySelector('.tab-btn'));
+}
+
+function companyTab(tab,btn){
+    document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active')});if(btn)btn.classList.add('active');
+    var tc=$('companyTabContent'),h='';
+    if(tab==='dogs'){
+        h+='<div style="margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-primary" onclick="startNewDog()">+ New Dog Profile</button><input type="text" class="fc" placeholder="🔍 Search..." oninput="filterCompanyDogs(this.value)" style="max-width:300px"></div>';
+        h+='<div class="entity-grid" id="compDogGrid">';
+        dogs.forEach(function(d,i){
+            h+='<div class="entity-card" onclick="viewCompanyDog('+i+')"><div class="entity-card-top"><div class="entity-card-icon">'+(d.photoUrl?'<img src="'+d.photoUrl+'">':'🐕')+'</div><div class="entity-card-info"><h3>'+(d.dog_name||'Unknown')+'</h3><p>'+(d.dog_breed||'')+'</p><p style="font-size:11px">Owner: '+(d.owner_first||'')+' '+(d.owner_last||'')+'</p></div></div><div class="entity-card-bottom"><span>📎 '+((d.documents||[]).length)+' docs</span><span>'+(d.insurance_active==='Yes'?'🛡️ Insured':'⚠️')+'</span><span class="code-badge">'+(d.accessCode||'—')+'</span></div></div>';
+        });h+='</div>';
+        if(!dogs.length)h+='<div class="text-center" style="padding:40px;color:var(--text-lighter)">No dog profiles yet. Create one to generate a customer Pawsome Access Code.</div>';
+    } else if(tab==='boarders'){
+        h+='<div style="margin-bottom:16px"><button class="btn btn-accent" onclick="startNewBoarder()">+ Register Boarding Family</button></div>';
+        h+='<div class="entity-grid">';
+        boarders.forEach(function(b,i){
+            h+='<div class="entity-card" onclick="viewCompanyBoarder('+i+')"><div class="entity-card-top"><div class="entity-card-icon">'+(b.profilePhotoUrl?'<img src="'+b.profilePhotoUrl+'">':'🏠')+'</div><div class="entity-card-info"><h3>'+(b.b_first||'')+' '+(b.b_last||'')+'</h3><p>'+(b.b_address_town||'')+'</p></div></div><div class="entity-card-bottom"><span>Max: '+(b.b_max_dogs||'?')+' dogs</span><span>'+(b.b_licensed==='Yes'?'✅ Licensed':'⚠️')+'</span><span class="code-badge">'+(b.accessCode||'—')+'</span></div></div>';
+        });h+='</div>';
+        if(!boarders.length)h+='<div class="text-center" style="padding:40px;color:var(--text-lighter)">No boarding families registered yet.</div>';
+    } else if(tab==='codes'){
+        h+='<div class="card"><div class="card-header"><h2>🐾 All Pawsome Access Codes</h2></div><div class="card-body"><div class="table-responsive"><table class="data-table"><thead><tr><th>Code</th><th>Type</th><th>Name</th><th>Created</th></tr></thead><tbody>';
+        dogs.forEach(function(d){h+='<tr><td><span class="code-badge">'+(d.accessCode||'—')+'</span></td><td>🐕 Dog Owner</td><td>'+(d.owner_first||'')+' '+(d.owner_last||'')+' ('+( d.dog_name||'')+')</td><td>'+fmtDate(d.createdAt)+'</td></tr>'});
+        boarders.forEach(function(b){h+='<tr><td><span class="code-badge">'+(b.accessCode||'—')+'</span></td><td>🏠 Boarder</td><td>'+(b.b_first||'')+' '+(b.b_last||'')+'</td><td>'+fmtDate(b.createdAt)+'</td></tr>'});
+        h+='</tbody></table></div></div></div>';
+    }
+    tc.innerHTML=h;
+}
+
+function filterCompanyDogs(q){q=q.toLowerCase();var g=$('compDogGrid');if(!g)return;var f=q?dogs.filter(function(d){return(d.dog_name||'').toLowerCase().indexOf(q)>=0||(d.owner_first||'').toLowerCase().indexOf(q)>=0||(d.owner_last||'').toLowerCase().indexOf(q)>=0||(d.dog_breed||'').toLowerCase().indexOf(q)>=0}):dogs;g.innerHTML=f.map(function(d,i){return'<div class="entity-card" onclick="viewCompanyDog('+dogs.indexOf(d)+')"><div class="entity-card-top"><div class="entity-card-icon">'+(d.photoUrl?'<img src="'+d.photoUrl+'">':'🐕')+'</div><div class="entity-card-info"><h3>'+(d.dog_name||'Unknown')+'</h3><p>'+(d.dog_breed||'')+'</p></div></div></div>'}).join('')}
+
+function viewCompanyDog(i){formData=dogs[i];uploadedDocs=formData.documents||[];photoUrl=formData.photoUrl||null;renderDogProfile(formData)}
+function viewCompanyBoarder(i){formData=boarders[i];boarderPhotos=formData.homePhotos||[];renderBoarderProfile(formData)}
+
+// ============================================
+// START NEW DOG / BOARDER
+// ============================================
+function startNewDog(){
+    formData={companyId:companyId,accessCode:genCode(8)};
+    uploadedDocs=[];photoFile=null;photoUrl=null;
+    activeSections=DOG_SECTIONS;activeFormType='dog';
+    currentSection=0;show('progressBar');show('navBar');
+    renderSection();updateProgress();
+}
+function startNewBoarder(){
+    formData={companyId:companyId,accessCode:genCode(8)};
+    boarderPhotos=[];photoFile=null;photoUrl=null;
+    activeSections=BOARDER_SECTIONS;activeFormType='boarder';
+    currentSection=0;show('progressBar');show('navBar');
+    renderSection();updateProgress();
+}
+function backToDash(){
+    hide('progressBar');hide('navBar');formData={};
+    if(role==='admin')renderAdminDash();
+    else if(role==='company')renderCompanyDash();
+}
+
+// ============================================
+// SAVE PROFILE
+// ============================================
+async function saveDogProfile(){
+    if(!fbReady){alert('Not connected');return}
+    var btn=$('btnSubmit');if(btn){btn.disabled=true;btn.textContent='Saving...'}
+    try{
+        if(photoFile){var ref=storage.ref('safepets/photos/'+(formData.accessCode||'x')+'/'+Date.now()+'_'+photoFile.name);var snap=await ref.put(photoFile);formData.photoUrl=await snap.ref.getDownloadURL()}
+        for(var i=0;i<uploadedDocs.length;i++){if(uploadedDocs[i]._file){var f=uploadedDocs[i]._file;var ref=storage.ref('safepets/docs/'+(formData.accessCode||'x')+'/'+Date.now()+'_'+f.name);var snap=await ref.put(f);uploadedDocs[i].url=await snap.ref.getDownloadURL();uploadedDocs[i].fileName=f.name;delete uploadedDocs[i]._file}}
+        formData.documents=uploadedDocs;formData.updatedAt=new Date().toISOString();
+        if(formData._id){var id=formData._id;var sd={...formData};delete sd._id;await db.collection('safepets_dogs').doc(id).update(sd)}
+        else{formData.createdAt=new Date().toISOString();var sd={...formData};delete sd._id;var ref=await db.collection('safepets_dogs').add(sd);formData._id=ref.id}
+        hide('progressBar');hide('navBar');
+        if(role==='customer'){renderDogProfile(formData)}
+        else{alert('Dog profile saved! Customer Pawsome Access Code: '+formData.accessCode);loadCompanyData()}
+    }catch(e){console.error(e);alert('Error saving');if(btn){btn.disabled=false;btn.textContent='✅ Submit'}}
+}
+
+async function saveBoarderProfile(){
+    if(!fbReady){alert('Not connected');return}
+    var btn=$('btnSubmit');if(btn){btn.disabled=true;btn.textContent='Saving...'}
+    try{
+        if(photoFile){var ref=storage.ref('safepets/boarders/'+(formData.accessCode||'x')+'/profile_'+Date.now());var snap=await ref.put(photoFile);formData.profilePhotoUrl=await snap.ref.getDownloadURL()}
+        for(var i=0;i<boarderPhotos.length;i++){if(boarderPhotos[i]._file){var f=boarderPhotos[i]._file;var ref=storage.ref('safepets/boarders/'+(formData.accessCode||'x')+'/home_'+Date.now()+'_'+f.name);var snap=await ref.put(f);boarderPhotos[i].url=await snap.ref.getDownloadURL();delete boarderPhotos[i]._file;delete boarderPhotos[i].preview}}
+        formData.homePhotos=boarderPhotos;formData.updatedAt=new Date().toISOString();
+        if(formData._id){var id=formData._id;var sd={...formData};delete sd._id;await db.collection('safepets_boarders').doc(id).update(sd)}
+        else{formData.createdAt=new Date().toISOString();var sd={...formData};delete sd._id;var ref=await db.collection('safepets_boarders').add(sd);formData._id=ref.id}
+        hide('progressBar');hide('navBar');
+        if(role==='boarder'){renderBoarderProfile(formData)}
+        else{alert('Boarder profile saved! Pawsome Access Code: '+formData.accessCode);loadCompanyData()}
+    }catch(e){console.error(e);alert('Error saving');if(btn){btn.disabled=false;btn.textContent='✅ Submit'}}
+}
+
+// ============================================
+// RENDER SECTION (DOG + BOARDER)
+// ============================================
+function renderSection(){
+    var s=activeSections[currentSection],mc=$('mainContent'),h='<div class="form-card">';
+    if(activeFormType==='dog')h+=renderDogSection(s);
+    else h+=renderBoarderSection(s);
+    h+='</div>';mc.innerHTML=h;window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderDogSection(s){
+    var h='';
+    switch(s.id){
+    case'owner':h+=secH('👤','Owner Details','Primary contact information');h+='<div class="fr">'+fieldText('owner_first','First Name','','req')+fieldText('owner_last','Last Name','','req')+'</div>';h+=fieldText('owner_address','Address','Full address including postcode','req');h+='<div class="fr">'+fieldText('owner_phone','Phone','','req','','tel')+fieldText('owner_email','Email','','req','','email')+'</div>';h+=subS('🚨','Emergency Contact');h+='<div class="info-box">Contacted if we cannot reach you.</div>';h+='<div class="fr">'+fieldText('emerg_name','Name','','req')+fieldText('emerg_phone','Phone','','req','','tel')+'</div>';h+=fieldText('emerg_relationship','Relationship');break;
+    case'dog_id':h+=secH('🐕','Dog Identity','Essential identification');h+='<div class="fr">'+fieldText('dog_name','Dog\'s Name','','req')+fieldText('dog_nickname','Known As','','','What do you call them?')+'</div>';h+='<div class="fr">'+fieldSel('dog_breed','Breed',BREEDS,true)+fieldText('dog_breed_other','If Other, specify')+'</div>';h+='<div class="fr">'+fieldText('dog_dob','Date of Birth','','','','date')+fieldText('dog_age','Approx Age','e.g. 3 years')+'</div>';h+='<div class="fr">'+fieldPills('dog_sex','Sex',['Male','Female'],true)+fieldPills('dog_neutered','Neutered/Spayed?',['Yes','No'],true)+'</div>';h+='<div class="fr">'+fieldText('dog_colour','Colour/Markings','','req')+fieldSel('dog_size','Size',['Toy (under 5kg)','Small (5-10kg)','Medium (10-25kg)','Large (25-45kg)','Giant (over 45kg)'],true)+'</div>';h+='<div class="fr">'+fieldText('dog_weight','Weight (kg)','','','','number')+fieldText('dog_microchip','Microchip No','15-digit','req')+'</div>';h+=fieldTA('dog_distinguishing','Distinguishing Features','Scars, markings, docked tail');break;
+    case'photo':h+=secH('📸','Photo & Documents','Upload photo and important documents');h+='<div class="text-center mb-16"><div class="photo-upload" onclick="triggerPhoto()">'+(photoUrl?'<img src="'+photoUrl+'">':'<div class="ph"><span>📷</span>Upload photo</div>')+'</div></div>';h+=subS('📄','Documents');var dt=['Vaccination Certificate','Insurance Document','Vet Records','Microchip Registration','Behaviour Assessment','Other'];h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:16px">'+dt.map(function(d){return'<button class="pill" style="font-size:12px;padding:8px 12px;text-align:center" onclick="triggerDoc(\''+d+'\')">+ '+d+'</button>'}).join('')+'</div>';if(uploadedDocs.length){h+='<ul class="doc-list">';uploadedDocs.forEach(function(d,i){h+='<li class="doc-item"><div class="doc-name">📎 <strong>'+d.type+'</strong> — '+d.fileName+'</div><button class="doc-remove" onclick="removeDoc('+i+')">✕</button></li>'});h+='</ul>'}break;
+    case'vet':h+=secH('🏥','Veterinary','Registered vet practice');h+=fieldText('vet_name','Vet Practice','','req');h+=fieldText('vet_address','Address','','req');h+='<div class="fr">'+fieldText('vet_phone','Phone','','req','','tel')+fieldText('vet_email','Email','','','','email')+'</div>';h+=subS('🌙','Emergency Vet');h+=fieldText('vet_emergency','Emergency Practice');h+=fieldText('vet_emergency_phone','Phone','','','','tel');break;
+    case'insurance':h+=secH('🛡️','Insurance','Pet insurance details');h+=fieldPills('insurance_active','Insured?',['Yes','No'],true);if(val('insurance_active')==='Yes'){h+=fieldText('insurance_provider','Provider','','req');h+='<div class="fr">'+fieldText('insurance_policy','Policy No','','req')+fieldText('insurance_expiry','Expiry','','','','date')+'</div>';h+=fieldSel('insurance_cover','Cover Level',['Accident Only','Time-Limited','Maximum Benefit','Lifetime','Not Sure']);h+=fieldText('insurance_phone','Claims Phone','','','','tel');h+=fieldTA('insurance_notes','Exclusions')}if(val('insurance_active')==='No')h+='<div class="warn-box">⚠️ You will be fully responsible for any vet costs.</div>';break;
+    case'health':h+=secH('💊','Health & Medical','Vaccinations, conditions, medications');h+=subS('💉','Vaccinations');h+=fieldPills('vacc_primary','Primary (DHP) up to date?',['Yes','No','Unsure']);h+=fieldText('vacc_primary_date','Date','','','','date');h+=fieldPills('vacc_kennel_cough','Kennel Cough?',['Yes','No','Unsure']);h+=fieldPills('vacc_rabies','Rabies?',['Yes','No','N/A']);h+=fieldPills('vacc_lepto','Leptospirosis?',['Yes','No','Unsure']);h+=subS('🩺','Conditions');h+=fieldPills('has_conditions','Medical conditions?',['Yes','No']);if(val('has_conditions')==='Yes')h+=fieldTA('conditions_detail','Details');h+=fieldPills('has_allergies','Allergies?',['Yes','No']);if(val('has_allergies')==='Yes')h+=fieldTA('allergies_detail','Details');h+=fieldPills('has_medication','On medication?',['Yes','No']);if(val('has_medication')==='Yes')h+=fieldTA('medication_detail','Name, dose, frequency',null,4);h+=subS('🐛','Parasite Prevention');h+='<div class="fr">'+fieldText('flea_product','Flea Treatment')+fieldText('flea_date','Last Applied','','','','date')+'</div>';h+='<div class="fr">'+fieldText('worm_product','Worming')+fieldText('worm_date','Last Given','','','','date')+'</div>';break;
+    case'feeding':h+=secH('🍖','Feeding','Diet, meals, treats');h+=fieldSel('food_type','Food Type',['Dry Kibble','Wet Food','Raw Diet','Home Cooked','Mixed','Prescription','Other'],true);h+='<div class="fr">'+fieldText('food_brand','Brand','','req')+fieldText('food_amount','Amount/Meal','e.g. 150g','req')+'</div>';h+='<div class="fr">'+fieldSel('food_frequency','Meals/Day',['1','2','3','4','Free Fed'],true)+fieldText('food_times','Feeding Times','e.g. 7:30am, 5:30pm','req')+'</div>';h+=fieldPills('food_guarding','Resource guarding?',['None','Mild','Moderate','Severe']);h+=fieldTA('food_allergies','Food Allergies');h+=subS('🦴','Treats');h+=fieldTA('treats_favourite','Favourite Treats');h+=fieldTA('treats_avoid','Treats to AVOID');break;
+    case'behaviour':h+=secH('🧠','Behaviour','Personality and triggers');h+='<div class="info-box">Rate 1-5. No wrong answers.</div>';h+=fieldRating('beh_confidence','Confidence','Nervous','Confident');h+=fieldRating('beh_energy','Energy','Calm','High');h+=fieldRating('beh_strangers','Strangers','Wary','Loves all');h+=fieldRating('beh_children','Children','Not suitable','Excellent');h+=fieldRating('beh_dogs','Other Dogs','Reactive','Excellent');h+=fieldRating('beh_cats','Cats/Small Animals','Prey drive','Excellent');h+=fieldRating('beh_separation','Separation','Cannot be left','Fine');h+=fieldRating('beh_noise','Noise Sensitivity','Not bothered','Very sensitive');h+=subS('⚡','Triggers');h+=fieldChips('beh_fears','Fear Triggers',['Fireworks','Thunder','Vacuum','Men','Women','Children','Other dogs','Cars','Water','Vet visits','Being alone','Bicycles','Skateboards','Umbrellas']);h+=fieldChips('beh_issues','Issues',['Barking','Chewing','Counter surfing','Digging','Jumping','Lead pulling','Reactivity','Mouthing','Escaping','Humping','Chasing','Guarding']);h+=fieldPills('beh_bite_person','Bitten a person?',['Yes','No']);if(val('beh_bite_person')==='Yes')h+=fieldTA('beh_bite_person_detail','Describe');h+=fieldPills('beh_bite_animal','Bitten an animal?',['Yes','No']);if(val('beh_bite_animal')==='Yes')h+=fieldTA('beh_bite_animal_detail','Describe');h+=fieldTA('beh_stress_signs','Stress signals');h+=fieldTA('beh_calming','What calms them');break;
+    case'training':h+=secH('🎓','Training & Commands','Exact words you use');h+=fieldSel('train_level','Level',['No training','Basic','Intermediate','Advanced','Working dog']);h+='<div class="warn-box">⚠️ Enter the <strong>exact words</strong> — dogs respond to specific phrases.</div>';h+='<div class="fr">'+fieldText('cmd_sit','Sit')+fieldText('cmd_down','Down')+'</div>';h+='<div class="fr">'+fieldText('cmd_stay','Stay/Wait')+fieldText('cmd_come','Come/Recall')+'</div>';h+='<div class="fr">'+fieldText('cmd_leave','Leave It')+fieldText('cmd_drop','Drop It')+'</div>';h+='<div class="fr">'+fieldText('cmd_heel','Heel')+fieldText('cmd_bed','Bed/Crate')+'</div>';h+='<div class="fr">'+fieldText('cmd_no','No/Stop')+fieldText('cmd_good','Reward Word')+'</div>';h+='<div class="fr">'+fieldText('cmd_toilet','Toilet Command')+fieldText('cmd_emergency','Emergency Stop')+'</div>';h+=fieldTA('cmd_other','Other commands/tricks');h+=fieldRating('train_recall','Recall','Ignores','Bombproof');h+=fieldPills('train_lead','Lead?',['Walks well','Some pulling','Strong puller','Reactive']);h+='<div class="fr">'+fieldPills('train_crate','Crate?',['Yes','Partially','No'])+fieldPills('train_muzzle','Muzzle?',['Yes','No','In progress'])+'</div>';break;
+    case'routine':h+=secH('⏰','Daily Routine','Typical schedule');h+='<div class="fr">'+fieldText('routine_wake','Wake Time','','','','time')+fieldText('routine_bed','Bedtime','','','','time')+'</div>';h+='<div class="fr">'+fieldText('routine_walk_am','AM Walk')+fieldText('routine_walk_pm','PM Walk')+'</div>';h+=fieldTA('routine_typical','Describe Typical Day','',5);h+=fieldPills('routine_alone','Left alone?',['Rarely','Up to 2hrs','2-4hrs','4-6hrs','6+hrs']);h+=fieldPills('routine_car','Car travel?',['Loves it','Fine','Anxious','Car sick']);break;
+    case'toileting':h+=secH('🌿','Toileting','House training');h+=fieldPills('toilet_trained','House trained?',['Yes','Mostly','In progress','No'],true);h+=fieldPills('toilet_signal','Signal?',['Goes to door','Barks','Sits quietly','Paces','Nudges','No signal']);h+=fieldText('toilet_command','Toilet Command');h+=fieldPills('toilet_issues','Issues?',['None','Accidents','Marking','Submissive','Excitement','Incontinence']);break;
+    case'sleeping':h+=secH('🌙','Sleeping','Sleep habits');h+=fieldPills('sleep_location','Sleeps where?',['Own bed','Crate','Owner bed','Sofa','Kitchen','Varies'],true);h+=fieldPills('sleep_through','Through night?',['Yes','Usually','Sometimes wakes','Frequently wakes']);h+=fieldPills('sleep_settle','Settles?',['Quickly','Needs told','Takes a while','Needs company']);h+=fieldTA('sleep_routine','Bedtime Routine');h+='<div class="fr">'+fieldPills('sleep_light','Light?',['Dark','Night light','No preference'])+fieldPills('sleep_noise','Noise?',['Silence','Radio','TV','White noise','Any'])+'</div>';break;
+    case'likes':h+=secH('❤️','Likes & Dislikes','Favourites and fears');h+=fieldTA('likes_toys','Favourite Toys');h+=fieldTA('likes_games','Favourite Games');h+=fieldTA('likes_treats','Favourite Treats');h+=fieldTA('likes_general','Things They Love');h+=fieldTA('dislikes_general','Things They Dislike');h+=fieldTA('dislikes_fears','Fears/Phobias');h+=fieldTA('likes_quirks','Quirks & Funny Habits');break;
+    case'exercise':h+=secH('🏃','Exercise & Grooming','Activity and grooming');h+=fieldSel('ex_level','Exercise Level',['Low','Moderate (30-60min)','High (1-2hrs)','Very High (2+hrs)'],true);h+='<div class="fr">'+fieldText('ex_duration','Walk Duration')+fieldText('ex_per_day','Walks/Day')+'</div>';h+=fieldChips('ex_activities','Activities',['Walking','Running','Hiking','Swimming','Fetch','Agility','Scent work','Dog park','Frisbee']);h+=fieldPills('ex_off_lead','Off lead?',['Yes','Enclosed only','Must stay on lead'],true);h+=fieldPills('ex_lead_type','Lead Type',['Standard','Extending','Harness','Head collar','Slip lead']);h+=subS('✂️','Grooming');h+=fieldSel('groom_coat','Coat',['Short','Medium','Long','Wire','Curly','Double coat']);h+=fieldPills('groom_brush','Brushing?',['Loves it','Tolerates','Dislikes','Struggles']);h+=fieldPills('groom_nails','Nail clipping?',['Fine','Tolerates','Anxious','Vet only']);break;
+    case'social':h+=secH('🐾','Socialisation','Social experience');h+=fieldPills('social_kennels','Been to kennels?',['Yes','No']);if(val('social_kennels')==='Yes')h+=fieldTA('social_kennels_detail','How did they cope?');h+=fieldPills('social_new_dogs','New dogs?',['Friendly','Polite','Nervous','Reactive','Selective']);h+=fieldPills('social_new_people','New people?',['Friendly','Shy','Protective','Jumps on them']);h+=fieldTA('social_concerns','Concerns');h+=fieldPills('social_incident','Serious incident?',['Yes','No']);if(val('social_incident')==='Yes')h+=fieldTA('social_incident_detail','Describe');break;
+    case'emergency':h+=secH('🚨','Emergency Consent','Emergency authorisations');h+='<div class="warn-box">⚠️ This authorises emergency actions on your behalf.</div>';h+=fieldPills('emerg_consent','Emergency treatment?',['Yes - any','Yes - spending limit','Must contact me'],true);if(val('emerg_consent')==='Yes - spending limit')h+=fieldText('emerg_limit','Max Spend (£)','','req','','number');h+=fieldPills('emerg_lifethreat','Life-threatening?',['All necessary','Up to limit','Must contact me']);h+=fieldPills('emerg_dnr','DNR?',['No DNR','DNR in place','Discuss with vet']);h+=fieldTA('emerg_instructions','Specific instructions');h+='<div class="ok-box"><strong>Declaration:</strong> I understand attempts will be made to contact me first.</div>';h+=fieldPills('emerg_agree','I agree',['Yes, I agree'],true);break;
+    case'review':h+=secH('✅','Review & Submit','Check your information');var n=val('dog_name')||'Your dog';h+='<div style="background:var(--bg);border-radius:var(--radius);padding:20px;margin-bottom:16px;border:1px solid var(--border)">';h+='<div class="text-center mb-16">'+(photoUrl?'<img src="'+photoUrl+'" style="width:80px;height:80px;border-radius:50%;object-fit:cover;box-shadow:var(--shadow-md)">':'<div style="font-size:48px">🐕</div>')+'<h3 style="margin-top:8px">'+n+'</h3><p style="color:var(--text-light);font-size:13px">'+(val('dog_breed')||'')+'</p></div>';[['Owner',val('owner_first')+' '+val('owner_last')],['Vet',val('vet_name')],['Food',val('food_brand')],['Exercise',val('ex_level')],['Microchip',val('dog_microchip')],['Documents',uploadedDocs.length+' uploaded'],['Emergency',val('emerg_consent')],['Pawsome Code',formData.accessCode||'—']].forEach(function(r){h+='<div class="profile-row"><span class="lbl">'+r[0]+'</span><span class="val">'+(r[1]||'—')+'</span></div>'});h+='</div>';h+='<div class="ok-box"><strong>By submitting:</strong> All information is accurate. You are the legal owner. You consent to secure storage.</div>';h+='<button id="btnSubmit" class="btn btn-success btn-block" style="padding:16px;font-size:16px;font-weight:700;border-radius:var(--radius)" onclick="saveDogProfile()">✅ Submit Dog Profile</button>';break;
+    }
+    return h;
+}
+
+function renderBoarderSection(s){
+    var h='';
+    switch(s.id){
+    case'b_personal':h+=secH('👤','Personal Details','Your contact information');h+='<div class="fr">'+fieldText('b_first','First Name','','req')+fieldText('b_last','Last Name','','req')+'</div>';h+=fieldText('b_address','Full Address','Including postcode','req');h+=fieldText('b_address_town','Town/City','','req');h+='<div class="fr">'+fieldText('b_phone','Phone','','req','','tel')+fieldText('b_email','Email','','req','','email')+'</div>';h+=fieldText('b_dob','Date of Birth','','','','date');h+=fieldPills('b_dbs','DBS / PVG Check?',['Yes - enhanced','Yes - basic','No','Applied'],true,'Required for boarding');if(val('b_dbs')&&val('b_dbs').startsWith('Yes'))h+='<div class="fr">'+fieldText('b_dbs_number','Certificate Number')+fieldText('b_dbs_date','Issue Date','','','','date')+'</div>';h+=fieldText('b_bio','About You','Short bio about yourself and why you board dogs','','','');break;
+    case'b_property':h+=secH('🏠','Property & Home','Your home and facilities');h+=fieldSel('b_property_type','Property Type',['Detached house','Semi-detached','Terraced','Bungalow','Flat/apartment','Farmhouse','Smallholding','Other'],true);h+=fieldPills('b_own_rent','Own or rent?',['Own','Rent'],true);if(val('b_own_rent')==='Rent')h+='<div class="warn-box">⚠️ You will need written landlord permission to board dogs.</div>';h+=fieldPills('b_garden','Garden?',['Yes - large','Yes - medium','Yes - small','No garden'],true);h+=fieldPills('b_garden_secure','Garden fully secured/fenced?',['Yes - fully secure','Partially','No'],true);if(val('b_garden_secure')&&val('b_garden_secure')!=='Yes - fully secure')h+='<div class="alert-box">⚠️ A fully secured garden is usually required for home boarding.</div>';h+=fieldText('b_fence_height','Fence Height','e.g. 6ft, 1.8m');h+=fieldPills('b_fence_type','Fence Type',['Wooden panel','Chain link','Brick wall','Hedging','Mixed']);h+=fieldPills('b_location','Area Type',['Urban','Suburban','Semi-rural','Rural','Coastal']);h+=fieldText('b_nearest_walk','Nearest Walking Area','e.g. Park 200m, fields directly adjacent');h+=fieldTA('b_property_notes','Property Notes','e.g. Pond (fenced off), swimming pool, main road nearby');break;
+    case'b_household':h+=secH('👨‍👩‍👧‍👦','Household','People and pets in your home');h+=fieldText('b_adults','Number of Adults','','req','','number');h+=fieldPills('b_children','Children in home?',['Yes','No'],true);if(val('b_children')==='Yes'){h+=fieldText('b_children_ages','Children\'s Ages','e.g. 3, 7, 12');h+='<div class="info-box">Certain dogs may not be suitable for homes with young children.</div>'}h+=fieldPills('b_own_dogs','Own dogs?',['Yes','No']);if(val('b_own_dogs')==='Yes'){h+=fieldText('b_own_dogs_count','How many?','','','','number');h+=fieldTA('b_own_dogs_details','Breed, age, temperament of your dogs')}h+=fieldPills('b_own_cats','Own cats?',['Yes','No']);h+=fieldPills('b_other_pets','Other pets?',['Yes','No']);if(val('b_other_pets')==='Yes')h+=fieldTA('b_other_pets_detail','What pets?','e.g. Rabbits, chickens, horses');h+=fieldPills('b_smoker','Anyone smoke in home?',['No','Yes - outside only','Yes - inside']);h+=fieldPills('b_someone_home','Someone home during day?',['Always','Mostly','Part time','Working from home','Away 4+ hours']);break;
+    case'b_experience':h+=secH('🏆','Experience & Qualifications','Your boarding experience');h+=fieldSel('b_exp_years','Years of Boarding Experience',['Less than 1 year','1-2 years','3-5 years','5-10 years','10+ years','New to boarding']);h+=fieldTA('b_exp_background','Dog Experience Background','e.g. Owned dogs all my life, worked in rescue, qualified groomer',4);h+=fieldChips('b_qualifications','Qualifications & Training',['Canine First Aid','Dog Behaviour Certificate','Animal Care Diploma','Kennel Club Accredited','Pet Sitter Certified','Grooming Qualification','Veterinary Nursing','Animal Psychology','None - learning']);h+=fieldPills('b_first_aid','First Aid Trained?',['Yes - canine','Yes - human','Both','No'],true);if(val('b_first_aid')&&val('b_first_aid')!=='No')h+=fieldText('b_first_aid_expiry','Certificate Expiry','','','','date');h+=fieldTA('b_references','Professional References','e.g. Vet, previous boarding clients, character references',3);break;
+    case'b_insurance':h+=secH('📋','Insurance & Licensing','Required insurance and licences');h+=fieldPills('b_licensed','Home Boarding Licence?',['Yes','No','Applied','Not required in my area'],true);if(val('b_licensed')==='Yes'){h+=fieldText('b_licence_number','Licence Number');h+=fieldText('b_licence_authority','Issuing Authority','e.g. Highland Council');h+=fieldText('b_licence_expiry','Licence Expiry','','','','date');h+=fieldText('b_licence_max','Max Dogs on Licence','','','','number')}if(val('b_licensed')==='No')h+='<div class="alert-box">⚠️ Home boarding licences are required in most UK local authority areas under the Animal Welfare (Licensing of Activities Involving Animals) Regulations 2018.</div>';h+=fieldPills('b_public_liability','Public Liability Insurance?',['Yes','No'],true);if(val('b_public_liability')==='Yes'){h+=fieldText('b_pl_provider','Provider');h+=fieldText('b_pl_policy','Policy Number');h+=fieldText('b_pl_expiry','Expiry','','','','date');h+=fieldText('b_pl_cover','Cover Level','e.g. £2m, £5m')}if(val('b_public_liability')==='No')h+='<div class="alert-box">⚠️ Public liability insurance is essential for home boarding.</div>';h+=fieldPills('b_care_custody','Care, Custody & Control Insurance?',['Yes','No']);h+=fieldPills('b_key_holding','Key Holding Insurance?',['Yes','No','N/A']);break;
+    case'b_capacity':h+=secH('🐕','Boarding Capacity','What dogs you take and how many');h+=fieldText('b_max_dogs','Maximum Dogs at Any Time','','req','Including your own dogs','number');h+=fieldChips('b_sizes_accepted','Dog Sizes Accepted',['Toy (under 5kg)','Small (5-10kg)','Medium (10-25kg)','Large (25-45kg)','Giant (over 45kg)'],'Select all sizes you accept');h+=fieldChips('b_types_accepted','Dogs You Accept',['Puppies (under 6 months)','Young dogs (6-18 months)','Adult dogs','Senior dogs','Unneutered males','Unspayed females','Dogs in season','Rescue/rehomed dogs','Dogs with medical needs','Dogs on medication'],'Select all that apply');h+=fieldTA('b_breeds_not_accepted','Breeds NOT Accepted','e.g. Certain breeds excluded by your insurance');h+=fieldTA('b_will_not_accept','Dogs You Will NOT Accept','e.g. Aggressive dogs, dogs not vaccinated, dogs not neutered');h+=fieldPills('b_same_household','Dogs from different households together?',['Yes','One household only','Case by case']);h+=fieldPills('b_puppies','Take puppies?',['Yes','No','Depends on age']);h+=fieldPills('b_special_needs','Take special needs dogs?',['Yes','Some conditions','No']);if(val('b_special_needs')&&val('b_special_needs')!=='No')h+=fieldTA('b_special_needs_detail','What conditions can you manage?');break;
+    case'b_facilities':h+=secH('🏡','Facilities & Routine','Sleeping, exercise, daily care');h+=subS('🛏️','Sleeping Arrangements');h+=fieldPills('b_sleep_where','Where do dogs sleep?',['Dedicated room','Kitchen/utility','Living room','Owner bedroom','Crate in room','Varies'],true);h+=fieldTA('b_sleep_detail','Describe sleeping arrangements','e.g. Orthopaedic beds provided, crates available');h+=fieldPills('b_separate_sleep','Can dogs be separated at night?',['Yes','No']);h+=subS('🏃','Exercise & Activity');h+=fieldText('b_walks_per_day','Walks per Day','e.g. 2-3','req');h+=fieldText('b_walk_duration','Typical Walk Duration','e.g. 30-60 mins','req');h+=fieldPills('b_walk_location','Walk Location',['Own land','Public park','Woodland/countryside','Beach','Mixed']);h+=fieldPills('b_off_lead','Off-lead exercise available?',['Yes - own land','Yes - secure field','Public areas only','On lead only']);h+=subS('🍖','Feeding');h+=fieldPills('b_feed_own_food','Feed dog\'s own food?',['Yes always','Can provide food','Both options'],true);h+=fieldTA('b_daily_routine','Describe Your Typical Boarding Day','e.g. 7am wake, garden, breakfast, 9am walk, rest until lunch...',5);break;
+    case'b_emergency':h+=secH('🚨','Emergency Procedures','Emergency vet and plans');h+=fieldText('b_emerg_vet','Emergency Vet Practice','','req');h+=fieldText('b_emerg_vet_phone','Emergency Vet Phone','','req','','tel');h+=fieldText('b_emerg_vet_address','Emergency Vet Address');h+=fieldTA('b_emerg_plan','Emergency Action Plan','What do you do if a dog is injured, escapes, becomes ill?',5);h+=fieldText('b_emerg_contact','Your Emergency Contact');h+=fieldText('b_emerg_contact_phone','Their Phone','','','','tel');h+=fieldTA('b_fire_plan','Fire Evacuation Plan','How do you evacuate dogs in a fire?',3);h+=fieldPills('b_transport','Emergency Transport?',['Own car','Can arrange','No transport']);break;
+    case'b_availability':h+=secH('📅','Availability & Pricing','When you\'re available and your rates');h+=fieldPills('b_avail_general','General Availability',['Full time','Weekdays only','Weekends only','School holidays only','Flexible','Limited']);h+=fieldChips('b_avail_days','Days Available',['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],'Select all');h+=fieldPills('b_avail_overnight','Overnight Boarding?',['Yes','Day care only','Both'],true);h+=fieldPills('b_avail_holidays','Available over Christmas/New Year?',['Yes','No','Depends']);h+=fieldText('b_advance_notice','Advance Notice Required','e.g. 48 hours, 1 week');h+=subS('💰','Pricing');h+=fieldText('b_rate_day','Day Care Rate (£/day)','','','','number');h+=fieldText('b_rate_overnight','Overnight Rate (£/night)','','','','number');h+=fieldText('b_rate_additional','Additional Dog Discount','e.g. 50% off second dog');h+=fieldTA('b_services_extra','Additional Services Offered','e.g. Grooming, training, medication administration, puppy socialisation');h+=fieldTA('b_pricing_notes','Pricing Notes','e.g. Bank holidays +50%, collection/delivery available');break;
+    case'b_photos':h+=secH('📸','Photos of Home','Show off your boarding environment');h+='<div class="info-box">Upload photos of: your home, garden, sleeping areas, exercise areas, and any facilities. High-quality photos help dog owners choose you!</div>';h+='<div class="photo-grid">';boarderPhotos.forEach(function(p,i){h+='<div class="photo-thumb"><img src="'+(p.preview||p.url)+'"><button class="remove" onclick="removeBoarderPhoto('+i+')">✕</button></div>'});h+='<div class="photo-add" onclick="triggerBoarderPhoto()"><span>📷</span>Add Photos</div></div>';h+='<p style="font-size:12px;color:var(--text-lighter);margin-top:8px">'+boarderPhotos.length+' photo(s) uploaded</p>';break;
+    case'b_testimonials':h+=secH('⭐','Testimonials','References and reviews');h+='<div class="info-box">Add testimonials from previous clients or references. These help build trust with new dog owners.</div>';var testimonials=formData.b_testimonials_list||[];h+='<div id="testimonialsList">';testimonials.forEach(function(t,i){h+='<div class="doc-item" style="flex-direction:column;align-items:flex-start;gap:4px"><div style="display:flex;justify-content:space-between;width:100%"><strong>'+t.name+'</strong><button class="doc-remove" onclick="removeTestimonial('+i+')">✕</button></div><p style="font-size:12px;color:var(--text-light)">'+t.text+'</p><p style="font-size:11px;color:var(--text-lighter)">'+t.date+'</p></div>'});h+='</div>';h+='<div class="subsec"><div class="subsec-title">+ Add Testimonial</div></div>';h+='<div class="fr">'+fieldText('_test_name','Client Name')+fieldText('_test_date','Date','','','','date')+'</div>';h+=fieldTA('_test_text','Testimonial Text','What did they say about your service?');h+='<button class="btn btn-primary btn-sm mt-16" onclick="addTestimonial()">+ Add Testimonial</button>';break;
+    case'b_review':h+=secH('✅','Review & Submit','Check your information');h+='<div style="background:var(--bg);border-radius:var(--radius);padding:20px;margin-bottom:16px;border:1px solid var(--border)">';[['Name',(val('b_first')||'')+' '+(val('b_last')||'')],['Town',val('b_address_town')],['Licensed',val('b_licensed')],['Public Liability',val('b_public_liability')],['DBS',val('b_dbs')],['Max Dogs',val('b_max_dogs')],['Experience',val('b_exp_years')],['Overnight',val('b_avail_overnight')],['Day Rate','£'+val('b_rate_day')],['Night Rate','£'+val('b_rate_overnight')],['Photos',boarderPhotos.length+' uploaded'],['Pawsome Code',formData.accessCode||'—']].forEach(function(r){h+='<div class="profile-row"><span class="lbl">'+r[0]+'</span><span class="val">'+(r[1]||'—')+'</span></div>'});h+='</div>';h+='<div class="ok-box"><strong>By submitting:</strong> All information is accurate. You consent to secure storage and sharing with the company.</div>';h+='<button id="btnSubmit" class="btn btn-success btn-block" style="padding:16px;font-size:16px;font-weight:700;border-radius:var(--radius)" onclick="saveBoarderProfile()">✅ Submit Boarding Profile</button>';break;
+    }
+    return h;
+}
+
+function addTestimonial(){
+    var n=val('_test_name'),t=val('_test_text'),d=val('_test_date');
+    if(!n||!t){alert('Please enter client name and testimonial text');return}
+    if(!formData.b_testimonials_list)formData.b_testimonials_list=[];
+    formData.b_testimonials_list.push({name:n,text:t,date:d||new Date().toISOString().split('T')[0]});
+    delete formData._test_name;delete formData._test_text;delete formData._test_date;
+    renderSection();
+}
+function removeTestimonial(i){formData.b_testimonials_list.splice(i,1);renderSection()}
+
+// ============================================
+// PROFILE VIEWS
+// ============================================
+function renderDogProfile(d){
+    hide('progressBar');hide('navBar');var mc=$('mainContent');
+    function pR(l,v){return v?'<div class="profile-row"><span class="lbl">'+l+'</span><span class="val">'+v+'</span></div>':''}
+    function pA(l,a){return a&&a.length?pR(l,a.join(', ')):''}
+    function pRt(l,v){return v?pR(l,'●'.repeat(v)+'○'.repeat(5-v)+' ('+v+'/5)'):''}
+    var ph=d.photoUrl?'<img class="profile-photo-lg" src="'+d.photoUrl+'">':'<div class="profile-photo-lg" style="display:flex;align-items:center;justify-content:center;font-size:48px">🐕</div>';
+    var h='<div class="profile-hero">'+ph+'<div class="profile-name">'+(d.dog_name||'—')+'</div><div class="profile-sub">'+(d.dog_breed||'')+' · '+(d.dog_colour||'')+'</div>';
+    h+='<div style="margin-top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">';
+    if(role==='customer')h+='<button class="btn btn-primary btn-sm" onclick="enterDogEdit()">✏️ Edit</button>';
+    h+='<button class="btn btn-secondary btn-sm" onclick="window.print()">🖨️ Print</button>';
+    if(role!=='customer')h+='<button class="btn btn-blue btn-sm" onclick="backToDash()">← Back</button>';
+    h+='</div></div>';
+    h+='<div class="profile-grid">';
+    h+='<div class="profile-section"><div class="profile-section-header">🐕 Identity</div><div class="profile-section-body">'+pR('Name',d.dog_name)+pR('Breed',d.dog_breed)+pR('Sex',d.dog_sex)+pR('Neutered',d.dog_neutered)+pR('Size',d.dog_size)+pR('Weight',d.dog_weight?d.dog_weight+'kg':'')+pR('Microchip',d.dog_microchip)+pR('Colour',d.dog_colour)+'</div></div>';
+    h+='<div class="profile-section"><div class="profile-section-header">👤 Owner</div><div class="profile-section-body">'+pR('Name',(d.owner_first||'')+' '+(d.owner_last||''))+pR('Phone',d.owner_phone)+pR('Email',d.owner_email)+pR('Emergency',(d.emerg_name||'')+' '+(d.emerg_phone?'('+d.emerg_phone+')':''))+'</div></div>';
+    h+='<div class="profile-section"><div class="profile-section-header">🏥 Vet & Insurance</div><div class="profile-section-body">'+pR('Vet',d.vet_name)+pR('Phone',d.vet_phone)+pR('Insured',d.insurance_active)+(d.insurance_active==='Yes'?pR('Provider',d.insurance_provider):'')+'</div></div>';
+    h+='<div class="profile-section"><div class="profile-section-header">💊 Health</div><div class="profile-section-body">'+pR('Vaccinations',d.vacc_primary)+pR('Kennel Cough',d.vacc_kennel_cough)+pR('Conditions',d.has_conditions==='Yes'?d.conditions_detail:'None')+pR('Allergies',d.has_allergies==='Yes'?d.allergies_detail:'None')+pR('Medication',d.has_medication==='Yes'?d.medication_detail:'None')+'</div></div>';
+    h+='<div class="profile-section"><div class="profile-section-header">🍖 Feeding</div><div class="profile-section-body">'+pR('Food',d.food_brand)+pR('Type',d.food_type)+pR('Amount',d.food_amount)+pR('Meals',d.food_frequency)+pR('Times',d.food_times)+pR('Treats',d.treats_favourite)+pR('Avoid',d.treats_avoid)+'</div></div>';
+    h+='<div class="profile-section"><div class="profile-section-header">🧠 Behaviour</div><div class="profile-section-body">'+pRt('Confidence',d.beh_confidence)+pRt('Energy',d.beh_energy)+pRt('Strangers',d.beh_strangers)+pRt('Children',d.beh_children)+pRt('Dogs',d.beh_dogs)+pRt('Separation',d.beh_separation)+pA('Fears',d.beh_fears)+pA('Issues',d.beh_issues)+pR('Stress',d.beh_stress_signs)+pR('Calming',d.beh_calming)+'</div></div>';
+    h+='<div class="profile-section"><div class="profile-section-header">🎓 Commands</div><div class="profile-section-body">'+pR('Level',d.train_level)+pRt('Recall',d.train_recall)+pR('Sit',d.cmd_sit)+pR('Down',d.cmd_down)+pR('Stay',d.cmd_stay)+pR('Come',d.cmd_come)+pR('Leave',d.cmd_leave)+pR('Drop',d.cmd_drop)+pR('Good',d.cmd_good)+pR('Toilet',d.cmd_toilet)+pR('Lead',d.train_lead)+pR('Crate',d.train_crate)+'</div></div>';
+    h+='<div class="profile-section"><div class="profile-section-header">⏰ Routine</div><div class="profile-section-body">'+pR('Wake',d.routine_wake)+pR('Bed',d.routine_bed)+pR('AM Walk',d.routine_walk_am)+pR('PM Walk',d.routine_walk_pm)+pR('Left Alone',d.routine_alone)+pR('Sleeps',d.sleep_location)+pR('Through Night',d.sleep_through)+'</div></div>';
+    h+='<div class="profile-section"><div class="profile-section-header">❤️ Likes</div><div class="profile-section-body">'+pR('Toys',d.likes_toys)+pR('Games',d.likes_games)+pR('Loves',d.likes_general)+pR('Dislikes',d.dislikes_general)+pR('Quirks',d.likes_quirks)+'</div></div>';
+    h+='<div class="profile-section"><div class="profile-section-header">🏃 Exercise</div><div class="profile-section-body">'+pR('Level',d.ex_level)+pR('Off Lead',d.ex_off_lead)+pA('Activities',d.ex_activities)+pR('Toilet Trained',d.toilet_trained)+'</div></div>';
+    h+='<div class="profile-section"><div class="profile-section-header">🚨 Emergency</div><div class="profile-section-body">'+pR('Consent',d.emerg_consent)+pR('Limit',d.emerg_limit?'£'+d.emerg_limit:'')+pR('DNR',d.emerg_dnr)+'</div></div>';
+    var docs=d.documents||[];h+='<div class="profile-section"><div class="profile-section-header">📎 Documents ('+docs.length+')</div><div class="profile-section-body">';docs.forEach(function(doc){h+='<div class="doc-item"><div class="doc-name">📄 '+doc.type+' — '+doc.fileName+'</div>'+(doc.url?'<a href="'+doc.url+'" target="_blank" style="color:var(--blue);font-size:12px">View ↗</a>':'')+'</div>'});if(!docs.length)h+='<p style="color:var(--text-lighter)">None</p>';h+='</div></div></div>';
+    mc.innerHTML=h;
+}
+
+function renderBoarderProfile(d){
+    hide('progressBar');hide('navBar');var mc=$('mainContent');
+    function pR(l,v){return v?'<div class="profile-row"><span class="lbl">'+l+'</span><span class="val">'+v+'</span></div>':''}
+    function pA(l,a){return a&&a.length?pR(l,a.join(', ')):''}
+    var ph=d.profilePhotoUrl?'<img class="profile-photo-lg" src="'+d.profilePhotoUrl+'">':'<div class="profile-photo-lg" style="display:flex;align-items:center;justify-content:center;font-size:48px">🏠</div>';
+    var h='<div class="profile-hero" style="background:linear-gradient(135deg,var(--accent-light) 0%,#FFF 60%)">'+ph+'<div class="profile-name">'+(d.b_first||'')+' '+(d.b_last||'')+'</div><div class="profile-sub">'+(d.b_address_town||'')+' · Max '+(d.b_max_dogs||'?')+' dogs</div>';
+    h+='<div style="margin-top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">';
+    if(role==='boarder')h+='<button class="btn btn-accent btn-sm" onclick="enterBoarderEdit()">✏️ Edit</button>';
+    h+='<button class="btn btn-secondary btn-sm" onclick="window.print()">🖨️ Print</button>';
+    if(role!=='boarder')h+='<button class="btn btn-blue btn-sm" onclick="backToDash()">← Back</button>';
+    h+='</div></div>';
+    h+='<div class="profile-grid">';
+    h+='<div class="profile-section"><div class="profile-section-header">👤 Personal</div><div class="profile-section-body">'+pR('Name',(d.b_first||'')+' '+(d.b_last||''))+pR('Phone',d.b_phone)+pR('Email',d.b_email)+pR('Address',d.b_address)+pR('DBS',d.b_dbs)+pR('Bio',d.b_bio)+'</div></div>';
+    h+='<div class="profile-section"><div class="profile-section-header">🏠 Property</div><div class="profile-section-body">'+pR('Type',d.b_property_type)+pR('Own/Rent',d.b_own_rent)+pR('Garden',d.b_garden)+pR('Secure',d.b_garden_secure)+pR('Fence',d.b_fence_height)+pR('Area',d.b_location)+pR('Walking',d.b_nearest_walk)+'</div></div>';
+    h+='<div class="profile-section"><div class="profile-section-header">👨‍👩‍👧‍👦 Household</div><div class="profile-section-body">'+pR('Adults',d.b_adults)+pR('Children',d.b_children)+(d.b_children==='Yes'?pR('Ages',d.b_children_ages):'')+pR('Own Dogs',d.b_own_dogs)+pR('Cats',d.b_own_cats)+pR('Other Pets',d.b_other_pets)+pR('Smoker',d.b_smoker)+pR('Home During Day',d.b_someone_home)+'</div></div>';
+    h+='<div class="profile-section"><div class="profile-section-header">🏆 Experience</div><div class="profile-section-body">'+pR('Years',d.b_exp_years)+pR('Background',d.b_exp_background)+pA('Qualifications',d.b_qualifications)+pR('First Aid',d.b_first_aid)+'</div></div>';
+    h+='<div class="profile-section"><div class="profile-section-header">📋 Insurance & Licensing</div><div class="profile-section-body">'+pR('Licensed',d.b_licensed)+pR('Licence No',d.b_licence_number)+pR('Max on Licence',d.b_licence_max)+pR('Public Liability',d.b_public_liability)+pR('Provider',d.b_pl_provider)+pR('Cover',d.b_pl_cover)+pR('Care/Custody',d.b_care_custody)+'</div></div>';
+    h+='<div class="profile-section"><div class="profile-section-header">🐕 Capacity</div><div class="profile-section-body">'+pR('Max Dogs',d.b_max_dogs)+pA('Sizes',d.b_sizes_accepted)+pA('Types',d.b_types_accepted)+pR('Won\'t Accept',d.b_will_not_accept)+pR('Multi-household',d.b_same_household)+pR('Puppies',d.b_puppies)+pR('Special Needs',d.b_special_needs)+'</div></div>';
+    h+='<div class="profile-section"><div class="profile-section-header">🏡 Facilities</div><div class="profile-section-body">'+pR('Sleep',d.b_sleep_where)+pR('Walks/Day',d.b_walks_per_day)+pR('Walk Duration',d.b_walk_duration)+pR('Walk Location',d.b_walk_location)+pR('Off Lead',d.b_off_lead)+pR('Own Food',d.b_feed_own_food)+pR('Daily Routine',d.b_daily_routine)+'</div></div>';
+    h+='<div class="profile-section"><div class="profile-section-header">📅 Availability & Pricing</div><div class="profile-section-body">'+pR('Availability',d.b_avail_general)+pA('Days',d.b_avail_days)+pR('Overnight',d.b_avail_overnight)+pR('Christmas',d.b_avail_holidays)+pR('Day Rate','£'+(d.b_rate_day||'—'))+pR('Night Rate','£'+(d.b_rate_overnight||'—'))+pR('Discount',d.b_rate_additional)+pR('Extra Services',d.b_services_extra)+'</div></div>';
+    h+='<div class="profile-section"><div class="profile-section-header">🚨 Emergency</div><div class="profile-section-body">'+pR('Vet',d.b_emerg_vet)+pR('Vet Phone',d.b_emerg_vet_phone)+pR('Emergency Plan',d.b_emerg_plan)+pR('Fire Plan',d.b_fire_plan)+pR('Transport',d.b_transport)+'</div></div>';
+    // Photos
+    var photos=d.homePhotos||[];
+    h+='<div class="profile-section"><div class="profile-section-header">📸 Home Photos ('+photos.length+')</div><div class="profile-section-body">';
+    if(photos.length){h+='<div class="photo-grid">';photos.forEach(function(p){h+='<div class="photo-thumb"><img src="'+(p.url||p.preview)+'"></div>'});h+='</div>'}else h+='<p style="color:var(--text-lighter)">No photos</p>';
+    h+='</div></div>';
+    // Testimonials
+    var tests=d.b_testimonials_list||[];
+    h+='<div class="profile-section"><div class="profile-section-header">⭐ Testimonials ('+tests.length+')</div><div class="profile-section-body">';
+    tests.forEach(function(t){h+='<div style="padding:12px 0;border-bottom:1px solid var(--border)"><strong>'+t.name+'</strong><p style="font-size:13px;color:var(--text);margin:4px 0">\"'+t.text+'\"</p><p style="font-size:11px;color:var(--text-lighter)">'+t.date+'</p></div>'});
+    if(!tests.length)h+='<p style="color:var(--text-lighter)">No testimonials yet</p>';
+    h+='</div></div></div>';
+    mc.innerHTML=h;
+}
+
+function enterDogEdit(){
+    activeSections=DOG_SECTIONS;activeFormType='dog';
+    uploadedDocs=formData.documents||[];photoUrl=formData.photoUrl||null;
+    currentSection=0;show('progressBar');show('navBar');renderSection();updateProgress();
+}
+function enterBoarderEdit(){
+    activeSections=BOARDER_SECTIONS;activeFormType='boarder';
+    boarderPhotos=formData.homePhotos||[];photoUrl=formData.profilePhotoUrl||null;
+    currentSection=0;show('progressBar');show('navBar');renderSection();updateProgress();
+}
+
+// ============================================
+// NAVIGATION
+// ============================================
+function nextSection(){if(currentSection<activeSections.length-1){currentSection++;renderSection();updateProgress()}}
+function prevSection(){if(currentSection>0){currentSection--;renderSection();updateProgress()}}
+function goToSection(i){currentSection=i;renderSection();updateProgress()}
+function updateProgress(){
+    var p=Math.round(currentSection/(activeSections.length-1)*100);
+    $('progressLabel').textContent='Section '+(currentSection+1)+' of '+activeSections.length;
+    $('progressPct').textContent=p+'%';$('progressFill').style.width=p+'%';
+    $('btnPrev').disabled=currentSection===0;$('btnNext').disabled=currentSection===activeSections.length-1;
+    $('btnNext').textContent=currentSection===activeSections.length-1?'Submit ↑':'Next →';
+    var dots='';activeSections.forEach(function(s,i){var c='nav-dot';if(i===currentSection)c+=' current';else if(i<currentSection)c+=' done';dots+='<button class="'+c+'" onclick="goToSection('+i+')" title="'+s.title+'"></button>'});
+    $('navDots').innerHTML=dots;
+}
+
+// ============================================
+// MODAL
+// ============================================
+function openModal(){$('modalOverlay').classList.add('active');document.body.style.overflow='hidden'}
+function closeModal(){$('modalOverlay').classList.remove('active');document.body.style.overflow=''}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal()});
+
+// ============================================
+// INIT
+// ============================================
+document.addEventListener('DOMContentLoaded',function(){$('loginCode').focus()});
+</script>
+</body>
+</html>
