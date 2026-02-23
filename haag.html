@@ -41,7 +41,29 @@
         .qlb.alert{border-color:rgba(255,60,60,.5)}.qlb.alert::after{content:'';display:inline-block;width:9px;height:9px;background:#ff3333;border-radius:50%;margin-left:5px;vertical-align:middle;box-shadow:0 0 8px 3px rgba(255,50,50,0.7),0 0 16px 5px rgba(255,50,50,0.3);animation:qlpulse 1.2s infinite}
 
         /* SAFEMISS */
-        .sm{background:linear-gradient(165deg,#2e2e38 0%,#26262e 35%,#1e1e24 100%);border:1px solid rgba(255,255,255,.06);border-top:1px solid rgba(255,255,255,.14);border-bottom:1px solid rgba(0,0,0,.5);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:14px;margin-bottom:12px;position:relative;overflow:hidden;box-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 4px 8px rgba(0,0,0,.25),0 10px 30px rgba(0,0,0,.35)}
+        .sm{background:linear-gradient(165deg,#2e2e38 0%,#26262e 35%,#1e1e24 100%);border:1px solid rgba(255,255,255,.06);border-top:1px solid rgba(255,255,255,.14);border-bottom:1px solid rgba(0,0,0,.5);border-radius:12px;padding:0;margin-bottom:12px;position:relative;overflow:hidden;box-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 4px 8px rgba(0,0,0,.25),0 10px 30px rgba(0,0,0,.35)}
+        .sm-top{display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:background .2s}
+        .sm-top:hover{background:rgba(255,255,255,.02)}
+        .sm-chevron{color:var(--td);font-size:.6rem;flex-shrink:0;transition:transform .3s;margin-left:4px}
+        .sm-chevron.open{transform:rotate(180deg)}
+        .sm-detail{max-height:0;overflow:hidden;transition:max-height .4s ease}
+        .sm-detail.open{max-height:600px}
+        .sm-detail-inner{padding:0 18px 16px 18px;border-top:1px solid rgba(255,255,255,.06)}
+        .sm-period-label{display:inline-block;background:var(--asoft);color:var(--atxt);font-size:.58rem;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 10px 0}
+        .sm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+        .sm-cell{background:rgba(255,255,255,.02);border-radius:6px;padding:8px 10px}
+        .sm-cell-lbl{font-size:.56rem;color:var(--td);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px;font-weight:600}
+        .sm-cell-val{font-size:.82rem;font-weight:700;color:var(--text)}
+        .sm-cell-note{font-size:.56rem;color:var(--td);margin-top:2px}
+        .sm-breakdown{margin-top:8px}
+        .sm-breakdown-title{font-size:.58rem;color:var(--td);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:6px}
+        .sm-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:.68rem}
+        .sm-row:last-child{border-bottom:none}
+        .sm-row-cat{color:var(--ts);font-weight:500}
+        .sm-row-val{color:var(--text);font-weight:700}
+        .sm-row-mult{color:var(--td);font-size:.56rem;margin-left:6px}
+        .sm-formula{margin-top:10px;background:rgba(255,255,255,.02);border-radius:6px;padding:10px;font-size:.6rem;color:var(--td);line-height:1.6}
+        .sm-formula strong{color:var(--ts);font-weight:600}
         .sm::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--green),#06b6d4)}
         .sm-ic{width:36px;height:36px;background:var(--gsoft);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
         .sm-ic svg{width:18px;height:18px}
@@ -110,7 +132,7 @@
 
         /* RESPONSIVE */
         @media(max-width:1024px){.wrap{padding:18px}.bot{grid-template-columns:1fr 1fr}.bot .card:nth-child(3){grid-column:1/-1}.sm-stats{gap:14px}}
-        @media(max-width:768px){.wrap{padding:14px}.hdr{flex-wrap:wrap;gap:10px}.hdr-r{width:100%;justify-content:space-between}.reels{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.bot{grid-template-columns:1fr}.bot .card:nth-child(3){grid-column:auto}.sm{flex-wrap:wrap;padding:12px 14px}.sm-stats{width:100%;justify-content:space-around}.reel-num{font-size:1.8rem}}
+        @media(max-width:768px){.wrap{padding:14px}.hdr{flex-wrap:wrap;gap:10px}.hdr-r{width:100%;justify-content:space-between}.reels{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.bot{grid-template-columns:1fr}.bot .card:nth-child(3){grid-column:auto}.sm{flex-wrap:wrap}.sm-top{flex-wrap:wrap;padding:12px 14px}.sm-stats{width:100%;justify-content:space-around}.reel-num{font-size:1.8rem}.sm-grid{grid-template-columns:1fr}}
         @media(max-width:480px){.wrap{padding:10px}.hdr h1{font-size:.95rem}.reel{padding:12px}.card{padding:12px}.sms .v{font-size:1rem}.whs{gap:4px}.whw{width:76px;height:76px}.whsvg{width:76px;height:76px}.whc{font-size:.9rem}.whn{font-size:.56rem}.qlb{font-size:.55rem;padding:4px 7px}}
     </style>
 </head>
@@ -155,13 +177,39 @@
 
     <!-- SAFEMISS -->
     <div class="sm">
-        <div class="sm-ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#22c55e" stroke-width="2"/><path d="M9 12l2 2 4-4" stroke="#22c55e" stroke-width="2"/></svg></div>
-        <div class="sm-info"><h3>SafeMiss — Proactive Safety Catches</h3><p>Your team caught <strong id="smCT">0 issues</strong> this period. Est. <strong id="smSV">£0</strong> saved.</p></div>
-        <div class="sm-stats">
-            <div class="sms"><div class="v" id="smP">0</div><div class="l">Period</div></div>
-            <div class="sms"><div class="v" id="smY">0</div><div class="l">Year</div></div>
-            <div class="sms"><div class="v" id="smF">—</div><div class="l">Avg Fix</div></div>
-            <div class="sms"><div class="v" id="smS">0d</div><div class="l">Streak</div></div>
+        <div class="sm-top" onclick="toggleSMDetail()">
+            <div class="sm-ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#22c55e" stroke-width="2"/><path d="M9 12l2 2 4-4" stroke="#22c55e" stroke-width="2"/></svg></div>
+            <div class="sm-info"><h3>SafeMiss — Proactive Safety Catches</h3><p>Your team caught <strong id="smCT">0 issues</strong> <span id="smPeriodTxt">today</span>. Est. <strong id="smSV">£0</strong> saved.</p></div>
+            <div class="sm-stats">
+                <div class="sms"><div class="v" id="smP">0</div><div class="l">Period</div></div>
+                <div class="sms"><div class="v" id="smY">0</div><div class="l">Year</div></div>
+                <div class="sms"><div class="v" id="smF">—</div><div class="l">Avg Fix</div></div>
+                <div class="sms"><div class="v" id="smS">0d</div><div class="l">Streak</div></div>
+            </div>
+            <div class="sm-chevron" id="smChev">▼</div>
+        </div>
+        <div class="sm-detail" id="smDetail">
+            <div class="sm-detail-inner">
+                <div class="sm-period-label" id="smPeriodBadge">Today</div>
+                <div class="sm-grid">
+                    <div class="sm-cell"><div class="sm-cell-lbl">Period Catches</div><div class="sm-cell-val" id="smdPC">0</div><div class="sm-cell-note">High/urgent/critical tasks completed <span id="smdPeriodNote">today</span></div></div>
+                    <div class="sm-cell"><div class="sm-cell-lbl">Year To Date</div><div class="sm-cell-val" id="smdYC">0</div><div class="sm-cell-note">Since 1 January <span id="smdYear">2026</span></div></div>
+                    <div class="sm-cell"><div class="sm-cell-lbl">Estimated Savings</div><div class="sm-cell-val" id="smdSV">£0</div><div class="sm-cell-note">Based on category cost × priority multiplier</div></div>
+                    <div class="sm-cell"><div class="sm-cell-lbl">Average Fix Time</div><div class="sm-cell-val" id="smdFT">—</div><div class="sm-cell-note">Time from raised to completed</div></div>
+                    <div class="sm-cell"><div class="sm-cell-lbl">Incident-Free Streak</div><div class="sm-cell-val" id="smdStrk">—</div><div class="sm-cell-note">Days since last reported incident</div></div>
+                    <div class="sm-cell"><div class="sm-cell-lbl">Total Catches Assessed</div><div class="sm-cell-val" id="smdTotal">0</div><div class="sm-cell-note">All high/urgent/critical completions (all time)</div></div>
+                </div>
+                <div class="sm-breakdown">
+                    <div class="sm-breakdown-title">Savings Breakdown by Category</div>
+                    <div id="smdBreakdown"><div class="sm-row"><span class="sm-row-cat" style="color:var(--td)">No data yet</span></div></div>
+                </div>
+                <div class="sm-formula">
+                    <strong>How SafeMiss is calculated:</strong><br>
+                    Completed maintenance tasks rated <strong>high</strong>, <strong>urgent</strong>, or <strong>critical</strong> are counted as proactive safety catches.<br>
+                    Savings = Category base cost × Priority multiplier (critical 3×, urgent 2.5×, high 2×).<br>
+                    <strong>Category costs:</strong> Structural/Building £4,000 · Gas £3,500 · Fire/Safety £3,000 · Electrical £2,500 · Heating £2,000 · Water £2,000 · Playground £2,000 · Plumbing £1,500 · Equipment £1,200 · General/Other £800 · Grounds £600 · Cleaning £400
+                </div>
+            </div>
         </div>
     </div>
 
@@ -234,12 +282,12 @@ sc.push(st>0?scr/st*100:100)
 
 async function loadTrain(){try{const es=await db.collection('employees').get();let ts=0;es.forEach(d=>{const r=d.data();if(!r.firstName||!r.lastName)return;if(!mp(r.park||r.location))return;ts++});const is=await db.collection('trainingItems').get();const ti=is.size;const as=await db.collection('trainingAcknowledgments').get();let ac=0;const{start,end}=gpr();as.forEach(d=>{const r=d.data();if(!r.confirmed)return;const ad=r.date?new Date(r.date):null;if(ad&&ad>=start&&ad<end)ac++});const dn=ts*ti;const p=dn>0?Math.round(ac/dn*100):0;document.getElementById('tP').innerHTML=Math.min(p,100)+'<span>%</span>';document.getElementById('tB').style.width=Math.min(p,100)+'%';document.getElementById('tS').textContent=ac+' completions ('+ts+' staff × '+ti+' TBTs)'}catch(e){document.getElementById('tS').textContent='Error'}}
 
-async function loadWSafety(){try{const s=await db.collection('maintenanceRecords').get();let t=0,c=0;s.forEach(d=>{const r=d.data();if(!mpm(r)||!r.isSafetyIssue)return;t++;if(isDone(r.status))c++});const p=t>0?Math.round(c/t*100):0;sw('wS',p);document.getElementById('wSP').textContent=p+'%'}catch(e){}}
+async function loadWSafety(){try{const s=await db.collection('maintenanceRecords').get();let t=0,c=0;s.forEach(d=>{const r=d.data();if(!mpm(r))return;if(r.safetyImplication!=='yes'&&!r.isSafetyIssue)return;t++;if(isDone(r.status))c++});const p=t>0?Math.round(c/t*100):0;sw('wS',p);document.getElementById('wSP').textContent=p+'%'}catch(e){}}
 
 async function loadWOps(){let sc=[];const ts=new Date().toISOString().split('T')[0];try{
 const h=await db.collection('hot_tub_inspections').orderBy('createdAt','desc').get();const at=new Set(),ct=new Set();h.forEach(d=>{const r=d.data();if(!mp(r.location))return;(r.hotTubs||[r.hotTub||'']).forEach(tb=>{if(!tb)return;const k=(r.location||'')+'|'+tb;at.add(k);let dt='';if(r.createdAt&&r.createdAt.toDate)dt=r.createdAt.toDate().toISOString().split('T')[0];else if(r.inspectionDate)dt=r.inspectionDate.split('T')[0];if(dt===ts){const tp=(r.type||'').toLowerCase();if(tp!=='changeover'&&tp!=='daily2')ct.add(k)}})});if(at.size>0)sc.push(ct.size/at.size*100);
 const pp=await db.collection('playParkInspections').get();const ap=new Set(),cp=new Set();pp.forEach(d=>{const r=d.data();const l=r.location||r.park||'';if(!mp(l))return;const pid=l+'|'+(r.playParkName||r.parkName||r.area||'');ap.add(pid);let dt='';if(r.createdAt&&r.createdAt.toDate)dt=r.createdAt.toDate().toISOString().split('T')[0];else if(r.inspectionDate)dt=r.inspectionDate.split('T')[0];else if(r.date)dt=r.date.split('T')[0];if(dt===ts)cp.add(pid)});if(ap.size>0)sc.push(cp.size/ap.size*100);
-const m=await db.collection('maintenanceRecords').get();let mt=0,md=0;m.forEach(d=>{const r=d.data();if(!mpm(r)||r.isSafetyIssue)return;mt++;if(isDone(r.status))md++});if(mt>0)sc.push(md/mt*100)
+const m=await db.collection('maintenanceRecords').get();let mt=0,md=0;m.forEach(d=>{const r=d.data();if(!mpm(r))return;if(r.safetyImplication==='yes'||r.isSafetyIssue)return;mt++;if(isDone(r.status))md++});if(mt>0)sc.push(md/mt*100)
 }catch(e){}const p=sc.length>0?Math.round(sc.reduce((a,b)=>a+b,0)/sc.length):0;sw('wO',p);document.getElementById('wOP').textContent=p+'%'}
 
 async function loadWComp(){let t=0,c=0;const now=new Date();
@@ -252,19 +300,26 @@ const hooks=[{col:'fireRiskAssessments',f:'nextReviewDate'},{col:'eicrCertificat
 for(const h of hooks){try{const s=await db.collection(h.col).get();s.forEach(d=>{const r=d.data();if(!mpm(r))return;t++;if(!r[h.f]||new Date(r[h.f])>=now)c++})}catch(e){}}
 const p=t>0?Math.round(c/t*100):0;sw('wC',p);document.getElementById('wCP').textContent=p+'%'}
 
-async function loadSM(){try{const s=await db.collection('maintenanceRecords').get();const{start,end}=gpr();const ys=new Date(new Date().getFullYear(),0,1);let pc=0,yc=0,sv=0,ft=[];const cm={electrical:2500,fire:3000,structural:4000,plumbing:1500,gas:3500,water:2000,equipment:1200,playground:2000,general:800,cleaning:400,grounds:600};const pm={critical:3,urgent:2.5,high:2,medium:1.5,low:1};
-s.forEach(d=>{const r=d.data();if(!mpm(r))return;if(!isDone(r.status))return;const p=(r.priority||'').toLowerCase();if(!['high','urgent','critical'].includes(p))return;const cd=td(r.createdAt||r.dateCreated);if(cd){if(cd>=ys)yc++;if(cd>=start&&cd<end)pc++}sv+=(cm[(r.category||'general').toLowerCase()]||800)*(pm[p]||1);const c1=td(r.createdAt||r.dateCreated),c2=td(r.completedAt||r.completionDate);if(c1&&c2){const h=(c2-c1)/36e5;if(h>0&&h<720)ft.push(h)}});
+async function loadSM(){try{const s=await db.collection('maintenanceRecords').get();const{start,end}=gpr();const ys=new Date(new Date().getFullYear(),0,1);let pc=0,yc=0,sv=0,ft=[],totalAll=0;const cm={electrical:2500,fire:3000,structural:4000,plumbing:1500,gas:3500,water:2000,equipment:1200,playground:2000,general:800,cleaning:400,grounds:600,building:4000,heating:2000,safety:3000,other:800};const pm={critical:3,urgent:2.5,high:2,medium:1.5,low:1};const catBreak={};
+s.forEach(d=>{const r=d.data();if(!mpm(r))return;if(!isDone(r.status))return;const p=(r.priority||'').toLowerCase();if(!['high','urgent','critical'].includes(p))return;totalAll++;const cd=td(r.createdAt||r.dateSubmitted||r.dateCreated);if(cd){if(cd>=ys)yc++;if(cd>=start&&cd<end)pc++}const cat=(r.category||'general').toLowerCase();const cost=(cm[cat]||800)*(pm[p]||1);sv+=cost;if(!catBreak[cat])catBreak[cat]={count:0,cost:0};catBreak[cat].count++;catBreak[cat].cost+=cost;const c1=td(r.createdAt||r.dateSubmitted||r.dateCreated),c2=td(r.completedAt||r.dateCompleted||r.completionDate);if(c1&&c2){const h=(c2-c1)/36e5;if(h>0&&h<720)ft.push(h)}});
 let li=null;try{const ic=await db.collection('incidents').get();ic.forEach(d=>{const r=d.data();if(!mpm(r))return;const dt=td(r.createdAt||r.dateReported||r.date);if(dt&&(!li||dt>li))li=dt})}catch(e){}
-document.getElementById('smP').textContent=pc;document.getElementById('smY').textContent=yc;document.getElementById('smCT').textContent=pc+' issue'+(pc!==1?'s':'');document.getElementById('smSV').textContent='£'+sv.toLocaleString();
-const af=ft.length>0?ft.reduce((a,b)=>a+b,0)/ft.length:0;document.getElementById('smF').textContent=ft.length>0?(af<24?af.toFixed(1)+'h':(af/24).toFixed(1)+'d'):'—';document.getElementById('smS').textContent=li?Math.floor((Date.now()-li.getTime())/864e5)+'d':'—'}catch(e){}}
+const pLabel=getPeriodLabel(),pNote=getPeriodNote();
+document.getElementById('smP').textContent=pc;document.getElementById('smY').textContent=yc;document.getElementById('smCT').textContent=pc+' issue'+(pc!==1?'s':'');document.getElementById('smSV').textContent='£'+sv.toLocaleString();document.getElementById('smPeriodTxt').textContent=pNote;
+const af=ft.length>0?ft.reduce((a,b)=>a+b,0)/ft.length:0;const afStr=ft.length>0?(af<24?af.toFixed(1)+'h':(af/24).toFixed(1)+'d'):'—';document.getElementById('smF').textContent=afStr;const streakDays=li?Math.floor((Date.now()-li.getTime())/864e5):null;document.getElementById('smS').textContent=streakDays!==null?streakDays+'d':'—';
+// Detail panel
+document.getElementById('smPeriodBadge').textContent=pLabel;document.getElementById('smdPeriodNote').textContent=pNote;document.getElementById('smdYear').textContent=new Date().getFullYear();
+document.getElementById('smdPC').textContent=pc;document.getElementById('smdYC').textContent=yc;document.getElementById('smdSV').textContent='£'+sv.toLocaleString();document.getElementById('smdFT').textContent=afStr;document.getElementById('smdStrk').textContent=streakDays!==null?streakDays+' days'+(li?' (since '+li.toLocaleDateString('en-GB')+')':''):'No incidents recorded';document.getElementById('smdTotal').textContent=totalAll;
+// Category breakdown
+const sorted=Object.entries(catBreak).sort((a,b)=>b[1].cost-a[1].cost);const bEl=document.getElementById('smdBreakdown');if(sorted.length>0){bEl.innerHTML=sorted.map(([cat,d])=>`<div class="sm-row"><span class="sm-row-cat">${cat.charAt(0).toUpperCase()+cat.slice(1)}</span><span><span class="sm-row-val">£${d.cost.toLocaleString()}</span><span class="sm-row-mult">(${d.count} catch${d.count!==1?'es':''})</span></span></div>`).join('')}else{bEl.innerHTML='<div class="sm-row"><span class="sm-row-cat" style="color:var(--td)">No catches recorded yet</span></div>'}
+}catch(e){console.error('[HAAG] SafeMiss error:',e)}}
 
 async function loadOut(){const items=[];const now=new Date();const s60=new Date(now.getTime()+60*864e5);try{
 // Actions
-const a=await db.collection('actions').get();a.forEach(d=>{const r=d.data();if(!mpm(r))return;if(isDone(r.status))return;const ov=r.targetDate&&new Date(r.targetDate)<now;items.push({t:r.title||r.description||r.reference||'Action',m:(r.location||'')+' · SafeAction'+(ov?' · OVERDUE':''),p:ov?'c':'w',d:r.createdAt||r.dateCreated,mod:'safeaction.html',mt:'SafeAction.PRO'})});
+const a=await db.collection('actions').get();a.forEach(d=>{const r=d.data();if(!mpm(r))return;if(isDone(r.status))return;const ov=r.targetDate&&new Date(r.targetDate)<now;items.push({t:r.title||r.description||r.reference||'Action',m:(r.location||'')+' · SafeAction'+(ov?' · OVERDUE':''),p:ov?'c':'w',d:r.createdAt||r.dateSubmitted||r.dateCreated,mod:'safeaction.html',mt:'SafeAction.PRO'})});
 // Incidents
 const i=await db.collection('incidents').get();i.forEach(d=>{const r=d.data();if(!mpm(r))return;if((r.status||'').toLowerCase().includes('closed')||r.currentStage===5)return;items.push({t:r.incident_type||r.description||'Incident',m:(r.holiday_park||'')+' · SafeReport',p:'c',d:r.createdAt||r.dateReported,mod:'incidents.html',mt:'SafeReport.PRO'})});
 // High-priority maint
-const mt=await db.collection('maintenanceRecords').get();mt.forEach(d=>{const r=d.data();if(!mpm(r)||isDone(r.status))return;const pr=(r.priority||'').toLowerCase();if(['high','urgent','critical'].includes(pr))items.push({t:r.title||r.description||'Maintenance',m:(r.location||'')+' · SafeMaint · '+pr,p:pr==='critical'?'c':'w',d:r.createdAt||r.dateCreated,mod:'maintenance.html',mt:'Maintenance'})});
+const mt=await db.collection('maintenanceRecords').get();mt.forEach(d=>{const r=d.data();if(!mpm(r)||isDone(r.status))return;const pr=(r.priority||'').toLowerCase();if(['high','urgent','critical'].includes(pr))items.push({t:r.title||r.description||'Maintenance',m:(r.location||'')+' · SafeMaint · '+pr,p:pr==='critical'?'c':'w',d:r.createdAt||r.dateSubmitted||r.dateCreated,mod:'maintenance.html',mt:'Maintenance'})});
 // Hot tub issues
 try{const h=await db.collection('hot_tub_inspections').get();h.forEach(d=>{const r=d.data();if(!mpm(r))return;if((r.overallStatus||'').toLowerCase().includes('issue')||r.actionRequired)items.push({t:'HT issue — '+(r.hotTubs||[r.hotTub||''])[0],m:(r.location||'')+' · SafeWater',p:'w',d:r.createdAt})})}catch(e){}
 // Accommodation
@@ -289,12 +344,12 @@ el.innerHTML=items.slice(0,8).map(i=>`<div class="iss"><div class="iss-p ${i.p}"
 // Flag quick-link alerts
 const am=new Set(items.map(i=>i.mod).filter(Boolean));document.querySelectorAll('.qlb').forEach(b=>{const oc=b.getAttribute('onclick')||'';b.classList.toggle('alert',[...am].some(m=>oc.includes(m)))})}
 
-async function loadTrend(){try{const s=await db.collection('maintenanceRecords').get();const now=new Date();const ms=[];for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);ms.push({l:d.toLocaleDateString('en-GB',{month:'short'}),s:d,e:new Date(d.getFullYear(),d.getMonth()+1,0,23,59,59),t:0,c:0})}s.forEach(d=>{const r=d.data();if(!mpm(r))return;const cd=td(r.createdAt||r.dateCreated);if(!cd)return;ms.forEach(m=>{if(cd>=m.s&&cd<=m.e){m.t++;if(isDone(r.status))m.c++}})});const mx=Math.max(...ms.map(m=>m.t),1);document.getElementById('trnd').innerHTML=ms.map(m=>{const p=m.t>0?m.c/m.t*100:0;const h=Math.max(5,m.t/mx*100);return`<div class="tb" style="height:${h}%;background:rgba(204,85,0,${.15+p/100*.55})"><div class="tp">${m.l}</div></div>`}).join('')}catch(e){}}
+async function loadTrend(){try{const s=await db.collection('maintenanceRecords').get();const now=new Date();const ms=[];for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);ms.push({l:d.toLocaleDateString('en-GB',{month:'short'}),s:d,e:new Date(d.getFullYear(),d.getMonth()+1,0,23,59,59),t:0,c:0})}s.forEach(d=>{const r=d.data();if(!mpm(r))return;const cd=td(r.createdAt||r.dateSubmitted||r.dateCreated);if(!cd)return;ms.forEach(m=>{if(cd>=m.s&&cd<=m.e){m.t++;if(isDone(r.status))m.c++}})});const mx=Math.max(...ms.map(m=>m.t),1);document.getElementById('trnd').innerHTML=ms.map(m=>{const p=m.t>0?m.c/m.t*100:0;const h=Math.max(5,m.t/mx*100);return`<div class="tb" style="height:${h}%;background:rgba(204,85,0,${.15+p/100*.55})"><div class="tp">${m.l}</div></div>`}).join('')}catch(e){}}
 
-async function loadHM(){try{const dc={};const ad=(v)=>{const d=td(v);if(d){const k=d.toISOString().split('T')[0];dc[k]=(dc[k]||0)+1}};const ic=await db.collection('incidents').get();ic.forEach(d=>{const r=d.data();if(mpm(r))ad(r.createdAt||r.dateReported||r.date)});const m=await db.collection('maintenanceRecords').get();m.forEach(d=>{const r=d.data();if(!mpm(r)||isDone(r.status))return;if(['critical','urgent'].includes((r.priority||'').toLowerCase()))ad(r.createdAt||r.dateCreated)});const today=new Date();today.setHours(0,0,0,0);const dow=today.getDay();const mo=dow===0?6:dow-1;const tm=new Date(today);tm.setDate(today.getDate()-mo);const sd=new Date(tm);sd.setDate(tm.getDate()-21);const cells=[];for(let i=0;i<28;i++){const day=new Date(sd);day.setDate(sd.getDate()+i);const k=day.toISOString().split('T')[0];const c=dc[k]||0;let lv='no';if(c>=3)lv='hi';else if(c>=1)lv='md';else if(day<=today)lv='lo';cells.push(`<div class="hc ${lv}"></div>`)}document.getElementById('hmG').innerHTML=cells.join('')}catch(e){}}
+async function loadHM(){try{const dc={};const ad=(v)=>{const d=td(v);if(d){const k=d.toISOString().split('T')[0];dc[k]=(dc[k]||0)+1}};const ic=await db.collection('incidents').get();ic.forEach(d=>{const r=d.data();if(mpm(r))ad(r.createdAt||r.dateReported||r.date)});const m=await db.collection('maintenanceRecords').get();m.forEach(d=>{const r=d.data();if(!mpm(r)||isDone(r.status))return;if(['critical','urgent'].includes((r.priority||'').toLowerCase()))ad(r.createdAt||r.dateSubmitted||r.dateCreated)});const today=new Date();today.setHours(0,0,0,0);const dow=today.getDay();const mo=dow===0?6:dow-1;const tm=new Date(today);tm.setDate(today.getDate()-mo);const sd=new Date(tm);sd.setDate(tm.getDate()-21);const cells=[];for(let i=0;i<28;i++){const day=new Date(sd);day.setDate(sd.getDate()+i);const k=day.toISOString().split('T')[0];const c=dc[k]||0;let lv='no';if(c>=3)lv='hi';else if(c>=1)lv='md';else if(day<=today)lv='lo';cells.push(`<div class="hc ${lv}"></div>`)}document.getElementById('hmG').innerHTML=cells.join('')}catch(e){}}
 
 async function loadFeed(){const ev=[];try{
-const m=await db.collection('maintenanceRecords').orderBy('createdAt','desc').limit(25).get();m.forEach(d=>{const r=d.data();if(!mpm(r))return;ev.push({x:'<strong>'+(r.title||'Maint')+'</strong> '+(isDone(r.status)?'completed':'raised'),c:isDone(r.status)?'#22c55e':'#eab308',d:r.completedAt||r.createdAt||r.dateCreated})});
+const m=await db.collection('maintenanceRecords').orderBy('createdAt','desc').limit(25).get();m.forEach(d=>{const r=d.data();if(!mpm(r))return;ev.push({x:'<strong>'+(r.title||'Maint')+'</strong> '+(isDone(r.status)?'completed':'raised'),c:isDone(r.status)?'#22c55e':'#eab308',d:r.completedAt||r.createdAt||r.dateSubmitted||r.dateCreated})});
 const i=await db.collection('incidents').orderBy('createdAt','desc').limit(10).get();i.forEach(d=>{const r=d.data();if(!mpm(r))return;ev.push({x:'<strong>Incident</strong> — '+(r.incident_type||'Logged'),c:'#ef4444',d:r.createdAt||r.dateReported})});
 const h=await db.collection('hot_tub_inspections').orderBy('createdAt','desc').limit(10).get();h.forEach(d=>{const r=d.data();if(!mp(r.location))return;ev.push({x:'<strong>HT</strong> '+(r.type||'daily')+' — '+(r.hotTubs||[r.hotTub||''])[0],c:'#38bdf8',d:r.createdAt})});
 try{const a=await db.collection('accommodation_inspections').orderBy('submittedAt','desc').limit(8).get();a.forEach(d=>{const r=d.data();if(!mpm(r))return;ev.push({x:'<strong>Accom</strong> — '+(r.accommodationUnit||'Unit'),c:'#a78bfa',d:r.submittedAt||r.createdAt})})}catch(e){}
@@ -302,6 +357,11 @@ try{const sc=await db.collection('safeCareRecords').orderBy('createdAt','desc').
 }catch(e){}ev.sort((a,b)=>(td(b.d)||new Date(0))-(td(a.d)||new Date(0)));const el=document.getElementById('aFeed');if(!ev.length){el.innerHTML='<div class="no-iss">No activity</div>';return}el.innerHTML=ev.slice(0,6).map(e=>{const d=td(e.d);const t=d?(d.toDateString()===new Date().toDateString()?d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):ta(e.d)):'';return`<div class="fi"><div class="ft">${t}</div><div class="fd" style="background:${e.c}"></div><div class="fx">${e.x}</div></div>`}).join('')}
 
 // Controls
+// SafeMiss detail toggle
+function toggleSMDetail(){const d=document.getElementById('smDetail'),c=document.getElementById('smChev');d.classList.toggle('open');c.classList.toggle('open')}
+function getPeriodLabel(){return per==='daily'?'Today':per==='weekly'?'This Week':'This Month'}
+function getPeriodNote(){return per==='daily'?'today':per==='weekly'?'this week':'this month'}
+
 function setP(p){per=p;document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('active'));document.getElementById('btn'+p.charAt(0).toUpperCase()+p.slice(1)).classList.add('active');loadAll()}
 
 async function loadAll(){console.log('[HAAG] Loading: '+per+'/'+currentPark);try{await Promise.all([loadMaint(),loadComp(),loadTrain(),loadWSafety(),loadWOps(),loadWComp(),loadSM(),loadOut(),loadTrend(),loadHM(),loadFeed()])}catch(e){}const o=document.getElementById('loadOv');if(o)o.classList.add('hid')}
