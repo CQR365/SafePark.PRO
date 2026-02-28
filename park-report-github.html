@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeSystems.PRO — Monthly Park Report</title>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0e0e0e;--card:#1a1a1a;--card2:#1e1e1e;--border:#2a2a2a;--text:#e0e0e0;--muted:#999;--dim:#666;--orange:#CC5500;--green:#10b981;--red:#ef4444;--amber:#f59e0b;--blue:#3b82f6;--pink:#f492f0;--cyan:#0dcaf0}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',system-ui,sans-serif;line-height:1.5}
+.controls{max-width:900px;margin:30px auto;padding:24px 28px;background:var(--card);border:1px solid var(--border);border-radius:12px}
+.controls h2{font-size:22px;color:#fff;margin-bottom:16px}.controls h2 span{color:var(--orange)}
+.ctrl-row{display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;align-items:end}
+.ctrl-group{display:flex;flex-direction:column;gap:4px}
+.ctrl-group label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.ctrl-group select,.ctrl-group input{background:#111;border:1px solid var(--border);color:#fff;padding:10px 14px;border-radius:8px;font-size:14px;font-family:inherit}
+.ctrl-group select{min-width:200px}
+.ctrl-group textarea{background:#111;border:1px solid var(--border);color:#ccc;padding:12px;border-radius:8px;font-size:14px;font-family:inherit;width:100%;min-height:70px;resize:vertical}
+.btn-gen{background:var(--orange);color:#fff;border:none;padding:12px 28px;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;transition:.2s}.btn-gen:hover{background:#e06500}.btn-gen:disabled{opacity:.5;cursor:wait}
+.btn-print{background:transparent;color:var(--orange);border:2px solid var(--orange);padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-left:12px}.btn-print:hover{background:var(--orange);color:#fff}
+.status-msg{font-size:13px;color:var(--muted);margin-top:8px}
+.report{max-width:1100px;margin:0 auto 60px;display:none}
+@media print{.controls{display:none!important}.report{display:block!important;max-width:100%;margin:0}.rpt-section{break-inside:avoid;page-break-inside:avoid}@page{size:A3 landscape;margin:12mm 16mm}body{background:#0e0e0e!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+.rpt-header{padding:20px 28px;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:20px;display:flex;align-items:center;gap:20px}
+.rpt-header img{height:60px;border-radius:8px}
+.rpt-header .titles h1{font-size:24px;color:#fff;font-weight:700}.rpt-header .titles h1 span{color:var(--orange)}
+.rpt-header .titles .sub{font-size:14px;color:var(--muted)}
+.rpt-header .meta{margin-left:auto;text-align:right}
+.rpt-header .meta .park-name{font-size:18px;font-weight:700;color:var(--orange)}.rpt-header .meta .period{font-size:13px;color:var(--muted)}
+.rpt-exec{padding:20px 28px;background:linear-gradient(135deg,var(--card),#111);border:2px solid var(--orange);border-radius:12px;margin-bottom:20px}
+.rpt-exec h3{font-size:16px;color:var(--orange);margin-bottom:8px;font-weight:700}
+.rpt-exec p,.rpt-exec div{font-size:15px;color:#ccc;line-height:1.6}
+.rpt-exec .personal-note{border-top:1px solid var(--border);padding-top:10px;margin-top:10px;font-style:italic;color:var(--muted)}
+.reels{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+.reel{background:linear-gradient(165deg,var(--card2),#151515);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center}
+.reel-label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.reel-value{font-size:48px;font-weight:800;line-height:1}
+.reel-bar{height:5px;background:rgba(255,255,255,.08);border-radius:4px;margin:12px 0;overflow:hidden}
+.reel-fill{height:100%;border-radius:4px}
+.reel-delta{font-size:13px;font-weight:600;margin-top:4px}.reel-sub{font-size:12px;color:var(--dim);margin-top:4px}
+.delta-up{color:var(--green)}.delta-down{color:var(--red)}.delta-flat{color:var(--dim)}
+.trend-row{display:flex;justify-content:center;gap:4px;margin-top:8px}
+.trend-dot{width:8px;height:8px;border-radius:50%;opacity:.5}.trend-dot.active{opacity:1}
+.rpt-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:16px}
+.rpt-section h3{font-size:17px;color:#fff;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.rpt-section h3 span{color:var(--orange)}
+.badge{font-size:11px;padding:2px 10px;border-radius:12px;margin-left:8px;font-weight:600;vertical-align:middle}
+.badge-ok{background:rgba(16,185,129,.15);color:var(--green)}.badge-warn{background:rgba(245,158,11,.15);color:var(--amber)}.badge-alert{background:rgba(239,68,68,.15);color:var(--red)}.badge-info{background:rgba(59,130,246,.15);color:var(--blue)}.badge-gap{background:rgba(255,255,255,.08);color:var(--dim)}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.metric{background:linear-gradient(135deg,#222,#1a1a1a);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+.metric .m-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.metric .m-value{font-size:28px;font-weight:800;color:#fff;line-height:1.1}
+.metric .m-delta{font-size:12px;font-weight:600;margin-top:4px}.metric .m-sub{font-size:11px;color:var(--dim);margin-top:2px}
+.narrative{font-size:14px;color:#bbb;line-height:1.6;padding:12px 16px;background:rgba(255,255,255,.02);border-radius:8px;border-left:3px solid var(--orange);margin-top:10px}
+.narrative.alert{border-left-color:var(--red)}.narrative.good{border-left-color:var(--green)}.narrative.warn{border-left-color:var(--amber)}
+.dtable{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+.dtable th{text-align:left;padding:8px 12px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+.dtable td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.04);color:#ccc}.dtable tr:last-child td{border-bottom:none}
+.data-gap{display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.1);border-radius:8px;margin-top:10px}
+.data-gap-icon{width:20px;height:20px;border-radius:50%;background:rgba(239,68,68,.15);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--red);font-weight:700;flex-shrink:0}
+.data-gap-text{font-size:13px;color:var(--dim)}
+.safety-callout{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:14px 16px;margin-top:12px}
+.safety-callout h4{font-size:13px;color:var(--red);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.safety-callout p{font-size:13px;color:#ccc;line-height:1.5}
+.rpt-recs{padding:20px 28px;background:linear-gradient(135deg,var(--card),#111);border:2px solid var(--green);border-radius:12px;margin-bottom:20px}
+.rpt-recs h3{font-size:16px;color:var(--green);margin-bottom:12px;font-weight:700}
+.rec-item{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start}
+.rec-num{min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.rec-critical .rec-num{background:rgba(239,68,68,.2);color:var(--red)}
+.rec-high .rec-num{background:rgba(245,158,11,.2);color:var(--amber)}
+.rec-medium .rec-num{background:rgba(59,130,246,.2);color:var(--blue)}
+.rec-text{font-size:14px;color:#ccc;line-height:1.5}.rec-text strong{color:#fff}
+.rpt-recs .personal-note{border-top:1px solid var(--border);padding-top:12px;margin-top:14px;font-style:italic;color:var(--muted);font-size:14px;line-height:1.6}
+@media(max-width:900px){.metrics{grid-template-columns:repeat(2,1fr)}.reels{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="controls" id="controlPanel">
+<h2>Safe<span>Systems</span>.PRO — Monthly Report Generator</h2>
+<div class="ctrl-row">
+<div class="ctrl-group"><label>Park</label><select id="selPark">
+<option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+<option value="Oban Holiday Park">Oban Holiday Park</option>
+<option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+</select></div>
+<div class="ctrl-group"><label>Report Month</label><input type="month" id="selMonth"></div>
+<div class="ctrl-group"><button class="btn-gen" id="btnGenerate" onclick="generateReport()">Generate Report</button><button class="btn-print" id="btnPrint" onclick="window.print()" style="display:none">Print / PDF</button></div>
+</div>
+<div class="ctrl-group" style="width:100%"><label>Your Notes — Executive Summary (appears below auto-generated summary)</label>
+<textarea id="execNotes" placeholder="Add personal context — e.g. 'Oban manager on leave first two weeks, handover gaps expected...'"></textarea></div>
+<div class="ctrl-group" style="width:100%;margin-top:8px"><label>Your Notes — Recommendations (appears below auto-generated priorities)</label>
+<textarea id="recsNotes" placeholder="Add personal recommendations — e.g. 'Recommend manufacturer review of Valor heaters...'"></textarea></div>
+<div class="status-msg" id="statusMsg"></div>
+</div>
+<div class="report" id="reportOutput"></div>
+<script src="park-report-engine.js"></script>
+</body>
+</html>
