@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html><head><title>Notifications Debug — Field Scanner</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<style>
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:#0f0f14;color:#e8e8ed;margin:0;padding:20px}
+h1{color:#cc5500;font-size:22px}h2{color:#f0a050;font-size:16px;margin-top:24px;border-bottom:1px solid #333;padding-bottom:6px}
+.card{background:#1a1a22;border:1px solid #2a2a35;border-radius:10px;padding:16px;margin:10px 0}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+th{text-align:left;padding:6px 10px;color:#888;font-size:11px;text-transform:uppercase;border-bottom:1px solid #333}
+td{padding:6px 10px;border-bottom:1px solid #1f1f2a;word-break:break-all;max-width:300px}
+.date-field{background:#2a1a00;color:#f0a050;font-weight:600}
+.count{color:#cc5500;font-weight:700;font-size:18px}
+#log{font-family:monospace;font-size:12px;color:#888;margin-top:20px;white-space:pre-wrap}
+button{background:#cc5500;color:#fff;border:none;padding:12px 24px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600}
+</style></head><body>
+<h1>🔍 Notifications Debug — Field Scanner</h1>
+<p style="color:#888">Scans gas, fire, vehicle, and actions collections to identify date fields for the notification system.</p>
+<button onclick="runScan()">Scan Collections</button>
+<div id="results"></div>
+<div id="log"></div>
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+    authDomain: "safepark-pro.firebaseapp.com",
+    projectId: "safepark-pro",
+    storageBucket: "safepark-pro.firebasestorage.app",
+    messagingSenderId: "511221743341",
+    appId: "1:511221743341:web:95bcc7e83d4861578016e4"
+};
+if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
+const auth=firebase.auth();
+
+function log(msg){document.getElementById('log').textContent+=msg+'\n'}
+
+function isDateLike(v){
+    if(!v) return false;
+    if(v.toDate) return true; // Firestore timestamp
+    if(typeof v==='string' && /\d{4}[-\/]\d{2}[-\/]\d{2}/.test(v)) return true;
+    if(typeof v==='string' && /\d{2}[-\/]\d{2}[-\/]\d{4}/.test(v)) return true;
+    return false;
+}
+
+function formatVal(v){
+    if(!v) return '<em style="color:#555">empty</em>';
+    if(v.toDate) return v.toDate().toLocaleDateString('en-GB')+' <small>(Timestamp)</small>';
+    if(typeof v==='object' && !Array.isArray(v)) return JSON.stringify(v).substring(0,100);
+    return String(v).substring(0,100);
+}
+
+async function scanCollection(name){
+    log(`Scanning ${name}...`);
+    const snap=await db.collection(name).get();
+    log(`  → ${snap.size} documents found`);
+    
+    if(snap.size===0) return {name, count:0, fields:{}, samples:[], dateFields:[]};
+    
+    // Collect all field names and identify date fields
+    const fieldMap={};
+    const dateFields=new Set();
+    const samples=[];
+    
+    snap.forEach(doc=>{
+        const d=doc.data();
+        Object.keys(d).forEach(k=>{
+            if(!fieldMap[k]) fieldMap[k]={count:0, samples:[], isDate:false};
+            fieldMap[k].count++;
+            if(fieldMap[k].samples.length<3) fieldMap[k].samples.push(d[k]);
+            if(isDateLike(d[k])){
+                fieldMap[k].isDate=true;
+                dateFields.add(k);
+            }
+        });
+        if(samples.length<2) samples.push({id:doc.id, ...d});
+    });
+    
+    log(`  → ${Object.keys(fieldMap).length} unique fields, ${dateFields.size} date fields: ${[...dateFields].join(', ')}`);
+    return {name, count:snap.size, fields:fieldMap, samples, dateFields:[...dateFields]};
+}
+
+function renderResults(collections){
+    let h='';
+    collections.forEach(c=>{
+        h+=`<div class="card"><h2>${c.name} <span class="count">(${c.count} docs)</span></h2>`;
+        if(c.count===0){h+='<p style="color:#555">No documents found</p></div>';return}
+        
+        // Field table
+        h+='<table><tr><th>Field Name</th><th>Count</th><th>Date?</th><th>Sample Values</th></tr>';
+        Object.keys(c.fields).sort().forEach(k=>{
+            const f=c.fields[k];
+            const cls=f.isDate?'date-field':'';
+            h+=`<tr class="${cls}"><td><strong>${k}</strong></td><td>${f.count}</td><td>${f.isDate?'✅ YES':'—'}</td><td>${f.samples.map(formatVal).join(' | ')}</td></tr>`;
+        });
+        h+='</table>';
+        
+        // Date fields summary
+        if(c.dateFields.length>0){
+            h+='<div style="margin-top:10px;padding:10px;background:#1a2a10;border:1px solid #3a5a20;border-radius:8px"><strong style="color:#8f8">📅 Date fields for notifications:</strong> '+c.dateFields.join(', ')+'</div>';
+        }
+        
+        // Sample docs
+        h+='<details style="margin-top:10px"><summary style="cursor:pointer;color:#888">View sample documents</summary><pre style="font-size:11px;color:#aaa;overflow-x:auto">'+JSON.stringify(c.samples,null,2).replace(/</g,'&lt;')+'</pre></details>';
+        h+='</div>';
+    });
+    document.getElementById('results').innerHTML=h;
+}
+
+async function runScan(){
+    document.getElementById('results').innerHTML='<p>Scanning... please wait</p>';
+    document.getElementById('log').textContent='';
+    
+    try{
+        await auth.signInAnonymously();
+        log('Auth OK');
+        
+        const collections=['gasAppliances','gas_appliances','safegas','fireExtinguishers','fire_extinguishers','safefire','vehicles','fleet','safefleet','actions','certificates','electrical','eicr'];
+        const results=[];
+        
+        for(const name of collections){
+            try{
+                const r=await scanCollection(name);
+                if(r.count>0) results.push(r);
+            }catch(e){
+                log(`  ✗ ${name}: ${e.message}`);
+            }
+        }
+        
+        // Also try some common variations
+        const extras=['gas','fire','vehicle','cert','electricalCerts','eicrCerts','fireEquipment'];
+        for(const name of extras){
+            try{
+                const r=await scanCollection(name);
+                if(r.count>0) results.push(r);
+            }catch(e){
+                log(`  ✗ ${name}: ${e.message}`);
+            }
+        }
+        
+        if(results.length===0){
+            document.getElementById('results').innerHTML='<p style="color:#f66">No matching collections found. Check collection names in Firebase console.</p>';
+        }else{
+            renderResults(results);
+        }
+        log('\nScan complete. '+results.length+' collections with data.');
+        
+    }catch(e){
+        log('ERROR: '+e.message);
+        document.getElementById('results').innerHTML='<p style="color:#f66">Error: '+e.message+'</p>';
+    }
+}
+</script></body></html>
