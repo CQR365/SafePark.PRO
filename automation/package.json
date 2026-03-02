@@ -1,1 +1,10 @@
-
+{
+  "name": "safenotify-pro",
+  "version": "1.0.0",
+  "description": "SafeNotify.PRO automated compliance notifications",
+  "private": true,
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "resend": "^3.0.0"
+  }
+}
