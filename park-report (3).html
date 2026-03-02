@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeSystems.PRO — Report</title>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f5f7;--card:#ffffff;--card2:#fafafa;--border:#e2e4e8;--text:#1a1a2e;--muted:#5f6577;--dim:#8a8fa3;--orange:#CC5500;--green:#0d9668;--red:#d92d20;--amber:#dc6803;--blue:#1570ef;--pink:#f492f0;--cyan:#0dcaf0}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',system-ui,sans-serif;line-height:1.5}
+.controls{max-width:900px;margin:30px auto;padding:24px 28px;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.controls h2{font-size:22px;color:var(--text);margin-bottom:16px}.controls h2 span{color:var(--orange)}
+.ctrl-row{display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;align-items:end}
+.ctrl-group{display:flex;flex-direction:column;gap:4px}
+.ctrl-group label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.ctrl-group select,.ctrl-group input{background:#fff;border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:14px;font-family:inherit}
+.ctrl-group select{min-width:200px}
+.ctrl-group textarea{background:#fff;border:1px solid var(--border);color:var(--text);padding:12px;border-radius:8px;font-size:14px;font-family:inherit;width:100%;min-height:70px;resize:vertical}
+.btn-gen{background:var(--orange);color:#fff;border:none;padding:12px 28px;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;transition:.2s}.btn-gen:hover{background:#e06500}.btn-gen:disabled{opacity:.5;cursor:wait}
+.btn-print{background:transparent;color:var(--orange);border:2px solid var(--orange);padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-left:12px}.btn-print:hover{background:var(--orange);color:#fff}
+.status-msg{font-size:13px;color:var(--muted);margin-top:8px}
+.report{max-width:1100px;margin:0 auto 60px;display:none}
+@media print{.controls{display:none!important}.report{display:block!important;max-width:100%;margin:0}.rpt-section{break-inside:avoid;page-break-inside:avoid}.rpt-exec{break-inside:auto;page-break-inside:auto}.personal-note{break-inside:auto;page-break-inside:auto}.reels{break-inside:avoid;page-break-inside:avoid}.dtable{font-size:11px}.dtable thead{display:table-header-group}.dtable tbody tr{break-inside:avoid;page-break-inside:avoid}.rpt-header{break-inside:avoid;page-break-inside:avoid}.narrative{break-inside:avoid;page-break-inside:avoid}@page{size:A3 landscape;margin:12mm 16mm}body{background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+.rpt-header{padding:20px 28px;background:#1a1a2e;border:1px solid #1a1a2e;border-radius:12px;margin-bottom:20px;display:flex;align-items:center;gap:20px}
+.rpt-header img{height:60px;border-radius:8px}
+.rpt-header .titles h1{font-size:24px;color:#fff;font-weight:700}.rpt-header .titles h1 span{color:var(--orange)}
+.rpt-header .titles .sub{font-size:14px;color:rgba(255,255,255,.6)}
+.rpt-header .meta{margin-left:auto;text-align:right}
+.rpt-header .meta .park-name{font-size:18px;font-weight:700;color:var(--orange)}.rpt-header .meta .period{font-size:13px;color:rgba(255,255,255,.6)}
+.rpt-exec{padding:20px 28px;background:#fff8f3;border:2px solid var(--orange);border-radius:12px;margin-bottom:20px}
+.rpt-exec h3{font-size:16px;color:var(--orange);margin-bottom:8px;font-weight:700}
+.rpt-exec p,.rpt-exec div{font-size:15px;color:#3d3d4e;line-height:1.6}
+.rpt-exec .personal-note{border-top:2px solid var(--orange);padding-top:14px;margin-top:14px;color:var(--text);font-size:14px;line-height:1.8}
+.reels{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+.reel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.reel-label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.reel-value{font-size:48px;font-weight:800;line-height:1}
+.reel-bar{height:5px;background:#eef0f3;border-radius:4px;margin:12px 0;overflow:hidden}
+.reel-fill{height:100%;border-radius:4px}
+.reel-delta{font-size:13px;font-weight:600;margin-top:4px}.reel-sub{font-size:12px;color:var(--dim);margin-top:4px}
+.delta-up{color:var(--green)}.delta-down{color:var(--red)}.delta-flat{color:var(--dim)}
+.trend-row{display:flex;justify-content:center;gap:4px;margin-top:8px}
+.trend-dot{width:8px;height:8px;border-radius:50%;opacity:.4}.trend-dot.active{opacity:1}
+.rpt-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.rpt-section h3{font-size:17px;color:var(--text);font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.rpt-section h3 span{color:var(--orange)}
+.badge{font-size:11px;padding:2px 10px;border-radius:12px;margin-left:8px;font-weight:600;vertical-align:middle}
+.badge-ok{background:#ecfdf3;color:var(--green)}.badge-warn{background:#fef6ee;color:var(--amber)}.badge-alert{background:#fef3f2;color:var(--red)}.badge-info{background:#eff4ff;color:var(--blue)}.badge-gap{background:#f2f4f7;color:var(--dim)}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.metric{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+.metric .m-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.metric .m-value{font-size:28px;font-weight:800;color:var(--text);line-height:1.1}
+.metric .m-delta{font-size:12px;font-weight:600;margin-top:4px}.metric .m-sub{font-size:11px;color:var(--dim);margin-top:2px}
+.narrative{font-size:14px;color:#3d3d4e;line-height:1.6;padding:12px 16px;background:#fafbfc;border-radius:8px;border-left:3px solid var(--orange);margin-top:10px}
+.narrative.alert{border-left-color:var(--red);background:#fef3f2}.narrative.good{border-left-color:var(--green);background:#ecfdf3}.narrative.warn{border-left-color:var(--amber);background:#fef6ee}
+.dtable{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+.dtable th{text-align:left;padding:8px 12px;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--border);background:#fafbfc}
+.dtable td{padding:8px 12px;border-bottom:1px solid #f0f1f3;color:var(--text)}.dtable tr:last-child td{border-bottom:none}
+.dtable tr:hover{background:#fafbfc}
+.data-gap{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#fef3f2;border:1px dashed #fecdca;border-radius:8px;margin-top:10px}
+.data-gap-icon{width:20px;height:20px;border-radius:50%;background:#fef3f2;border:1px solid #fecdca;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--red);font-weight:700;flex-shrink:0}
+.data-gap-text{font-size:13px;color:#5f2120}
+.safety-callout{background:#fef3f2;border:1px solid #fecdca;border-radius:8px;padding:14px 16px;margin-top:12px}
+.safety-callout h4{font-size:13px;color:var(--red);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.safety-callout p{font-size:13px;color:#3d3d4e;line-height:1.5}
+.rpt-recs{padding:20px 28px;background:#ecfdf3;border:2px solid var(--green);border-radius:12px;margin-bottom:20px}
+.overall-score{background:linear-gradient(135deg,#1a1a2e,#2d2d4e);border-radius:12px;padding:24px 28px;margin-bottom:20px;text-align:center;break-inside:avoid;page-break-inside:avoid}
+.overall-score .os-value{font-size:72px;font-weight:800;line-height:1;margin:8px 0}
+.overall-score .os-label{font-size:14px;color:rgba(255,255,255,.6);font-weight:600;text-transform:uppercase;letter-spacing:1px}
+.overall-score .os-sub{font-size:13px;color:rgba(255,255,255,.5);margin-top:8px}
+.overall-score .os-bar{height:8px;background:rgba(255,255,255,.1);border-radius:4px;margin:16px auto 0;max-width:400px;overflow:hidden}
+.overall-score .os-fill{height:100%;border-radius:4px}
+.rpt-recs h3{font-size:16px;color:var(--green);margin-bottom:12px;font-weight:700}
+.rec-item{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start;break-inside:avoid;page-break-inside:avoid}
+.rec-num{min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.rec-critical .rec-num{background:#fef3f2;color:var(--red);border:1px solid #fecdca}
+.rec-high .rec-num{background:#fef6ee;color:var(--amber);border:1px solid #fddcab}
+.rec-medium .rec-num{background:#eff4ff;color:var(--blue);border:1px solid #c7d7fe}
+.rec-text{font-size:14px;color:#3d3d4e;line-height:1.5}.rec-text strong{color:var(--text)}
+.rpt-recs .personal-note{border-top:1px solid #a6f4c5;padding-top:12px;margin-top:14px;font-style:italic;color:var(--muted);font-size:14px;line-height:1.6}
+@media(max-width:900px){.metrics{grid-template-columns:repeat(2,1fr)}.reels{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="controls" id="controlPanel">
+<h2>Safe<span>Systems</span>.PRO — Monthly Report Generator</h2>
+<div class="ctrl-row">
+<div class="ctrl-group"><label>Park</label><select id="selPark">
+<option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+<option value="Oban Holiday Park">Oban Holiday Park</option>
+<option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+<option value="__DIRECTORS__">Directors Report — All Parks</option>
+</select></div>
+<div class="ctrl-group"><label>Report Month</label><input type="month" id="selMonth"></div>
+<div class="ctrl-group"><button class="btn-gen" id="btnGenerate" onclick="generateReport()">Generate Report</button><button class="btn-print" id="btnPrint" onclick="window.print()" style="display:none">Print / PDF</button></div>
+</div>
+<div class="ctrl-group" style="width:100%"><label>Omnibosh Safety Partner Commentary (use # for section headers, • or - for bullets)</label>
+<textarea id="execNotes" rows="12" placeholder="# Industry Incident — Unit Siting
+The recent death of a worker during the siting of a holiday unit...
+
+# Hot Tub Water Sampling
+Highland Holidays will now be formally outsourcing...
+
+# SafeSystems.PRO — Phase Update
+The use of SafeSystems.PRO continues to improve..."></textarea>
+<div style="margin-top:6px;display:flex;gap:8px"><button onclick="saveNotes()" style="padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:#ecfdf3;color:#166534;cursor:pointer;font-size:12px;font-weight:600">💾 Save Notes</button><button onclick="loadNotes()" style="padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:#f0f4ff;color:#1a1a2e;cursor:pointer;font-size:12px;font-weight:600">📂 Load Saved Notes</button><span id="saveStatus" style="font-size:12px;color:var(--green);line-height:30px"></span></div></div>
+<div class="ctrl-group" style="width:100%;margin-top:8px"><label>Your Notes — Recommendations (appears below auto-generated priorities)</label>
+<textarea id="recsNotes" rows="4" placeholder="Add personal recommendations — e.g. 'Recommend manufacturer review of Valor heaters...'"></textarea></div>
+<div class="status-msg" id="statusMsg"></div>
+</div>
+<div class="report" id="reportOutput"></div>
+
+<script>
+// SafeSystems.PRO — Monthly Park Report Engine
+// Firebase queries, auto-narrative, smart recommendations, rendering
+
+const FBC={apiKey:"AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",authDomain:"safepark-pro.firebaseapp.com",projectId:"safepark-pro",storageBucket:"safepark-pro.firebasestorage.app",messagingSenderId:"511221743341",appId:"1:511221743341:web:95bcc7e83d4861578016e4"};
+let db;
+
+// Default to last month
+const _now=new Date();const _lm=new Date(_now.getFullYear(),_now.getMonth()-1,1);
+document.getElementById('selMonth').value=_lm.getFullYear()+'-'+String(_lm.getMonth()+1).padStart(2,'0');
+
+// Save/Load notes to localStorage
+function saveNotes(){
+    const park=document.getElementById('selPark').value;
+    const month=document.getElementById('selMonth').value;
+    const key='ssp_notes_'+park+'_'+month;
+    const data={exec:document.getElementById('execNotes').value,recs:document.getElementById('recsNotes').value};
+    localStorage.setItem(key,JSON.stringify(data));
+    // Also save a "latest" copy regardless of park/month
+    localStorage.setItem('ssp_notes_latest',JSON.stringify(data));
+    document.getElementById('saveStatus').textContent='✓ Saved';
+    setTimeout(()=>{document.getElementById('saveStatus').textContent=''},3000);
+}
+function loadNotes(){
+    const park=document.getElementById('selPark').value;
+    const month=document.getElementById('selMonth').value;
+    const key='ssp_notes_'+park+'_'+month;
+    let data=localStorage.getItem(key);
+    if(!data)data=localStorage.getItem('ssp_notes_latest');
+    if(data){const d=JSON.parse(data);document.getElementById('execNotes').value=d.exec||'';document.getElementById('recsNotes').value=d.recs||'';
+        document.getElementById('saveStatus').textContent='✓ Loaded';
+        setTimeout(()=>{document.getElementById('saveStatus').textContent=''},3000);
+    }else{document.getElementById('saveStatus').textContent='No saved notes found';setTimeout(()=>{document.getElementById('saveStatus').textContent=''},3000)}
+}
+// Auto-load on page load
+try{loadNotes()}catch(e){}
+
+// =============================================
+// UTILITIES
+// =============================================
+const LOGO_OMNI='data:image/jpeg;base64,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';
+const LOGO_HH='data:image/jpeg;base64,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pdZ8RaeJH1yS2ii/cmKCMKwwBjJ46is5xbPfybEwoSbceaTWm3nff5HpZVjlQCDlj079qa446EcAgH0x/jXE/wDCKQt80+p6rK+M7muP/rVIujalp+W0jW7rP/PG8Pmow9D6Vn7PzPoFmM/tU9PJp/5fmdXcwxXVu0M8SSxOMMjDIPXt+VcyPDmoaFcvd+EL825b/WWc53RSccj/APX+dWtJ8Rb7kafrkK6ffn7pZv3U3urdM+xro9oCEgjHTHTFS7rRm7hQx0VNbrrs1+q9DNsPiDHbyx2/irT59JuDx5u0vC/uCOR+v1rsNPvrTUYfN0+5huUYfehcMPxx0rn50SaMpMiyRnqjgYP4VhXHhDSHmMtvFJZz9BJaSmI578DisnSi9tCfZYmns1Neej+9XT+5HS+NNBstc0yRrotDPbK0sFzHw8RAyfqOORXgt/si8J6fG5PnSSNKoB4x0yf0r0DxLbanpWhzGDxJqkqykW8dvMQ/mF+NuT7Zrz/xVIIntdOCjFpGF3/3iQM49q6KEXFWufM5017S7hyytrtr229DAooorc8EKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAs6deS2F0k8DAMvqMgj0rtrK9TQfEfnEgaXqIBLD7qN6/gT+R9q4CtfTdSgFg+n38Je2d9yyKfmjPqPWg3oVXTkmt0e0qQQDn3BFLj06e1cDo+tXfh0pZ6wjzaf0huUBO0dvw9uo967ezure8hE1rLHNEf4kOahqx9Ph8TCutN+wzULC21G1a3vIVliPr29weoNZCWGvaWNukalHdW44WC+XdtHoGHP8AKugyPaj8BSNXTTfMm0+60MIar4rQbf7K05j3ZZsf+zU9Z/FdxuDPpdkpGPkQyMPYZ4rSvr23sYDNeTJDEO7HH5epridV1+41xJorAvaaVGD59yw+Zl7gD+nX19KFFdjCvinRXvVJN9rr9EF3dyPcy3N5q7XsVmGEbyBUjacj+BR1x0z71wd3cy3dw01w5eRupNXdZv47kxW9ogjsrfKxDuc9WPuazKtKx81XrOrK7f6/mFFFFMwCiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigDRtNZvbcnMpnjI2mOf51I+hrV07UNMa63xi50qQrky28x259MY6VzNFBcakonotprly1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';
+function initFB(){try{if(!firebase.apps.length)firebase.initializeApp(FBC);db=firebase.firestore();return true}catch(e){return false}}
+function isDone(s){if(!s)return false;const l=s.toLowerCase();return['completed','complete','closed','resolved','done','fixed','actioned'].some(x=>l.includes(x))}
+function toDate(v){if(!v)return null;if(v.toDate)return v.toDate();if(v.seconds)return new Date(v.seconds*1000);const d=new Date(v);return isNaN(d)?null:d}
+function matchPark(r,park){const key=park.toLowerCase().split(' ')[0];return[r.park,r.location,r.parkName,r.parkLocation,r.site,r.holiday_park,r.holidayPark].filter(Boolean).some(v=>v.toLowerCase().includes(key))}
+function pct(n,d){return d>0?Math.round(n/d*100):0}
+function D(c,p){const d=c-p;if(d>0)return{val:'+'+d,cls:'delta-up',arrow:'▲'};if(d<0)return{val:''+d,cls:'delta-down',arrow:'▼'};return{val:'0',cls:'delta-flat',arrow:'—'}}
+function DP(c,p){const d=c-p;if(d>0)return{val:'+'+d+'%',cls:'delta-up',arrow:'▲'};if(d<0)return{val:d+'%',cls:'delta-down',arrow:'▼'};return{val:'0%',cls:'delta-flat',arrow:'—'}}
+function MN(d){return d.toLocaleString('en-GB',{month:'long',year:'numeric'})}
+function SM(d){return d.toLocaleString('en-GB',{month:'short'})}
+function MR(y,m){return{start:new Date(y,m,1),end:new Date(y,m+1,1)}}
+function SB(v,ok,warn){if(v>=ok)return'<span class="badge badge-ok">On Track</span>';if(v>=warn)return'<span class="badge badge-warn">Attention</span>';return'<span class="badge badge-alert">Action Required</span>'}
+function GB(){return'<span class="badge badge-gap">No Data</span>'}
+function gap(pn,text){return'<div class="data-gap"><div class="data-gap-icon">!</div><div class="data-gap-text">'+pn+' '+text+'</div></div>'}
+function fmtNotes(txt){if(!txt)return'';return txt.split('\n').map(line=>{const t=line.trim();if(!t)return'<div style="height:6px"></div>';if(t.startsWith('# ')){return'<div style="font-weight:700;font-size:15px;color:var(--text);padding:12px 0 4px 0;border-bottom:1px solid var(--border);margin-top:10px">'+t.substring(2)+'</div>'}if(t.startsWith('•')||t.startsWith('·')||t.startsWith('- ')){return'<div style="padding:4px 0 4px 16px;border-left:3px solid var(--orange);margin:3px 0;line-height:1.7;font-size:14px">'+t.replace(/^[•·]\s*/,'').replace(/^- /,'')+'</div>'}return'<div style="padding:3px 0;line-height:1.7;font-size:14px">'+t+'</div>'}).join('')}
+
+// =============================================
+// NARRATIVE ENGINE — Executive Summary
+// =============================================
+function buildExecSummary(pn,currName,prevName,d){
+    const L=[];
+    const mp=pct(d.maint.curr.done,d.maint.curr.total);
+    const mpp=pct(d.maint.prev.done,d.maint.prev.total);
+    const htE=d.ht.expected*d.ht.daysInMonth;
+    const htP=htE>0?pct(d.ht.curr.records,htE):0;
+
+    // Maintenance narrative
+    if(d.maint.curr.total>0){
+        if(mp>mpp)L.push(pn+' maintenance completion improved from '+mpp+'% to '+mp+'% month-on-month, with '+d.maint.curr.done+' of '+d.maint.curr.total+' jobs completed.');
+        else if(mp<mpp)L.push(pn+' maintenance completion dropped from '+mpp+'% to '+mp+'%. '+d.maint.curr.total+' jobs were raised but only '+d.maint.curr.done+' completed — '+(d.maint.curr.total-d.maint.curr.done)+' remain open.');
+        else L.push(pn+' maintained a '+mp+'% maintenance completion rate ('+d.maint.curr.done+'/'+d.maint.curr.total+'), consistent with '+prevName.split(' ')[0]+'.');
+        if(d.maint.curr.responseTimes.length>0){const avg=Math.round(d.maint.curr.responseTimes.reduce((a,b)=>a+b,0)/d.maint.curr.responseTimes.length);L.push('Average response time was '+avg+' hours across '+d.maint.curr.responseTimes.length+' completed jobs with timestamps.')}
+    }else{L.push(pn+' logged zero maintenance records in '+currName+'. This is a significant data gap — if work is being completed on paper or verbally, those records are lost and cannot be used as evidence of compliance.')}
+
+    // Safety-flagged
+    if(d.maint.curr.safety>0){const sp=pct(d.maint.curr.safetyDone,d.maint.curr.safety);if(sp<100)L.push(d.maint.curr.safety+' job(s) were flagged as having safety implications — '+d.maint.curr.safetyDone+' completed ('+sp+'%). Outstanding safety-flagged jobs must be prioritised.');else L.push('All '+d.maint.curr.safety+' safety-flagged maintenance jobs were completed — good practice.')}
+
+    // Incidents
+    if(d.inc.curr.total>0){
+        let t=d.inc.curr.total+' incident(s) reported';
+        if(d.inc.curr.riddor>0)t+=' including '+d.inc.curr.riddor+' RIDDOR reportable';
+        t+='.';
+        const open=d.inc.curr.total-d.inc.curr.closed;
+        if(open>0)t+=' '+open+' remain open and require investigation.';else t+=' All investigated and closed.';
+        L.push(t);
+    }else{L.push('No incidents reported in '+currName+'. If accurate, this reflects positively on the safety culture. If incidents occurred but were not logged, this is a reporting gap that undermines the park\'s legal defence in any future claim.')}
+
+    // Hot tubs
+    if(d.ht.expected>0){
+        if(htP>=90)L.push('Hot tub compliance strong at '+htP+'% — '+d.ht.curr.records+' of '+htE+' expected daily inspections logged.');
+        else if(htP>=60)L.push('Hot tub compliance at '+htP+'% — '+d.ht.curr.records+' of '+htE+' expected inspections. '+(htE-d.ht.curr.records)+' inspections missed. This requires immediate improvement.');
+        else if(d.ht.curr.records>0)L.push('Hot tub compliance critically low at '+htP+'%. '+d.ht.expected+' tubs × '+d.ht.daysInMonth+' days = '+htE+' expected. Only '+d.ht.curr.records+' logged. '+(htE-d.ht.curr.records)+' missed inspections.');
+        else L.push(pn+' logged zero hot tub inspections despite having '+d.ht.expected+' registered tub(s). This is a significant compliance failure carrying legionella risk.');
+    }
+
+    // Play parks — 1 per park, daily inspection required
+    const ppExec=d.ht.daysInMonth;const ppPctExec=ppExec>0?pct(d.pp.curr.total,ppExec):0;
+    if(d.pp.curr.total===0)L.push(pn+' logged zero play park inspections in '+currName+'. 1 play area requires daily inspection — '+ppExec+' inspections expected, none completed.');
+    else if(ppPctExec<90)L.push('Play park inspections at '+ppPctExec+'% — '+d.pp.curr.total+' of '+ppExec+' expected daily inspections. '+(ppExec-d.pp.curr.total)+' missed.');
+    else L.push('Play park inspections strong at '+ppPctExec+'% — '+d.pp.curr.total+' of '+ppExec+' expected daily inspections completed.');
+
+    // Accommodation — expected from config, count unique units inspected
+    if(d.accom.expected>0){const acU=d.accom.curr.units.size;const acPctE=pct(acU,d.accom.expected);
+        if(acU===0)L.push(pn+' completed zero accommodation safety inspections. '+d.accom.expected+' units registered — each requires a monthly safety inspection.');
+        else if(acPctE>=90)L.push('Accommodation inspections strong at '+acPctE+'% — '+acU+' of '+d.accom.expected+' units inspected across '+d.accom.curr.total+' record(s).');
+        else L.push('Accommodation inspections at '+acPctE+'% — '+acU+' of '+d.accom.expected+' units inspected. '+(d.accom.expected-acU)+' unit(s) still require monthly safety inspection.');
+    }
+
+    // Actions overdue
+    if(d.act.overdue>0)L.push(d.act.overdue+' action(s) are currently overdue past their target date and require immediate attention.');
+
+    // Module gaps
+    const gaps=[];
+    if(d.gas.total===0)gaps.push('SafeGas (gas appliances)');
+    if(d.fire.extinguishers===0)gaps.push('SafeFire (extinguishers)');
+    if(d.coshh.total===0)gaps.push('SafeChem (COSHH)');
+    if(d.veh.total===0)gaps.push('SafeVehicle (fleet)');
+    if(d.contr.total===0)gaps.push('SafeContractor');
+    if(d.staff.count===0)gaps.push('SafeTeam (staff)');
+    if(gaps.length>0)L.push(pn+' has zero records in: '+gaps.join(', ')+'. These data gaps must be addressed to maintain compliance visibility across all safety modules.');
+
+    return L.join(' ');
+}
+
+// =============================================
+// NARRATIVE ENGINE — Per-Section Narratives
+// =============================================
+function narrate(section,pn,currName,prevName,d){
+    const pm=prevName.split(' ')[0];
+    switch(section){
+
+    case 'maint':{
+        if(d.maint.curr.total===0)return{t:pn+' added zero maintenance records in '+currName+'. If maintenance jobs are being raised and completed on paper, this data is lost and cannot be used as evidence of compliance. Every job must go through SafeSystems.PRO.',c:'alert'};
+        const p=pct(d.maint.curr.done,d.maint.curr.total),pp=pct(d.maint.prev.done,d.maint.prev.total);
+        const cats=Object.entries(d.maint.curr.byCat).sort((a,b)=>b[1]-a[1]);
+        let t=p>=80?'Solid performance — ':'Completion rate needs improvement — ';
+        if(p>pp)t+='up '+Math.abs(p-pp)+' points from '+pm+'. ';else if(p<pp)t+='down '+Math.abs(p-pp)+' points from '+pm+' — investigate cause. ';else t+='steady vs '+pm+'. ';
+        if(cats.length>0)t+='Top category: '+cats[0][0]+' ('+cats[0][1]+' jobs, '+pct(cats[0][1],d.maint.curr.total)+'%). ';
+        if(d.maint.curr.responseTimes.length>0){const avg=Math.round(d.maint.curr.responseTimes.reduce((a,b)=>a+b,0)/d.maint.curr.responseTimes.length);t+=avg>72?'Average response '+avg+'h exceeds 72h target — review prioritisation.':'Average response '+avg+'h is within target.'}
+        return{t,c:p>=80?'good':p>=50?'warn':'alert'};
+    }
+
+    case 'inc':{
+        if(d.inc.curr.total===0)return{t:'No incidents reported by '+pn+' in '+currName+'. If accurate, this reflects effective controls and a positive safety culture. If incidents occurred but were not recorded, this is a serious reporting gap — unreported incidents cannot be investigated and the park loses its legal defence of demonstrating timely action.',c:'warn'};
+        const open=d.inc.curr.total-d.inc.curr.closed;
+        let t=d.inc.curr.total+' incident(s) reported. ';
+        if(d.inc.curr.riddor>0)t+=d.inc.curr.riddor+' RIDDOR reportable — verify HSE notification submitted within statutory deadlines. ';
+        if(open>0)t+=open+' remain open — investigation and closure required. ';else t+='All closed within reporting period. ';
+        const dlt=d.inc.curr.total-d.inc.prev.total;
+        if(dlt>2)t+='Incidents up '+dlt+' vs '+pm+' — assess whether this reflects improved reporting or emerging risks.';
+        else if(dlt<-2)t+='Incidents down '+Math.abs(dlt)+' vs '+pm+'.';
+        return{t,c:d.inc.curr.riddor>0||open>0?'alert':'good'};
+    }
+
+    case 'ht':{
+        const exp=d.ht.expected*d.ht.daysInMonth;const p=exp>0?pct(d.ht.curr.records,exp):0;
+        if(d.ht.expected===0)return{t:'No hot tubs registered in the accommodation config for '+pn+'. If hot tubs exist on this park, they must be added to the system immediately.',c:'warn'};
+        if(d.ht.curr.records===0)return{t:pn+' logged zero hot tub inspections in '+currName+' despite '+d.ht.expected+' registered tub(s). '+exp+' daily inspections were expected. Every hot tub must be tested daily for chemical balance and temperature — failure carries serious legionella risk and potential enforcement action.',c:'alert'};
+        const missed=exp-d.ht.curr.records;
+        let t=d.ht.curr.records+' of '+exp+' expected inspections ('+p+'%). ';
+        if(missed>0)t+=missed+' missed. ';
+        if(d.ht.curr.failures>0)t+=d.ht.curr.failures+' failure(s) recorded. ';
+        if(d.ht.curr.retests>0)t+=d.ht.curr.retests+' retest(s). ';
+        if(d.ht.curr.records>d.ht.prev.records)t+='Up from '+d.ht.prev.records+' in '+pm+' — improving.';
+        else if(d.ht.curr.records<d.ht.prev.records)t+='Down from '+d.ht.prev.records+' in '+pm+' — declining.';
+        return{t,c:p>=90?'good':p>=60?'warn':'alert'};
+    }
+
+    case 'accom':{
+        if(d.accom.curr.total===0)return{t:pn+' completed zero accommodation safety inspections in '+currName+'. '+d.accom.expected+' units registered — each requires a monthly safety inspection.',c:'alert'};
+        const acU=d.accom.curr.units.size;const acE=d.accom.expected;const acPct=acE>0?pct(acU,acE):0;
+        let t=acU+' of '+acE+' units inspected ('+acPct+'%) across '+d.accom.curr.total+' inspection record(s). ';
+        if(acE-acU>0)t+=(acE-acU)+' unit(s) not yet inspected this month. ';
+        if(d.accom.curr.actionsRequired>0)t+=d.accom.curr.actionsRequired+' flagged action(s). ';
+        if(d.accom.curr.total>d.accom.prev.total)t+='Up from '+d.accom.prev.total+' records in '+pm+'.';
+        else if(d.accom.curr.total<d.accom.prev.total)t+='Down from '+d.accom.prev.total+' records in '+pm+'.';
+        return{t,c:acPct>=90?'good':acPct>=50?'warn':'alert'};
+    }
+
+    case 'pp':{
+        const ppExp=d.ht.daysInMonth; // 1 play park × days in month
+        const ppPct=ppExp>0?pct(d.pp.curr.total,ppExp):0;
+        if(d.pp.curr.total===0)return{t:pn+' logged zero play park inspections in '+currName+'. 1 play area × '+ppExp+' days = '+ppExp+' inspections expected. Play areas require daily visual inspection before public use — legal requirement under BS EN 1176/1177. Failure to inspect exposes the park to significant liability.',c:'alert'};
+        const missed=ppExp-d.pp.curr.total;
+        let t=d.pp.curr.total+' of '+ppExp+' expected daily inspections completed ('+ppPct+'%). ';
+        if(missed>0)t+=missed+' inspection(s) missed. ';
+        if(d.pp.curr.actionsRequired>0)t+=d.pp.curr.actionsRequired+' flagged actions required. ';
+        if(d.pp.curr.total>d.pp.prev.total)t+='Up from '+d.pp.prev.total+' in '+pm+' — improving.';
+        else if(d.pp.curr.total<d.pp.prev.total)t+='Down from '+d.pp.prev.total+' in '+pm+' — investigate rota gaps.';
+        return{t,c:ppPct>=90?'good':ppPct>=60?'warn':'alert'};
+    }
+
+    }return null;
+}
+
+// =============================================
+// NARRATIVE ENGINE — Recommendations
+// =============================================
+function buildRecs(pn,d){
+    const R=[];
+    const htE=d.ht.expected*d.ht.daysInMonth;
+    const htP=htE>0?pct(d.ht.curr.records,htE):0;
+    const mp=pct(d.maint.curr.done,d.maint.curr.total);
+
+    // CRITICAL
+    if(d.maint.curr.total===0)R.push({p:'critical',t:'<strong>'+pn+' maintenance recording:</strong> Zero records logged. All maintenance must be captured through SafeSystems.PRO — paper records have no audit trail and cannot be used as evidence of timely action.'});
+    if(d.ht.expected>0&&htP<60)R.push({p:'critical',t:'<strong>'+pn+' hot tub compliance:</strong> '+htP+'% is critically below the required daily testing standard. Every tub must be tested every day. This carries legionella risk and enforcement exposure.'});
+    if(d.inc.curr.riddor>0)R.push({p:'critical',t:'<strong>RIDDOR incidents:</strong> '+d.inc.curr.riddor+' reportable incident(s) — verify HSE notifications were submitted within statutory deadlines and investigations are complete.'});
+    if(d.act.overdue>0)R.push({p:'critical',t:'<strong>Overdue actions:</strong> '+d.act.overdue+' action(s) past target date. Overdue actions represent uncontrolled risk. Immediate closure or formal extension with documented justification required.'});
+    const safeOpen=d.maint.curr.safety-d.maint.curr.safetyDone;
+    if(safeOpen>0)R.push({p:'critical',t:'<strong>Safety-flagged maintenance:</strong> '+safeOpen+' job(s) with safety implications remain open. These must take priority over routine maintenance.'});
+    if(d.fire.overdue>0)R.push({p:'critical',t:'<strong>Fire extinguisher servicing:</strong> '+d.fire.overdue+' extinguisher(s) overdue at '+pn+'. Out-of-date fire equipment is an enforcement risk — arrange servicing immediately.'});
+    if(d.gas.overdue>0)R.push({p:'critical',t:'<strong>Gas inspections overdue:</strong> '+d.gas.overdue+' appliance(s) at '+pn+' past inspection date. Arrange qualified Gas Safe engineer visits.'});
+    if(d.veh.motOverdue>0||d.veh.insOverdue>0)R.push({p:'critical',t:'<strong>Vehicle compliance:</strong> '+(d.veh.motOverdue>0?d.veh.motOverdue+' MOT(s) overdue. ':'')+(d.veh.insOverdue>0?d.veh.insOverdue+' insurance(s) expired. ':'')+'Vehicles must not be operated until compliance is restored.'});
+
+    // HIGH
+    if(d.gas.total===0)R.push({p:'high',t:'<strong>'+pn+' gas safety:</strong> Zero appliances registered in SafeGas. If this park uses LPG, mains gas, or any gas appliances, every appliance needs registering with service and inspection dates.'});
+    if(d.fire.extinguishers===0)R.push({p:'high',t:'<strong>'+pn+' fire safety:</strong> Zero fire extinguishers registered. All fire fighting equipment must be logged with service dates and run-out dates.'});
+    if(d.ht.expected>0&&htP>=60&&htP<90)R.push({p:'high',t:'<strong>'+pn+' hot tub testing:</strong> '+htP+'% compliance is below the 90% target. '+(htE-d.ht.curr.records)+' inspections missed. Identify which days/tubs are being missed and address rota gaps.'});
+    if(d.coshh.total===0)R.push({p:'high',t:'<strong>'+pn+' COSHH:</strong> Zero substances registered. Every cleaning product, chemical, and hazardous substance on park must have a COSHH assessment on file.'});
+    if(d.coshh.overdue>0)R.push({p:'high',t:'<strong>COSHH reviews overdue:</strong> '+d.coshh.overdue+' substance(s) at '+pn+' past review date. Update assessments and verify SDS sheets are current.'});
+    if(d.pp.curr.total===0)R.push({p:'high',t:'<strong>'+pn+' play park inspections:</strong> Zero of '+d.ht.daysInMonth+' expected daily inspections completed. Play areas require daily inspection before public use — legal requirement under BS EN 1176/1177.'});
+    else{const ppR=pct(d.pp.curr.total,d.ht.daysInMonth);if(ppR<90)R.push({p:'high',t:'<strong>'+pn+' play park inspections:</strong> '+ppR+'% compliance ('+d.pp.curr.total+'/'+d.ht.daysInMonth+'). '+(d.ht.daysInMonth-d.pp.curr.total)+' daily inspections missed. Identify rota gaps.'})}
+    if(d.maint.curr.total>0&&mp<80)R.push({p:'high',t:'<strong>Maintenance completion:</strong> '+mp+'% is below the 80% target at '+pn+'. Review open jobs and prioritise by safety implication and age.'});
+
+    // MEDIUM
+    if(d.veh.total===0)R.push({p:'medium',t:'<strong>'+pn+' fleet registration:</strong> Zero vehicles registered. Vehicles, buggies, mowers, and plant equipment must be added with MOT, insurance, and service dates.'});
+    if(d.contr.total===0)R.push({p:'medium',t:'<strong>'+pn+' contractor management:</strong> Zero contractors registered. All contractors working on park should have valid insurance, qualifications, and method statements on file.'});
+    if(d.staff.count===0)R.push({p:'medium',t:'<strong>'+pn+' staff records:</strong> Zero employees in SafeTeam. Staff records, emergency contacts, training history, and competency assessments should be maintained.'});
+    R.push({p:'medium',t:'<strong>SafeSpray (Legionella):</strong> No park has started using this module. Legionella risk assessments, shower head descaling records, and water outlet flushing logs are recommended across all sites.'});
+    if(d.fire.firePoints===0)R.push({p:'medium',t:'<strong>'+pn+' fire points:</strong> Zero fire points registered. Fire point locations, contents, and signage should be documented.'});
+    if(d.accom.curr.total===0&&d.accom.expected>0)R.push({p:'medium',t:'<strong>'+pn+' accommodation inspections:</strong> Zero of '+d.accom.expected+' units inspected this month. Every accommodation unit requires a monthly safety inspection.'});
+    else if(d.accom.expected>0){const ap=pct(d.accom.curr.units.size,d.accom.expected);if(ap<90)R.push({p:ap<50?'high':'medium',t:'<strong>'+pn+' accommodation inspections:</strong> '+d.accom.curr.units.size+' of '+d.accom.expected+' units inspected ('+ap+'%). '+(d.accom.expected-d.accom.curr.units.size)+' units still require monthly safety inspection.'})}
+
+    return R;
+}
+
+// =============================================
+// DATA COLLECTION
+// =============================================
+// Extract park data from pre-loaded snapshots
+function collectData(park,snaps,curr,prev,m3,m2,nowDate){
+    const d={};
+    // MAINTENANCE
+    d.maint={curr:{total:0,done:0,safety:0,safetyDone:0,byCat:{},byPriority:{},responseTimes:[]},prev:{total:0,done:0,safety:0,safetyDone:0},m3:{total:0,done:0},m2:{total:0,done:0}};
+    snaps.maint.forEach(doc=>{const r=doc.data();if(!matchPark(r,park))return;
+        const cd=toDate(r.createdAt||r.dateSubmitted||r.dateCreated);
+        const isSafe=r.safetyImplication==='yes'||r.isSafetyIssue;const done=isDone(r.status);
+        if(cd&&cd>=curr.start&&cd<curr.end){
+            d.maint.curr.total++;if(done)d.maint.curr.done++;
+            if(isSafe){d.maint.curr.safety++;if(done)d.maint.curr.safetyDone++}
+            d.maint.curr.byCat[r.category||'General']=(d.maint.curr.byCat[r.category||'General']||0)+1;
+            d.maint.curr.byPriority[(r.priority||'normal').toLowerCase()]=(d.maint.curr.byPriority[(r.priority||'normal').toLowerCase()]||0)+1;
+            const comp=toDate(r.completedAt||r.dateCompleted||r.completionDate);
+            if(cd&&comp&&done){const h=(comp-cd)/36e5;if(h>0&&h<720)d.maint.curr.responseTimes.push(h)}
+        }
+        if(cd&&cd>=prev.start&&cd<prev.end){d.maint.prev.total++;if(done)d.maint.prev.done++;if(isSafe){d.maint.prev.safety++;if(done)d.maint.prev.safetyDone++}}
+        if(cd&&cd>=m3.start&&cd<m3.end){d.maint.m3.total++;if(done)d.maint.m3.done++}
+        if(cd&&cd>=m2.start&&cd<m2.end){d.maint.m2.total++;if(done)d.maint.m2.done++}
+    });
+    // INCIDENTS
+    d.inc={curr:{total:0,closed:0,riddor:0,types:{}},prev:{total:0,closed:0}};
+    snaps.inc.forEach(doc=>{const r=doc.data();if(!matchPark(r,park))return;
+        const cd=toDate(r.createdAt||r.dateReported||r.date);
+        const closed=(r.status||'').toLowerCase().includes('closed')||r.currentStage===5;
+        if(cd&&cd>=curr.start&&cd<curr.end){d.inc.curr.total++;if(closed)d.inc.curr.closed++;if(r.riddor||r.isRiddor)d.inc.curr.riddor++;const typ=r.incident_type||r.type||'Other';d.inc.curr.types[typ]=(d.inc.curr.types[typ]||0)+1}
+        if(cd&&cd>=prev.start&&cd<prev.end){d.inc.prev.total++;if(closed)d.inc.prev.closed++}
+    });
+    // HOT TUBS
+    let expectedTubs=0;
+    snaps.acCfg.forEach(doc=>{const r=doc.data();if(matchPark(r,park)){const t=r.hotTubs||r.hot_tubs||r.tubCount;if(typeof t==='number')expectedTubs=t;else if(Array.isArray(t))expectedTubs=t.length}});
+    d.ht={curr:{records:0,tubs:new Set(),failures:0,retests:0},prev:{records:0},expected:expectedTubs,daysInMonth:Math.round((curr.end-curr.start)/864e5)};
+    snaps.ht.forEach(doc=>{const r=doc.data();if(!matchPark(r,park))return;
+        const cd=toDate(r.createdAt||r.inspectionDate);const tubs=r.hotTubs||[r.hotTub||''];
+        if(cd&&cd>=curr.start&&cd<curr.end){d.ht.curr.records++;tubs.forEach(t=>{if(t)d.ht.curr.tubs.add(t)});if((r.overallStatus||'').toLowerCase().includes('fail')||r.actionRequired)d.ht.curr.failures++;if((r.type||'').toLowerCase().includes('retest'))d.ht.curr.retests++}
+        if(cd&&cd>=prev.start&&cd<prev.end)d.ht.prev.records++;
+        if(!expectedTubs)tubs.forEach(t=>{if(t)d.ht.curr.tubs.add(t)});
+    });
+    if(!expectedTubs&&d.ht.curr.tubs.size>0)d.ht.expected=d.ht.curr.tubs.size;
+    // ACCOMMODATION
+    let accomExpected=0;
+    snaps.acCfg.forEach(doc=>{const r=doc.data();if(matchPark(r,park)){if(r.totalUnits)accomExpected=r.totalUnits}});
+    d.accom={curr:{total:0,actionsRequired:0,units:new Set()},prev:{total:0,units:new Set()},expected:accomExpected};
+    snaps.acIns.forEach(doc=>{const r=doc.data();if(!matchPark(r,park))return;
+        const cd=toDate(r.submittedAt||r.createdAt||r.inspectionDate);
+        const unitStr=r.accommodationUnit||r.unitName||'';
+        const unitList=unitStr.split(',').map(u=>u.trim()).filter(Boolean);
+        if(cd&&cd>=curr.start&&cd<curr.end){d.accom.curr.total++;if(r.actionRequired)d.accom.curr.actionsRequired++;unitList.forEach(u=>d.accom.curr.units.add(u))}
+        if(cd&&cd>=prev.start&&cd<prev.end){d.accom.prev.total++;unitList.forEach(u=>d.accom.prev.units.add(u))}
+    });
+    // PLAY PARKS
+    d.pp={curr:{total:0,actionsRequired:0,parks:new Set()},prev:{total:0}};
+    snaps.pp.forEach(doc=>{const r=doc.data();if(!matchPark(r,park))return;
+        const cd=toDate(r.timestamp||r.createdAt||r.inspectionDate||r.date);
+        if(cd&&cd>=curr.start&&cd<curr.end){d.pp.curr.total++;if(r.actionRequired)d.pp.curr.actionsRequired++;const p=r.playParkName||r.parkName||r.area||'';if(p)d.pp.curr.parks.add(p)}
+        if(cd&&cd>=prev.start&&cd<prev.end)d.pp.prev.total++;
+    });
+    // FIRE
+    d.fire={extinguishers:0,overdue:0,runOut:0,firePoints:0,fra:0,inspections:0,failures:0};
+    snaps.fe.forEach(doc=>{const r=doc.data();if(!matchPark(r,park))return;d.fire.extinguishers++;if(r.nextServiceDue&&new Date(r.nextServiceDue)<nowDate)d.fire.overdue++;if(r.runOutDate&&new Date(r.runOutDate)<nowDate)d.fire.runOut++});
+    snaps.fp.forEach(doc=>{if(matchPark(doc.data(),park))d.fire.firePoints++});
+    snaps.fra.forEach(doc=>{if(matchPark(doc.data(),park))d.fire.fra++});
+    snaps.fi.forEach(doc=>{const r=doc.data();if(!matchPark(r,park))return;const cd=toDate(r.createdAt||r.date);if(cd&&cd>=curr.start&&cd<curr.end){d.fire.inspections++;if(r.hasFailures)d.fire.failures++}});
+    // GAS
+    d.gas={total:0,overdue:0,dueSoon:0,addedCurr:0,addedPrev:0};
+    const s60=new Date(nowDate.getTime()+60*864e5);
+    snaps.gas.forEach(doc=>{const r=doc.data();if(!matchPark(r,park))return;d.gas.total++;
+        const cd=toDate(r.createdAt||r.dateAdded||r.dateCreated);
+        if(cd&&cd>=curr.start&&cd<curr.end)d.gas.addedCurr++;if(cd&&cd>=prev.start&&cd<prev.end)d.gas.addedPrev++;
+        if(r.nextInspectionDue){const dd=new Date(r.nextInspectionDue);if(dd<nowDate)d.gas.overdue++;else if(dd<s60)d.gas.dueSoon++}
+    });
+    // VEHICLES
+    d.veh={total:0,motOverdue:0,insOverdue:0,svcOverdue:0,addedCurr:0,addedPrev:0,names:[],inspCurr:0,inspPrev:0};
+    snaps.veh.forEach(doc=>{const r=doc.data();if(!matchPark(r,park))return;d.veh.total++;
+        d.veh.names.push(r.registration||r.vehicleName||r.name||r.description||'Vehicle');
+        const cd=toDate(r.createdAt||r.dateAdded||r.dateCreated);
+        if(cd&&cd>=curr.start&&cd<curr.end)d.veh.addedCurr++;if(cd&&cd>=prev.start&&cd<prev.end)d.veh.addedPrev++;
+        if(r.motExpiry&&new Date(r.motExpiry)<nowDate)d.veh.motOverdue++;
+        if(r.insuranceExpiry&&new Date(r.insuranceExpiry)<nowDate)d.veh.insOverdue++;
+        if(r.nextServiceDue&&new Date(r.nextServiceDue)<nowDate)d.veh.svcOverdue++;
+    });
+    snaps.vi.forEach(doc=>{const r=doc.data();if(!matchPark(r,park))return;const cd=toDate(r.createdAt||r.date);if(cd&&cd>=curr.start&&cd<curr.end)d.veh.inspCurr++;if(cd&&cd>=prev.start&&cd<prev.end)d.veh.inspPrev++});
+    // ACTIONS
+    d.act={curr:{raised:0,closed:0},prev:{raised:0,closed:0},overdue:0,open:0};
+    snaps.act.forEach(doc=>{const r=doc.data();if(!matchPark(r,park))return;
+        const cd=toDate(r.createdAt||r.dateSubmitted||r.dateCreated);const done=isDone(r.status);
+        if(!done){d.act.open++;if(r.targetDate&&new Date(r.targetDate)<nowDate)d.act.overdue++}
+        if(cd&&cd>=curr.start&&cd<curr.end){d.act.curr.raised++;if(done)d.act.curr.closed++}
+        if(cd&&cd>=prev.start&&cd<prev.end){d.act.prev.raised++;if(done)d.act.prev.closed++}
+    });
+    // COSHH
+    d.coshh={total:0,overdue:0};
+    snaps.coshh.forEach(doc=>{const r=doc.data();if(!matchPark(r,park))return;d.coshh.total++;const rd=r.reviewDate||r.nextReview;if(rd&&new Date(rd)<nowDate)d.coshh.overdue++});
+    // STAFF
+    d.staff={count:0,trainingItems:snaps.tbtCount||0,acksCurr:0,acksPrev:0};
+    const empParkMap={};
+    snaps.emp.forEach(doc=>{const r=doc.data();if(!r.firstName||!r.lastName)return;
+        if(matchPark(r,park)){d.staff.count++;empParkMap[doc.id]=true}
+    });
+    snaps.acks.forEach(doc=>{const r=doc.data();if(!r.confirmed)return;
+        if(!empParkMap[r.employeeId])return;
+        const ad=toDate(r.date||r.completedAt||r.acknowledgedAt);
+        if(ad&&ad>=curr.start&&ad<curr.end)d.staff.acksCurr++;
+        if(ad&&ad>=prev.start&&ad<prev.end)d.staff.acksPrev++;
+    });
+    // SAFECARE
+    d.sc={curr:0,open:0};
+    snaps.sc.forEach(doc=>{const r=doc.data();if(!matchPark(r,park))return;const cd=toDate(r.createdAt||r.date);if(cd&&cd>=curr.start&&cd<curr.end)d.sc.curr++;if(!isDone(r.status)&&r.currentStage!==5)d.sc.open++});
+    // CONTRACTORS
+    d.contr={total:0,activeCurr:0};
+    snaps.contr.forEach(doc=>{const r=doc.data();if(!matchPark(r,park))return;d.contr.total++;const cd=toDate(r.createdAt||r.dateAdded);if(cd&&cd>=curr.start&&cd<curr.end)d.contr.activeCurr++});
+    return d;
+}
+
+async function loadAllSnapshots(msg){
+    const snaps={};
+    msg.textContent='Loading maintenance...';snaps.maint=await db.collection('maintenanceRecords').get();
+    msg.textContent='Loading incidents...';snaps.inc=await db.collection('incidents').get();
+    msg.textContent='Loading accommodation config...';try{snaps.acCfg=await db.collection('accommodation_config').get()}catch(e){snaps.acCfg={forEach:()=>{}}}
+    msg.textContent='Loading hot tubs...';snaps.ht=await db.collection('hot_tub_inspections').get();
+    msg.textContent='Loading accommodation...';snaps.acIns=await db.collection('accommodation_inspections').get();
+    msg.textContent='Loading play parks...';snaps.pp=await db.collection('playParkInspections').get();
+    msg.textContent='Loading fire safety...';snaps.fe=await db.collection('fireExtinguishers').get();
+    try{snaps.fp=await db.collection('firePoints').get()}catch(e){snaps.fp={forEach:()=>{}}}
+    try{snaps.fra=await db.collection('fra-assessments').get()}catch(e){snaps.fra={forEach:()=>{}}}
+    snaps.fi=await db.collection('fireInspections').get();
+    msg.textContent='Loading gas...';snaps.gas=await db.collection('gasAppliances').get();
+    msg.textContent='Loading vehicles...';snaps.veh=await db.collection('vehicles').get();
+    try{snaps.vi=await db.collection('vehicle_inspections').get()}catch(e){snaps.vi={forEach:()=>{}}}
+    msg.textContent='Loading actions...';snaps.act=await db.collection('actions').get();
+    msg.textContent='Loading COSHH...';snaps.coshh=await db.collection('coshh').get();
+    msg.textContent='Loading staff...';snaps.emp=await db.collection('employees').get();
+    try{const tis=await db.collection('toolboxTalks').get();snaps.tbtCount=tis.size}catch(e){snaps.tbtCount=0}
+    try{snaps.acks=await db.collection('trainingAcknowledgments').get()}catch(e){snaps.acks={forEach:()=>{}}}
+    msg.textContent='Loading SafeCare...';try{snaps.sc=await db.collection('safeCareRecords').get()}catch(e){snaps.sc={forEach:()=>{}}}
+    try{snaps.contr=await db.collection('contractors').get()}catch(e){snaps.contr={forEach:()=>{}}}
+    return snaps;
+}
+
+async function generateReport(){
+    const btn=document.getElementById('btnGenerate'),msg=document.getElementById('statusMsg');
+    btn.disabled=true;msg.textContent='Connecting to Firebase...';
+    if(!initFB()){msg.textContent='Firebase connection failed.';btn.disabled=false;return}
+    try{await firebase.auth().signInAnonymously()}catch(e){}
+
+    const park=document.getElementById('selPark').value;
+    const[yr,mn]=document.getElementById('selMonth').value.split('-').map(Number);
+    const execNotes=document.getElementById('execNotes').value;
+    const recsNotes=document.getElementById('recsNotes').value;
+    const curr=MR(yr,mn-1),prev=MR(mn===1?yr-1:yr,mn===1?11:mn-2);
+    const m3=MR(mn<=2?yr-1:yr,mn<=2?mn+9:mn-4),m2=MR(mn===1?yr-1:yr,mn===1?11:mn-2);
+    const nowDate=new Date();
+
+    try{
+    const snaps=await loadAllSnapshots(msg);
+
+    if(park==='__DIRECTORS__'){
+        document.title='SafeSystems.PRO — Directors Report';
+        // Directors report — all parks
+        const parks=['Ben Nevis Holiday Park','Oban Holiday Park','Tyndrum Holiday Park'];
+        const allData={};
+        parks.forEach(p=>{msg.textContent='Processing '+p.split(' Holiday')[0]+'...';allData[p]=collectData(p,snaps,curr,prev,m3,m2,nowDate)});
+        msg.textContent='Building directors report...';
+        renderDirectorsReport(parks,allData,curr,prev,execNotes,recsNotes);
+    }else{
+        const pn=park.split(' Holiday')[0];
+        const d=collectData(park,snaps,curr,prev,m3,m2,nowDate);
+        msg.textContent='Building report...';
+        renderReport(park,pn,curr,prev,d,execNotes,recsNotes);
+    }
+    msg.textContent='Report generated successfully.';
+    btn.disabled=false;
+    document.getElementById('btnPrint').style.display='inline-block';
+
+    }catch(e){msg.textContent='Error: '+e.message;console.error(e);btn.disabled=false}
+}
+
+// =============================================
+// RENDERER
+// =============================================
+function renderReport(park,pn,curr,prev,d,execNotes,recsNotes){
+    const cn=MN(curr.start),pv=MN(prev.start),ps=SM(prev.start);
+    const mp=pct(d.maint.curr.done,d.maint.curr.total),mpp=pct(d.maint.prev.done,d.maint.prev.total);
+    const mt3=pct(d.maint.m3.done,d.maint.m3.total),mt2=pct(d.maint.m2.done,d.maint.m2.total);
+    const tT=d.staff.count*d.staff.trainingItems;
+    const tp=tT>0?Math.min(pct(d.staff.acksCurr,tT),100):0,tpp=tT>0?Math.min(pct(d.staff.acksPrev,tT),100):0;
+    const htE=d.ht.expected*d.ht.daysInMonth,htP=htE>0?pct(d.ht.curr.records,htE):0;
+    // Play park expected: 1 play park per park × days in month
+    const ppE=d.ht.daysInMonth,ppP=ppE>0?Math.min(pct(d.pp.curr.total,ppE),100):0;
+    // Weighted compliance score
+    const compScores=[];
+    if(d.ht.expected>0)compScores.push({s:htP,w:20,n:'Hot tubs'});
+    if(ppE>0)compScores.push({s:ppP,w:15,n:'Play parks'});
+    if(d.accom.expected>0)compScores.push({s:pct(d.accom.curr.units.size,d.accom.expected),w:15,n:'Accommodation'});
+    if(d.maint.curr.total>0)compScores.push({s:mp,w:10,n:'Maintenance'});
+    if(d.act.open+d.act.curr.closed>0)compScores.push({s:d.act.overdue===0?100:pct(d.act.open-d.act.overdue,d.act.open)*100>100?100:pct(Math.max(0,(d.act.curr.raised+d.act.open)-d.act.overdue),(d.act.curr.raised+d.act.open)),w:10,n:'Actions'});
+    if(d.inc.curr.total>0)compScores.push({s:pct(d.inc.curr.closed,d.inc.curr.total),w:10,n:'Incidents'});
+    if(d.gas.total>0)compScores.push({s:d.gas.overdue===0?100:pct(d.gas.total-d.gas.overdue,d.gas.total),w:10,n:'Gas'});
+    if(d.fire.extinguishers>0)compScores.push({s:d.fire.overdue===0?100:pct(d.fire.extinguishers-d.fire.overdue,d.fire.extinguishers),w:5,n:'Fire'});
+    if(d.veh.total>0)compScores.push({s:(d.veh.motOverdue+d.veh.insOverdue)===0?100:pct(d.veh.total-(d.veh.motOverdue+d.veh.insOverdue),d.veh.total),w:5,n:'Vehicles'});
+    if(d.coshh.total>0)compScores.push({s:d.coshh.overdue===0?100:pct(d.coshh.total-d.coshh.overdue,d.coshh.total),w:5,n:'COSHH'});
+    if(tT>0)compScores.push({s:tp,w:5,n:'Continual Training'});
+    const compTotalW=compScores.reduce((a,c)=>a+c.w,0);
+    const cp=compTotalW>0?Math.round(compScores.reduce((a,c)=>a+c.s*(c.w/compTotalW),0)):0;
+    // Previous month compliance (simplified — use maintenance + incidents as proxy)
+    const cpp=mpp>0?mpp:0;
+    const compGaps=['Gas','Fire','COSHH','Vehicles','Contractors','Staff'].filter(n=>{
+        if(n==='Gas')return d.gas.total===0;if(n==='Fire')return d.fire.extinguishers===0;
+        if(n==='COSHH')return d.coshh.total===0;if(n==='Vehicles')return d.veh.total===0;
+        if(n==='Contractors')return d.contr.total===0;if(n==='Staff')return d.staff.count===0;return false;
+    });
+    const dM=DP(mp,mpp),dC=DP(cp,cpp),dT=DP(tp,tpp);
+    const exec=buildExecSummary(pn,cn,pv,d);
+    const nM=narrate('maint',pn,cn,pv,d),nI=narrate('inc',pn,cn,pv,d),nH=narrate('ht',pn,cn,pv,d),nA=narrate('accom',pn,cn,pv,d),nP=narrate('pp',pn,cn,pv,d);
+    const recs=buildRecs(pn,d);
+
+    function met(label,val,sub,deltaObj,style){
+        let h='<div class="metric"><div class="m-label">'+label+'</div><div class="m-value"'+(style?' style="'+style+'"':'')+'>'+val+'</div>';
+        if(deltaObj)h+='<div class="m-delta '+deltaObj.cls+'">'+deltaObj.arrow+' '+deltaObj.val+'</div>';
+        if(sub)h+='<div class="m-sub">'+sub+'</div>';
+        return h+'</div>';
+    }
+    function nar(n){return n?'<div class="narrative '+n.c+'">'+n.t+'</div>':'';}
+
+    let h=`
+    <div class="rpt-header">
+        <img :src="LOGO_OMNI" alt="Omnibosh" style="height:55px;border-radius:8px">
+        <div class="titles"><h1>Safe<span>Systems</span>.PRO — Monthly Report</h1><div class="sub">Park Manager Report — Prepared by Omnibosh Safety Solutions</div></div>
+        <div class="meta"><div class="park-name">${park}</div><div class="period">${cn}</div><div class="period" style="font-size:11px;margin-top:2px">Compared to ${pv}</div></div>
+        <img src="${LOGO_HH}" alt="Highland Holidays" style="height:55px;border-radius:8px">
+    </div>
+
+    <div class="rpt-exec"><h3>Executive Summary</h3><div>${exec}</div></div>
+
+    ${execNotes?`<div style="padding:20px 28px;background:#fff;border:2px solid var(--orange);border-radius:12px;margin-bottom:20px;break-inside:auto;page-break-inside:auto"><h3 style="font-size:16px;color:var(--orange);margin-bottom:12px;font-weight:700">Omnibosh Safety Partner Commentary</h3>${fmtNotes(execNotes)}</div>`:''}
+
+    <div class="reels">
+        <div class="reel"><div class="reel-label">Maintenance Completion</div><div class="reel-value" style="color:var(--orange)">${mp}<span style="font-size:20px;color:var(--dim)">%</span></div><div class="reel-bar"><div class="reel-fill" style="width:${mp}%;background:var(--orange)"></div></div><div class="reel-delta ${dM.cls}">${dM.arrow} ${dM.val} vs ${ps}</div><div class="reel-sub">${d.maint.curr.done} of ${d.maint.curr.total} jobs</div><div class="trend-row"><div class="trend-dot" style="background:var(--orange);opacity:${mt3>0?.4:.15}"></div><div class="trend-dot" style="background:var(--orange);opacity:${mt2>0?.6:.15}"></div><div class="trend-dot active" style="background:var(--orange)"></div></div></div>
+        <div class="reel"><div class="reel-label">Compliance Score</div><div class="reel-value" style="color:var(--blue)">${cp}<span style="font-size:20px;color:var(--dim)">%</span></div><div class="reel-bar"><div class="reel-fill" style="width:${cp}%;background:var(--blue)"></div></div><div class="reel-delta ${dC.cls}">${dC.arrow} ${dC.val} vs ${ps}</div><div class="reel-sub">Weighted: HT, play parks, maint, actions, gas, fire${compGaps.length>0?' · <span style="color:var(--red)">'+compGaps.length+' modules empty</span>':''}</div></div>
+        <div class="reel"><div class="reel-label">Continual Training</div><div class="reel-value" style="color:var(--green)">${tp}<span style="font-size:20px;color:var(--dim)">%</span></div><div class="reel-bar"><div class="reel-fill" style="width:${tp}%;background:var(--green)"></div></div><div class="reel-delta ${dT.cls}">${dT.arrow} ${dT.val} vs ${ps}</div><div class="reel-sub">${d.staff.acksCurr} acks (${d.staff.count} staff × ${d.staff.trainingItems} TBTs)</div></div>
+    </div>
+
+    <!-- OVERALL PARK SCORE -->
+    <div class="overall-score">
+        <div class="os-label">${pn} — Overall Park Safety Score</div>
+        <div class="os-value" style="color:${cp>=70?'var(--green)':cp>=40?'var(--amber)':'var(--red)'}">${cp}<span style="font-size:28px;color:rgba(255,255,255,.4)">%</span></div>
+        <div class="os-bar"><div class="os-fill" style="width:${cp}%;background:${cp>=70?'var(--green)':cp>=40?'var(--amber)':'var(--red)'}"></div></div>
+        <div class="os-sub">Weighted composite: hot tubs, play parks, maintenance, actions, incidents, gas, fire, vehicles, COSHH, training${compGaps.length>0?' · <span style="color:#fca5a5">'+compGaps.length+' module(s) with zero records not scored</span>':''}</div>
+    </div>
+
+    <!-- MAINTENANCE -->
+    <div class="rpt-section"><h3>safe<span>maint</span>.pro — Maintenance ${d.maint.curr.total===0?GB():SB(mp,80,50)}</h3>
+    <div class="metrics">
+        ${met('Jobs Raised',d.maint.curr.total,null,D(d.maint.curr.total,d.maint.prev.total))}
+        ${met('Completed',d.maint.curr.done,null,D(d.maint.curr.done,d.maint.prev.done))}
+        ${met('Avg Response',d.maint.curr.responseTimes.length>0?Math.round(d.maint.curr.responseTimes.reduce((a,b)=>a+b,0)/d.maint.curr.responseTimes.length)+'h':'—',d.maint.curr.responseTimes.length+' with data')}
+        ${met('Completion',mp+'%',null,dM)}
+    </div>
+    ${d.maint.curr.safety>0?'<div class="safety-callout"><h4>Safety-Flagged Jobs</h4><p>'+d.maint.curr.safety+' job(s) with safety implications. '+d.maint.curr.safetyDone+' completed ('+pct(d.maint.curr.safetyDone,d.maint.curr.safety)+'%). Prior month: '+d.maint.prev.safety+' ('+pct(d.maint.prev.safetyDone,d.maint.prev.safety)+'%).</p></div>':''}
+    ${Object.keys(d.maint.curr.byCat).length>0?'<table class="dtable"><tr><th>Category</th><th>Jobs</th><th>%</th></tr>'+Object.entries(d.maint.curr.byCat).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([c,n])=>'<tr><td>'+c+'</td><td>'+n+'</td><td>'+pct(n,d.maint.curr.total)+'%</td></tr>').join('')+'</table>':''}
+    ${nar(nM)}</div>
+
+    <!-- INCIDENTS -->
+    <div class="rpt-section"><h3>safe<span>report</span>.pro — Incidents ${d.inc.curr.total===0?GB():d.inc.curr.riddor>0?'<span class="badge badge-alert">RIDDOR</span>':SB(pct(d.inc.curr.closed,d.inc.curr.total),80,50)}</h3>
+    <div class="metrics">
+        ${met('Reported',d.inc.curr.total,null,D(d.inc.curr.total,d.inc.prev.total))}
+        ${met('Closed',d.inc.curr.closed)}
+        ${met('RIDDOR',d.inc.curr.riddor,null,null,d.inc.curr.riddor>0?'color:var(--red)':'')}
+        ${met('Open',d.inc.curr.total-d.inc.curr.closed,null,null,(d.inc.curr.total-d.inc.curr.closed)>0?'color:var(--amber)':'')}
+    </div>
+    ${Object.keys(d.inc.curr.types).length>0?'<table class="dtable"><tr><th>Type</th><th>Count</th></tr>'+Object.entries(d.inc.curr.types).sort((a,b)=>b[1]-a[1]).map(([t,c])=>'<tr><td>'+t+'</td><td>'+c+'</td></tr>').join('')+'</table>':''}
+    ${nar(nI)}</div>
+
+    <!-- HOT TUBS -->
+    <div class="rpt-section"><h3>safe<span>water</span>.pro (HT) — Hot Tubs ${d.ht.expected===0?GB():SB(htP,90,60)}</h3>
+    <div class="metrics">
+        ${met('Tubs',d.ht.expected||'?',pn)}
+        ${met('Expected',htE||'?',d.ht.expected+' × '+d.ht.daysInMonth+' days')}
+        ${met('Actual',d.ht.curr.records,null,D(d.ht.curr.records,d.ht.prev.records),d.ht.curr.records<htE?'color:var(--amber)':'')}
+        ${met('Compliance',htP+'%',null,null,htP<90?'color:var(--red)':'color:var(--green)')}
+    </div>
+    ${nar(nH)}</div>
+
+    <!-- ACCOMMODATION -->
+    <div class="rpt-section"><h3>cozzZ<span>stays</span>.pro — Accommodation Safety ${(()=>{const p=d.accom.expected>0?pct(d.accom.curr.units.size,d.accom.expected):0;return d.accom.curr.total===0?GB():SB(p,90,50)})()}</h3>
+    <div class="metrics">
+        ${met('Registered Units',d.accom.expected,pn)}
+        ${met('Units Inspected',d.accom.curr.units.size,d.accom.curr.total+' record(s)',D(d.accom.curr.units.size,d.accom.prev.units.size),d.accom.curr.units.size<d.accom.expected?'color:var(--amber)':'')}
+        ${met('Compliance',d.accom.expected>0?pct(d.accom.curr.units.size,d.accom.expected)+'%':'N/A',null,null,d.accom.expected>0&&pct(d.accom.curr.units.size,d.accom.expected)<90?'color:var(--red)':'color:var(--green)')}
+        ${met('Actions',d.accom.curr.actionsRequired,null,null,d.accom.curr.actionsRequired>0?'color:var(--amber)':'')}
+    </div>
+    ${nar(nA)}</div>
+
+    <!-- PLAY PARKS -->
+    <div class="rpt-section"><h3>safe<span>park</span>.pro — Play Parks ${d.pp.curr.total===0?GB():SB(ppP,90,60)}</h3>
+    <div class="metrics">
+        ${met('Play Areas',1,pn)}
+        ${met('Expected Inspections',ppE,'1 area × '+d.ht.daysInMonth+' days')}
+        ${met('Actual Inspections',d.pp.curr.total,null,D(d.pp.curr.total,d.pp.prev.total),d.pp.curr.total<ppE?'color:var(--amber)':'')}
+        ${met('Compliance',ppP+'%',null,null,ppP<90?'color:var(--red)':'color:var(--green)')}
+    </div>
+    ${nar(nP)}</div>
+
+    <!-- FIRE -->
+    <div class="rpt-section"><h3>safe<span>fire</span>.pro+ — Fire Safety ${d.fire.extinguishers===0&&d.fire.firePoints===0?GB():d.fire.overdue>0||d.fire.runOut>0?'<span class="badge badge-alert">Overdue</span>':'<span class="badge badge-ok">Compliant</span>'}</h3>
+    <div class="metrics">
+        ${met('Extinguishers',d.fire.extinguishers,pn)}
+        ${met('Fire Points',d.fire.firePoints)}
+        ${met('Service Overdue',d.fire.overdue,null,null,d.fire.overdue>0?'color:var(--red)':'')}
+        ${met('Run-Out Passed',d.fire.runOut,null,null,d.fire.runOut>0?'color:var(--red)':'')}
+    </div>
+    <div class="metrics" style="grid-template-columns:repeat(3,1fr)">
+        ${met('Inspections',d.fire.inspections,d.fire.failures+' failures')}
+        ${met('FRA Assessments',d.fire.fra)}
+    </div>
+    ${d.fire.extinguishers===0?gap(pn,'has zero fire extinguishers registered. All fire fighting equipment must be logged with service and run-out dates.'):''}
+    ${d.fire.firePoints===0?gap(pn,'has zero fire points registered. Fire point locations, contents, and signage should be documented.'):''}</div>
+
+    <!-- GAS -->
+    <div class="rpt-section"><h3>safe<span>gas</span>.pro — Gas Safety ${d.gas.total===0?GB():d.gas.overdue>0?'<span class="badge badge-alert">'+d.gas.overdue+' Overdue</span>':'<span class="badge badge-ok">Compliant</span>'}</h3>
+    <div class="metrics">
+        ${met('Appliances',d.gas.total,pn)}
+        ${met('Added This Month',d.gas.addedCurr,null,D(d.gas.addedCurr,d.gas.addedPrev))}
+        ${met('Overdue',d.gas.overdue,null,null,d.gas.overdue>0?'color:var(--red)':'')}
+        ${met('Due <60 Days',d.gas.dueSoon,null,null,d.gas.dueSoon>0?'color:var(--amber)':'')}
+    </div>
+    ${d.gas.total===0?gap(pn,'has zero gas appliances registered. If this park uses LPG, mains gas, or any gas appliances, this is a significant compliance gap.'):''}</div>
+
+    <!-- VEHICLES -->
+    <div class="rpt-section"><h3>safe<span>vehicle</span>.pro+ — Fleet ${d.veh.total===0?GB():(d.veh.motOverdue+d.veh.insOverdue)>0?'<span class="badge badge-alert">Expiries</span>':'<span class="badge badge-ok">Compliant</span>'}</h3>
+    <div class="metrics">
+        ${met('Registered',d.veh.total,pn)}
+        ${met('Added This Month',d.veh.addedCurr,null,D(d.veh.addedCurr,d.veh.addedPrev))}
+        ${met('MOT Overdue',d.veh.motOverdue,null,null,d.veh.motOverdue>0?'color:var(--red)':'')}
+        ${met('Insurance Overdue',d.veh.insOverdue,null,null,d.veh.insOverdue>0?'color:var(--red)':'')}
+    </div>
+    <div class="metrics" style="grid-template-columns:repeat(3,1fr)">
+        ${met('Service Overdue',d.veh.svcOverdue,null,null,d.veh.svcOverdue>0?'color:var(--amber)':'')}
+        ${met('Inspections',d.veh.inspCurr,null,D(d.veh.inspCurr,d.veh.inspPrev))}
+    </div>
+    ${d.veh.total>0?'<div class="narrative">Fleet: '+d.veh.names.join(', ')+'</div>':''}
+    ${d.veh.total===0?gap(pn,'has zero vehicles or plant registered. Vehicles, buggies, mowers, and plant equipment must be added with MOT, insurance, and service dates.'):''}</div>
+
+    <!-- ACTIONS -->
+    <div class="rpt-section"><h3>safe<span>action</span>.pro — Actions ${d.act.overdue>0?'<span class="badge badge-alert">'+d.act.overdue+' Overdue</span>':d.act.open>0?'<span class="badge badge-warn">'+d.act.open+' Open</span>':'<span class="badge badge-ok">Clear</span>'}</h3>
+    <div class="metrics">
+        ${met('Raised',d.act.curr.raised,null,D(d.act.curr.raised,d.act.prev.raised))}
+        ${met('Closed',d.act.curr.closed,null,D(d.act.curr.closed,d.act.prev.closed))}
+        ${met('Open',d.act.open,null,null,d.act.open>0?'color:var(--amber)':'')}
+        ${met('Overdue',d.act.overdue,null,null,d.act.overdue>0?'color:var(--red)':'')}
+    </div>
+    ${d.act.overdue>0?'<div class="narrative alert">'+d.act.overdue+' action(s) past target date. Overdue actions represent uncontrolled risk — each must be closed or formally extended with documented justification.</div>':''}</div>
+
+    <!-- COSHH -->
+    <div class="rpt-section"><h3>safe<span>chem</span>.pro+ — COSHH ${d.coshh.total===0?GB():d.coshh.overdue>0?'<span class="badge badge-alert">'+d.coshh.overdue+' Overdue</span>':'<span class="badge badge-ok">Compliant</span>'}</h3>
+    <div class="metrics">
+        ${met('Substances',d.coshh.total,pn)}
+        ${met('Review Overdue',d.coshh.overdue,null,null,d.coshh.overdue>0?'color:var(--red)':'')}
+    </div>
+    ${d.coshh.total===0?gap(pn,'has zero COSHH substances registered. Every cleaning product, chemical, and hazardous substance must have a COSHH assessment.'):''}</div>
+
+    <!-- SAFESPRAY -->
+    <div class="rpt-section"><h3>safe<span>spray</span>.pro — Legionella ${GB()}</h3>
+    ${gap(pn,'has not started using SafeSpray. No legionella risk assessments, shower head descaling records, or water outlet flushing logs added. Not in active use by any park.')}</div>
+
+    <!-- SAFECONTRACTOR -->
+    <div class="rpt-section"><h3>safe<span>contractor</span>.pro+ — Contractors ${d.contr.total===0?GB():'<span class="badge badge-ok">'+d.contr.total+' Registered</span>'}</h3>
+    ${d.contr.total>0?'<div class="metrics">'+met('Registered',d.contr.total,pn)+met('Active This Month',d.contr.activeCurr)+'</div>':''}
+    ${d.contr.total===0?gap(pn,'has zero contractors registered. All contractors should have valid insurance, qualifications, and method statements on file.'):''}</div>
+
+    <!-- STAFF -->
+    <div class="rpt-section"><h3>safe<span>teams</span>.pro+ & safe<span>learn</span>.pro+ — Staff & Continual Training ${d.staff.count===0?GB():SB(tp,70,30)}</h3>
+    <div class="metrics">
+        ${met('Staff',d.staff.count,pn)}
+        ${met('TBTs Published',d.staff.trainingItems)}
+        ${met('Acknowledgements',d.staff.acksCurr,null,D(d.staff.acksCurr,d.staff.acksPrev))}
+        ${met('Completion',tp+'%','Target: '+tT)}
+    </div>
+    ${d.staff.count===0?gap(pn,'has zero staff records in SafeTeam.'):''}</div>
+
+    <!-- SAFECARE -->
+    <div class="rpt-section"><h3>safe<span>care</span>.pro max — Guest Welfare ${d.sc.open>0?'<span class="badge badge-warn">'+d.sc.open+' Open</span>':'<span class="badge badge-ok">Clear</span>'}</h3>
+    <div class="metrics">
+        ${met('Cases This Month',d.sc.curr)}
+        ${met('Open',d.sc.open,null,null,d.sc.open>0?'color:var(--amber)':'')}
+    </div></div>
+
+    <!-- DOCSAFE -->
+    <div class="rpt-section"><h3>doc<span>safe</span>.pro — Documents <span class="badge badge-info">Pending</span></h3>
+    <div class="narrative">Document expiry tracking will be added once DocSafe collection details are confirmed.</div></div>
+
+    <!-- DATA GAPS TABLE -->
+    <div class="rpt-section"><h3>${pn} — Module Activity & <span>Data Gaps</span></h3>
+    <table class="dtable">
+        <tr><th>Module</th><th>${pn} Records</th><th>Status</th></tr>
+        <tr><td>safemaint.pro</td><td>${d.maint.curr.total} jobs</td><td>${d.maint.curr.total>0?'<span style="color:var(--green)">Active — '+mp+'%</span>':'<span style="color:var(--red)">'+pn+' added zero</span>'}</td></tr>
+        <tr><td>safereport.pro</td><td>${d.inc.curr.total}</td><td>${d.inc.curr.total>0?'<span style="color:var(--green)">Active</span>':'<span style="color:var(--dim)">'+pn+' reported zero</span>'}</td></tr>
+        <tr><td>safewater.pro (HT)</td><td>${d.ht.curr.records} / ${htE}</td><td>${d.ht.curr.records>0?htP>=90?'<span style="color:var(--green)">'+htP+'%</span>':'<span style="color:var(--amber)">'+htP+'%</span>':'<span style="color:var(--red)">'+pn+' zero</span>'}</td></tr>
+        <tr><td>cozzZstays.pro</td><td>${d.accom.curr.units.size} / ${d.accom.expected} units</td><td>${d.accom.expected>0?(pct(d.accom.curr.units.size,d.accom.expected)>=90?'<span style="color:var(--green)">'+pct(d.accom.curr.units.size,d.accom.expected)+'%</span>':'<span style="color:var(--amber)">'+pct(d.accom.curr.units.size,d.accom.expected)+'%</span>'):'<span style="color:var(--red)">No config</span>'}</td></tr>
+        <tr><td>safepark.pro</td><td>${d.pp.curr.total}</td><td>${d.pp.curr.total>0?'<span style="color:var(--green)">Active</span>':'<span style="color:var(--red)">'+pn+' zero</span>'}</td></tr>
+        <tr><td>safefire.pro+</td><td>${d.fire.extinguishers} ext / ${d.fire.firePoints} pts</td><td>${d.fire.extinguishers>0?d.fire.overdue>0?'<span style="color:var(--red)">'+d.fire.overdue+' overdue</span>':'<span style="color:var(--green)">Active</span>':'<span style="color:var(--red)">'+pn+' zero</span>'}</td></tr>
+        <tr><td>safegas.pro</td><td>${d.gas.total} (${d.gas.addedCurr} new)</td><td>${d.gas.total>0?d.gas.overdue>0?'<span style="color:var(--red)">'+d.gas.overdue+' overdue</span>':'<span style="color:var(--green)">Compliant</span>':'<span style="color:var(--red)">'+pn+' zero</span>'}</td></tr>
+        <tr><td>safevehicle.pro+</td><td>${d.veh.total} (${d.veh.addedCurr} new)</td><td>${d.veh.total>0?'<span style="color:var(--green)">Active</span>':'<span style="color:var(--red)">'+pn+' zero</span>'}</td></tr>
+        <tr><td>safeaction.pro</td><td>${d.act.curr.raised} / ${d.act.curr.closed}</td><td>${d.act.overdue>0?'<span style="color:var(--red)">'+d.act.overdue+' overdue</span>':'<span style="color:var(--green)">On Track</span>'}</td></tr>
+        <tr><td>safechem.pro+</td><td>${d.coshh.total}</td><td>${d.coshh.total>0?d.coshh.overdue>0?'<span style="color:var(--red)">'+d.coshh.overdue+' overdue</span>':'<span style="color:var(--green)">Compliant</span>':'<span style="color:var(--red)">'+pn+' zero</span>'}</td></tr>
+        <tr><td>safespray.pro</td><td>0</td><td><span style="color:var(--red)">Not in use</span></td></tr>
+        <tr><td>safecontractor.pro+</td><td>${d.contr.total}</td><td>${d.contr.total>0?'<span style="color:var(--green)">Active</span>':'<span style="color:var(--red)">'+pn+' zero</span>'}</td></tr>
+        <tr><td>safeteams.pro+</td><td>${d.staff.count}</td><td>${d.staff.count>0?'<span style="color:var(--green)">Active</span>':'<span style="color:var(--red)">'+pn+' zero</span>'}</td></tr>
+        <tr><td>safelearn.pro+ (Continual Training)</td><td>${d.staff.acksCurr} acks</td><td>${d.staff.acksCurr>0?'<span style="color:var(--green)">Active</span>':'<span style="color:var(--amber)">Zero</span>'}</td></tr>
+        <tr><td>safecare.pro max</td><td>${d.sc.curr}</td><td>${d.sc.open>0?'<span style="color:var(--amber)">'+d.sc.open+' open</span>':'<span style="color:var(--green)">Clear</span>'}</td></tr>
+        <tr><td>docsafe.pro</td><td>—</td><td><span style="color:var(--blue)">Pending</span></td></tr>
+    </table></div>
+
+    <!-- RECOMMENDATIONS -->
+    <div style="margin-bottom:20px">
+    <table class="dtable" style="border:2px solid var(--green);border-radius:12px;overflow:hidden">
+        <thead style="background:#ecfdf3"><tr><th colspan="3" style="text-align:left;color:var(--green);font-size:16px;padding:14px 20px;font-weight:700">Omnibosh Recommendations — Prioritised Actions</th></tr>
+        <tr style="background:#f0fdf4"><th style="width:30px;padding:8px 12px">#</th><th style="width:70px;padding:8px 12px">Priority</th><th style="padding:8px 12px">Recommendation</th></tr></thead>
+        <tbody>
+        ${recs.map((r,i)=>'<tr style="break-inside:avoid;page-break-inside:avoid"><td style="padding:8px 12px;font-weight:700;color:var(--dim)">'+(i+1)+'</td><td style="padding:8px 12px"><span class="badge badge-'+(r.p==='critical'?'alert':r.p==='high'?'warn':'ok')+'" style="font-size:11px">'+r.p.toUpperCase()+'</span></td><td style="padding:8px 12px;font-size:13px;line-height:1.5">'+r.t+'</td></tr>').join('')}
+        </tbody>
+    </table>
+    ${recsNotes?'<div style="padding:16px 20px;background:#ecfdf3;border:2px solid var(--green);border-top:none;border-radius:0 0 12px 12px;margin-top:-2px"><strong>Omnibosh additional notes:</strong>'+fmtNotes(recsNotes)+'</div>':''}
+    </div>
+
+    <div style="text-align:center;padding:16px;font-size:12px;color:var(--dim)">
+        SafeSystems.PRO — Monthly Park Report — Generated ${new Date().toLocaleDateString('en-GB')} — Omnibosh Safety Solutions Ltd<br>
+        Confidential — prepared for the management team of ${park}.
+    </div>`;
+
+    document.getElementById('reportOutput').innerHTML=h;
+    document.getElementById('reportOutput').style.display='block';
+}
+
+// =============================================
+// DIRECTORS REPORT RENDERER
+// =============================================
+function renderDirectorsReport(parks,allData,curr,prev,execNotes,recsNotes){
+    const cn=MN(curr.start),pv=MN(prev.start),ps=SM(prev.start);
+    const dim=Math.round((curr.end-curr.start)/864e5);
+
+    // Calculate scores for each park
+    function parkScore(d){
+        const mp=pct(d.maint.curr.done,d.maint.curr.total);
+        const htE=d.ht.expected*d.ht.daysInMonth,htP=htE>0?pct(d.ht.curr.records,htE):0;
+        const ppP=dim>0?Math.min(pct(d.pp.curr.total,dim),100):0;
+        const acP=d.accom.expected>0?pct(d.accom.curr.units.size,d.accom.expected):0;
+        const tT=d.staff.count*d.staff.trainingItems;
+        const tp=tT>0?Math.min(pct(d.staff.acksCurr,tT),100):0;
+        const scores=[];
+        if(d.ht.expected>0)scores.push({s:htP,w:20});
+        if(dim>0)scores.push({s:ppP,w:15});
+        if(d.accom.expected>0)scores.push({s:acP,w:15});
+        if(d.maint.curr.total>0)scores.push({s:mp,w:10});
+        if(d.act.open+d.act.curr.closed>0)scores.push({s:d.act.overdue===0?100:pct(Math.max(0,(d.act.curr.raised+d.act.open)-d.act.overdue),(d.act.curr.raised+d.act.open)),w:10});
+        if(d.inc.curr.total>0)scores.push({s:pct(d.inc.curr.closed,d.inc.curr.total),w:10});
+        if(d.gas.total>0)scores.push({s:d.gas.overdue===0?100:pct(d.gas.total-d.gas.overdue,d.gas.total),w:10});
+        if(d.fire.extinguishers>0)scores.push({s:d.fire.overdue===0?100:pct(d.fire.extinguishers-d.fire.overdue,d.fire.extinguishers),w:5});
+        if(d.veh.total>0)scores.push({s:(d.veh.motOverdue+d.veh.insOverdue)===0?100:pct(d.veh.total-(d.veh.motOverdue+d.veh.insOverdue),d.veh.total),w:5});
+        if(d.coshh.total>0)scores.push({s:d.coshh.overdue===0?100:pct(d.coshh.total-d.coshh.overdue,d.coshh.total),w:5});
+        if(tT>0)scores.push({s:tp,w:5});
+        const tw=scores.reduce((a,c)=>a+c.w,0);
+        return tw>0?Math.round(scores.reduce((a,c)=>a+c.s*(c.w/tw),0)):0;
+    }
+
+    const scores={};const pNames={};
+    parks.forEach(p=>{const pn=p.split(' Holiday')[0];pNames[p]=pn;scores[p]=parkScore(allData[p])});
+
+    // Park of the month
+    const best=parks.reduce((a,b)=>scores[a]>=scores[b]?a:b);
+
+    // Cross-park exec summary
+    let execLines=[];
+    execLines.push('This directors report consolidates safety compliance data across all three Highland Holidays parks for '+cn+', compared against '+pv+'.');
+    execLines.push('');
+    parks.forEach(p=>{const d=allData[p],pn=pNames[p];
+        const mp=pct(d.maint.curr.done,d.maint.curr.total);
+        const htE=d.ht.expected*d.ht.daysInMonth,htP=htE>0?pct(d.ht.curr.records,htE):0;
+        const ppP=dim>0?pct(d.pp.curr.total,dim):0;
+        const acP=d.accom.expected>0?pct(d.accom.curr.units.size,d.accom.expected):0;
+        execLines.push('<strong>'+pn+'</strong> (Score: '+scores[p]+'%) — Maintenance '+mp+'%, Hot tubs '+htP+'%, Play parks '+ppP+'%, Accommodation '+acP+'%, Incidents: '+d.inc.curr.total+' ('+d.inc.curr.riddor+' RIDDOR), Actions overdue: '+d.act.overdue+'.');
+    });
+    execLines.push('');
+    execLines.push('<strong>Park of the month: '+pNames[best]+'</strong> — highest weighted compliance score at '+scores[best]+'%.');
+
+    // All recs across all parks
+    const allRecs=[];
+    parks.forEach(p=>{const recs=buildRecs(pNames[p],allData[p]);recs.forEach(r=>{r.park=pNames[p];allRecs.push(r)})});
+    const recOrder={critical:1,high:2,medium:3};
+    allRecs.sort((a,b)=>(recOrder[a.p]||9)-(recOrder[b.p]||9));
+
+    function sc(v){return v>=70?'color:var(--green)':v>=40?'color:var(--amber)':'color:var(--red)'}
+
+    // Omnibosh logo base64 (same as park report header)
+    const omniLogo=document.querySelector('.rpt-header img')?.src||'';
+
+    let h=`
+    <div class="rpt-header">
+        <img src="${LOGO_OMNI}" alt="Omnibosh" style="height:55px;border-radius:8px">
+        <div class="titles"><h1>Safe<span>Systems</span>.PRO — Directors Report</h1><div class="sub">Consolidated Safety & Compliance — Prepared by Omnibosh Safety Solutions</div></div>
+        <div class="meta"><div class="park-name" style="color:var(--orange)">Highland Holidays</div><div class="period">${cn}</div><div class="period" style="font-size:11px;margin-top:2px">Compared to ${pv}</div></div>
+        <img src="${LOGO_HH}" alt="Highland Holidays" style="height:55px;border-radius:8px">
+    </div>
+
+    <div class="rpt-exec"><h3>Executive Summary</h3><div>${execLines.join('<br>')}</div></div>
+
+    ${execNotes?`<div style="padding:20px 28px;background:#fff;border:2px solid var(--orange);border-radius:12px;margin-bottom:20px;break-inside:auto;page-break-inside:auto"><h3 style="font-size:16px;color:var(--orange);margin-bottom:12px;font-weight:700">Omnibosh Safety Partner Commentary</h3>${fmtNotes(execNotes)}</div>`:''}
+
+    <!-- OVERALL SCORES -->
+    <div class="reels" style="grid-template-columns:repeat(${parks.length},1fr)">
+        ${parks.map(p=>`<div class="reel"><div class="reel-label">${pNames[p]}</div><div class="reel-value" style="${sc(scores[p])}">${scores[p]}<span style="font-size:20px;color:var(--dim)">%</span></div><div class="reel-bar"><div class="reel-fill" style="width:${scores[p]}%;background:${scores[p]>=70?'var(--green)':scores[p]>=40?'var(--amber)':'var(--red)'}"></div></div><div class="reel-sub">Overall Safety Score${p===best?' · <span style="color:var(--green)">★ Park of the Month</span>':''}</div></div>`).join('')}
+    </div>
+
+    <!-- COMPARISON TABLE -->
+    <div class="rpt-section" style="break-inside:auto;page-break-inside:auto"><h3>Cross-Park Comparison — <span>${cn}</span></h3>
+    <table class="dtable">
+        <tr><th>Module</th>${parks.map(p=>'<th>'+pNames[p]+'</th>').join('')}</tr>
+        <tr><td><strong>Overall Score</strong></td>${parks.map(p=>'<td style="font-weight:700;'+sc(scores[p])+'">'+scores[p]+'%</td>').join('')}</tr>
+        <tr><td>Maintenance Completion</td>${parks.map(p=>{const d=allData[p];const v=pct(d.maint.curr.done,d.maint.curr.total);return'<td>'+v+'% <span style="color:var(--dim)">('+d.maint.curr.done+'/'+d.maint.curr.total+')</span></td>'}).join('')}</tr>
+        <tr><td>Hot Tub Compliance</td>${parks.map(p=>{const d=allData[p];const e=d.ht.expected*d.ht.daysInMonth;const v=e>0?pct(d.ht.curr.records,e):0;return'<td style="'+(v<90?'color:var(--red)':'')+'">'+v+'% <span style="color:var(--dim)">('+d.ht.curr.records+'/'+e+')</span></td>'}).join('')}</tr>
+        <tr><td>Play Park Inspections</td>${parks.map(p=>{const d=allData[p];const v=dim>0?pct(d.pp.curr.total,dim):0;return'<td style="'+(v<90?'color:var(--red)':'')+'">'+v+'% <span style="color:var(--dim)">('+d.pp.curr.total+'/'+dim+')</span></td>'}).join('')}</tr>
+        <tr><td>Accommodation Inspections</td>${parks.map(p=>{const d=allData[p];const v=d.accom.expected>0?pct(d.accom.curr.units.size,d.accom.expected):0;return'<td style="'+(v<90?'color:var(--red)':'')+'">'+v+'% <span style="color:var(--dim)">('+d.accom.curr.units.size+'/'+d.accom.expected+')</span></td>'}).join('')}</tr>
+        <tr><td>Incidents Reported</td>${parks.map(p=>{const d=allData[p];return'<td>'+d.inc.curr.total+(d.inc.curr.riddor>0?' <span style="color:var(--red)">('+d.inc.curr.riddor+' RIDDOR)</span>':'')+'</td>'}).join('')}</tr>
+        <tr><td>Actions Overdue</td>${parks.map(p=>{const d=allData[p];return'<td style="'+(d.act.overdue>0?'color:var(--red);font-weight:700':'')+'">'+d.act.overdue+' <span style="color:var(--dim)">('+d.act.open+' open)</span></td>'}).join('')}</tr>
+        <tr><td>Gas Appliances</td>${parks.map(p=>'<td>'+allData[p].gas.total+(allData[p].gas.overdue>0?' <span style="color:var(--red)">('+allData[p].gas.overdue+' overdue)</span>':'')+'</td>').join('')}</tr>
+        <tr><td>Fire Extinguishers</td>${parks.map(p=>'<td>'+allData[p].fire.extinguishers+(allData[p].fire.overdue>0?' <span style="color:var(--red)">('+allData[p].fire.overdue+' overdue)</span>':'')+'</td>').join('')}</tr>
+        <tr><td>Vehicles</td>${parks.map(p=>'<td>'+allData[p].veh.total+(allData[p].veh.motOverdue+allData[p].veh.insOverdue>0?' <span style="color:var(--red)">('+( allData[p].veh.motOverdue+allData[p].veh.insOverdue)+' overdue)</span>':'')+'</td>').join('')}</tr>
+        <tr><td>COSHH Substances</td>${parks.map(p=>'<td>'+allData[p].coshh.total+(allData[p].coshh.overdue>0?' <span style="color:var(--red)">('+allData[p].coshh.overdue+' overdue)</span>':'')+'</td>').join('')}</tr>
+        <tr><td>Staff</td>${parks.map(p=>'<td>'+allData[p].staff.count+'</td>').join('')}</tr>
+        <tr><td>Continual Training</td>${parks.map(p=>{const d=allData[p];const tT=d.staff.count*d.staff.trainingItems;const tp=tT>0?Math.min(pct(d.staff.acksCurr,tT),100):0;return'<td>'+tp+'% <span style="color:var(--dim)">('+d.staff.acksCurr+' acks)</span></td>'}).join('')}</tr>
+    </table></div>
+
+    <!-- PER-PARK SUMMARIES -->
+    ${parks.map(p=>{const d=allData[p],pn=pNames[p];
+        const mp=pct(d.maint.curr.done,d.maint.curr.total);
+        const htE=d.ht.expected*d.ht.daysInMonth,htP=htE>0?pct(d.ht.curr.records,htE):0;
+        const ppP=dim>0?pct(d.pp.curr.total,dim):0;
+        const acP=d.accom.expected>0?pct(d.accom.curr.units.size,d.accom.expected):0;
+        const exec=buildExecSummary(pn,cn,pv,d);
+        return`<div class="rpt-section" style="break-inside:auto;page-break-inside:auto"><h3>${pn} — <span>Summary</span> ${SB(scores[p],70,40)}${p===best?' <span class="badge badge-ok">★ Park of the Month</span>':''}</h3>
+        <div class="narrative">${exec}</div></div>`;
+    }).join('')}
+
+    <!-- CONSOLIDATED RECOMMENDATIONS — GROUPED BY PARK -->
+    ${(()=>{
+        // Group recs by park
+        const byPark={};
+        parks.forEach(p=>byPark[pNames[p]]=[]);
+        allRecs.forEach(r=>{if(byPark[r.park])byPark[r.park].push(r)});
+        let num=0;
+        return parks.map(p=>{
+            const pn=pNames[p];
+            const parkRecs=byPark[pn];
+            if(parkRecs.length===0)return'';
+            const borderCol=scores[p]>=70?'var(--green)':scores[p]>=40?'var(--amber)':'var(--red)';
+            return`<div style="margin-bottom:16px">
+            <table class="dtable" style="border:2px solid ${borderCol};border-radius:12px;overflow:hidden">
+                <thead><tr style="background:${scores[p]>=70?'#ecfdf3':scores[p]>=40?'#fef6ee':'#fef3f2'}"><th colspan="3" style="text-align:left;font-size:15px;padding:14px 20px;font-weight:700;color:var(--text)">${pn} — Recommendations <span style="font-weight:400;color:var(--dim)">(${parkRecs.length} items)</span> ${SB(scores[p],70,40)}</th></tr>
+                <tr style="background:#fafbfc"><th style="width:30px;padding:6px 12px">#</th><th style="width:70px;padding:6px 12px">Priority</th><th style="padding:6px 12px">Recommendation</th></tr></thead>
+                <tbody>
+                ${parkRecs.map(r=>{num++;return`<tr style="break-inside:avoid;page-break-inside:avoid"><td style="padding:8px 12px;font-weight:700;color:var(--dim)">${num}</td><td style="padding:8px 12px"><span class="badge badge-${r.p==='critical'?'alert':r.p==='high'?'warn':'ok'}" style="font-size:11px">${r.p.toUpperCase()}</span></td><td style="padding:8px 12px;font-size:13px;line-height:1.5">${r.t}</td></tr>`}).join('')}
+                </tbody>
+            </table></div>`;
+        }).join('');
+    })()}
+    ${recsNotes?'<div style="padding:16px 20px;background:#ecfdf3;border:2px solid var(--green);border-radius:12px;margin-bottom:16px"><strong>Omnibosh additional notes:</strong>'+fmtNotes(recsNotes)+'</div>':''}
+    
+
+    <!-- FOOTER -->
+    <div style="text-align:center;padding:16px;color:var(--dim);font-size:12px;border-top:1px solid var(--border);margin-top:20px">
+        SafeSystems.PRO — Directors Report — Generated ${new Date().toLocaleDateString('en-GB')} — Omnibosh Safety Solutions Ltd<br>
+        Confidential — prepared for the directors of Highland Holidays
+    </div>`;
+
+    document.getElementById('reportOutput').innerHTML=h;
+    document.getElementById('reportOutput').style.display='block';
+}
+</script>
+</body>
+</html>
