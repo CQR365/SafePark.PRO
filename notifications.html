@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeNotify.PRO — Compliance Notifications</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0c0c10;--card:#151519;--card2:#1a1a22;--border:#2a2a35;--text:#e8e8ed;--muted:#888;--dim:#555;--orange:#cc5500;--red:#e53935;--amber:#f59e0b;--green:#22c55e;--blue:#3b82f6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.header{background:linear-gradient(135deg,#1a1a2e,#0c0c10);border-bottom:1px solid var(--border);padding:20px 32px;display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:22px;font-weight:800;letter-spacing:-.5px}.header h1 span{color:var(--orange)}
+.header .sub{color:var(--muted);font-size:13px;margin-top:2px}
+.controls{padding:20px 32px;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;border-bottom:1px solid var(--border);background:var(--card)}
+.controls label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.ctrl-group{display:flex;flex-direction:column;gap:4px}
+.btn{padding:10px 20px;border-radius:8px;border:none;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-scan{background:var(--orange);color:#fff}.btn-scan:hover{background:#e06600;box-shadow:0 4px 20px rgba(204,85,0,.4)}
+.btn-send{background:var(--green);color:#fff}.btn-send:hover{background:#16a34a}
+.btn-directors{background:var(--blue);color:#fff}.btn-directors:hover{background:#2563eb}
+.btn-resend{background:linear-gradient(135deg,#cc5500,#e06600);color:#fff}.btn-resend:hover{background:#e06600;box-shadow:0 4px 20px rgba(204,85,0,.4)}
+.btn-resend-dir{background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff}.btn-resend-dir:hover{background:#6d28d9;box-shadow:0 4px 20px rgba(109,40,217,.4)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted)}.btn-outline:hover{border-color:var(--orange);color:var(--orange)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:20px 32px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;text-align:center}
+.stat-num{font-size:32px;font-weight:800;line-height:1}.stat-label{font-size:12px;color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:.5px}
+.stat.overdue{border-color:var(--red)}.stat.overdue .stat-num{color:var(--red)}
+.stat.due7{border-color:var(--amber)}.stat.due7 .stat-num{color:var(--amber)}
+.stat.due14{border-color:var(--orange)}.stat.due14 .stat-num{color:var(--orange)}
+.stat.due30{border-color:var(--blue)}.stat.due30 .stat-num{color:var(--blue)}
+.parks{padding:16px 32px;display:flex;flex-direction:column;gap:20px}
+.park-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.park-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--card2)}
+.park-name{font-size:17px;font-weight:700}
+.park-score{font-size:13px;padding:4px 12px;border-radius:20px;font-weight:600}
+.park-body{padding:0 20px}
+.park-actions{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap}
+.items-table{width:100%;border-collapse:collapse;font-size:13px}
+.items-table th{text-align:left;padding:8px 10px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);font-weight:600}
+.items-table td{padding:8px 10px;border-bottom:1px solid #1f1f2a}.items-table tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.badge-overdue{background:#4a1515;color:#f87171}.badge-7{background:#4a3515;color:#fbbf24}
+.badge-14{background:#3a2510;color:#f0a050}.badge-30{background:#15253a;color:#60a5fa}
+.badge-gas{background:#2a1530;color:#c084fc}.badge-vehicle{background:#152a30;color:#67e8f9}
+.badge-action{background:#2a2015;color:#fcd34d}.badge-fire{background:#2a1515;color:#fca5a5}
+.status-msg{padding:20px 32px;text-align:center;color:var(--muted);font-size:14px}.loading{color:var(--orange);font-weight:600}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;justify-content:center;align-items:center}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;max-width:700px;width:95%;max-height:85vh;overflow-y:auto;padding:24px}
+.modal h3{font-size:18px;margin-bottom:12px;color:var(--orange)}
+.modal-close{float:right;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer}
+.email-preview{background:#111;border:1px solid var(--border);border-radius:8px;padding:16px;font-size:13px;line-height:1.7;max-height:50vh;overflow-y:auto;white-space:pre-wrap}
+.email-meta{font-size:12px;color:var(--muted);margin-bottom:12px}.email-meta strong{color:var(--text)}
+.send-log{padding:16px 32px}
+.log-entry{font-size:12px;color:var(--muted);padding:4px 0;border-bottom:1px solid #1a1a1a}
+.log-entry.success{color:var(--green)}.log-entry.error{color:var(--red)}
+@media print{.controls,.header-right,.park-actions,.btn,.send-log{display:none!important}body{background:#fff;color:#111}.park-card,.stat{border-color:#ddd;background:#fff}.items-table th{color:#666}}
+@media(max-width:768px){.stats{grid-template-columns:repeat(2,1fr)}.controls{flex-direction:column}.header{flex-direction:column;gap:10px}}
+</style></head><body>
+
+<div class="header">
+    <div><h1>Safe<span>Notify</span>.PRO</h1><div class="sub">Compliance Notification System — Omnibosh Safety Solutions</div></div>
+    <div class="header-right"><span style="font-size:12px;color:var(--dim)" id="lastScan">Not yet scanned</span></div>
+</div>
+
+<div class="controls">
+    <div class="ctrl-group"><label>Scan & Preview</label>
+        <button class="btn btn-scan" onclick="runScan()">🔍 Scan All Parks</button></div>
+    <div class="ctrl-group"><label>Send All Park Digests</label>
+        <button class="btn btn-send" onclick="sendAllDigests(false)" id="btnSendAll" disabled>📧 Send to Parks + Omnibosh</button></div>
+    <div class="ctrl-group"><label>Include Directors</label>
+        <button class="btn btn-directors" onclick="sendAllDigests(true)" id="btnDirectors" disabled>📧 Send to Parks + Directors</button></div>
+    <div class="ctrl-group"><label>Resend (HTML Email)</label>
+        <button class="btn btn-resend" onclick="resendAll(false)" id="btnResendAll" disabled>⚡ Resend All Parks</button></div>
+    <div class="ctrl-group"><label>Resend + Directors</label>
+        <button class="btn btn-resend-dir" onclick="resendAll(true)" id="btnResendDir" disabled>⚡ Resend + Directors</button></div>
+    <div class="ctrl-group"><label>Print</label>
+        <button class="btn btn-outline" onclick="window.print()">🖨 Print Dashboard</button></div>
+</div>
+
+<div class="stats" id="statsBar">
+    <div class="stat overdue"><div class="stat-num" id="statOverdue">—</div><div class="stat-label">Overdue</div></div>
+    <div class="stat due7"><div class="stat-num" id="stat7">—</div><div class="stat-label">Due within 7 Days</div></div>
+    <div class="stat due14"><div class="stat-num" id="stat14">—</div><div class="stat-label">Due 8–14 Days</div></div>
+    <div class="stat due30"><div class="stat-num" id="stat30">—</div><div class="stat-label">Due 15–30 Days</div></div>
+</div>
+
+<div class="parks" id="parksContainer">
+    <div class="status-msg">Click <strong>Scan All Parks</strong> to check compliance dates across all collections.</div>
+</div>
+
+<div class="send-log" id="sendLog"></div>
+
+<div class="modal-overlay" id="previewModal">
+    <div class="modal">
+        <button class="modal-close" onclick="closePreview()">✕</button>
+        <h3 id="previewTitle">Email Preview</h3>
+        <div class="email-meta" id="previewMeta"></div>
+        <div class="email-preview" id="previewBody"></div>
+        <div style="margin-top:16px;display:flex;gap:10px">
+            <button class="btn btn-send" id="previewSendBtn">📧 Send via Email Client</button>
+            <button class="btn btn-outline" onclick="copyDigest()">📋 Copy to Clipboard</button>
+            <button class="btn btn-outline" onclick="closePreview()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const FBC={apiKey:"AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",authDomain:"safepark-pro.firebaseapp.com",projectId:"safepark-pro",storageBucket:"safepark-pro.firebasestorage.app",messagingSenderId:"511221743341",appId:"1:511221743341:web:95bcc7e83d4861578016e4"};
+const FORMSPREE='https://formspree.io/f/xldprzkr';
+const PARKS={
+    'Ben Nevis Holiday Park':{email:'bennevis@highlandholidays.com',slug:'ben-nevis',short:'Ben Nevis'},
+    'Oban Holiday Park':{email:'oban@highlandholidays.com',slug:'oban',short:'Oban'},
+    'Tyndrum Holiday Park':{email:'tyndrum@highlandholidays.com',slug:'tyndrum',short:'Tyndrum'}
+};
+const OMNIBOSH='safesystems.pro@omnibosh.com';
+const DIRECTORS_EMAIL=''; // Add directors email when ready
+
+if(!firebase.apps.length) firebase.initializeApp(FBC);
+const db=firebase.firestore();
+const auth=firebase.auth();
+let allItems=[];
+let parkData={};
+
+function parseDate(v){
+    if(!v)return null;
+    if(v.toDate)return v.toDate();
+    if(typeof v==='string'){
+        if(/^\d{4}-\d{2}-\d{2}/.test(v))return new Date(v+'T00:00:00');
+        if(/^\d{2}\/\d{2}\/\d{4}/.test(v)){const p=v.split('/');return new Date(p[2]+'-'+p[1]+'-'+p[0]+'T00:00:00')}
+    }
+    return null;
+}
+function daysUntil(dateStr){const d=parseDate(dateStr);if(!d||isNaN(d))return null;const now=new Date();now.setHours(0,0,0,0);return Math.floor((d-now)/(1000*60*60*24))}
+function fmtDate(v){const d=parseDate(v);if(!d||isNaN(d))return'—';return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}
+
+function urgencyBadge(days){
+    if(days===null)return'';
+    if(days<0)return`<span class="badge badge-overdue">${Math.abs(days)} days overdue</span>`;
+    if(days===0)return'<span class="badge badge-overdue">Due today</span>';
+    if(days<=7)return`<span class="badge badge-7">${days} day${days!==1?'s':''}</span>`;
+    if(days<=14)return`<span class="badge badge-14">${days} days</span>`;
+    return`<span class="badge badge-30">${days} days</span>`;
+}
+
+async function runScan(){
+    document.getElementById('parksContainer').innerHTML='<div class="status-msg loading">Scanning Firebase collections...</div>';
+    allItems=[];parkData={};
+    Object.keys(PARKS).forEach(p=>parkData[p]=[]);
+
+    try{
+        await auth.signInAnonymously();
+
+        // GAS APPLIANCES
+        const gasDocs=await db.collection('gasAppliances').get();
+        gasDocs.forEach(doc=>{
+            const d=doc.data();
+            if(d.status==='active'&&d.nextInspectionDue){
+                const days=daysUntil(d.nextInspectionDue);
+                if(days!==null&&days<=30){
+                    allItems.push({type:'gas',typeName:'Gas Inspection',badge:'badge-gas',park:d.park||'Unknown',
+                        item:`${d.type||'Gas Appliance'} — ${d.makeModel||'Unknown'}`,
+                        location:d.accommodationUnit||d.locationDescription||'',
+                        dueDate:d.nextInspectionDue,days});
+                }
+            }
+        });
+
+        // VEHICLES
+        const vehDocs=await db.collection('vehicles').get();
+        vehDocs.forEach(doc=>{
+            const d=doc.data();
+            if(d.status!=='active')return;
+            const vName=`${d.make||''} ${d.model||''} (${d.registration||''})`.trim();
+            const pk=d.parkName||d.location||'Unknown';
+            [{f:'mot_expiry',l:'MOT Expiry',r:d.mot_required},{f:'insurance_expiry',l:'Insurance Expiry',r:d.insurance_required},
+             {f:'tax_expiry',l:'Tax Expiry',r:d.tax_required},{f:'service_due',l:'Service Due',r:true}].forEach(c=>{
+                if(d[c.f]&&c.r!==false){
+                    const days=daysUntil(d[c.f]);
+                    if(days!==null&&days<=30){
+                        allItems.push({type:'vehicle',typeName:c.l,badge:'badge-vehicle',park:pk,
+                            item:`${vName} — ${c.l}`,location:pk,dueDate:d[c.f],days});
+                    }
+                }
+            });
+        });
+
+        // ACTIONS (open only)
+        const actDocs=await db.collection('actions').get();
+        actDocs.forEach(doc=>{
+            const d=doc.data();
+            if(d.status!=='open')return;
+            if(d.targetDate){
+                const days=daysUntil(d.targetDate);
+                if(days!==null&&days<=30){
+                    let pk='Unknown';
+                    Object.keys(PARKS).forEach(pn=>{if((d.location||'').includes(PARKS[pn].slug))pk=pn});
+                    if((d.location||'').includes('overburns'))pk='Tyndrum Holiday Park';
+                    allItems.push({type:'action',typeName:'Open Action',badge:'badge-action',park:pk,
+                        item:`${d.reference||'Action'} — ${(d.description||'').substring(0,80)}`,
+                        location:d.assignedTo?'Assigned: '+d.assignedTo:'',
+                        dueDate:d.targetDate,days,priority:d.priority||'medium'});
+                }
+            }
+        });
+
+        // FIRE EXTINGUISHERS (wired up ready)
+        try{
+            const fireDocs=await db.collection('fireExtinguishers').get();
+            fireDocs.forEach(doc=>{
+                const d=doc.data();
+                const dueField=d.nextServiceDue||d.serviceDue||d.expiryDate;
+                if(dueField){
+                    const days=daysUntil(dueField);
+                    if(days!==null&&days<=30){
+                        allItems.push({type:'fire',typeName:'Fire Ext. Service',badge:'badge-fire',
+                            park:d.park||d.parkName||'Unknown',
+                            item:`${d.type||'Extinguisher'} — ${d.location||''}`,
+                            location:d.locationDescription||'',dueDate:dueField,days});
+                    }
+                }
+            });
+        }catch(e){}
+
+        // Group by park
+        allItems.forEach(item=>{
+            Object.keys(PARKS).forEach(pn=>{
+                const cfg=PARKS[pn];
+                const ip=(item.park||'').toLowerCase();
+                if(ip.includes(cfg.slug)||ip.includes(pn.split(' ')[0].toLowerCase())) parkData[pn].push(item);
+            });
+        });
+        Object.keys(parkData).forEach(p=>parkData[p].sort((a,b)=>a.days-b.days));
+
+        renderDashboard();
+        document.getElementById('btnSendAll').disabled=false;
+        document.getElementById('btnDirectors').disabled=false;
+        document.getElementById('btnResendAll').disabled=false;
+        document.getElementById('btnResendDir').disabled=false;
+        document.getElementById('lastScan').textContent='Last scan: '+new Date().toLocaleString('en-GB');
+    }catch(e){
+        document.getElementById('parksContainer').innerHTML='<div class="status-msg" style="color:var(--red)">Error: '+e.message+'</div>';
+    }
+}
+
+function renderDashboard(){
+    let overdue=0,d7=0,d14=0,d30=0;
+    allItems.forEach(i=>{if(i.days<0)overdue++;else if(i.days<=7)d7++;else if(i.days<=14)d14++;else d30++});
+    document.getElementById('statOverdue').textContent=overdue;
+    document.getElementById('stat7').textContent=d7;
+    document.getElementById('stat14').textContent=d14;
+    document.getElementById('stat30').textContent=d30;
+
+    let h='';
+    Object.keys(PARKS).forEach(pn=>{
+        const items=parkData[pn];const cfg=PARKS[pn];
+        const oc=items.filter(i=>i.days<0).length;
+        const scoreColor=oc>3?'var(--red)':oc>0?'var(--amber)':'var(--green)';
+        const scoreBg=oc>3?'#4a1515':oc>0?'#4a3515':'#153a1a';
+
+        h+=`<div class="park-card"><div class="park-header"><div>
+            <div class="park-name">${pn}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">${cfg.email}</div></div>
+            <div style="display:flex;gap:8px;align-items:center">
+            <span style="font-size:13px;color:var(--muted)">${items.length} item${items.length!==1?'s':''}</span>
+            <span class="park-score" style="background:${scoreBg};color:${scoreColor}">${oc>0?oc+' overdue':'All OK'}</span>
+            </div></div>`;
+
+        if(items.length===0){
+            h+=`<div class="park-body" style="padding:20px;text-align:center;color:var(--green)">No items due within 30 days</div>`;
+        }else{
+            h+=`<div class="park-body"><table class="items-table">
+                <tr><th>Type</th><th>Item</th><th>Location</th><th>Due Date</th><th>Status</th></tr>`;
+            items.forEach(i=>{
+                h+=`<tr><td><span class="badge ${i.badge}">${i.typeName}</span></td>
+                    <td style="max-width:300px">${i.item}</td>
+                    <td style="font-size:12px;color:var(--dim)">${i.location||'—'}</td>
+                    <td>${fmtDate(i.dueDate)}</td>
+                    <td>${urgencyBadge(i.days)}</td></tr>`;
+            });
+            h+=`</table></div>`;
+        }
+
+        h+=`<div class="park-actions">
+            <button class="btn btn-outline" onclick="previewDigest('${pn}',false)" style="font-size:13px">👁 Preview</button>
+            <button class="btn btn-send" onclick="sendDigest('${pn}',false)" style="font-size:13px;padding:8px 16px">📧 Email ${cfg.short}</button>
+            <button class="btn btn-directors" onclick="sendDigest('${pn}',true)" style="font-size:13px;padding:8px 16px">📧 + Directors</button>
+            <button class="btn btn-resend" onclick="resendPark('${pn}',false)" style="font-size:13px;padding:8px 16px">⚡ Resend</button>
+            </div></div>`;
+    });
+
+    if(allItems.length===0) h='<div class="status-msg" style="color:var(--green)">No compliance items due within 30 days across any park.</div>';
+    document.getElementById('parksContainer').innerHTML=h;
+}
+
+function buildDigest(parkName){
+    const items=parkData[parkName]||[];
+    const cfg=PARKS[parkName];
+    const now=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+    let t=`SAFESYSTEMS.PRO — COMPLIANCE NOTIFICATION\nOmnibosh Safety Solutions Ltd\n${'─'.repeat(50)}\n\n`;
+    t+=`Park: ${parkName}\nDate: ${now}\nItems requiring attention: ${items.length}\n\n`;
+
+    if(items.length===0){
+        t+=`No compliance items due within the next 30 days.\nThis is a positive result. Continue to maintain compliance standards.\n`;
+    }else{
+        const bands=[
+            {label:'OVERDUE',emoji:'🔴',items:items.filter(i=>i.days<0)},
+            {label:'DUE WITHIN 7 DAYS',emoji:'🟡',items:items.filter(i=>i.days>=0&&i.days<=7)},
+            {label:'DUE WITHIN 14 DAYS',emoji:'🟠',items:items.filter(i=>i.days>7&&i.days<=14)},
+            {label:'DUE WITHIN 30 DAYS',emoji:'🔵',items:items.filter(i=>i.days>14&&i.days<=30)}
+        ];
+        bands.forEach(b=>{
+            if(b.items.length===0)return;
+            t+=`${b.emoji} ${b.label} (${b.items.length})\n${'─'.repeat(30)}\n`;
+            b.items.forEach(i=>{
+                t+=`  > ${i.typeName}: ${i.item}\n`;
+                t+=`    Due: ${fmtDate(i.dueDate)}`;
+                t+=i.days<0?` (${Math.abs(i.days)} days overdue)\n`:(i.days===0?` (Due today)\n`:` (${i.days} days)\n`);
+                if(i.location)t+=`    Location: ${i.location}\n`;
+                t+=`\n`;
+            });
+        });
+        t+=`${'─'.repeat(50)}\nACTION REQUIRED\n`;
+        t+=`All overdue items must be addressed immediately.\n`;
+        t+=`Items due within 7 days should be scheduled now.\n`;
+        t+=`Please update SafeSystems.PRO once actions are completed.\n`;
+    }
+    t+=`\n${'─'.repeat(50)}\nSafeNotify.PRO — Compliance Notification\n`;
+    t+=`Generated: ${now} — Omnibosh Safety Solutions Ltd\n`;
+    return t;
+}
+
+function previewDigest(parkName,includeDirectors){
+    const cfg=PARKS[parkName];const digest=buildDigest(parkName);
+    const items=parkData[parkName]||[];const oc=items.filter(i=>i.days<0).length;
+    const to=cfg.email;const cc=[OMNIBOSH];
+    if(includeDirectors&&DIRECTORS_EMAIL)cc.push(DIRECTORS_EMAIL);
+    document.getElementById('previewTitle').textContent=`${cfg.short} — Compliance Digest`;
+    document.getElementById('previewMeta').innerHTML=`<div><strong>To:</strong> ${to}</div><div><strong>CC:</strong> ${cc.join(', ')}</div>
+        <div><strong>Subject:</strong> SafeSystems.PRO — ${cfg.short} Compliance Notification — ${oc} overdue, ${items.length} total</div>`;
+    document.getElementById('previewBody').textContent=digest;
+    document.getElementById('previewSendBtn').onclick=()=>{sendDigest(parkName,includeDirectors);closePreview()};
+    document.getElementById('previewModal').style.display='flex';
+}
+function closePreview(){document.getElementById('previewModal').style.display='none'}
+function copyDigest(){navigator.clipboard.writeText(document.getElementById('previewBody').textContent).then(()=>addLog('Digest copied to clipboard','success'))}
+
+function sendDigest(parkName,includeDirectors){
+    const cfg=PARKS[parkName];const items=parkData[parkName]||[];
+    const oc=items.filter(i=>i.days<0).length;const digest=buildDigest(parkName);
+    const subject=`SafeSystems.PRO — ${cfg.short} Compliance Notification — ${oc} overdue, ${items.length} total`;
+    const to=cfg.email;const cc=[OMNIBOSH];
+    if(includeDirectors&&DIRECTORS_EMAIL)cc.push(DIRECTORS_EMAIL);
+
+    // Open in email client
+    window.open(`mailto:${to}?cc=${cc.join(',')}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(digest)}`,'_blank');
+
+    // Log to Formspree
+    fetch(FORMSPREE,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body:JSON.stringify({_subject:`[SafeNotify] ${cfg.short} — ${oc} overdue`,park:parkName,sentTo:to,cc:cc.join(', '),
+            overdue:oc,totalItems:items.length,digest:digest.substring(0,2000),timestamp:new Date().toISOString()})
+    }).then(r=>{
+        if(r.ok)addLog(`${cfg.short} — digest sent & logged (${items.length} items, ${oc} overdue)`,'success');
+        else addLog(`${cfg.short} — email opened but Formspree log failed`,'error');
+    }).catch(()=>addLog(`${cfg.short} — email opened, Formspree offline`,'error'));
+}
+
+function sendAllDigests(includeDirectors){
+    Object.keys(PARKS).forEach((pn,i)=>setTimeout(()=>sendDigest(pn,includeDirectors),i*1500));
+}
+
+function addLog(msg,type){
+    document.getElementById('sendLog').innerHTML+=`<div class="log-entry ${type}">[${new Date().toLocaleTimeString('en-GB')}] ${msg}</div>`;
+}
+
+// ===== RESEND DIRECT SEND =====
+const RESEND_KEY='re_AtMi4JH4_E8Y4bD4FmzxtEA3B38kf2ddm';
+const FROM_EMAIL='SafeNotify.PRO <safesystems.pro@omnibosh.com>';
+
+function buildHtmlEmail(parkName,items){
+    const now=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+    const oc=items.filter(i=>i.days<0).length;
+    let h='<div style="font-family:Helvetica Neue,Arial,sans-serif;max-width:700px;margin:0 auto;background:#fff;border:1px solid #e0e0e0;border-radius:8px;overflow:hidden">';
+    h+='<div style="background:#1a1a2e;padding:24px 28px;color:#fff"><div style="font-size:20px;font-weight:700">Safe<span style="color:#cc5500">Notify</span>.PRO</div><div style="font-size:13px;color:#aaa;margin-top:4px">Compliance Notification \u2014 Omnibosh Safety Solutions</div></div>';
+    h+='<div style="padding:24px 28px"><div style="font-size:16px;font-weight:700;color:#1a1a2e;margin-bottom:4px">'+parkName+'</div>';
+    h+='<div style="font-size:13px;color:#888;margin-bottom:20px">'+now+' \u2014 '+items.length+' items'+(oc>0?' \u2014 <span style="color:#e53935;font-weight:700">'+oc+' OVERDUE</span>':'')+'</div>';
+    if(items.length===0){
+        h+='<div style="background:#ecfdf3;border:1px solid #22c55e;border-radius:8px;padding:16px;text-align:center;color:#166534;font-weight:600">No compliance items due within the next 30 days.</div>';
+    }else{
+        h+='<table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="background:#f8f9fa"><th style="text-align:left;padding:8px 10px;color:#666;font-size:11px;text-transform:uppercase;border-bottom:2px solid #e0e0e0">Type</th><th style="text-align:left;padding:8px 10px;color:#666;font-size:11px;text-transform:uppercase;border-bottom:2px solid #e0e0e0">Item</th><th style="text-align:left;padding:8px 10px;color:#666;font-size:11px;text-transform:uppercase;border-bottom:2px solid #e0e0e0">Due</th><th style="text-align:left;padding:8px 10px;color:#666;font-size:11px;text-transform:uppercase;border-bottom:2px solid #e0e0e0">Status</th></tr>';
+        [...items].sort((a,b)=>a.days-b.days).forEach(i=>{
+            const bg=i.days<0?'#fef2f2':i.days<=7?'#fefce8':'#fff';
+            const sc=i.days<0?'#e53935':i.days<=7?'#f59e0b':i.days<=14?'#cc5500':'#3b82f6';
+            const st=i.days<0?Math.abs(i.days)+'d overdue':i.days===0?'Today':i.days+'d';
+            h+='<tr style="background:'+bg+'"><td style="padding:8px 10px;border-bottom:1px solid #f0f0f0;font-weight:600">'+i.typeName+'</td><td style="padding:8px 10px;border-bottom:1px solid #f0f0f0">'+i.item+(i.location?'<br><span style="color:#888;font-size:11px">'+i.location+'</span>':'')+'</td><td style="padding:8px 10px;border-bottom:1px solid #f0f0f0">'+fmtDate(i.dueDate)+'</td><td style="padding:8px 10px;border-bottom:1px solid #f0f0f0"><span style="background:'+sc+';color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">'+st+'</span></td></tr>';
+        });
+        h+='</table>';
+        h+='<div style="margin-top:20px;padding:16px;background:#fff8f3;border:1px solid #cc5500;border-radius:8px"><div style="font-weight:700;color:#cc5500;margin-bottom:6px">Action Required</div><div style="font-size:13px;color:#666;line-height:1.6">All overdue items must be addressed immediately. Items due within 7 days should be scheduled now. Please update SafeSystems.PRO once actions are completed.</div></div>';
+    }
+    h+='</div><div style="background:#f8f9fa;padding:16px 28px;font-size:11px;color:#888;border-top:1px solid #e0e0e0">SafeNotify.PRO \u2014 Automated Compliance Notification \u2014 '+now+'<br>Omnibosh Safety Solutions Ltd</div></div>';
+    return h;
+}
+
+async function resendPark(parkName,includeDirectors){
+    const cfg=PARKS[parkName];const items=parkData[parkName]||[];
+    if(items.length===0){addLog(`${cfg.short}: No items — skipped`,'success');return true;}
+    const oc=items.filter(i=>i.days<0).length;
+    const subject='SafeSystems.PRO \u2014 '+cfg.short+' Compliance Notification \u2014 '+oc+' overdue, '+items.length+' total';
+    const to=[cfg.email];const cc=[OMNIBOSH];
+    if(includeDirectors&&DIRECTORS_EMAIL)cc.push(DIRECTORS_EMAIL);
+    const html=buildHtmlEmail(parkName,items);
+    const text=buildDigest(parkName);
+
+    addLog(`${cfg.short}: Sending via Resend...`,'');
+    try{
+        const resp=await fetch('https://api.resend.com/emails',{
+            method:'POST',headers:{'Authorization':'Bearer '+RESEND_KEY,'Content-Type':'application/json'},
+            body:JSON.stringify({from:FROM_EMAIL,to:to,cc:cc,subject:subject,html:html,text:text})
+        });
+        const data=await resp.json();
+        if(resp.ok){
+            addLog(`\u2705 ${cfg.short}: Sent via Resend (${items.length} items, ${oc} overdue)`,'success');
+            return true;
+        }else{
+            addLog(`\u274c ${cfg.short}: Resend error — ${data.message||JSON.stringify(data)}`,'error');
+            return false;
+        }
+    }catch(err){
+        addLog(`\u274c ${cfg.short}: Network error — ${err.message}. Try the GitHub Actions method instead.`,'error');
+        return false;
+    }
+}
+
+async function resendAll(includeDirectors){
+    addLog('Sending all park digests via Resend...','');
+    let sent=0,fail=0;
+    for(const pn of Object.keys(PARKS)){
+        const ok=await resendPark(pn,includeDirectors);
+        if(ok)sent++;else fail++;
+        await new Promise(r=>setTimeout(r,500));
+    }
+    addLog(`Complete. Sent: ${sent}, Failed: ${fail}`,'success');
+}
+</script></body></html>
