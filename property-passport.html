@@ -1981,6 +1981,8 @@ let allProfiles = {};
 let inventoryItems = [];
 let replaceTargetId = null;
 let isEditMode = false;
+let _unsubCfg = null;
+let _unsubProfiles = null;
 
 // ═══════════════════════════════════════════════════════════════
 // INIT
@@ -2031,6 +2033,10 @@ function onParkChange() {
     allUnits = [];
     allProfiles = {};
     currentParkProfile = null;
+
+    // Tear down existing listeners
+    if (_unsubCfg) { _unsubCfg(); _unsubCfg = null; }
+    if (_unsubProfiles) { _unsubProfiles(); _unsubProfiles = null; }
     document.getElementById('passportView').style.display = 'none';
     document.getElementById('parkComplianceCard').style.display = 'none';
     document.getElementById('parkModuleCard').style.display = 'none';
@@ -2053,33 +2059,54 @@ function onParkChange() {
 // LOAD UNITS
 // accommodation_config is read-only for backward compat —
 // new data lives in property_profiles, never modifies existing structure
+// Real-time listeners keep the grid in sync automatically
 // ═══════════════════════════════════════════════════════════════
-async function loadUnits() {
-    if (!currentPark || !window.db) return;
-    try {
-        // 1. Existing accommodation_config — backward compat, just read units[]
-        const cfgSnap = await window.db.collection('accommodation_config')
-            .where('parkName', '==', currentPark).limit(1).get();
-        allUnits = [];
-        if (!cfgSnap.empty) {
-            allUnits = cfgSnap.docs[0].data().units || [];
-        }
 
-        // 2. New property_profiles collection
-        const profSnap = await window.db.collection('property_profiles')
-            .where('parkName', '==', currentPark).get();
-        allProfiles = {};
-        profSnap.forEach(doc => {
-            const d = doc.data();
-            allProfiles[d.unitCode] = { id: doc.id, ...d };
+let _unsubCfg = null;
+let _unsubProfiles = null;
+
+function loadUnits() {
+    if (!currentPark || !window.db) return;
+
+    // Tear down any existing listeners before attaching new ones
+    if (_unsubCfg) { _unsubCfg(); _unsubCfg = null; }
+    if (_unsubProfiles) { _unsubProfiles(); _unsubProfiles = null; }
+
+    // 1. Real-time listener on accommodation_config
+    _unsubCfg = window.db.collection('accommodation_config')
+        .where('parkName', '==', currentPark)
+        .limit(1)
+        .onSnapshot(snap => {
+            allUnits = [];
+            if (!snap.empty) {
+                allUnits = snap.docs[0].data().units || [];
+                // Sort units alphanumerically
+                allUnits.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+            }
+            renderUnitGrid();
+            populateCoUnits();
+        }, e => {
+            console.error('accommodation_config listener error:', e);
         });
 
-        renderUnitGrid();
-        populateCoUnits();
-    } catch(e) {
-        console.error('loadUnits error:', e);
-        showToast('Error loading properties', 'error');
-    }
+    // 2. Real-time listener on property_profiles
+    _unsubProfiles = window.db.collection('property_profiles')
+        .where('parkName', '==', currentPark)
+        .onSnapshot(snap => {
+            allProfiles = {};
+            snap.forEach(doc => {
+                const d = doc.data();
+                allProfiles[d.unitCode] = { id: doc.id, ...d };
+            });
+            renderUnitGrid();
+            populateCoUnits();
+            // If current unit's profile just updated, refresh passport view
+            if (selectedUnit && allProfiles[selectedUnit]) {
+                selectedProfile = allProfiles[selectedUnit];
+            }
+        }, e => {
+            console.error('property_profiles listener error:', e);
+        });
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -2648,7 +2675,7 @@ async function saveOnboarding() {
 
         closeModal('onboardModal');
         showToast(code + ' onboarded successfully', 'success');
-        await loadUnits();
+        loadUnits();
         selectedUnit = code;
         selectedProfile = allProfiles[code];
         renderUnitGrid();
@@ -2742,7 +2769,7 @@ async function saveEditProfile() {
         await window.db.collection('property_profiles').doc(selectedProfile.id).update(updates);
         closeModal('onboardModal');
         showToast('Profile updated', 'success');
-        await loadUnits();
+        loadUnits();
         selectedProfile = allProfiles[selectedUnit];
         renderPassport();
     } catch(e) {
@@ -4393,12 +4420,15 @@ let csvParsedRows = [];
 let csvImportType = '';
 
 function openCsvImportModal() {
-    if (!selectedProfile) {
-        showToast('Select a property from the Properties tab first', 'warning');
-        switchTab('properties');
+    if (!currentPark) {
+        showToast('Select a park first', 'warning');
         return;
     }
-    document.getElementById('csvImportUnitLabel').textContent = selectedUnit + ' — ' + currentPark;
+    // Label reflects context — unit selected or park-wide
+    const label = selectedUnit
+        ? selectedUnit + ' — ' + currentPark
+        : currentPark + ' (all units — use a CSV with a Unit Code column)';
+    document.getElementById('csvImportUnitLabel').textContent = label;
     document.getElementById('csvFileInput').value = '';
     document.getElementById('csvPreview').style.display = 'none';
     document.getElementById('csvImportBtn').style.display = 'none';
@@ -4625,7 +4655,7 @@ async function importCsv() {
             if (failed > 0) msg += `. ${failed} failed`;
             showToast(msg, failed > 0 ? 'warning' : 'success');
             closeModal('csvImportModal');
-            await loadUnits();
+            loadUnits();
             if (selectedProfile) { await loadInventory(); loadAssetSummary(); }
         } else {
             showToast('Import failed — no matching profiles found and auto-create failed', 'error');
@@ -4633,7 +4663,10 @@ async function importCsv() {
 
     } else {
         // Single-unit import
-        if (!selectedProfile) { showToast('Select a property first', 'error'); btn.disabled = false; btn.textContent = 'Import Records'; return; }
+        if (!selectedProfile) {
+            showToast('For single-unit import, select a property first. For multi-unit, use a CSV with a Unit Code column.', 'warning');
+            btn.disabled = false; btn.textContent = 'Import Records'; return;
+        }
         const colRef = window.db.collection('property_profiles').doc(selectedProfile.id).collection('inventory');
         for (const row of csvParsedRows) {
             try {
