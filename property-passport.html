@@ -815,6 +815,7 @@
         <button class="tab-btn" onclick="switchTab('assets')">Asset Register</button>
         <button class="tab-btn" onclick="switchTab('changeover')">cozzZ.pro (Change-Over)</button>
         <button class="tab-btn" onclick="switchTab('cozzz')">cozzZ.pro (Safer-Stays)</button>
+        <button class="tab-btn" onclick="switchTab('seasonal')">cozzZ.pro (Seasonal)</button>
         <button class="tab-btn" onclick="switchTab('reports')">Reports</button>
     </div>
 
@@ -1034,6 +1035,48 @@
         </div>
     </div>
 
+    <!-- ══════════════════════════════════════════ SEASONAL TAB -->
+    <div id="tab-seasonal" class="tab-content">
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Scheduled Works Log</h2>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="btn btn-primary btn-sm" onclick="openScheduledWorkModal()">Record Scheduled Work</button>
+                    <button class="btn btn-secondary btn-sm" onclick="loadScheduledWorks()">Refresh</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="swNoUnit" class="alert alert-warning">Select a park then choose a property from the Properties tab to view its scheduled works log.</div>
+                <div id="swContext" class="alert alert-info" style="display:none;"></div>
+                <div id="swFilters" style="display:none;margin-bottom:16px;">
+                    <select class="form-control" id="swTypeFilter" onchange="loadScheduledWorks()" style="max-width:260px;">
+                        <option value="all">All work types</option>
+                        <option value="deep-clean-accom">Deep Clean — Accommodation</option>
+                        <option value="deep-clean-hot-tub">Deep Clean — Hot Tub</option>
+                        <option value="gutters">Gutters</option>
+                        <option value="windows">Windows</option>
+                        <option value="decking">Decking</option>
+                        <option value="lodge-exterior">Lodge Exterior</option>
+                        <option value="steps">Steps</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div id="swContent"></div>
+            </div>
+        </div>
+
+        <!-- Park-wide scheduled works log -->
+        <div class="card" id="swParkCard" style="display:none;">
+            <div class="card-header">
+                <h2>Park-Wide Recent Works</h2>
+                <span style="font-size:12px;color:var(--text-muted);">Last 30 records across all units</span>
+            </div>
+            <div class="card-body" id="swParkContent"></div>
+        </div>
+
+    </div>
+
     <!-- ══════════════════════════════════════════ REPORTS TAB -->
     <div id="tab-reports" class="tab-content">
         <div class="card">
@@ -1189,6 +1232,136 @@
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closeModal('parkModal')">Cancel</button>
                 <button class="btn btn-primary" onclick="saveParkProfile()">Save Park Profile</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ SCHEDULED WORK MODAL -->
+<div class="modal-overlay" id="swModal">
+    <div class="modal" style="max-width:600px;">
+        <div class="modal-header">
+            <h3 id="swModalTitle">Record Scheduled Work</h3>
+            <button class="modal-close" onclick="closeModal('swModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Work Type <span class="req">*</span></label>
+                    <select class="form-control" id="sw_type">
+                        <option value="">Select work type...</option>
+                        <option value="deep-clean-accom">Deep Clean — Accommodation</option>
+                        <option value="deep-clean-hot-tub">Deep Clean — Hot Tub</option>
+                        <option value="gutters">Gutters — Cleared and Checked</option>
+                        <option value="windows">Windows — Internal and External</option>
+                        <option value="decking">Decking — Clean and Inspection</option>
+                        <option value="lodge-exterior">Lodge Exterior — Walls and Roof Check</option>
+                        <option value="steps">Steps — Inspection and Anti-Slip Check</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group" id="sw_otherGroup" style="display:none;">
+                    <label>Specify Work Type</label>
+                    <input type="text" class="form-control" id="sw_otherType" placeholder="Describe the work...">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Date Completed <span class="req">*</span></label>
+                    <input type="date" class="form-control" id="sw_date">
+                </div>
+                <div class="form-group">
+                    <label>Completed By <span class="req">*</span></label>
+                    <input type="text" class="form-control" id="sw_by" placeholder="Name or contractor">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Condition Found</label>
+                <select class="form-control" id="sw_condition">
+                    <option value="good">Good — no issues found</option>
+                    <option value="fair">Fair — minor items noted</option>
+                    <option value="poor">Poor — significant issues identified</option>
+                    <option value="urgent">Urgent — immediate action required</option>
+                </select>
+            </div>
+
+            <!-- Hot tub specific fields -->
+            <div id="sw_hotTubFields" style="display:none;">
+                <div class="section-heading" style="margin-top:8px;">Hot Tub — Drain, Clean &amp; Refill</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Pre-Drain Total Bromine (mg/l)</label>
+                        <input type="number" class="form-control" id="sw_ht_bromine" placeholder="4–6 mg/l" step="0.1" min="0" max="20">
+                    </div>
+                    <div class="form-group">
+                        <label>Pre-Drain pH</label>
+                        <input type="number" class="form-control" id="sw_ht_ph" placeholder="7.0–7.6" step="0.1" min="6" max="9">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Refill Date</label>
+                        <input type="date" class="form-control" id="sw_ht_refillDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Filter Cleaned</label>
+                        <select class="form-control" id="sw_ht_filter">
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Post-Refill Chemistry Check</label>
+                    <select class="form-control" id="sw_ht_postCheck">
+                        <option value="pass">Pass — within parameters</option>
+                        <option value="adjusted">Adjusted — chemicals dosed</option>
+                        <option value="pending">Pending — check due</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Deep clean accommodation specific -->
+            <div id="sw_deepCleanFields" style="display:none;">
+                <div class="section-heading" style="margin-top:8px;">Deep Clean Areas Covered</div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px;margin-bottom:12px;">
+                    ${['Kitchen — full including appliances','Oven — inside and out','Fridge — defrost and clean','All upholstery','Mattresses — turned and inspected','Curtains / Blinds','Bathroom — including grout','Windows — internal','Floors — all rooms','Behind / under furniture','Light fittings'].map((area, i) =>
+                        `<label style="display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer;background:#1a1a1a;padding:7px 9px;border-radius:6px;border:1px solid #2a2a2a;">
+                            <input type="checkbox" id="sw_area_${i}" style="accent-color:var(--primary);"> ${area}
+                        </label>`
+                    ).join('')}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Issues Raised / Actions Required</label>
+                <textarea class="form-control" id="sw_issues" rows="3" placeholder="Any defects, damage, or follow-up maintenance required..."></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>How often does this need doing? <span class="req">*</span></label>
+                    <select class="form-control" id="sw_frequency" onchange="calcNextDue()">
+                        <option value="">Select frequency...</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="3-monthly">Every 3 months</option>
+                        <option value="6-monthly">Every 6 months</option>
+                        <option value="annually">Annually</option>
+                        <option value="one-off">One-off (no repeat)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <input type="text" class="form-control" id="sw_notes" placeholder="Any other observations...">
+                </div>
+            </div>
+            <div id="sw_nextDueDisplay" style="display:none;background:#1a1a1a;border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:16px;">
+                <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Next due date</div>
+                <div id="sw_nextDueLabel" style="font-family:'Orbitron',monospace;font-size:1.1rem;color:var(--primary);"></div>
+                <input type="hidden" id="sw_nextDue">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('swModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveScheduledWork()">Save Record</button>
             </div>
         </div>
     </div>
@@ -1834,7 +2007,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // TABS
 // ═══════════════════════════════════════════════════════════════
 function switchTab(tab) {
-    const tabs = ['park','properties','assets','changeover','cozzz','reports'];
+    const tabs = ['park','properties','assets','changeover','cozzz','seasonal','reports'];
     document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', tabs[i] === tab));
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.getElementById('tab-' + tab).classList.add('active');
@@ -1844,6 +2017,7 @@ function switchTab(tab) {
     if (tab === 'changeover') { populateCoUnits(); loadRecentCo(); }
     if (tab === 'reports') renderReports();
     if (tab === 'cozzz') renderCozzzTab();
+    if (tab === 'seasonal') renderSeasonalTab();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -4477,6 +4651,283 @@ async function importCsv() {
             showToast('Import failed — check your CSV format', 'error');
         }
     }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SEASONAL TAB — SCHEDULED WORKS
+// ═══════════════════════════════════════════════════════════════
+
+const SW_TYPE_LABELS = {
+    'deep-clean-accom':  'Deep Clean — Accommodation',
+    'deep-clean-hot-tub':'Deep Clean — Hot Tub',
+    'gutters':           'Gutters',
+    'windows':           'Windows',
+    'decking':           'Decking',
+    'lodge-exterior':    'Lodge Exterior',
+    'steps':             'Steps',
+    'other':             'Other'
+};
+
+const SW_DEEP_CLEAN_AREAS = [
+    'Kitchen — full including appliances','Oven — inside and out','Fridge — defrost and clean',
+    'All upholstery','Mattresses — turned and inspected','Curtains / Blinds',
+    'Bathroom — including grout','Windows — internal','Floors — all rooms',
+    'Behind / under furniture','Light fittings'
+];
+
+function renderSeasonalTab() {
+    const noUnit = document.getElementById('swNoUnit');
+    const ctx = document.getElementById('swContext');
+    const filters = document.getElementById('swFilters');
+    const parkCard = document.getElementById('swParkCard');
+
+    if (!selectedUnit || !selectedProfile) {
+        noUnit.style.display = 'block';
+        ctx.style.display = 'none';
+        filters.style.display = 'none';
+        document.getElementById('swContent').innerHTML = '';
+        parkCard.style.display = currentPark ? 'block' : 'none';
+        if (currentPark) loadParkWideWorks();
+        return;
+    }
+
+    noUnit.style.display = 'none';
+    ctx.style.display = 'block';
+    ctx.textContent = 'Scheduled works for: ' + selectedUnit + '  —  ' + currentPark;
+    filters.style.display = 'block';
+    parkCard.style.display = 'block';
+    loadScheduledWorks();
+    loadParkWideWorks();
+}
+
+async function loadScheduledWorks() {
+    if (!selectedProfile) return;
+    const el = document.getElementById('swContent');
+    const typeFilter = document.getElementById('swTypeFilter')?.value || 'all';
+    el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px;">Loading...</div>';
+
+    try {
+        const snap = await window.db.collection('property_profiles')
+            .doc(selectedProfile.id).collection('scheduled_works')
+            .orderBy('createdAt', 'desc').limit(50).get();
+        let records = [];
+        snap.forEach(doc => records.push({ id: doc.id, ...doc.data() }));
+        if (typeFilter !== 'all') records = records.filter(r => r.workType === typeFilter);
+
+        if (records.length === 0) {
+            el.innerHTML = '<div class="empty-state"><div class="es-sub">No scheduled works recorded for this property yet.</div></div>';
+            return;
+        }
+
+        const condColour = { good:'s-good', fair:'s-warn', poor:'s-bad', urgent:'s-bad' };
+        const today = new Date();
+        el.innerHTML = records.map(r => {
+            const typeLabel = r.workType === 'other' ? (r.otherType || 'Other') : (SW_TYPE_LABELS[r.workType] || r.workType);
+            let nextCls = 's-none', nextLabel = '';
+            if (r.nextDue) {
+                const diff = Math.ceil((new Date(r.nextDue + 'T12:00:00') - today) / 86400000);
+                nextCls = diff < 0 ? 's-bad' : diff < 30 ? 's-warn' : 's-good';
+                nextLabel = diff < 0 ? 'Overdue since ' + fmtDate(r.nextDue) : 'Next: ' + fmtDate(r.nextDue);
+            }
+            return `<div class="asset-row" style="border-left:3px solid var(--primary);">
+                <div class="asset-info">
+                    <div class="asset-name">${typeLabel}
+                        <span style="font-size:11px;color:var(--text-muted);font-weight:400;"> — ${fmtDate(r.date)}</span>
+                    </div>
+                    <div class="asset-meta">
+                        Completed by: ${r.completedBy || '-'}
+                        ${r.frequency ? '  &bull;  ' + ({monthly:'Monthly',  '3-monthly':'Every 3 months', '6-monthly':'Every 6 months', annually:'Annually', 'one-off':'One-off'}[r.frequency] || r.frequency) : ''}
+                        ${r.issues ? '<br>Issues: ' + r.issues : ''}
+                        ${r.areasChecked && r.areasChecked.length > 0 ? '<br>Areas: ' + r.areasChecked.join(', ') : ''}
+                        ${r.workType === 'deep-clean-hot-tub' && r.hotTub ? '<br>Bromine: ' + (r.hotTub.bromine || '-') + ' mg/l  pH: ' + (r.hotTub.ph || '-') + '  Filter cleaned: ' + (r.hotTub.filter || '-') : ''}
+                        ${r.notes ? '<br>' + r.notes : ''}
+                    </div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+                    <span class="status-badge ${condColour[r.condition] || 's-info'}">${r.condition || 'Recorded'}</span>
+                    ${nextLabel ? `<span class="status-badge ${nextCls}" style="font-size:10px;">${nextLabel}</span>` : ''}
+                </div>
+                <div class="asset-actions">
+                    <button class="btn btn-danger btn-sm" onclick="deleteScheduledWork('${r.id}')">Remove</button>
+                </div>
+            </div>`;
+        }).join('');
+    } catch(e) {
+        console.error('Load scheduled works:', e);
+        el.innerHTML = '<div class="empty-state"><div class="es-sub">Error loading records.</div></div>';
+    }
+}
+
+async function loadParkWideWorks() {
+    if (!currentPark || !window.db) return;
+    const el = document.getElementById('swParkContent');
+    try {
+        const swSnap = await window.db.collectionGroup('scheduled_works')
+            .orderBy('createdAt', 'desc').limit(30).get();
+        const records = [];
+        swSnap.forEach(doc => {
+            const d = doc.data();
+            if (d.parkName === currentPark) records.push({ id: doc.id, ...d });
+        });
+        if (records.length === 0) {
+            el.innerHTML = '<div class="empty-state"><div class="es-sub">No park-wide records found.</div></div>';
+            return;
+        }
+        const today = new Date();
+        el.innerHTML = `<div class="table-responsive"><table class="data-table">
+            <thead><tr><th>Unit</th><th>Work Type</th><th>Date</th><th>Completed By</th><th>Condition</th><th>Next Due</th></tr></thead>
+            <tbody>
+                ${records.map(r => {
+                    const typeLabel = r.workType === 'other' ? (r.otherType || 'Other') : (SW_TYPE_LABELS[r.workType] || r.workType);
+                    const nextCls = r.nextDue ? (new Date(r.nextDue + 'T12:00:00') < today ? 's-bad' : 's-good') : 's-none';
+                    const condColour = { good:'s-good', fair:'s-warn', poor:'s-bad', urgent:'s-bad' };
+                    return `<tr>
+                        <td><strong style="font-family:'Orbitron',monospace;font-size:0.8rem;color:var(--primary);">${r.unitCode || '-'}</strong></td>
+                        <td>${typeLabel}</td>
+                        <td>${fmtDate(r.date)}</td>
+                        <td>${r.completedBy || '-'}</td>
+                        <td><span class="status-badge ${condColour[r.condition] || 's-info'}">${r.condition || '-'}</span></td>
+                        <td>${r.nextDue ? `<span class="status-badge ${nextCls}">${fmtDate(r.nextDue)}</span>` : '-'}</td>
+                    </tr>`;
+                }).join('')}
+            </tbody>
+        </table></div>`;
+    } catch(e) {
+        el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px;">Park-wide view requires a Firestore collection group index for <strong>scheduled_works</strong>. Select a unit above to view its individual records.</div>';
+    }
+}
+
+function openScheduledWorkModal() {
+    if (!selectedProfile) {
+        showToast('Select a property from the Properties tab first', 'warning');
+        switchTab('properties');
+        return;
+    }
+    document.getElementById('swModalTitle').textContent = 'Record Scheduled Work — ' + selectedUnit;
+    document.getElementById('sw_type').value = '';
+    document.getElementById('sw_date').value = todayStr();
+    document.getElementById('sw_by').value = currentUser || '';
+    document.getElementById('sw_condition').selectedIndex = 0;
+    document.getElementById('sw_issues').value = '';
+    document.getElementById('sw_frequency').value = '';
+    document.getElementById('sw_nextDue').value = '';
+    document.getElementById('sw_nextDueDisplay').style.display = 'none';
+    document.getElementById('sw_notes').value = '';
+    document.getElementById('sw_otherGroup').style.display = 'none';
+    document.getElementById('sw_hotTubFields').style.display = 'none';
+    document.getElementById('sw_deepCleanFields').style.display = 'none';
+    SW_DEEP_CLEAN_AREAS.forEach((_, i) => {
+        const cb = document.getElementById('sw_area_' + i);
+        if (cb) cb.checked = false;
+    });
+
+    document.getElementById('sw_type').onchange = function() {
+        const v = this.value;
+        document.getElementById('sw_otherGroup').style.display = v === 'other' ? 'block' : 'none';
+        document.getElementById('sw_hotTubFields').style.display = v === 'deep-clean-hot-tub' ? 'block' : 'none';
+        document.getElementById('sw_deepCleanFields').style.display = v === 'deep-clean-accom' ? 'block' : 'none';
+        // Auto-suggest frequency based on work type
+        const freq = document.getElementById('sw_frequency');
+        if (!freq.value) {
+            if (v === 'deep-clean-accom') freq.value = '6-monthly';
+            else if (v === 'deep-clean-hot-tub') freq.value = '3-monthly';
+            else if (v === 'windows') freq.value = '3-monthly';
+            else if (['gutters','decking','lodge-exterior','steps'].includes(v)) freq.value = 'annually';
+        }
+        calcNextDue();
+    };
+
+    // Recalculate next due when date changes too
+    document.getElementById('sw_date').onchange = calcNextDue;
+}
+
+function calcNextDue() {
+    const freq = document.getElementById('sw_frequency').value;
+    const dateVal = document.getElementById('sw_date').value;
+    const display = document.getElementById('sw_nextDueDisplay');
+    const label = document.getElementById('sw_nextDueLabel');
+    const hidden = document.getElementById('sw_nextDue');
+
+    if (!freq || freq === 'one-off' || !dateVal) {
+        display.style.display = 'none';
+        hidden.value = '';
+        return;
+    }
+
+    const d = new Date(dateVal + 'T12:00:00');
+    if (freq === 'monthly')    d.setMonth(d.getMonth() + 1);
+    if (freq === '3-monthly')  d.setMonth(d.getMonth() + 3);
+    if (freq === '6-monthly')  d.setMonth(d.getMonth() + 6);
+    if (freq === 'annually')   d.setFullYear(d.getFullYear() + 1);
+
+    const nextStr = d.toISOString().split('T')[0];
+    hidden.value = nextStr;
+
+    const freqLabels = { monthly:'Monthly', '3-monthly':'Every 3 months', '6-monthly':'Every 6 months', annually:'Annually' };
+    label.textContent = fmtDate(nextStr) + '  (' + freqLabels[freq] + ')';
+    display.style.display = 'block';
+}
+
+async function saveScheduledWork() {
+    const type = document.getElementById('sw_type').value;
+    const date = document.getElementById('sw_date').value;
+    const by = document.getElementById('sw_by').value.trim();
+    const frequency = document.getElementById('sw_frequency').value;
+    if (!type) { showToast('Work type is required', 'error'); return; }
+    if (!date) { showToast('Date is required', 'error'); return; }
+    if (!by) { showToast('Completed by is required', 'error'); return; }
+    if (!frequency) { showToast('Please select how often this needs doing', 'error'); return; }
+
+    const data = {
+        parkName: currentPark, unitCode: selectedUnit, workType: type,
+        otherType: type === 'other' ? document.getElementById('sw_otherType').value.trim() : null,
+        date, completedBy: by,
+        condition: document.getElementById('sw_condition').value,
+        issues: document.getElementById('sw_issues').value.trim(),
+        frequency,
+        nextDue: frequency === 'one-off' ? null : (document.getElementById('sw_nextDue').value || null),
+        notes: document.getElementById('sw_notes').value.trim(),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    if (type === 'deep-clean-hot-tub') {
+        data.hotTub = {
+            bromine: document.getElementById('sw_ht_bromine').value || null,
+            ph: document.getElementById('sw_ht_ph').value || null,
+            refillDate: document.getElementById('sw_ht_refillDate').value || null,
+            filter: document.getElementById('sw_ht_filter').value,
+            postCheck: document.getElementById('sw_ht_postCheck').value
+        };
+    }
+
+    if (type === 'deep-clean-accom') {
+        data.areasChecked = SW_DEEP_CLEAN_AREAS.filter((_, i) => {
+            const cb = document.getElementById('sw_area_' + i);
+            return cb && cb.checked;
+        });
+    }
+
+    try {
+        await window.db.collection('property_profiles')
+            .doc(selectedProfile.id).collection('scheduled_works').add(data);
+        closeModal('swModal');
+        showToast('Scheduled work recorded', 'success');
+        loadScheduledWorks();
+        loadParkWideWorks();
+    } catch(e) {
+        console.error(e);
+        showToast('Error saving record: ' + e.message, 'error');
+    }
+}
+
+async function deleteScheduledWork(id) {
+    if (!confirm('Remove this scheduled work record?')) return;
+    try {
+        await window.db.collection('property_profiles')
+            .doc(selectedProfile.id).collection('scheduled_works').doc(id).delete();
+        showToast('Record removed', 'success');
+        loadScheduledWorks();
+    } catch(e) { showToast('Error removing record', 'error'); }
 }
 </script>
 </body>
