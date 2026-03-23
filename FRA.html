@@ -682,12 +682,12 @@
 <script>
 // ==================== CONFIGURATION ====================
 const firebaseConfig = {
-    apiKey: "AIzaSyCMthEsz4WxTSMGSfIEJgtP4JJisMuvmAg",
-    authDomain: "safeparkpro.firebaseapp.com",
-    projectId: "safeparkpro",
-    storageBucket: "safeparkpro.firebasestorage.app",
-    messagingSenderId: "837498aborting",
-    appId: "1:837498aborting:web:placeholder"
+    apiKey: "AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+    authDomain: "safepark-pro.firebaseapp.com",
+    projectId: "safepark-pro",
+    storageBucket: "safepark-pro.firebasestorage.app",
+    messagingSenderId: "511221743341",
+    appId: "1:511221743341:web:95bcc7e83d4861578016e4"
 };
 
 // ==================== GLOBAL STATE ====================
@@ -695,6 +695,10 @@ let db, storage;
 let currentPark = '';
 let currentUser = '';
 let userLevel = '';
+let companyId = null;
+let companyName = '';
+let companyLocations = [];
+let userLocations = [];
 let selectedAssessType = null;
 let currentAssessment = null;
 let allAssessments = [];
@@ -805,7 +809,7 @@ const FRA_SECTIONS = [
 ];
 
 // ==================== INITIALISATION ====================
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Check for sessionStorage from parent system
     const storedPark = sessionStorage.getItem('currentPark');
     const storedUser = sessionStorage.getItem('currentUser');
@@ -848,9 +852,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Init Firebase
     try {
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
         storage = firebase.storage();
+        try { await firebase.auth().signInAnonymously(); } catch(ae) { console.warn('Auth:', ae.message); }
         document.getElementById('fbStatus').classList.add('connected');
         document.getElementById('fbStatus').title = 'Firebase connected';
     } catch(e) {
@@ -894,6 +899,45 @@ function initApp() {
     loadAssessments();
     loadActions();
     loadParkData();
+    loadCompanyData();
+}
+
+// ==================== COMPANY / MULTI-TENANT ====================
+async function loadCompanyData() {
+    if (!db) return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = (urlParams.get('access_code') || sessionStorage.getItem('currentAccessCode') || '').toUpperCase();
+    const isMaster = code === 'CQR365SPP25';
+
+    if (code && !isMaster) {
+        try {
+            const snap = await db.collection('companyAccessCodes').where('code', '==', code).where('active', '==', true).get();
+            if (!snap.empty) {
+                const ac = snap.docs[0].data();
+                companyId = ac.companyId;
+                userLocations = ac.locations || [];
+                if (ac.userName) currentUser = ac.userName;
+            } else {
+                const hhCodes = {'BN2025HH':'Ben Nevis Holiday Park','OB2025HH':'Oban Holiday Park','TY2025HH':'Tyndrum Holiday Park','OF2025HH':'Overburns Farm','1010':'Ben Nevis Holiday Park','1020':'Tyndrum Holiday Park','1030':'Oban Holiday Park','365':'Overburns Farm'};
+                if (hhCodes[code]) { companyId = 'highland-holidays'; userLocations = [hhCodes[code]]; }
+            }
+        } catch(e) { console.warn('[FRA] Access code lookup:', e); }
+    }
+    if (isMaster) { companyId = null; }
+
+    if (companyId) {
+        try {
+            const cSnap = await db.collection('companies').doc(companyId).get();
+            if (cSnap.exists) companyName = cSnap.data().name || '';
+        } catch(e) {}
+    }
+
+    // Update header with company
+    document.getElementById('headerUser').textContent = currentUser;
+    if (companyName) {
+        document.getElementById('headerParkBadge').textContent = currentPark;
+        document.getElementById('headerPark').textContent = currentPark;
+    }
 }
 
 // ==================== TAB SWITCHING ====================
@@ -1423,6 +1467,7 @@ function collectFormData() {
         type: selectedAssessType,
         parentId: selectedAssessType === 'child' ? document.getElementById('parentSelect').value : null,
         parkCode: currentPark,
+        companyId: companyId || null,
         selectedUnit: selectedUnit ? { name: selectedUnit.name, type: selectedUnit.type || '' } : null,
         name: document.getElementById('fraName').value.trim(),
         premisesType: document.getElementById('fraPremType').value,
@@ -1677,12 +1722,13 @@ async function loadParkData() {
         console.log('Loaded', parkUnits.length, 'accommodation units');
     } catch(e) { console.warn('accommodation_config:', e.message); }
 
-    // 2. Load fire points for this park
+    // 2. Load fire points for this park (filtered by companyId if available)
     try {
         const fpSnap = await db.collection('firePoints').get();
         parkFirePoints = [];
         fpSnap.forEach(doc => {
             const d = doc.data();
+            if (companyId && d.companyId && d.companyId !== companyId) return;
             const fpPark = (d.park || '').toLowerCase();
             if (fpPark.includes(parkLower.split(' ')[0]) || parkLower.includes(fpPark.split(' ')[0])) {
                 parkFirePoints.push({ id: doc.id, ...d });
@@ -1697,6 +1743,7 @@ async function loadParkData() {
         parkExtinguishers = [];
         extSnap.forEach(doc => {
             const d = doc.data();
+            if (companyId && d.companyId && d.companyId !== companyId) return;
             const extPark = (d.park || '').toLowerCase();
             if (extPark.includes(parkLower.split(' ')[0]) || parkLower.includes(extPark.split(' ')[0])) {
                 parkExtinguishers.push({ id: doc.id, ...d });
@@ -1710,7 +1757,9 @@ async function loadParkData() {
         const svcSnap = await db.collection('fireServiceRecords').orderBy('serviceDate', 'desc').limit(200).get();
         parkServiceRecords = [];
         svcSnap.forEach(doc => {
-            parkServiceRecords.push({ id: doc.id, ...doc.data() });
+            const d = doc.data();
+            if (companyId && d.companyId && d.companyId !== companyId) return;
+            parkServiceRecords.push({ id: doc.id, ...d });
         });
         console.log('Loaded', parkServiceRecords.length, 'service records');
     } catch(e) { console.warn('fireServiceRecords:', e.message); }
