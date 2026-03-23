@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>SafeDetect.PRO - Fire Detection &amp; Alarm Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <style>
+        :root {
+            --primary-red: #DC3545; --dark-red: #B71C1C; --light-red: #FF6B6B;
+            --fire-orange: #FF6B35; --fire-amber: #FFA000;
+            --dark-bg: #1a1a1a; --card-bg: #2d2d2d; --border-color: #444;
+            --text-primary: #ffffff; --text-muted: #999;
+            --success: #28a745; --warning: #ffc107; --danger: #dc3545; --info: #17a2b8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--dark-bg); color: var(--text-primary); min-height: 100vh; line-height: 1.5; }
+        .header { background: linear-gradient(135deg, #1a1a1a, #2d2d2d); padding: 15px 20px; border-bottom: 3px solid var(--primary-red); position: sticky; top: 0; z-index: 100; }
+        .header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .brand-title { font-size: 1.5rem; font-weight: 700; letter-spacing: 1px; }
+        .brand-title .safe { color: #C0C0C0; } .brand-title .detect { color: var(--primary-red); } .brand-title .pro { color: #C0C0C0; font-weight: 400; }
+        .brand-subtitle { font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.5px; margin-top: 2px; }
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        .firebase-status { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warning); animation: pulse 2s infinite; }
+        .status-dot.connected { background: var(--success); animation: none; }
+        .status-dot.error { background: var(--danger); animation: none; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .park-selector { background: var(--card-bg); border-radius: 10px; padding: 15px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; border: 1px solid var(--border-color); }
+        .park-selector label { font-weight: 600; color: var(--primary-red); }
+        .park-selector select { flex: 1; min-width: 200px; padding: 10px 15px; background: #1a1a1a; border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 14px; }
+        .park-selector select:focus { outline: none; border-color: var(--primary-red); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 25px; }
+        .stat-card { background: var(--card-bg); border-radius: 10px; padding: 18px; text-align: center; border: 1px solid var(--border-color); cursor: pointer; transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .stat-card.total { border-left: 4px solid var(--primary-red); } .stat-card.compliant { border-left: 4px solid var(--success); }
+        .stat-card.due-soon { border-left: 4px solid var(--warning); } .stat-card.overdue { border-left: 4px solid var(--danger); }
+        .stat-card.expired { border-left: 4px solid #888; } .stat-card.zones { border-left: 4px solid var(--info); }
+        .stat-value { font-size: 2.2rem; font-weight: 700; line-height: 1; margin-bottom: 5px; }
+        .stat-card.total .stat-value { color: var(--primary-red); } .stat-card.compliant .stat-value { color: var(--success); }
+        .stat-card.due-soon .stat-value { color: var(--warning); } .stat-card.overdue .stat-value { color: var(--danger); }
+        .stat-card.expired .stat-value { color: #888; } .stat-card.zones .stat-value { color: var(--info); }
+        .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 20px; flex-wrap: wrap; background: var(--card-bg); padding: 8px; border-radius: 10px; border: 1px solid var(--border-color); }
+        .tab-btn { padding: 12px 18px; background: transparent; border: none; color: var(--text-muted); font-size: 13px; font-weight: 500; cursor: pointer; border-radius: 6px; transition: all 0.2s; white-space: nowrap; }
+        .tab-btn:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); }
+        .tab-btn.active { background: var(--primary-red); color: white; }
+        .content-section { display: none; } .content-section.active { display: block; }
+        .card { background: var(--card-bg); border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 20px; overflow: hidden; }
+        .card-header { background: linear-gradient(135deg, #333, #2d2d2d); padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .card-header h2 { font-size: 1.1rem; color: var(--primary-red); display: flex; align-items: center; gap: 10px; }
+        .card-body { padding: 20px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: var(--primary-red); color: white; } .btn-primary:hover { background: var(--dark-red); }
+        .btn-success { background: var(--success); color: white; } .btn-warning { background: var(--warning); color: #000; }
+        .btn-danger { background: var(--danger); color: white; } .btn-secondary { background: #444; color: white; } .btn-secondary:hover { background: #555; }
+        .btn-maint { background: #FF6B35; color: white; } .btn-maint:hover { background: #E55A25; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .data-table th { background: #333; color: var(--primary-red); padding: 12px 15px; text-align: left; font-weight: 600; white-space: nowrap; border-bottom: 2px solid var(--primary-red); }
+        .data-table td { padding: 12px 15px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        .data-table tr:hover { background: rgba(220,53,69,0.08); }
+        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+        .status-compliant { background: var(--success); color: white; } .status-due-soon { background: var(--warning); color: #000; }
+        .status-overdue { background: var(--danger); color: white; } .status-no-record { background: #666; color: white; } .status-expired { background: #888; color: white; } .status-fault { background: #6f42c1; color: white; }
+        .type-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; text-transform: uppercase; }
+        .type-smoke-optical { background: #0077be; color: white; } .type-smoke-ionisation { background: #1565C0; color: white; }
+        .type-heat { background: #FFA000; color: #000; } .type-co-detector { background: #6f42c1; color: white; }
+        .type-call-point { background: var(--danger); color: white; } .type-sounder { background: #fd7e14; color: white; }
+        .type-strobe { background: #e91e63; color: white; } .type-sounder-strobe { background: #FF6B35; color: white; }
+        .type-panel { background: #333; color: white; border: 1px solid var(--danger); } .type-beam { background: #795548; color: white; }
+        .zone-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; text-transform: uppercase; }
+        .zone-accommodation { background: var(--info); color: white; } .zone-reception { background: var(--primary-red); color: white; }
+        .zone-kitchen { background: var(--fire-orange); color: white; } .zone-amenity { background: #6f42c1; color: white; }
+        .zone-workshop { background: #795548; color: white; } .zone-laundry { background: #607D8B; color: white; }
+        .zone-plant { background: #455A64; color: white; } .zone-external { background: #28a745; color: white; }
+        .zone-common { background: #17a2b8; color: white; }
+        .maint-flagged { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; background: #FF6B35; color: white; text-transform: uppercase; }
+        .check-icon { font-size: 14px; } .check-ok { color: var(--success); } .check-fail { color: var(--danger); } .check-na { color: var(--text-muted); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary); }
+        .form-group label .required { color: var(--danger); }
+        .form-control { width: 100%; padding: 12px 15px; background: #1a1a1a; border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 14px; }
+        .form-control:focus { outline: none; border-color: var(--primary-red); }
+        .form-control::placeholder { color: #777; }
+        select.form-control { appearance: auto; -webkit-appearance: menulist; }
+        select.form-control option { background: #2d2d2d; color: #ffffff; }
+        input[type="date"].form-control, input[type="month"].form-control, input[type="number"].form-control { color-scheme: dark; }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .form-hint { color: var(--text-muted); font-size: 11px; margin-top: 4px; display: block; }
+        .zn-card { background: var(--card-bg); border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 15px; overflow: hidden; }
+        .zn-card:hover { border-color: var(--primary-red); }
+        .zn-card-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; gap: 10px; flex-wrap: wrap; }
+        .zn-card-header:hover { background: rgba(220,53,69,0.05); }
+        .zn-code { font-size: 1.1rem; font-weight: 700; color: var(--primary-red); }
+        .zn-location { color: var(--text-muted); font-size: 13px; margin-left: 10px; }
+        .zn-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .zn-detail { display: none; padding: 0 20px 20px; border-top: 1px solid var(--border-color); }
+        .zn-detail.open { display: block; }
+        .zn-dev-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: #1a1a1a; border-radius: 6px; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
+        .power-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; background: #444; color: #ccc; text-transform: uppercase; }
+        .filter-bar { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-bar .search-input { flex: 1; min-width: 200px; } .filter-bar select { min-width: 150px; }
+        .ext-inline-form { background: #1a1a1a; border: 1px dashed var(--border-color); border-radius: 8px; padding: 15px; margin-top: 15px; }
+        .ext-inline-form h4 { color: var(--primary-red); margin-bottom: 12px; font-size: 0.9rem; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--card-bg); border-radius: 12px; width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border-color); }
+        .modal-header { padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--card-bg); z-index: 1; }
+        .modal-header h3 { color: var(--primary-red); font-size: 1.2rem; }
+        .modal-close { background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; padding: 0; line-height: 1; }
+        .modal-close:hover { color: var(--danger); }
+        .modal-body { padding: 20px; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; padding-top: 20px; border-top: 1px solid var(--border-color); margin-top: 20px; }
+        .alerts-container { margin-bottom: 20px; }
+        .alert { padding: 15px 20px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
+        .alert-danger { background: rgba(220,53,69,0.15); border: 1px solid var(--danger); color: #ff6b7a; }
+        .alert-warning { background: rgba(255,193,7,0.15); border: 1px solid var(--warning); color: #ffda6a; }
+        .alert-icon { font-size: 20px; } .alert-content { flex: 1; } .alert-title { font-weight: 600; margin-bottom: 2px; } .alert-text { font-size: 13px; opacity: 0.9; }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .empty-state-icon { font-size: 48px; margin-bottom: 15px; opacity: 0.5; }
+        .expiry-date { display: flex; flex-direction: column; } .expiry-date .date { font-weight: 500; } .expiry-date .days { font-size: 11px; color: var(--text-muted); }
+        .expiry-date.overdue .days { color: var(--danger); } .expiry-date.due-soon .days { color: var(--warning); }
+        .weekly-test-card { background: var(--card-bg); border-radius: 10px; padding: 15px 20px; border: 1px solid var(--border-color); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .weekly-test-card.done { border-left: 4px solid var(--success); opacity: 0.7; }
+        .weekly-test-card.pending { border-left: 4px solid var(--warning); }
+        .weekly-test-card.overdue-test { border-left: 4px solid var(--danger); }
+        @media (max-width: 768px) {
+            .header-content { flex-direction: column; align-items: flex-start; }
+            .container { padding: 12px; width: 100%; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); } .stat-value { font-size: 1.8rem; }
+            .tabs { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+            .tab-btn { flex-shrink: 0; padding: 10px 14px; font-size: 12px; }
+            .data-table { font-size: 13px; } .data-table th, .data-table td { padding: 10px 12px; }
+            .btn { padding: 8px 16px; } .form-row { grid-template-columns: 1fr; }
+            .modal { max-height: 95vh; margin: 10px; }
+            .zn-card-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .zn-meta { width: 100%; justify-content: flex-start; }
+            .zn-dev-item { flex-direction: column; align-items: flex-start; }
+            .zn-dev-item > div { width: 100%; }
+            .filter-bar { flex-direction: column; }
+            .filter-bar .search-input { min-width: 0; width: 100%; }
+            .filter-bar select { min-width: 0; width: 100%; }
+            .card-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .alert { flex-wrap: wrap; }
+            .park-selector { flex-direction: column; align-items: stretch; }
+            .park-selector select { min-width: 0; width: 100%; }
+        }
+        @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; } .stat-card { padding: 12px; } .stat-value { font-size: 1.6rem; } .zn-card-header { padding: 12px 15px; } .zn-code { font-size: 1rem; } .card-body { padding: 12px; } .card-header { padding: 12px 15px; } .modal-body { padding: 15px; } }
+        @media print { body { background: white; color: black; } .header, .tabs, .btn, .modal-overlay, .filter-bar { display: none; } .card { border: 1px solid #ccc; } .data-table th { background: #f0f0f0; color: #333; } }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div>
+                <h1 class="brand-title"><span class="safe">safe</span><span class="detect">detect</span><span class="pro">.pro</span></h1>
+                <div class="brand-subtitle">Fire Detection &amp; Alarm Compliance Tracker</div>
+            </div>
+            <div class="header-right">
+                <span id="headerUserName" style="font-size:12px;color:#ccc;"></span>
+                <span id="headerCompanyBadge" style="font-size:11px;padding:3px 10px;border-radius:4px;background:var(--primary-red);color:white;font-weight:600;display:none;"></span>
+                <div class="firebase-status"><div class="status-dot" id="statusDot"></div><span id="statusText">Connecting...</span></div>
+            </div>
+        </div>
+    </header>
+    <main class="container">
+        <div class="park-selector">
+            <label for="parkSelect" id="parkSelectorLabel">Location:</label>
+            <select id="parkSelect" onchange="refreshAll()">
+                <option value="all">Loading locations...</option>
+            </select>
+        </div>
+        <div class="alerts-container" id="alertsContainer"></div>
+        <div class="stats-grid">
+            <div class="stat-card zones"><div class="stat-value" id="statZones">0</div><div class="stat-label">Zones</div></div>
+            <div class="stat-card total"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Devices</div></div>
+            <div class="stat-card compliant"><div class="stat-value" id="statCompliant">0</div><div class="stat-label">Compliant</div></div>
+            <div class="stat-card due-soon"><div class="stat-value" id="statDueSoon">0</div><div class="stat-label">Test Due</div></div>
+            <div class="stat-card overdue"><div class="stat-value" id="statOverdue">0</div><div class="stat-label">Overdue</div></div>
+            <div class="stat-card expired"><div class="stat-value" id="statFault">0</div><div class="stat-label">Faults</div></div>
+        </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('zones')">Detection Zones</button>
+            <button class="tab-btn" onclick="switchTab('devices')">All Devices</button>
+            <button class="tab-btn" onclick="switchTab('testing')">Weekly Tests</button>
+            <button class="tab-btn" onclick="switchTab('setup')">Setup / Add</button>
+            <button class="tab-btn" onclick="switchTab('services')">Service Records</button>
+            <button class="tab-btn" onclick="switchTab('reports')">Reports</button>
+        </div>
+
+        <!-- ZONES TAB -->
+        <div id="tab-zones" class="content-section active">
+            <div class="card">
+                <div class="card-header">
+                    <h2>&#x1F6A8; Detection Zones</h2>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                        <button class="btn btn-primary btn-sm" onclick="switchTab('setup')">+ Add Zone</button>
+                        <button class="btn btn-secondary btn-sm" onclick="exportDevices()">Export CSV</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="filter-bar">
+                        <input type="text" class="form-control search-input" id="znSearchInput" placeholder="Search zones..." oninput="renderZones()">
+                        <select class="form-control" id="znTypeFilter" onchange="renderZones()" style="min-width:170px;">
+                            <option value="all">All Zone Types</option>
+                            <option value="accommodation">Accommodation</option>
+                            <option value="reception">Reception / Office</option>
+                            <option value="kitchen">Kitchen / Restaurant</option>
+                            <option value="amenity">Amenity Block</option>
+                            <option value="workshop">Workshop / Store</option>
+                            <option value="laundry">Laundry</option>
+                            <option value="plant">Plant Room</option>
+                            <option value="external">External / Site</option>
+                            <option value="common">Common Area</option>
+                        </select>
+                    </div>
+                    <div id="zonesList"></div>
+                    <div class="empty-state" id="emptyZones" style="display:none;">
+                        <div class="empty-state-icon">&#x1F6A8;</div>
+                        <div>No detection zones registered yet</div>
+                        <div style="margin-top:10px;"><button class="btn btn-primary" onclick="switchTab('setup')">Add First Zone</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ALL DEVICES TAB -->
+        <div id="tab-devices" class="content-section">
+            <div class="card">
+                <div class="card-header"><h2>&#x1F4E1; All Detection Devices</h2></div>
+                <div class="card-body">
+                    <div class="filter-bar">
+                        <input type="text" class="form-control search-input" id="devSearchInput" placeholder="Search devices..." oninput="renderDevTable()">
+                        <select class="form-control" id="devTypeFilter" onchange="renderDevTable()">
+                            <option value="all">All Types</option>
+                            <option value="Smoke Detector (Optical)">Smoke (Optical)</option>
+                            <option value="Smoke Detector (Ionisation)">Smoke (Ionisation)</option>
+                            <option value="Heat Detector">Heat Detector</option>
+                            <option value="CO Detector">CO Detector</option>
+                            <option value="Manual Call Point">Call Point</option>
+                            <option value="Sounder">Sounder</option>
+                            <option value="Strobe">Strobe</option>
+                            <option value="Sounder/Strobe">Sounder/Strobe</option>
+                            <option value="Fire Alarm Panel">Panel</option>
+                            <option value="Beam Detector">Beam</option>
+                        </select>
+                        <select class="form-control" id="devStatusFilter" onchange="renderDevTable()">
+                            <option value="all">All Status</option>
+                            <option value="compliant">Compliant</option>
+                            <option value="due-soon">Test Due</option>
+                            <option value="overdue">Overdue</option>
+                            <option value="fault">Fault</option>
+                            <option value="expired">End of Life</option>
+                        </select>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table"><thead><tr>
+                            <th>Device / Type</th><th>Zone</th><th>Location</th><th>Last Test</th><th>Next Test</th><th>End of Life</th><th>Status</th><th>Actions</th>
+                        </tr></thead><tbody id="devTableBody"></tbody></table>
+                    </div>
+                    <div class="empty-state" id="emptyDev" style="display:none;">
+                        <div class="empty-state-icon">&#x1F4E1;</div><div>No devices registered yet</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- WEEKLY TESTS TAB -->
+        <div id="tab-testing" class="content-section">
+            <div class="card">
+                <div class="card-header"><h2>&#x1F50A; Weekly Fire Alarm Test Log</h2></div>
+                <div class="card-body">
+                    <div class="filter-bar">
+                        <div class="form-group" style="margin:0"><label style="font-size:12px;margin-bottom:4px;">Week of</label>
+                            <input type="week" class="form-control" id="testWeek" onchange="renderWeeklyTests()">
+                        </div>
+                    </div>
+                    <div id="weeklyTestList"></div>
+                    <div class="empty-state" id="emptyTests" style="display:none;">
+                        <div class="empty-state-icon">&#x2705;</div>
+                        <div>No call points registered. Add detection zones with call points first.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h2>&#x1F4CB; Test History</h2></div>
+                <div class="card-body"><div id="testHistory"></div></div>
+            </div>
+        </div>
+
+        <!-- SETUP / ADD TAB -->
+        <div id="tab-setup" class="content-section">
+            <div class="card">
+                <div class="card-header"><h2>&#x2795; Add Detection Zone &amp; Devices</h2></div>
+                <div class="card-body">
+                    <form id="addZoneForm" onsubmit="saveZone(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Location <span class="required">*</span></label>
+                                <select class="form-control" id="znPark" required>
+                                    <option value="">Select location...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Zone Code <span class="required">*</span></label>
+                                <input type="text" class="form-control" id="znCode" required placeholder="e.g., BN-Z01" style="text-transform:uppercase;">
+                                <span class="form-hint">Suggested: [Park][Zone][Number]</span>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Zone Type <span class="required">*</span></label>
+                                <select class="form-control" id="znType" required>
+                                    <option value="">Select type...</option>
+                                    <option value="accommodation">Accommodation Unit</option>
+                                    <option value="reception">Reception / Office</option>
+                                    <option value="kitchen">Kitchen / Restaurant</option>
+                                    <option value="amenity">Amenity Block</option>
+                                    <option value="workshop">Workshop / Store</option>
+                                    <option value="laundry">Laundry</option>
+                                    <option value="plant">Plant Room</option>
+                                    <option value="external">External / Site</option>
+                                    <option value="common">Common Area</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <input type="text" class="form-control" id="znDesc" placeholder="e.g., Lodge 42, Main reception building">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>BS 5839 Category</label>
+                                <select class="form-control" id="znBsCat">
+                                    <option value="">Select...</option>
+                                    <option value="L1">L1 — Full coverage (life safety)</option>
+                                    <option value="L2">L2 — Coverage of escape routes + high risk</option>
+                                    <option value="L3">L3 — Coverage of escape routes only</option>
+                                    <option value="L4">L4 — Coverage within escape routes only</option>
+                                    <option value="L5">L5 — Bespoke system</option>
+                                    <option value="P1">P1 — Full coverage (property protection)</option>
+                                    <option value="P2">P2 — Defined areas (property protection)</option>
+                                    <option value="LD1">LD1 — Full coverage (domestic)</option>
+                                    <option value="LD2">LD2 — Escape routes + high risk (domestic)</option>
+                                    <option value="LD3">LD3 — Escape routes only (domestic)</option>
+                                    <option value="na">N/A — Standalone / no panel</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Notes</label>
+                                <textarea class="form-control" id="znNotes" rows="2" placeholder="Any additional notes..."></textarea>
+                            </div>
+                        </div>
+                        <h3 style="color:var(--primary-red);font-size:1rem;margin:20px 0 10px;">Devices at this Zone</h3>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="addDevRow()">+ Add Device</button>
+                        <div id="devInlineList"></div>
+                        <button type="submit" class="btn btn-primary" style="width:100%;margin-top:20px;">Save Zone &amp; Devices</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- SERVICE RECORDS TAB -->
+        <div id="tab-services" class="content-section">
+            <div class="card">
+                <div class="card-header"><h2>&#x1F527; Service &amp; Test Records</h2><button class="btn btn-primary btn-sm" onclick="openModal('svcModal')">+ Record Service</button></div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="data-table"><thead><tr>
+                            <th>Date</th><th>Device</th><th>Type</th><th>Engineer</th><th>Result</th><th>Next Due</th>
+                        </tr></thead><tbody id="svcTableBody"></tbody></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- REPORTS TAB -->
+        <div id="tab-reports" class="content-section">
+            <div class="card">
+                <div class="card-header"><h2>&#x1F4CA; Reports</h2></div>
+                <div class="card-body">
+                    <div class="form-row">
+                        <div class="form-group"><label>Report Type</label>
+                            <select class="form-control" id="reportType">
+                                <option value="compliance">Device Compliance Summary</option>
+                                <option value="zones">Zones &amp; Devices Overview</option>
+                                <option value="testing">Weekly Test Log</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Location Filter</label>
+                            <select class="form-control" id="reportPark">
+                                <option value="all">All Locations</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                        <button class="btn btn-primary" onclick="generateReport()">Generate Report</button>
+                        <button class="btn btn-secondary" onclick="window.print()">Print</button>
+                    </div>
+                    <div id="reportOutput" style="margin-top:20px;"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- EDIT DEVICE MODAL -->
+    <div class="modal-overlay" id="editDevModal">
+        <div class="modal">
+            <div class="modal-header"><h3>Edit Device</h3><button class="modal-close" onclick="closeModal('editDevModal')">&times;</button></div>
+            <div class="modal-body">
+                <input type="hidden" id="editDevId">
+                <div class="form-row">
+                    <div class="form-group"><label>Code</label><input type="text" class="form-control" id="editDevCode"></div>
+                    <div class="form-group"><label>Type</label><select class="form-control" id="editDevType"><option value="Smoke Detector (Optical)">Smoke (Optical)</option><option value="Smoke Detector (Ionisation)">Smoke (Ionisation)</option><option value="Heat Detector">Heat Detector</option><option value="CO Detector">CO Detector</option><option value="Manual Call Point">Manual Call Point</option><option value="Sounder">Sounder</option><option value="Strobe">Strobe</option><option value="Sounder/Strobe">Sounder/Strobe</option><option value="Fire Alarm Panel">Fire Alarm Panel</option><option value="Beam Detector">Beam Detector</option></select></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Power Source</label><select class="form-control" id="editDevPower"><option value="">Select...</option><option value="mains">Mains Powered</option><option value="battery">Battery Only</option><option value="mains-battery">Mains + Battery Backup</option><option value="loop">Panel Loop Powered</option></select></div>
+                    <div class="form-group"><label>Manufacturer</label><input type="text" class="form-control" id="editDevManuf"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Model</label><input type="text" class="form-control" id="editDevModel"></div>
+                    <div class="form-group"><label>Serial Number</label><input type="text" class="form-control" id="editDevSerial"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Install Date</label><input type="date" class="form-control" id="editDevInstall"></div>
+                    <div class="form-group"><label>End of Life Date</label><input type="date" class="form-control" id="editDevEol"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Last Test</label><input type="date" class="form-control" id="editDevLastTest"></div>
+                    <div class="form-group"><label>Next Test Due</label><input type="date" class="form-control" id="editDevNextTest"></div>
+                </div>
+                <div class="form-group"><label>Location Description</label><input type="text" class="form-control" id="editDevLocation" placeholder="e.g., Hallway ceiling, near bedroom door"></div>
+                <div class="form-group"><label>Notes</label><textarea class="form-control" id="editDevNotes" rows="2"></textarea></div>
+                <div class="modal-actions">
+                    <button class="btn btn-danger" onclick="deleteDev()">Delete</button>
+                    <button class="btn btn-secondary" onclick="closeModal('editDevModal')">Cancel</button>
+                    <button class="btn btn-primary" onclick="updateDev()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT ZONE MODAL -->
+    <div class="modal-overlay" id="editZnModal">
+        <div class="modal">
+            <div class="modal-header"><h3>Edit Detection Zone</h3><button class="modal-close" onclick="closeModal('editZnModal')">&times;</button></div>
+            <div class="modal-body">
+                <input type="hidden" id="editZnId">
+                <div class="form-group"><label>Zone Code</label><input type="text" class="form-control" id="editZnCode"></div>
+                <div class="form-group"><label>Zone Type</label><select class="form-control" id="editZnType"><option value="accommodation">Accommodation</option><option value="reception">Reception / Office</option><option value="kitchen">Kitchen / Restaurant</option><option value="amenity">Amenity Block</option><option value="workshop">Workshop / Store</option><option value="laundry">Laundry</option><option value="plant">Plant Room</option><option value="external">External / Site</option><option value="common">Common Area</option></select></div>
+                <div class="form-group"><label>Description</label><input type="text" class="form-control" id="editZnDesc"></div>
+                <div class="form-group"><label>BS 5839 Category</label><select class="form-control" id="editZnBsCat"><option value="">Select...</option><option value="L1">L1</option><option value="L2">L2</option><option value="L3">L3</option><option value="L4">L4</option><option value="L5">L5</option><option value="P1">P1</option><option value="P2">P2</option><option value="LD1">LD1</option><option value="LD2">LD2</option><option value="LD3">LD3</option><option value="na">N/A</option></select></div>
+                <div class="form-group"><label>Notes</label><textarea class="form-control" id="editZnNotes" rows="2"></textarea></div>
+                <div class="modal-actions">
+                    <button class="btn btn-danger" onclick="deleteZn()">Delete</button>
+                    <button class="btn btn-secondary" onclick="closeModal('editZnModal')">Cancel</button>
+                    <button class="btn btn-primary" onclick="updateZn()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SERVICE RECORD MODAL -->
+    <div class="modal-overlay" id="svcModal">
+        <div class="modal">
+            <div class="modal-header"><h3>Record Service / Test</h3><button class="modal-close" onclick="closeModal('svcModal')">&times;</button></div>
+            <div class="modal-body">
+                <div class="form-group"><label>Device <span class="required">*</span></label><select class="form-control" id="svcDev"></select></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Service Type <span class="required">*</span></label><select class="form-control" id="svcType" required><option value="">Select...</option><option value="annual-service">Annual Service</option><option value="quarterly-test">Quarterly Function Test</option><option value="repair">Repair</option><option value="replacement">Replacement</option><option value="battery-change">Battery Change</option><option value="panel-service">Panel Service</option></select></div>
+                    <div class="form-group"><label>Engineer <span class="required">*</span></label><input type="text" class="form-control" id="svcEngineer" required></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Company</label><input type="text" class="form-control" id="svcCompany"></div>
+                    <div class="form-group"><label>Result <span class="required">*</span></label><select class="form-control" id="svcResult" required><option value="">Select...</option><option value="pass">Pass</option><option value="pass-advisory">Pass with Advisory</option><option value="fail">Fail</option><option value="condemned">Condemned / Replace</option></select></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Date <span class="required">*</span></label><input type="date" class="form-control" id="svcDate" required></div>
+                    <div class="form-group"><label>Next Due <span class="required">*</span></label><input type="date" class="form-control" id="svcNextDue" required></div>
+                </div>
+                <div class="form-group"><label>Notes</label><textarea class="form-control" id="svcNotes" rows="2"></textarea></div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeModal('svcModal')">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveSvc()">Save Record</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WEEKLY TEST MODAL -->
+    <div class="modal-overlay" id="weeklyTestModal">
+        <div class="modal" style="max-width:500px;">
+            <div class="modal-header"><h3>&#x1F50A; Weekly Alarm Test</h3><button class="modal-close" onclick="closeModal('weeklyTestModal')">&times;</button></div>
+            <div class="modal-body">
+                <input type="hidden" id="wtZoneId">
+                <input type="hidden" id="wtDeviceId">
+                <div id="wtInfo" style="margin-bottom:15px;"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Date <span class="required">*</span></label><input type="date" class="form-control" id="wtDate" required></div>
+                    <div class="form-group"><label>Tester Initials <span class="required">*</span></label><input type="text" class="form-control" id="wtInitials" required maxlength="5" style="text-transform:uppercase;font-weight:700;font-size:18px;text-align:center;letter-spacing:3px;" placeholder="AB"></div>
+                </div>
+                <div class="form-group"><label>Alarm Sounded?</label>
+                    <div style="display:flex;gap:10px;">
+                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="radio" name="wtResult" value="pass" checked> Yes — all sounders activated</label>
+                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="radio" name="wtResult" value="fail"> No — fault found</label>
+                    </div>
+                </div>
+                <div class="form-group"><label>Notes</label><textarea class="form-control" id="wtNotes" rows="2" placeholder="e.g., Call point at reception tested, all zones sounded..."></textarea></div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeModal('weeklyTestModal')">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveWeeklyTest()">Save Test</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SAFEMAINT MODAL -->
+    <div class="modal-overlay" id="maintModal">
+        <div class="modal">
+            <div class="modal-header"><h3>Flag to SafeMaint</h3><button class="modal-close" onclick="closeModal('maintModal')">&times;</button></div>
+            <div class="modal-body">
+                <input type="hidden" id="maintSrcType"><input type="hidden" id="maintSrcId">
+                <div class="form-group"><label>Title</label><input type="text" class="form-control" id="maintTitle"></div>
+                <div class="form-group"><label>Location</label><input type="text" class="form-control" id="maintLoc" readonly></div>
+                <div class="form-group"><label>Priority</label><select class="form-control" id="maintPriority"><option value="medium">Medium</option><option value="high">High — Urgent</option><option value="low">Low</option></select></div>
+                <div class="form-group"><label>Description</label><textarea class="form-control" id="maintDesc" rows="4"></textarea></div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeModal('maintModal')">Cancel</button>
+                    <button class="btn btn-maint" onclick="submitMaint()">Create Maintenance Request</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ============ CONFIG & STATE ============
+    const firebaseConfig = {
+        apiKey: "AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+        authDomain: "safepark-pro.firebaseapp.com",
+        projectId: "safepark-pro",
+        storageBucket: "safepark-pro.firebasestorage.app",
+        messagingSenderId: "511221743341",
+        appId: "1:511221743341:web:95bcc7e83d4861578016e4"
+    };
+    let db, fbReady = false;
+    let zones = [], devices = [], testRecords = [], serviceRecords = [];
+    let inlineIdx = 0, inlineRows = [];
+    let companyLocations = [], companyName = '', companyId = null, userLevel = 'location_user', userLocations = [];
+    const DEV_TYPES = ['Smoke Detector (Optical)','Smoke Detector (Ionisation)','Heat Detector','CO Detector','Manual Call Point','Sounder','Strobe','Sounder/Strobe','Fire Alarm Panel','Beam Detector'];
+
+    // ============ USER SESSION ============
+    const _urlParams = new URLSearchParams(window.location.search);
+    let currentUser = {
+        name: _urlParams.get('user') || sessionStorage.getItem('currentUser') || 'User',
+        accessCode: (_urlParams.get('code') || _urlParams.get('access_code') || sessionStorage.getItem('currentAccessCode') || '').toUpperCase(),
+        park: _urlParams.get('park') || sessionStorage.getItem('currentPark') || '',
+        level: sessionStorage.getItem('userAccessLevel') || 'admin'
+    };
+
+    async function loadCompanyData() {
+        if (!db) return;
+        const code = currentUser.accessCode;
+        const isMaster = code === 'CQR365SPP25';
+        if (code && !isMaster) {
+            try {
+                const snap = await db.collection('companyAccessCodes').where('code', '==', code).where('active', '==', true).get();
+                if (!snap.empty) {
+                    const ac = snap.docs[0].data();
+                    companyId = ac.companyId; userLevel = ac.level || 'location_user'; userLocations = ac.locations || [];
+                    if (ac.userName) currentUser.name = ac.userName;
+                } else {
+                    const hhCodes = {'BN2025HH':'Ben Nevis Holiday Park','OB2025HH':'Oban Holiday Park','TY2025HH':'Tyndrum Holiday Park','OF2025HH':'Overburns Farm','1010':'Ben Nevis Holiday Park','1020':'Tyndrum Holiday Park','1030':'Oban Holiday Park','365':'Overburns Farm'};
+                    if (hhCodes[code]) { companyId = 'highland-holidays'; userLevel = 'location_user'; userLocations = [hhCodes[code]]; }
+                }
+            } catch(e) { console.warn('[SafeDetect] Access code lookup:', e); }
+        }
+        if (isMaster) { userLevel = 'master_admin'; }
+        if (companyId) {
+            try { const c = await db.collection('companies').doc(companyId).get(); if (c.exists) companyName = c.data().name || ''; } catch(e) {}
+            try { const l = await db.collection('companyLocations').where('companyId', '==', companyId).where('active', '==', true).get(); companyLocations = []; l.forEach(d => companyLocations.push(d.data().name)); companyLocations.sort(); } catch(e) {}
+        }
+        if (isMaster) {
+            try { const l = await db.collection('companyLocations').where('active', '==', true).get(); companyLocations = []; l.forEach(d => companyLocations.push(d.data().name)); companyLocations = [...new Set(companyLocations)].sort(); } catch(e) {}
+            companyName = 'All Companies';
+        }
+        if (companyLocations.length === 0 && zones.length > 0) companyLocations = [...new Set(zones.map(z => z.park).filter(Boolean))].sort();
+        if (userLevel === 'location_user' && userLocations.length === 1) currentUser.park = userLocations[0];
+        populateParkDropdowns();
+        updateHeaderUser();
+    }
+
+    function populateParkDropdowns() {
+        const locs = (userLevel === 'location_user' && userLocations.length > 0) ? userLocations : companyLocations;
+        const allLabel = companyName ? 'All ' + companyName + ' Locations' : 'All Locations';
+        const showAll = userLevel !== 'location_user' || userLocations.length > 1;
+        ['parkSelect', 'znPark', 'reportPark'].forEach(id => {
+            const sel = document.getElementById(id); if (!sel) return;
+            const isForm = id === 'znPark';
+            sel.innerHTML = '';
+            if (showAll) { const o = document.createElement('option'); o.value = isForm ? '' : 'all'; o.textContent = isForm ? 'Select location...' : allLabel; sel.appendChild(o); }
+            locs.forEach(loc => { const o = document.createElement('option'); o.value = loc; o.textContent = loc; sel.appendChild(o); });
+            if (locs.length === 1) sel.value = locs[0];
+        });
+    }
+
+    function updateHeaderUser() {
+        const n = document.getElementById('headerUserName'), b = document.getElementById('headerCompanyBadge');
+        if (n) n.textContent = currentUser.name || '';
+        if (b && companyName && companyName !== 'All Companies') { b.textContent = companyName; b.style.display = 'inline-block'; }
+    }
+
+    // ============ FIREBASE ============
+    async function initFB() {
+        try {
+            updateSt('Connecting...', 'connecting');
+            let a = 0; while (typeof firebase === 'undefined' && a < 50) { await new Promise(r => setTimeout(r, 100)); a++; }
+            if (typeof firebase === 'undefined') throw new Error('Firebase not loaded');
+            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            try { await firebase.auth().signInAnonymously(); } catch(e) { console.warn('Auth:', e); }
+            fbReady = true; updateSt('Connected', 'connected');
+            await loadAll();
+            await loadCompanyData();
+            filterDataByCompany();
+            populateParkDropdowns();
+            refreshAll();
+        } catch(e) { console.error('FB error:', e); updateSt('Offline', 'error'); }
+    }
+    function updateSt(m, s) { document.getElementById('statusText').textContent = m; const d = document.getElementById('statusDot'); d.className = 'status-dot'; if (s === 'connected') d.classList.add('connected'); if (s === 'error') d.classList.add('error'); }
+
+    // ============ DATA LOADING ============
+    async function loadAll() { await Promise.all([loadZones(), loadDevices(), loadTests(), loadServices()]); initTestWeek(); refreshAll(); }
+    async function loadZones() { if (!db) return; try { const s = await db.collection('fireDetectionZones').orderBy('createdAt', 'desc').get(); zones = []; s.forEach(d => zones.push({ id: d.id, ...d.data() })); } catch(e) { console.error(e); } }
+    async function loadDevices() { if (!db) return; try { const s = await db.collection('fireDetectionDevices').orderBy('createdAt', 'desc').get(); devices = []; s.forEach(d => devices.push({ id: d.id, ...d.data() })); } catch(e) { console.error(e); } }
+    async function loadTests() { if (!db) return; try { const s = await db.collection('fireDetectionTests').orderBy('testDate', 'desc').get(); testRecords = []; s.forEach(d => testRecords.push({ id: d.id, ...d.data() })); } catch(e) { console.error(e); } }
+    async function loadServices() { if (!db) return; try { const s = await db.collection('fireDetectionServices').orderBy('serviceDate', 'desc').get(); serviceRecords = []; s.forEach(d => serviceRecords.push({ id: d.id, ...d.data() })); } catch(e) { console.error(e); } }
+
+    function filterDataByCompany() {
+        if (userLevel === 'master_admin') return;
+        if (companyId) {
+            zones = zones.filter(z => z.companyId === companyId || (!z.companyId && companyId === 'highland-holidays'));
+            devices = devices.filter(d => d.companyId === companyId || (!d.companyId && companyId === 'highland-holidays'));
+            testRecords = testRecords.filter(t => t.companyId === companyId || (!t.companyId && companyId === 'highland-holidays'));
+            serviceRecords = serviceRecords.filter(s => s.companyId === companyId || (!s.companyId && companyId === 'highland-holidays'));
+        }
+        if (userLevel === 'location_user' && userLocations.length > 0) {
+            zones = zones.filter(z => userLocations.includes(z.park));
+            devices = devices.filter(d => userLocations.includes(d.park));
+        }
+    }
+
+    function refreshAll() { updateDash(); renderZones(); renderDevTable(); renderSvcTable(); checkAlerts(); renderWeeklyTests(); renderTestHistory(); }
+    function initTestWeek() { const n = new Date(); const y = n.getFullYear(); const w = Math.ceil(((n - new Date(y, 0, 1)) / 864e5 + new Date(y, 0, 1).getDay() + 1) / 7); document.getElementById('testWeek').value = y + '-W' + String(w).padStart(2, '0'); }
+
+    // ============ HELPERS ============
+    function getPark() { return document.getElementById('parkSelect').value; }
+    function getDevStatus(d) {
+        if (d.fault) return 'fault';
+        const t = new Date();
+        if (d.endOfLifeDate) { const e = new Date(d.endOfLifeDate); if (e <= t) return 'expired'; }
+        if (!d.nextTestDue) return 'no-record';
+        const diff = Math.ceil((new Date(d.nextTestDue) - t) / 864e5);
+        if (diff < 0) return 'overdue';
+        if (diff <= 30) return 'due-soon';
+        return 'compliant';
+    }
+    function znDevs(znId) { return devices.filter(d => d.zoneId === znId); }
+    function znWorst(znId) {
+        const devs = znDevs(znId);
+        const o = { 'fault': 0, 'expired': 1, 'overdue': 2, 'due-soon': 3, 'no-record': 4, 'compliant': 5 };
+        let w = 'compliant';
+        devs.forEach(d => { const s = getDevStatus(d); if ((o[s] || 5) < (o[w] || 5)) w = s; });
+        if (!devs.length) return 'no-record';
+        return w;
+    }
+    function daysTo(d) { if (!d) return null; return Math.ceil((new Date(d) - new Date()) / 864e5); }
+    function fmtDate(d) { if (!d) return '-'; const dt = new Date(d); return dt.toLocaleDateString('en-GB'); }
+    function typeBadge(t) { const c = (t || '').toLowerCase().replace(/[^a-z]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, ''); const m = { 'smoke-detector-optical': 'smoke-optical', 'smoke-detector-ionisation': 'smoke-ionisation', 'heat-detector': 'heat', 'co-detector': 'co-detector', 'manual-call-point': 'call-point', 'sounder': 'sounder', 'strobe': 'strobe', 'sounder-strobe': 'sounder-strobe', 'fire-alarm-panel': 'panel', 'beam-detector': 'beam' }; return '<span class="type-badge type-' + (m[c] || c) + '">' + (t || 'Unknown') + '</span>'; }
+    function zoneBadge(t) { return '<span class="zone-badge zone-' + (t || 'common') + '">' + (t || 'Unknown').replace(/-/g, ' ') + '</span>'; }
+
+    // ============ DASHBOARD ============
+    function updateDash() {
+        const p = getPark();
+        let fZ = zones, fD = devices;
+        if (p !== 'all') { fZ = fZ.filter(z => z.park === p); fD = fD.filter(d => d.park === p); }
+        document.getElementById('statZones').textContent = fZ.length;
+        document.getElementById('statTotal').textContent = fD.length;
+        let comp = 0, due = 0, over = 0, fault = 0;
+        fD.forEach(d => { const s = getDevStatus(d); if (s === 'compliant') comp++; else if (s === 'due-soon') due++; else if (s === 'overdue' || s === 'no-record') over++; else if (s === 'fault') fault++; else if (s === 'expired') fault++; });
+        document.getElementById('statCompliant').textContent = comp;
+        document.getElementById('statDueSoon').textContent = due;
+        document.getElementById('statOverdue').textContent = over;
+        document.getElementById('statFault').textContent = fault;
+    }
+
+    // ============ ALERTS ============
+    function checkAlerts() {
+        const p = getPark(); let fD = p === 'all' ? devices : devices.filter(d => d.park === p);
+        const overdue = fD.filter(d => { const s = getDevStatus(d); return s === 'overdue' || s === 'fault'; });
+        const expired = fD.filter(d => getDevStatus(d) === 'expired');
+        const c = document.getElementById('alertsContainer'); let h = '';
+        if (overdue.length) h += '<div class="alert alert-danger"><span class="alert-icon">&#x26A0;</span><div class="alert-content"><div class="alert-title">' + overdue.length + ' Device' + (overdue.length > 1 ? 's' : '') + ' Overdue / Fault</div><div class="alert-text">' + overdue.map(d => d.code).join('; ') + '</div></div></div>';
+        if (expired.length) h += '<div class="alert alert-warning"><span class="alert-icon">&#x23F0;</span><div class="alert-content"><div class="alert-title">' + expired.length + ' Device' + (expired.length > 1 ? 's' : '') + ' Past End of Life</div><div class="alert-text">' + expired.map(d => d.code).join('; ') + '</div></div></div>';
+        c.innerHTML = h;
+    }
+
+    // ============ RENDER ZONES ============
+    function renderZones() {
+        const p = getPark(), sr = (document.getElementById('znSearchInput').value || '').toLowerCase(), tf = document.getElementById('znTypeFilter').value;
+        let fl = zones;
+        if (p !== 'all') fl = fl.filter(z => z.park === p);
+        if (sr) fl = fl.filter(z => (z.code || '').toLowerCase().includes(sr) || (z.description || '').toLowerCase().includes(sr));
+        if (tf !== 'all') fl = fl.filter(z => z.zoneType === tf);
+        const ct = document.getElementById('zonesList'), em = document.getElementById('emptyZones');
+        if (!fl.length) { ct.innerHTML = ''; em.style.display = 'block'; return; }
+        em.style.display = 'none';
+        ct.innerHTML = fl.map(zn => {
+            const devs = znDevs(zn.id), ws = znWorst(zn.id), n = devs.length;
+            const devH = devs.map(d => {
+                const s = getDevStatus(d), dt = daysTo(d.nextTestDue); let dtS = '';
+                if (dt !== null) dtS = dt < 0 ? Math.abs(dt) + 'd overdue' : dt + 'd';
+                return '<div class="zn-dev-item"><div><strong>' + d.code + '</strong> ' + typeBadge(d.type) + (d.powerSource ? ' <span class="power-badge">' + d.powerSource + '</span>' : '') + (d.serialNumber ? ' <small style="color:var(--text-muted);font-style:italic;">Ref: ' + d.serialNumber + '</small>' : '') + (d.maintFlagged ? ' <span class="maint-flagged">SafeMaint</span>' : '') + '</div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;"><span class="status-badge status-' + s + '">' + s.replace('-', ' ') + '</span><small style="color:var(--text-muted)">' + dtS + '</small><button class="btn btn-sm btn-secondary" onclick="editDev(\'' + d.id + '\')">Edit</button><button class="btn btn-sm btn-maint" onclick="openMaint(\'dev\',\'' + d.id + '\')">Flag</button></div></div>';
+            }).join('');
+            return '<div class="zn-card"><div class="zn-card-header" onclick="toggleZn(\'' + zn.id + '\')"><div><span class="zn-code">' + zn.code + '</span> ' + zoneBadge(zn.zoneType) + (zn.bsCategory ? ' <small style="color:var(--text-muted);">[' + zn.bsCategory + ']</small>' : '') + (zn.maintFlagged ? ' <span class="maint-flagged">SafeMaint</span>' : '') + '<span class="zn-location">' + (zn.description || '') + '</span></div><div class="zn-meta"><span style="font-size:12px;color:var(--text-muted)">' + n + ' device' + (n !== 1 ? 's' : '') + '</span><span class="status-badge status-' + ws + '">' + ws.replace('-', ' ') + '</span></div></div><div class="zn-detail" id="znD-' + zn.id + '"><div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-sm btn-secondary" onclick="editZn(\'' + zn.id + '\')">Edit Zone</button><button class="btn btn-sm btn-maint" onclick="openMaint(\'zone\',\'' + zn.id + '\')">Flag to SafeMaint</button></div><div style="margin-top:12px">' + (devH || '<p style="color:var(--text-muted);font-size:13px">No devices at this zone.</p>') + '</div></div></div>';
+        }).join('');
+    }
+    function toggleZn(id) { const el = document.getElementById('znD-' + id); if (el) el.classList.toggle('open'); }
+
+    // ============ DEVICE TABLE ============
+    function renderDevTable() {
+        const p = getPark(), sr = (document.getElementById('devSearchInput').value || '').toLowerCase(), tf = document.getElementById('devTypeFilter').value, sf = document.getElementById('devStatusFilter').value;
+        const tb = document.getElementById('devTableBody');
+        let fl = devices;
+        if (p !== 'all') fl = fl.filter(d => d.park === p);
+        if (sr) fl = fl.filter(d => (d.code || '').toLowerCase().includes(sr) || (d.type || '').toLowerCase().includes(sr) || (d.locationDescription || '').toLowerCase().includes(sr));
+        if (tf !== 'all') fl = fl.filter(d => d.type === tf);
+        if (sf !== 'all') fl = fl.filter(d => getDevStatus(d) === sf);
+        fl.sort((a, b) => { const o = { 'fault': 0, 'expired': 1, 'overdue': 2, 'due-soon': 3, 'no-record': 4, 'compliant': 5 }; return (o[getDevStatus(a)] || 5) - (o[getDevStatus(b)] || 5); });
+        const em = document.getElementById('emptyDev');
+        if (!fl.length) { tb.innerHTML = ''; em.style.display = 'block'; return; }
+        em.style.display = 'none';
+        tb.innerHTML = fl.map(d => {
+            const s = getDevStatus(d), td = daysTo(d.nextTestDue), ed = daysTo(d.endOfLifeDate);
+            let ts = '', tc = '', es = '', ec = '';
+            if (td !== null) { if (td < 0) { ts = Math.abs(td) + 'd overdue'; tc = 'overdue'; } else { ts = td + 'd'; tc = td <= 30 ? 'due-soon' : ''; } }
+            if (ed !== null) { if (ed < 0) { es = Math.abs(ed) + 'd past'; ec = 'overdue'; } else if (ed <= 90) { es = ed + 'd'; ec = 'due-soon'; } else es = ed + 'd'; }
+            const zn = zones.find(z => z.id === d.zoneId);
+            return '<tr><td><strong>' + d.code + '</strong>' + (d.serialNumber ? '<br><small style="color:var(--text-muted);font-style:italic;">Ref: ' + d.serialNumber + '</small>' : '') + '<br>' + typeBadge(d.type) + (d.maintFlagged ? ' <span class="maint-flagged">SafeMaint</span>' : '') + '</td><td><strong>' + (zn ? zn.code : (d.zoneCode || '-')) + '</strong></td><td>' + d.park + '<br><small style="color:var(--text-muted)">' + (d.locationDescription || '') + '</small></td><td>' + (d.lastTestDate ? fmtDate(d.lastTestDate) : '<span style="color:var(--text-muted)">No record</span>') + '</td><td><div class="expiry-date ' + tc + '"><span class="date">' + (d.nextTestDue ? fmtDate(d.nextTestDue) : '-') + '</span><span class="days">' + ts + '</span></div></td><td><div class="expiry-date ' + ec + '"><span class="date">' + (d.endOfLifeDate ? fmtDate(d.endOfLifeDate) : '-') + '</span><span class="days">' + es + '</span></div></td><td><span class="status-badge status-' + s + '">' + s.replace('-', ' ') + '</span></td><td><button class="btn btn-sm btn-secondary" onclick="editDev(\'' + d.id + '\')">Edit</button></td></tr>';
+        }).join('');
+    }
+
+    // ============ SERVICE TABLE ============
+    function renderSvcTable() {
+        const p = getPark(), tb = document.getElementById('svcTableBody');
+        let fl = serviceRecords;
+        tb.innerHTML = fl.slice(0, 100).map(s => {
+            const d = devices.find(x => x.id === s.deviceId);
+            return '<tr><td>' + fmtDate(s.serviceDate) + '</td><td>' + (d ? d.code : s.deviceId) + '</td><td>' + (s.serviceType || '').replace(/-/g, ' ') + '</td><td>' + (s.engineerName || '') + '</td><td><span class="status-badge status-' + (s.result === 'pass' ? 'compliant' : s.result === 'fail' ? 'overdue' : 'due-soon') + '">' + (s.result || '') + '</span></td><td>' + fmtDate(s.nextDue) + '</td></tr>';
+        }).join('');
+    }
+
+    // ============ WEEKLY TESTS ============
+    function renderWeeklyTests() {
+        const p = getPark();
+        const callPoints = devices.filter(d => d.type === 'Manual Call Point' && (p === 'all' || d.park === p));
+        const ct = document.getElementById('weeklyTestList'), em = document.getElementById('emptyTests');
+        if (!callPoints.length) { ct.innerHTML = ''; em.style.display = 'block'; return; }
+        em.style.display = 'none';
+        const weekVal = document.getElementById('testWeek').value;
+        ct.innerHTML = callPoints.map(cp => {
+            const zn = zones.find(z => z.id === cp.zoneId);
+            const weekTest = testRecords.find(t => t.deviceId === cp.id && t.testWeek === weekVal);
+            const cls = weekTest ? 'done' : 'pending';
+            return '<div class="weekly-test-card ' + cls + '"><div><strong>' + cp.code + '</strong> — ' + (zn ? zn.code : '') + ' — ' + (cp.locationDescription || cp.park) + (weekTest ? '<br><small style="color:var(--success);">Tested ' + fmtDate(weekTest.testDate) + ' by ' + weekTest.testerInitials + ' — ' + (weekTest.result === 'pass' ? '✓ Alarm sounded' : '✗ Fault') + '</small>' : '') + '</div><div>' + (weekTest ? '<span class="status-badge status-compliant">Done</span>' : '<button class="btn btn-sm btn-primary" onclick="openWeeklyTest(\'' + cp.id + '\')">Record Test</button>') + '</div></div>';
+        }).join('');
+    }
+
+    function renderTestHistory() {
+        const ct = document.getElementById('testHistory');
+        const recent = testRecords.slice(0, 20);
+        if (!recent.length) { ct.innerHTML = '<p style="color:var(--text-muted);">No test records yet.</p>'; return; }
+        ct.innerHTML = '<table class="data-table"><thead><tr><th>Date</th><th>Week</th><th>Device</th><th>Zone</th><th>Result</th><th>Tester</th><th>Notes</th></tr></thead><tbody>' + recent.map(t => {
+            const d = devices.find(x => x.id === t.deviceId);
+            const zn = d ? zones.find(z => z.id === d.zoneId) : null;
+            return '<tr><td>' + fmtDate(t.testDate) + '</td><td>' + (t.testWeek || '') + '</td><td>' + (d ? d.code : '-') + '</td><td>' + (zn ? zn.code : '-') + '</td><td><span class="status-badge status-' + (t.result === 'pass' ? 'compliant' : 'overdue') + '">' + t.result + '</span></td><td>' + (t.testerInitials || '') + '</td><td>' + (t.notes || '') + '</td></tr>';
+        }).join('') + '</tbody></table>';
+    }
+
+    function openWeeklyTest(devId) {
+        const d = devices.find(x => x.id === devId); if (!d) return;
+        const zn = zones.find(z => z.id === d.zoneId);
+        document.getElementById('wtDeviceId').value = devId;
+        document.getElementById('wtZoneId').value = d.zoneId || '';
+        document.getElementById('wtInfo').innerHTML = '<strong>' + d.code + '</strong> — ' + (d.type || '') + '<br>' + (zn ? zn.code + ' — ' : '') + (d.locationDescription || d.park);
+        document.getElementById('wtDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('wtInitials').value = '';
+        document.getElementById('wtNotes').value = '';
+        openModal('weeklyTestModal');
+    }
+
+    async function saveWeeklyTest() {
+        const devId = document.getElementById('wtDeviceId').value;
+        const date = document.getElementById('wtDate').value;
+        const initials = document.getElementById('wtInitials').value.trim().toUpperCase();
+        const result = (document.querySelector('input[name="wtResult"]:checked') || {}).value || 'pass';
+        const notes = document.getElementById('wtNotes').value;
+        if (!date || !initials) { alert('Please enter date and initials.'); return; }
+        const weekVal = document.getElementById('testWeek').value;
+        const rec = { deviceId: devId, zoneId: document.getElementById('wtZoneId').value, park: (devices.find(d => d.id === devId) || {}).park || '', testDate: date, testWeek: weekVal, testType: 'weekly-alarm', testerInitials: initials, result: result, notes: notes || null, companyId: companyId || null, createdAt: new Date().toISOString() };
+        try {
+            const ref = await db.collection('fireDetectionTests').add(rec);
+            rec.id = ref.id; testRecords.unshift(rec);
+            closeModal('weeklyTestModal'); refreshAll();
+            alert('Weekly test recorded.');
+        } catch(e) { console.error(e); alert('Error saving test.'); }
+    }
+
+    // ============ ADD ZONE & DEVICES ============
+    function addDevRow() {
+        inlineIdx++; const i = inlineIdx;
+        const d = document.createElement('div'); d.className = 'ext-inline-form'; d.id = 'dR-' + i;
+        d.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><h4>Device #' + i + '</h4><button type="button" class="btn btn-sm btn-danger" onclick="rmDevRow(' + i + ')">Remove</button></div><div class="form-row"><div class="form-group"><label>Type <span class="required">*</span></label><select class="form-control" id="dRT-' + i + '" required><option value="">Select...</option><option value="Smoke Detector (Optical)">Smoke (Optical)</option><option value="Smoke Detector (Ionisation)">Smoke (Ionisation)</option><option value="Heat Detector">Heat Detector</option><option value="CO Detector">CO Detector</option><option value="Manual Call Point">Manual Call Point</option><option value="Sounder">Sounder</option><option value="Strobe">Strobe</option><option value="Sounder/Strobe">Sounder/Strobe</option><option value="Fire Alarm Panel">Fire Alarm Panel</option><option value="Beam Detector">Beam Detector</option></select></div><div class="form-group"><label>Power Source</label><select class="form-control" id="dRP-' + i + '"><option value="">Select...</option><option value="mains">Mains Powered</option><option value="battery">Battery Only</option><option value="mains-battery">Mains + Battery Backup</option><option value="loop">Panel Loop Powered</option></select></div></div><div class="form-row"><div class="form-group"><label>Manufacturer</label><input type="text" class="form-control" id="dRM-' + i + '" placeholder="e.g., Aico, Kidde"></div><div class="form-group"><label>Model</label><input type="text" class="form-control" id="dRMo-' + i + '" placeholder="e.g., Ei3016, 3SFW"></div></div><div class="form-row"><div class="form-group"><label>Serial Number</label><input type="text" class="form-control" id="dRS-' + i + '"></div><div class="form-group"><label>Location Description</label><input type="text" class="form-control" id="dRL-' + i + '" placeholder="e.g., Hallway ceiling, near bedroom door"></div></div><div class="form-row"><div class="form-group"><label>Install Date</label><input type="date" class="form-control" id="dRI-' + i + '"></div><div class="form-group"><label>End of Life Date</label><input type="date" class="form-control" id="dRE-' + i + '"></div></div><div class="form-row"><div class="form-group"><label>Last Test</label><input type="date" class="form-control" id="dRLT-' + i + '"></div><div class="form-group"><label>Next Test Due</label><input type="date" class="form-control" id="dRNT-' + i + '"></div></div>';
+        document.getElementById('devInlineList').appendChild(d);
+        inlineRows.push(i);
+    }
+    function rmDevRow(i) { const el = document.getElementById('dR-' + i); if (el) el.remove(); inlineRows = inlineRows.filter(x => x !== i); }
+
+    async function saveZone(ev) {
+        ev.preventDefault();
+        if (!fbReady) { alert('Firebase not connected.'); return; }
+        const code = document.getElementById('znCode').value.trim().toUpperCase();
+        if (zones.some(z => z.code === code)) { alert('Zone ' + code + ' already exists.'); return; }
+        const znD = {
+            park: document.getElementById('znPark').value, code: code,
+            zoneType: document.getElementById('znType').value,
+            description: document.getElementById('znDesc').value || null,
+            bsCategory: document.getElementById('znBsCat').value || null,
+            notes: document.getElementById('znNotes').value || null,
+            companyId: companyId || null,
+            createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+        };
+        try {
+            const ref = await db.collection('fireDetectionZones').add(znD);
+            znD.id = ref.id; zones.unshift(znD);
+            let devNum = 0;
+            for (const i of inlineRows) {
+                devNum++;
+                const t = document.getElementById('dRT-' + i)?.value;
+                if (!t) continue;
+                const dD = {
+                    zoneId: ref.id, zoneCode: code, code: code + '.' + devNum,
+                    park: znD.park, type: t,
+                    powerSource: document.getElementById('dRP-' + i)?.value || null,
+                    manufacturer: document.getElementById('dRM-' + i)?.value || null,
+                    model: document.getElementById('dRMo-' + i)?.value || null,
+                    serialNumber: document.getElementById('dRS-' + i)?.value || null,
+                    locationDescription: document.getElementById('dRL-' + i)?.value || null,
+                    installDate: document.getElementById('dRI-' + i)?.value || null,
+                    endOfLifeDate: document.getElementById('dRE-' + i)?.value || null,
+                    lastTestDate: document.getElementById('dRLT-' + i)?.value || null,
+                    nextTestDue: document.getElementById('dRNT-' + i)?.value || null,
+                    fault: false, maintFlagged: false,
+                    companyId: companyId || null,
+                    createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), status: 'active'
+                };
+                const dRef = await db.collection('fireDetectionDevices').add(dD);
+                dD.id = dRef.id; devices.unshift(dD);
+            }
+            document.getElementById('addZoneForm').reset();
+            document.getElementById('devInlineList').innerHTML = ''; inlineRows = []; inlineIdx = 0;
+            refreshAll(); switchTab('zones');
+            alert('Zone ' + code + ' saved with ' + devNum + ' device' + (devNum !== 1 ? 's' : '') + '!');
+        } catch(e) { console.error(e); alert('Error saving.'); }
+    }
+
+    // ============ EDIT ZONE ============
+    function editZn(id) {
+        const zn = zones.find(z => z.id === id); if (!zn) return;
+        document.getElementById('editZnId').value = id;
+        document.getElementById('editZnCode').value = zn.code;
+        document.getElementById('editZnType').value = zn.zoneType || '';
+        document.getElementById('editZnDesc').value = zn.description || '';
+        document.getElementById('editZnBsCat').value = zn.bsCategory || '';
+        document.getElementById('editZnNotes').value = zn.notes || '';
+        openModal('editZnModal');
+    }
+    async function updateZn() {
+        const id = document.getElementById('editZnId').value;
+        const newCode = document.getElementById('editZnCode').value.trim().toUpperCase();
+        const oldZn = zones.find(z => z.id === id);
+        const oldCode = oldZn ? oldZn.code : '';
+        const u = { code: newCode, zoneType: document.getElementById('editZnType').value, description: document.getElementById('editZnDesc').value || null, bsCategory: document.getElementById('editZnBsCat').value || null, notes: document.getElementById('editZnNotes').value || null, updatedAt: new Date().toISOString() };
+        try {
+            await db.collection('fireDetectionZones').doc(id).update(u);
+            const i = zones.findIndex(z => z.id === id); if (i !== -1) Object.assign(zones[i], u);
+            if (newCode !== oldCode) { for (const d of znDevs(id)) { await db.collection('fireDetectionDevices').doc(d.id).update({ zoneCode: newCode, updatedAt: new Date().toISOString() }); d.zoneCode = newCode; } }
+            closeModal('editZnModal'); refreshAll();
+        } catch(e) { console.error(e); alert('Error updating.'); }
+    }
+    async function deleteZn() {
+        if (!confirm('Delete this zone and ALL its devices?')) return;
+        const id = document.getElementById('editZnId').value;
+        try { for (const d of znDevs(id)) await db.collection('fireDetectionDevices').doc(d.id).delete(); await db.collection('fireDetectionZones').doc(id).delete(); devices = devices.filter(d => d.zoneId !== id); zones = zones.filter(z => z.id !== id); closeModal('editZnModal'); refreshAll(); } catch(e) { console.error(e); alert('Error deleting.'); }
+    }
+
+    // ============ EDIT DEVICE ============
+    function editDev(id) {
+        const d = devices.find(x => x.id === id); if (!d) return;
+        document.getElementById('editDevId').value = id;
+        document.getElementById('editDevCode').value = d.code || '';
+        document.getElementById('editDevType').value = d.type;
+        document.getElementById('editDevPower').value = d.powerSource || '';
+        document.getElementById('editDevManuf').value = d.manufacturer || '';
+        document.getElementById('editDevModel').value = d.model || '';
+        document.getElementById('editDevSerial').value = d.serialNumber || '';
+        document.getElementById('editDevInstall').value = d.installDate || '';
+        document.getElementById('editDevEol').value = d.endOfLifeDate || '';
+        document.getElementById('editDevLastTest').value = d.lastTestDate || '';
+        document.getElementById('editDevNextTest').value = d.nextTestDue || '';
+        document.getElementById('editDevLocation').value = d.locationDescription || '';
+        document.getElementById('editDevNotes').value = d.notes || '';
+        openModal('editDevModal');
+    }
+    async function updateDev() {
+        const id = document.getElementById('editDevId').value;
+        const u = { code: document.getElementById('editDevCode').value, type: document.getElementById('editDevType').value, powerSource: document.getElementById('editDevPower').value || null, manufacturer: document.getElementById('editDevManuf').value || null, model: document.getElementById('editDevModel').value || null, serialNumber: document.getElementById('editDevSerial').value || null, installDate: document.getElementById('editDevInstall').value || null, endOfLifeDate: document.getElementById('editDevEol').value || null, lastTestDate: document.getElementById('editDevLastTest').value || null, nextTestDue: document.getElementById('editDevNextTest').value || null, locationDescription: document.getElementById('editDevLocation').value || null, notes: document.getElementById('editDevNotes').value || null, updatedAt: new Date().toISOString() };
+        try { await db.collection('fireDetectionDevices').doc(id).update(u); const i = devices.findIndex(d => d.id === id); if (i !== -1) Object.assign(devices[i], u); closeModal('editDevModal'); refreshAll(); } catch(e) { console.error(e); alert('Error updating.'); }
+    }
+    async function deleteDev() {
+        if (!confirm('Delete this device?')) return;
+        const id = document.getElementById('editDevId').value;
+        try { await db.collection('fireDetectionDevices').doc(id).delete(); devices = devices.filter(d => d.id !== id); closeModal('editDevModal'); refreshAll(); } catch(e) { console.error(e); alert('Error deleting.'); }
+    }
+
+    // ============ SERVICE RECORDS ============
+    function popSvcDD() { const s = document.getElementById('svcDev'), p = getPark(); let l = p === 'all' ? devices : devices.filter(d => d.park === p); s.innerHTML = '<option value="">Select device...</option>' + l.map(d => '<option value="' + d.id + '">' + d.code + ' - ' + d.type + ' (' + (d.locationDescription || d.park) + ')</option>').join(''); }
+    async function saveSvc() {
+        const did = document.getElementById('svcDev').value, eng = document.getElementById('svcEngineer').value, sd = document.getElementById('svcDate').value, nd = document.getElementById('svcNextDue').value, res = document.getElementById('svcResult').value, st = document.getElementById('svcType').value;
+        if (!did || !eng || !sd || !nd || !res || !st) { alert('Complete all required fields.'); return; }
+        const d = { deviceId: did, serviceType: st, engineerName: eng, company: document.getElementById('svcCompany').value || null, serviceDate: sd, nextDue: nd, result: res, notes: document.getElementById('svcNotes').value || null, companyId: companyId || null, createdAt: new Date().toISOString() };
+        try {
+            const ref = await db.collection('fireDetectionServices').add(d); d.id = ref.id; serviceRecords.unshift(d);
+            const eu = { lastTestDate: sd, nextTestDue: nd, updatedAt: new Date().toISOString() };
+            if (res === 'condemned') eu.status = 'out-of-service';
+            if (res === 'fail') eu.fault = true;
+            await db.collection('fireDetectionDevices').doc(did).update(eu);
+            const ei = devices.findIndex(x => x.id === did); if (ei !== -1) Object.assign(devices[ei], eu);
+            closeModal('svcModal'); refreshAll();
+            ['svcType', 'svcEngineer', 'svcCompany', 'svcResult', 'svcNotes'].forEach(id => document.getElementById(id).value = '');
+            alert('Service record saved.');
+        } catch(e) { console.error(e); alert('Error saving.'); }
+    }
+
+    // ============ SAFEMAINT ============
+    function openMaint(srcType, srcId) {
+        document.getElementById('maintSrcType').value = srcType; document.getElementById('maintSrcId').value = srcId;
+        let title = '', loc = '', desc = '';
+        if (srcType === 'zone') {
+            const zn = zones.find(z => z.id === srcId); if (!zn) return;
+            title = '[Detection Zone] ' + zn.code + ' - ' + zn.park;
+            loc = zn.code + ' - ' + (zn.description || '') + ' (' + zn.park + ')';
+            desc = 'Detection Zone: ' + zn.code + '\nType: ' + zn.zoneType + '\nLocation: ' + (zn.description || '') + '\nPark: ' + zn.park + '\n\nIssue: ';
+        } else {
+            const d = devices.find(x => x.id === srcId); if (!d) return;
+            const zn = zones.find(z => z.id === d.zoneId);
+            title = '[Detection Device] ' + d.code + ' - ' + d.type + ' - ' + d.park;
+            loc = d.code + ' at ' + (zn ? zn.code : '?') + ' - ' + (d.locationDescription || d.park);
+            desc = 'Device: ' + d.code + '\nType: ' + d.type + '\nZone: ' + (zn ? zn.code : 'N/A') + '\nLocation: ' + (d.locationDescription || '') + '\nPark: ' + d.park + '\nStatus: ' + getDevStatus(d) + '\n\nIssue: ';
+        }
+        document.getElementById('maintLoc').value = loc;
+        document.getElementById('maintTitle').value = title;
+        document.getElementById('maintDesc').value = desc;
+        openModal('maintModal');
+    }
+    async function submitMaint() {
+        const srcType = document.getElementById('maintSrcType').value, srcId = document.getElementById('maintSrcId').value;
+        const title = document.getElementById('maintTitle').value, desc = document.getElementById('maintDesc').value;
+        if (!title || !desc) { alert('Complete all fields.'); return; }
+        const now = new Date().toISOString();
+        let park = '';
+        if (srcType === 'zone') { const z = zones.find(x => x.id === srcId); park = z?.park || ''; }
+        else { const d = devices.find(x => x.id === srcId); park = d?.park || ''; }
+        const req = { id: Date.now().toString(), title, category: 'fire-detection', location: park, priority: document.getElementById('maintPriority').value, description: desc, reporter: 'SafeDetect Module', contact: '', status: 'pending', dateSubmitted: now, dateCompleted: null, assignedTo: null, notes: [], sourceModule: 'Fire Detection Management', sourcePage: 'firedetection.html', sourceType: srcType, sourceId: srcId, parkLocation: park, companyId: companyId || null, submittedBy: { name: currentUser.name || 'SafeDetect Module User', role: 'fire-detection', park, accessCode: currentUser.accessCode || '' } };
+        try {
+            await db.collection('maintenanceRecords').doc(req.id).set(req);
+            if (srcType === 'dev') { await db.collection('fireDetectionDevices').doc(srcId).update({ maintFlagged: true, maintRequestId: req.id, updatedAt: now }); const i = devices.findIndex(d => d.id === srcId); if (i !== -1) { devices[i].maintFlagged = true; devices[i].maintRequestId = req.id; } }
+            if (srcType === 'zone') { await db.collection('fireDetectionZones').doc(srcId).update({ maintFlagged: true, maintRequestId: req.id, updatedAt: now }); const i = zones.findIndex(z => z.id === srcId); if (i !== -1) { zones[i].maintFlagged = true; zones[i].maintRequestId = req.id; } }
+            closeModal('maintModal'); refreshAll();
+            alert('Maintenance request created.');
+        } catch(e) { console.error(e); alert('Error creating request.'); }
+    }
+
+    // ============ EXPORT ============
+    function exportDevices() {
+        const p = getPark(); let fD = p === 'all' ? devices : devices.filter(d => d.park === p);
+        const hdr = ['Code', 'Zone', 'Type', 'Power', 'Park', 'Location', 'Manufacturer', 'Model', 'Serial', 'Install Date', 'Last Test', 'Next Test', 'End of Life', 'Status'];
+        const rows = fD.map(d => { const zn = zones.find(z => z.id === d.zoneId); return [d.code, zn ? zn.code : '', d.type, d.powerSource || '', d.park, d.locationDescription || '', d.manufacturer || '', d.model || '', d.serialNumber || '', d.installDate || '', d.lastTestDate || '', d.nextTestDue || '', d.endOfLifeDate || '', getDevStatus(d)]; });
+        const csv = [hdr, ...rows].map(r => r.map(c => '"' + c + '"').join(',')).join('\n');
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'fire-detection-register-' + new Date().toISOString().split('T')[0] + '.csv'; a.click();
+    }
+
+    // ============ REPORTS ============
+    function generateReport() {
+        const type = document.getElementById('reportType').value, park = document.getElementById('reportPark').value;
+        const out = document.getElementById('reportOutput'), pl = park === 'all' ? (companyName ? 'All ' + companyName + ' Locations' : 'All Locations') : park;
+        const rd = new Date().toLocaleDateString('en-GB');
+        let fD = park === 'all' ? devices : devices.filter(d => d.park === park);
+        let fZ = park === 'all' ? zones : zones.filter(z => z.park === park);
+        let h = '';
+        if (type === 'compliance') {
+            h = '<h3 style="color:var(--primary-red);margin-bottom:20px;">Device Compliance Summary</h3><p><strong>Location:</strong> ' + pl + ' | <strong>Date:</strong> ' + rd + '</p><hr style="border-color:var(--border-color);margin:20px 0;"><table class="data-table"><thead><tr><th>Code</th><th>Type</th><th>Zone</th><th>Location</th><th>Last Test</th><th>Next Due</th><th>End of Life</th><th>Status</th></tr></thead><tbody>' + fD.map(d => { const zn = zones.find(z => z.id === d.zoneId); return '<tr><td><strong>' + d.code + '</strong></td><td>' + (d.type || '') + '</td><td>' + (zn ? zn.code : '-') + '</td><td>' + (d.locationDescription || '-') + '</td><td>' + fmtDate(d.lastTestDate) + '</td><td>' + fmtDate(d.nextTestDue) + '</td><td>' + fmtDate(d.endOfLifeDate) + '</td><td><span class="status-badge status-' + getDevStatus(d) + '">' + getDevStatus(d).replace('-', ' ') + '</span></td></tr>'; }).join('') + '</tbody></table>';
+        } else if (type === 'zones') {
+            h = '<h3 style="color:var(--primary-red);margin-bottom:20px;">Zones &amp; Devices Overview</h3><p><strong>Location:</strong> ' + pl + ' | <strong>Date:</strong> ' + rd + '</p><hr style="border-color:var(--border-color);margin:20px 0;">' + fZ.map(z => '<div style="background:#1a1a1a;border-radius:8px;padding:15px;margin-bottom:12px;border-left:3px solid var(--primary-red);"><strong style="color:var(--primary-red);">' + z.code + '</strong> — ' + (z.zoneType || '') + ' — ' + (z.description || '') + (z.bsCategory ? ' [' + z.bsCategory + ']' : '') + '<br><small style="color:var(--text-muted);">' + znDevs(z.id).length + ' devices: ' + znDevs(z.id).map(d => d.code + ' (' + d.type + ')').join(', ') + '</small></div>').join('');
+        } else if (type === 'testing') {
+            const recent = testRecords.filter(t => park === 'all' || t.park === park).slice(0, 50);
+            h = '<h3 style="color:var(--primary-red);margin-bottom:20px;">Weekly Test Log</h3><p><strong>Location:</strong> ' + pl + ' | <strong>Date:</strong> ' + rd + '</p><hr style="border-color:var(--border-color);margin:20px 0;"><table class="data-table"><thead><tr><th>Date</th><th>Week</th><th>Device</th><th>Result</th><th>Tester</th><th>Notes</th></tr></thead><tbody>' + recent.map(t => { const d = devices.find(x => x.id === t.deviceId); return '<tr><td>' + fmtDate(t.testDate) + '</td><td>' + (t.testWeek || '') + '</td><td>' + (d ? d.code : '-') + '</td><td><span class="status-badge status-' + (t.result === 'pass' ? 'compliant' : 'overdue') + '">' + t.result + '</span></td><td>' + (t.testerInitials || '') + '</td><td>' + (t.notes || '') + '</td></tr>'; }).join('') + '</tbody></table>';
+        }
+        out.innerHTML = h;
+    }
+
+    // ============ MODALS & TABS ============
+    function switchTab(n) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.querySelector('.tab-btn[onclick="switchTab(\'' + n + '\')"]').classList.add('active'); document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active')); document.getElementById('tab-' + n).classList.add('active'); if (n === 'services') popSvcDD(); }
+    function openModal(id) { document.getElementById(id).classList.add('active'); document.body.style.overflow = 'hidden'; }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); document.body.style.overflow = ''; }
+
+    // ============ BOOT ============
+    document.addEventListener('DOMContentLoaded', initFB);
+    </script>
+</body>
+</html>
