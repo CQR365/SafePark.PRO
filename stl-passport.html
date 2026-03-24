@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#7c3aed">
+    <title>STL Property Passport &#8212; SafeSystems.PRO</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+<style>
+:root{--stl:#7c3aed;--stl-dark:#5b21b6;--stl-light:#a78bfa;--white:#fff;--success:#28A745;--warning:#FFC107;--danger:#DC3545;--rag-green:#28A745;--rag-amber:#FFC107;--rag-red:#DC3545;--rag-grey:#555;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#1a1a1a 0%,#2c2c2c 100%);color:#fff;min-height:100vh;overflow-x:hidden;}
+#loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px;}
+.login-card{background:linear-gradient(145deg,#3a3a3a,#1a1a1a);border:2px solid var(--stl);border-radius:16px;padding:32px 28px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,0.8),0 0 40px rgba(124,58,237,0.15);text-align:center;}
+.login-card .logo{font-family:'Orbitron',monospace;font-size:clamp(1.2rem,5vw,1.7rem);font-weight:800;margin-bottom:6px;letter-spacing:1px;line-height:1.2;}
+.stl-word{color:var(--stl-light);text-shadow:0 0 15px rgba(124,58,237,0.5);}
+.pp-word{color:#fff;}
+.login-card .subtitle{color:var(--stl-light);font-family:'Orbitron',monospace;font-size:clamp(0.56rem,2vw,0.68rem);letter-spacing:2px;text-transform:uppercase;margin-bottom:22px;}
+.login-form-group{margin-bottom:14px;text-align:left;}
+.login-form-group label{display:block;color:#B8B8B8;font-size:0.76rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.login-form-group input{width:100%;padding:13px 14px;background:#1a1a1a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:1rem;letter-spacing:2px;text-transform:uppercase;text-align:center;transition:border-color 0.3s;box-sizing:border-box;}
+.login-form-group input:focus{outline:none;border-color:var(--stl);box-shadow:0 0 0 3px rgba(124,58,237,0.2);}
+.btn-login{width:100%;padding:14px;background:linear-gradient(145deg,var(--stl),var(--stl-dark));color:#fff;border:none;border-radius:8px;font-family:'Orbitron',monospace;font-size:0.88rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all 0.3s;margin-top:8px;min-height:48px;}
+.btn-login:hover{opacity:0.9;transform:translateY(-1px);box-shadow:0 8px 20px rgba(124,58,237,0.4);}
+#loginError{color:var(--danger);font-size:0.82rem;margin-top:10px;display:none;}
+.login-info{margin-top:16px;padding:12px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.3);border-radius:8px;font-size:0.74rem;color:#B8B8B8;line-height:1.6;}
+#mainApp{display:none;}
+.container{max-width:1200px;margin:0 auto;padding:20px;}
+.header{background:linear-gradient(145deg,#3a3a3a,#1a1a1a);text-align:center;margin-bottom:20px;padding:26px 25px 16px;border-radius:15px;border:3px solid var(--stl);position:relative;box-shadow:0 15px 35px rgba(0,0,0,0.8),inset 0 8px 20px rgba(255,255,255,0.06),inset 0 -8px 20px rgba(0,0,0,0.7),0 0 30px rgba(124,58,237,0.1);}
+.header::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,rgba(255,255,255,0.05) 0%,transparent 40%,transparent 60%,rgba(0,0,0,0.15) 100%);border-radius:12px;pointer-events:none;}
+.header h1{font-family:'Orbitron',monospace;font-size:2.1rem;font-weight:800;letter-spacing:2px;color:var(--stl-light);text-shadow:2px 2px 4px rgba(0,0,0,0.5),0 0 20px rgba(124,58,237,0.4);position:relative;z-index:1;margin-bottom:6px;}
+.header .brand-line{font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:600;letter-spacing:1px;position:relative;z-index:1;margin-bottom:6px;}
+.stl-col{color:var(--stl-light);}
+.white-col{color:#fff;}
+.header-meta{color:#B8B8B8;font-size:0.83rem;position:relative;z-index:1;}
+.stl-badge{display:inline-block;background:linear-gradient(135deg,rgba(124,58,237,0.25),rgba(124,58,237,0.08));border:1px solid rgba(124,58,237,0.45);color:var(--stl-light);font-family:'Orbitron',monospace;font-size:0.62rem;font-weight:700;letter-spacing:2px;padding:4px 14px;border-radius:20px;margin-top:8px;}
+.header-right{position:absolute;top:14px;right:14px;display:flex;flex-direction:column;align-items:flex-end;gap:5px;z-index:2;}
+.user-badge{font-size:0.7rem;color:#B8B8B8;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.prop-code-badge{font-family:'Orbitron',monospace;font-size:0.66rem;color:var(--stl-light);background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);padding:3px 10px;border-radius:12px;letter-spacing:1px;}
+.btn-signout{background:rgba(220,53,69,0.2);border:1px solid rgba(220,53,69,0.5);color:#DC3545;padding:5px 12px;border-radius:6px;font-size:0.7rem;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.btn-signout:hover{background:rgba(220,53,69,0.35);}
+.navigation{display:flex;gap:0;margin-bottom:20px;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.7),inset 0 1px 0 rgba(255,255,255,0.08);border:2px solid var(--stl);}
+.nav-button{flex:1;font-family:'Orbitron',monospace;background:linear-gradient(165deg,#2e2e2e 0%,#161616 60%,#0e0e0e 100%);color:#888;border:none;padding:13px 6px;cursor:pointer;font-size:0.6rem;font-weight:600;border-right:1px solid rgba(124,58,237,0.2);transition:all 0.3s;text-transform:uppercase;letter-spacing:0.5px;text-align:center;line-height:1.3;position:relative;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,0.06),inset 0 -2px 4px rgba(0,0,0,0.4);}
+.nav-button:last-child{border-right:none;}
+.nav-button:hover{color:#fff;background:linear-gradient(165deg,#3a3a3a 0%,#222 60%,#141414 100%);}
+.nav-button.active{background:linear-gradient(165deg,#3d1a7a 0%,#2a1060 60%,#180a3a 100%);color:var(--stl-light);box-shadow:inset 0 3px 10px rgba(0,0,0,0.5),0 0 18px rgba(124,58,237,0.2);text-shadow:0 0 8px rgba(124,58,237,0.5);}
+.nav-button.admin-tab{border-left:2px solid rgba(204,85,0,0.4);}
+.tab-section{display:none;}.tab-section.active{display:block;}
+.card{background:linear-gradient(165deg,#2a2a2a 0%,#181818 60%,#111 100%);border:1px solid #282828;border-top:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 8px 25px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.04),inset 0 -3px 8px rgba(0,0,0,0.3);}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(124,58,237,0.18);}
+.card-title{font-family:'Orbitron',monospace;font-size:0.86rem;color:var(--stl-light);letter-spacing:1px;}
+.rag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;margin-bottom:20px;}
+.rag-tile{background:linear-gradient(165deg,#252525 0%,#141414 50%,#0d0d0d 100%);border-radius:10px;padding:13px 11px;text-align:center;border:1px solid #2a2a2a;border-top:1px solid rgba(255,255,255,0.07);cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;box-shadow:0 4px 14px rgba(0,0,0,0.5);}
+.rag-tile:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,0.6);}
+.rag-dot{width:13px;height:13px;border-radius:50%;margin:0 auto 7px;box-shadow:0 0 8px currentColor;}
+.rag-dot.green{background:var(--rag-green);color:var(--rag-green);}
+.rag-dot.amber{background:var(--rag-amber);color:var(--rag-amber);}
+.rag-dot.red{background:var(--rag-red);color:var(--rag-red);}
+.rag-dot.grey{background:#444;color:#444;box-shadow:none;}
+.rag-tile .rag-label{font-size:0.7rem;color:#B8B8B8;line-height:1.3;}
+.rag-tile .rag-status{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-top:3px;}
+.rag-status.complete{color:var(--rag-green);}
+.rag-status.in-progress{color:var(--rag-amber);}
+.rag-status.not-started{color:var(--rag-grey);}
+.rag-status.na{color:#6c757d;}
+.readiness-bar-wrap{background:#111;border-radius:20px;height:12px;overflow:hidden;margin:12px 0 6px;border:1px solid #2a2a2a;}
+.readiness-bar{height:100%;border-radius:20px;transition:width 0.6s ease;background:linear-gradient(90deg,var(--stl-dark),var(--stl),var(--stl-light));}
+.readiness-pct{font-family:'Orbitron',monospace;font-size:1.6rem;font-weight:800;color:var(--stl-light);}
+.module-launches{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:8px;}
+.module-launch-btn{display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(165deg,#252525 0%,#141414 60%,#0d0d0d 100%);border:1px solid #2a2a2a;border-radius:10px;cursor:pointer;transition:all 0.2s;text-decoration:none;color:inherit;box-shadow:0 4px 12px rgba(0,0,0,0.4);}
+.module-launch-btn:hover{border-color:var(--stl);box-shadow:0 6px 18px rgba(124,58,237,0.2);transform:translateY(-1px);}
+.mod-name{font-size:0.8rem;font-weight:600;color:#ddd;}
+.mod-sub{font-size:0.68rem;color:#777;margin-top:2px;}
+.mod-arrow{margin-left:auto;color:var(--stl-light);font-size:0.9rem;}
+.share-box{background:rgba(0,0,0,0.3);border:1px dashed rgba(124,58,237,0.4);border-radius:10px;padding:14px 16px;margin:10px 0;}
+.share-url{font-family:monospace;font-size:0.78rem;color:var(--stl-light);word-break:break-all;line-height:1.6;}
+.share-label{font-size:0.7rem;color:#888;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;}
+.condition-card{background:linear-gradient(165deg,#252525 0%,#161616 60%,#0f0f0f 100%);border:1px solid #2a2a2a;border-top:1px solid rgba(255,255,255,0.06);border-radius:12px;margin-bottom:12px;box-shadow:0 4px 14px rgba(0,0,0,0.5);overflow:hidden;}
+.condition-header{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;transition:background 0.2s;}
+.condition-header:hover{background:rgba(124,58,237,0.05);}
+.condition-num{font-family:'Orbitron',monospace;font-size:0.72rem;font-weight:800;color:var(--stl-light);background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.condition-title-wrap{flex:1;}
+.condition-title{font-family:'Orbitron',monospace;font-size:0.78rem;color:#ddd;letter-spacing:0.5px;}
+.condition-subtitle{font-size:0.7rem;color:#777;margin-top:2px;}
+.condition-rag{width:11px;height:11px;border-radius:50%;flex-shrink:0;box-shadow:0 0 6px currentColor;}
+.condition-rag.green{background:var(--rag-green);color:var(--rag-green);}
+.condition-rag.amber{background:var(--rag-amber);color:var(--rag-amber);}
+.condition-rag.grey{background:#444;color:#444;box-shadow:none;}
+.condition-chevron{color:#555;font-size:0.75rem;transition:transform 0.3s;flex-shrink:0;}
+.condition-card.open .condition-chevron{transform:rotate(180deg);}
+.condition-body{display:none;padding:0 16px 16px;border-top:1px solid #1e1e1e;}
+.condition-card.open .condition-body{display:block;padding-top:14px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.form-full{grid-column:1/-1;}
+.form-group{margin-bottom:14px;}
+.form-group label{font-family:'Orbitron',monospace;color:var(--stl-light);font-weight:500;font-size:0.72rem;letter-spacing:0.5px;margin-bottom:7px;display:block;}
+.form-group label .required{color:var(--danger);margin-left:3px;}
+.form-control{width:100%;padding:11px 13px;-webkit-appearance:none;appearance:none;border-radius:9px;background:linear-gradient(145deg,#2a2a2a,#1a1a1a);border:2px solid rgba(255,255,255,0.08);color:#fff;font-size:0.9rem;transition:all 0.3s;box-shadow:inset 0 2px 4px rgba(0,0,0,0.3);}
+.form-control:focus{outline:none;border-color:var(--stl);box-shadow:inset 0 2px 4px rgba(0,0,0,0.3),0 0 10px rgba(124,58,237,0.25);}
+select.form-control{background-color:#2a2a2a;}
+select.form-control option{background-color:#2a2a2a;}
+textarea.form-control{min-height:72px;resize:vertical;}
+.form-hint{font-size:0.68rem;color:#666;margin-top:4px;line-height:1.4;}
+.status-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.status-btn{padding:6px 13px;border-radius:18px;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;cursor:pointer;border:2px solid transparent;transition:all 0.2s;background:#1a1a1a;}
+.status-btn.ns{color:#777;border-color:#333;}
+.status-btn.ns.active{background:rgba(85,85,85,0.25);border-color:#777;color:#aaa;}
+.status-btn.ip{color:var(--warning);border-color:rgba(255,193,7,0.3);}
+.status-btn.ip.active{background:rgba(255,193,7,0.15);border-color:var(--warning);}
+.status-btn.done{color:var(--success);border-color:rgba(40,167,69,0.3);}
+.status-btn.done.active{background:rgba(40,167,69,0.15);border-color:var(--success);}
+.status-btn.na{color:#6c757d;border-color:rgba(108,117,125,0.3);}
+.status-btn.na.active{background:rgba(108,117,125,0.15);border-color:#6c757d;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 16px;border:none;border-radius:10px;font-family:'Orbitron',monospace;font-size:0.74rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all 0.3s;min-height:40px;box-shadow:0 6px 20px rgba(0,0,0,0.5),inset 0 2px 4px rgba(255,255,255,0.12),inset 0 -2px 6px rgba(0,0,0,0.3);border-top:1px solid rgba(255,255,255,0.14);border-bottom:2px solid rgba(0,0,0,0.4);position:relative;overflow:hidden;}
+.btn-primary{background:linear-gradient(165deg,#9f5fff 0%,var(--stl) 40%,var(--stl-dark) 100%);color:#fff;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(124,58,237,0.5);}
+.btn-success{background:linear-gradient(165deg,#34c960 0%,#28A745 40%,#1a6b2c 100%);color:#fff;}
+.btn-success:hover{transform:translateY(-2px);}
+.btn-danger{background:linear-gradient(165deg,#f04555 0%,#DC3545 40%,#8a1520 100%);color:#fff;}
+.btn-outline{background:linear-gradient(165deg,#363636 0%,#202020 60%,#141414 100%);border:1px solid rgba(255,255,255,0.1);color:#aaa;}
+.btn-outline:hover{border-color:var(--stl);color:#fff;}
+.btn-warning{background:linear-gradient(165deg,#ffd147 0%,#FFC107 40%,#b38600 100%);color:#111;}
+.btn-sm{padding:5px 11px;font-size:0.64rem;min-height:32px;}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+.doc-upload-zone{border:2px dashed rgba(124,58,237,0.35);border-radius:10px;background:rgba(124,58,237,0.04);transition:border-color 0.2s;margin-top:8px;}
+.doc-upload-zone:hover{border-color:var(--stl);}
+.doc-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px;text-align:center;}
+.doc-type-icon{font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:800;color:#3a3a3a;background:linear-gradient(145deg,#252525,#151515);border:2px solid #333;border-radius:8px;width:52px;height:52px;display:flex;align-items:center;justify-content:center;margin-bottom:8px;}
+.doc-upload-text{font-size:0.76rem;color:#666;margin-bottom:4px;}
+.doc-preview{display:none;flex-direction:row;align-items:center;justify-content:space-between;padding:12px 14px;gap:12px;flex-wrap:wrap;}
+.doc-preview.visible{display:flex;}
+.doc-info{display:flex;align-items:center;gap:10px;flex:1;min-width:0;}
+.doc-filetype{font-family:'Orbitron',monospace;font-size:0.7rem;font-weight:800;color:var(--stl-light);background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);border-radius:7px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.doc-filename{font-size:0.8rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.doc-filesize{font-size:0.68rem;color:#888;margin-top:3px;}
+.doc-actions{display:flex;gap:6px;flex-shrink:0;}
+.codegen-box{background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.2);border-radius:12px;padding:18px;margin-bottom:16px;}
+.generated-code{font-family:'Orbitron',monospace;font-size:1.5rem;font-weight:800;color:var(--stl-light);text-align:center;letter-spacing:4px;padding:18px;background:rgba(0,0,0,0.3);border-radius:10px;border:2px dashed rgba(124,58,237,0.4);margin:14px 0;cursor:pointer;}
+.generated-code small{display:block;font-size:0.62rem;color:#888;letter-spacing:1px;margin-top:4px;}
+.table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+table{width:100%;border-collapse:collapse;font-size:0.8rem;}
+th{background:rgba(124,58,237,0.1);color:var(--stl-light);font-family:'Orbitron',monospace;font-size:0.65rem;font-weight:600;letter-spacing:0.8px;padding:9px 11px;text-align:left;border-bottom:1px solid rgba(124,58,237,0.2);}
+td{padding:9px 11px;border-bottom:1px solid #1e1e1e;color:#ccc;vertical-align:middle;}
+tr:hover td{background:rgba(124,58,237,0.04);}
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
+.badge-active{background:rgba(40,167,69,0.2);color:#28A745;border:1px solid rgba(40,167,69,0.4);}
+.badge-inactive{background:rgba(220,53,69,0.2);color:#DC3545;border:1px solid rgba(220,53,69,0.4);}
+.ref-box{background:rgba(124,58,237,0.06);border-left:3px solid var(--stl);border-radius:0 8px 8px 0;padding:10px 13px;margin:8px 0 14px;font-size:0.78rem;color:#B8B8B8;line-height:1.5;}
+.ref-box strong{color:var(--stl-light);}
+.alert{padding:11px 15px;border-radius:8px;font-size:0.8rem;margin-bottom:12px;line-height:1.5;}
+.alert-info{background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:var(--stl-light);}
+.alert-success{background:rgba(40,167,69,0.1);border:1px solid rgba(40,167,69,0.3);color:#28A745;}
+.alert-warning{background:rgba(255,193,7,0.1);border:1px solid rgba(255,193,7,0.3);color:#FFC107;}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+.section-title{font-family:'Orbitron',monospace;font-size:0.95rem;color:var(--stl-light);letter-spacing:1px;}
+.divider{border:none;border-top:1px solid #222;margin:16px 0;}
+.empty-state{text-align:center;padding:40px 20px;color:#555;}
+.spinner{width:28px;height:28px;border:3px solid rgba(124,58,237,0.15);border-top-color:var(--stl);border-radius:50%;animation:spin 0.8s linear infinite;margin:30px auto;}
+@keyframes spin{to{transform:rotate(360deg);}}
+#toast{position:fixed;bottom:28px;right:18px;background:linear-gradient(135deg,#2d1a5e,#1a0e3a);border:1px solid var(--stl);color:var(--stl-light);padding:11px 18px;border-radius:10px;font-size:0.83rem;font-weight:600;z-index:9999;opacity:0;transform:translateY(10px);transition:all 0.3s;max-width:300px;box-shadow:0 8px 25px rgba(0,0,0,0.5);}
+#toast.show{opacity:1;transform:translateY(0);}
+.checklist{list-style:none;}
+.checklist li{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #1e1e1e;font-size:0.83rem;color:#ccc;}
+.checklist li:last-child{border-bottom:none;}
+.checklist li input[type="checkbox"]{width:17px;height:17px;accent-color:var(--stl);flex-shrink:0;margin-top:2px;cursor:pointer;}
+@media print{
+  body{background:white !important;color:#111 !important;}
+  #loginScreen,.navigation,.no-print,.btn-row,.btn-signout,#toast{display:none !important;}
+  .header{background:white !important;border:2px solid #5b21b6 !important;box-shadow:none !important;}
+  .header h1,.stl-col,.stl-badge{color:#5b21b6 !important;text-shadow:none !important;}
+  .white-col{color:#111 !important;}
+  .card{background:white !important;border:1px solid #ddd !important;box-shadow:none !important;page-break-inside:avoid;}
+  .card-title,.section-title,.condition-title{color:#5b21b6 !important;}
+  .condition-body{display:block !important;}
+  .form-control{background:white !important;color:#111 !important;border:1px solid #ccc !important;}
+  th{background:#ede9fe !important;color:#5b21b6 !important;}
+  td{color:#222 !important;}
+  .rag-dot.green::after{content:" COMPLETE";}
+  .rag-dot.amber::after{content:" IN PROGRESS";}
+  .rag-dot.grey::after{content:" NOT STARTED";}
+}
+@media(max-width:768px){
+  html,body{width:100% !important;max-width:100vw !important;overflow-x:hidden !important;}
+  .container{padding:0 !important;}
+  .header{padding:12px 10px;margin:0 0 10px;border-radius:8px;}
+  .header h1{font-size:1.3rem !important;}
+  .header-right{position:static;flex-direction:row;justify-content:flex-end;margin-bottom:6px;}
+  .navigation{flex-direction:column;border-radius:8px;margin:0 0 10px;}
+  .nav-button{width:100%;padding:12px 14px;font-size:0.76rem;border-right:none;border-bottom:1px solid rgba(124,58,237,0.2);text-align:left;}
+  .nav-button:last-child{border-bottom:none;}
+  .card{padding:13px 11px;border-radius:8px;margin-bottom:10px;}
+  .form-grid,.form-grid-3{grid-template-columns:1fr;}
+  .form-full{grid-column:1;}
+  .form-control{font-size:16px !important;}
+  .btn{min-height:44px;padding:11px 13px;width:100%;}
+  .btn-sm{width:auto;min-height:34px;}
+  .btn-row{flex-direction:column;}
+  .btn-row .btn-sm{width:auto;align-self:flex-start;}
+  .rag-grid{grid-template-columns:repeat(2,1fr);}
+  .module-launches{grid-template-columns:1fr;}
+}
+</style>
+
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="logo"><span class="stl-word">STL</span> <span class="pp-word">PROPERTY PASSPORT</span></div>
+    <div class="subtitle">Short-Term Let Licensing &mdash; Scotland</div>
+    <div class="login-form-group">
+      <label>Access Code</label>
+      <input type="text" id="loginCode" placeholder="STL-XXX-YYYY-NNN" autocomplete="off" oninput="this.value=this.value.toUpperCase()">
+    </div>
+    <button class="btn-login" onclick="handleLogin()">Enter</button>
+    <div id="loginError"></div>
+    <div class="login-info"><strong>SafeSystems.PRO</strong> &mdash; STL Property Passport<br>Scottish Licensing Order 2022<br>Powered by Omnibosh Safety Solutions Ltd</div>
+  </div>
+</div>
+
+<div id="mainApp">
+<div class="container">
+
+  <div class="header">
+    <div class="header-right">
+      <span class="user-badge" id="userDisplay">Loading...</span>
+      <span class="prop-code-badge" id="codeDisplay"></span>
+      <button class="btn-signout" onclick="handleSignOut()">Sign Out</button>
+    </div>
+    <h1>STL PASSPORT</h1>
+    <div class="brand-line"><span class="white-col">STL </span><span class="stl-col">PROPERTY</span><span class="white-col"> PASSPORT</span></div>
+    <div class="header-meta" id="propNameDisplay">Short-Term Let Licensing &mdash; Scotland</div>
+    <div><span class="stl-badge">CIVIC GOVERNMENT (SCOTLAND) ACT 1982 &middot; LICENSING ORDER 2022 &middot; AMENDED 2024</span></div>
+  </div>
+
+  <div class="navigation">
+    <button class="nav-button active" onclick="showTab('dashboard')" id="nav-dashboard">Dashboard</button>
+    <button class="nav-button" onclick="showTab('property')" id="nav-property">Property</button>
+    <button class="nav-button" onclick="showTab('conditions')" id="nav-conditions">Conditions</button>
+    <button class="nav-button" onclick="showTab('documents')" id="nav-documents">Documents</button>
+    <button class="nav-button" onclick="showTab('report')" id="nav-report">Report</button>
+    <button class="nav-button admin-tab" onclick="showTab('admin')" id="nav-admin" style="display:none;">Admin</button>
+  </div>
+
+  <!-- DASHBOARD TAB -->
+  <div class="tab-section active" id="tab-dashboard">
+    <div class="section-header">
+      <div class="section-title">Compliance Overview</div>
+      <button class="btn btn-primary btn-sm no-print" onclick="showTab('conditions')">Update Conditions</button>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Application Readiness</div>
+        <div id="readinessPct" class="readiness-pct">0%</div>
+      </div>
+      <div class="readiness-bar-wrap"><div class="readiness-bar" id="readinessBar" style="width:0%"></div></div>
+      <p style="font-size:0.76rem;color:#888;margin-top:6px;" id="readinessMsg">Complete all mandatory conditions to submit your licence application.</p>
+    </div>
+    <div class="rag-grid" id="ragGrid"></div>
+    <div class="card no-print">
+      <div class="card-header"><div class="card-title">Share with Council / Contractor</div></div>
+      <p style="font-size:0.8rem;color:#B8B8B8;margin-bottom:12px;">Share the link and access code below. The council or any contractor can open this passport and view or print the full compliance report.</p>
+      <div class="share-box"><div class="share-label">Passport URL</div><div class="share-url" id="shareUrl"></div></div>
+      <div class="share-box" style="margin-top:8px;"><div class="share-label">Access Code</div><div class="share-url" id="shareCode" style="font-size:1.1rem;letter-spacing:3px;font-weight:700;"></div></div>
+      <div class="btn-row"><button class="btn btn-outline btn-sm" onclick="copyShareLink()">Copy Link</button><button class="btn btn-outline btn-sm" onclick="copyCode()">Copy Code</button></div>
+    </div>
+    <div class="card no-print">
+      <div class="card-header"><div class="card-title">Linked Modules</div></div>
+      <p style="font-size:0.8rem;color:#B8B8B8;margin-bottom:12px;">Open any module below using your property access code. Each contractor uses the same code.</p>
+      <div class="module-launches" id="moduleLaunches"></div>
+    </div>
+  </div>
+
+  <!-- PROPERTY TAB -->
+  <div class="tab-section" id="tab-property">
+    <div class="section-header"><div class="section-title">Property Details</div><button class="btn btn-success btn-sm" onclick="savePropertyDetails()">Save</button></div>
+    <div class="ref-box">Complete all property details. The property name and address appear on all printed reports.</div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Property Information</div></div>
+      <div class="form-grid">
+        <div class="form-group"><label>Property Name <span class="required">*</span></label><input type="text" class="form-control" id="pd-propName" placeholder="e.g. Loch View Cottage"></div>
+        <div class="form-group"><label>Property Type <span class="required">*</span></label>
+          <select class="form-control" id="pd-propType">
+            <option value="">-- Select --</option>
+            <option value="cottage">Self-catering cottage / house</option>
+            <option value="flat">Flat / apartment</option>
+            <option value="bnb">B&amp;B / guest house</option>
+            <option value="room">Room in occupied home</option>
+            <option value="lodge">Lodge / cabin / chalet</option>
+            <option value="pod">Glamping pod / yurt / unusual structure</option>
+            <option value="boat">Boat / houseboat</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>Full Address <span class="required">*</span></label><textarea class="form-control" id="pd-address" rows="3" placeholder="Full postal address including postcode"></textarea></div>
+      <div class="form-grid">
+        <div class="form-group"><label>Local Authority <span class="required">*</span></label>
+          <select class="form-control" id="pd-council">
+            <option value="">-- Select --</option>
+            <option>Aberdeen City</option><option>Aberdeenshire</option><option>Angus</option>
+            <option>Argyll &amp; Bute</option><option>Clackmannanshire</option>
+            <option>Dumfries &amp; Galloway</option><option>Dundee City</option>
+            <option>East Ayrshire</option><option>East Dunbartonshire</option>
+            <option>East Lothian</option><option>East Renfrewshire</option>
+            <option>City of Edinburgh</option><option>Falkirk</option><option>Fife</option>
+            <option>Glasgow City</option><option>Highland</option><option>Inverclyde</option>
+            <option>Midlothian</option><option>Moray</option>
+            <option>Na h-Eileanan Siar</option><option>North Ayrshire</option>
+            <option>North Lanarkshire</option><option>Orkney Islands</option>
+            <option>Perth &amp; Kinross</option><option>Renfrewshire</option>
+            <option>Scottish Borders</option><option>Shetland Islands</option>
+            <option>South Ayrshire</option><option>South Lanarkshire</option>
+            <option>Stirling</option><option>West Dunbartonshire</option><option>West Lothian</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Licence Type <span class="required">*</span></label>
+          <select class="form-control" id="pd-licenceType">
+            <option value="">-- Select --</option>
+            <option value="secondary">Secondary letting (property you don't normally live in)</option>
+            <option value="home_letting">Home letting (your home, while absent)</option>
+            <option value="home_sharing">Home sharing (your home, while present)</option>
+            <option value="mixed">Mixed (home sharing + home letting)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label>Number of Bedrooms</label><input type="number" class="form-control" id="pd-bedrooms" placeholder="e.g. 3" min="1"></div>
+        <div class="form-group"><label>Maximum Occupancy <span class="required">*</span></label><input type="number" class="form-control" id="pd-occupancy" placeholder="Max number of guests" min="1"></div>
+      </div>
+      <div class="form-group"><label>In a Planning Control Area?</label>
+        <select class="form-control" id="pd-controlArea">
+          <option value="no">No &mdash; not in a designated control area</option>
+          <option value="yes_edinburgh">Yes &mdash; City of Edinburgh</option>
+          <option value="yes_highland">Yes &mdash; Highland (Badenoch &amp; Strathspey Ward)</option>
+          <option value="yes_other">Yes &mdash; other (check with planning authority)</option>
+        </select>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Owner / Duty Holder</div></div>
+      <div class="form-grid">
+        <div class="form-group"><label>Full Name <span class="required">*</span></label><input type="text" class="form-control" id="pd-ownerName" placeholder="Full legal name"></div>
+        <div class="form-group"><label>Date of Birth <span class="required">*</span></label><input type="date" class="form-control" id="pd-ownerDob"></div>
+        <div class="form-group"><label>Home Address (if different from property)</label><input type="text" class="form-control" id="pd-ownerAddress" placeholder="If different from property address"></div>
+        <div class="form-group"><label>Contact Number <span class="required">*</span></label><input type="text" class="form-control" id="pd-ownerPhone"></div>
+        <div class="form-group"><label>Email Address <span class="required">*</span></label><input type="email" class="form-control" id="pd-ownerEmail"></div>
+        <div class="form-group"><label>Management</label>
+          <select class="form-control" id="pd-managementType">
+            <option value="owner">Owner-managed</option>
+            <option value="agent">Managed by letting agent</option>
+            <option value="manager">Property manager appointed</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>Agent / Manager Name &amp; Contact</label><input type="text" class="form-control" id="pd-agentDetails" placeholder="Name, company, contact number"></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-success" onclick="savePropertyDetails()">Save Property Details</button></div>
+  </div>
+
+  <!-- CONDITIONS TAB -->
+  <div class="tab-section" id="tab-conditions">
+    <div class="section-header"><div class="section-title">Mandatory Conditions</div><button class="btn btn-success btn-sm" onclick="saveAllConditions()">Save All</button></div>
+    <div class="ref-box"><strong>All 13 Mandatory Conditions</strong> apply to every STL property in Scotland. Complete each section and upload supporting documents. The report only includes sections you have filled in.</div>
+    <div id="conditionsContainer"></div>
+    <div class="btn-row no-print"><button class="btn btn-success" onclick="saveAllConditions()">Save All Conditions</button></div>
+  </div>
+
+  <!-- DOCUMENTS TAB -->
+  <div class="tab-section" id="tab-documents">
+    <div class="section-header"><div class="section-title">Document Library</div></div>
+    <div class="ref-box">All uploaded certificates and documents are listed here. Click any document to view or download.</div>
+    <div id="documentsLibrary"><div class="spinner"></div></div>
+  </div>
+
+  <!-- REPORT TAB -->
+  <div class="tab-section" id="tab-report">
+    <div class="section-header"><div class="section-title">Compliance Report</div></div>
+    <div class="card no-print">
+      <div class="card-header"><div class="card-title">Generate Report</div></div>
+      <p style="font-size:0.81rem;color:#B8B8B8;margin-bottom:14px;">Generate a complete compliance report covering all 13 conditions plus supporting information. Suitable for council submission. Only completed sections appear.</p>
+      <div class="form-grid">
+        <div class="form-group"><label>Include</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:0.81rem;color:#ccc;text-transform:none;letter-spacing:0;font-weight:400;cursor:pointer;"><input type="checkbox" id="rpt-property" checked style="accent-color:var(--stl);width:15px;height:15px;"> Property Details</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:0.81rem;color:#ccc;text-transform:none;letter-spacing:0;font-weight:400;cursor:pointer;"><input type="checkbox" id="rpt-conditions" checked style="accent-color:var(--stl);width:15px;height:15px;"> All Conditions</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:0.81rem;color:#ccc;text-transform:none;letter-spacing:0;font-weight:400;cursor:pointer;"><input type="checkbox" id="rpt-docs" checked style="accent-color:var(--stl);width:15px;height:15px;"> Document Register</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:0.81rem;color:#ccc;text-transform:none;letter-spacing:0;font-weight:400;cursor:pointer;"><input type="checkbox" id="rpt-sigs" checked style="accent-color:var(--stl);width:15px;height:15px;"> Signature Blocks</label>
+          </div>
+        </div>
+      </div>
+      <div class="btn-row"><button class="btn btn-primary" onclick="printReport()">Print Full Report</button><button class="btn btn-outline" onclick="previewReport()">Preview</button></div>
+    </div>
+  </div>
+
+  <!-- ADMIN TAB -->
+  <div class="tab-section" id="tab-admin">
+    <div class="section-header"><div class="section-title">STL Administration</div></div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Generate New STL Code</div></div>
+      <div class="ref-box">Codes follow the format <strong>STL-{REGION}-{YEAR}-{NNN}</strong>. Issue this code to the property owner and all their contractors. Everyone uses the same code to access their respective module.</div>
+      <div class="codegen-box">
+        <div class="form-grid">
+          <div class="form-group"><label>Council Region</label>
+            <select class="form-control" id="cg-region">
+              <option value="ABD">ABD &mdash; Aberdeen City</option><option value="ABR">ABR &mdash; Aberdeenshire</option>
+              <option value="ANS">ANS &mdash; Angus</option><option value="ARG" selected>ARG &mdash; Argyll &amp; Bute</option>
+              <option value="CLK">CLK &mdash; Clackmannanshire</option><option value="DGA">DGA &mdash; Dumfries &amp; Galloway</option>
+              <option value="DUN">DUN &mdash; Dundee City</option><option value="EAY">EAY &mdash; East Ayrshire</option>
+              <option value="EDN">EDN &mdash; East Dunbartonshire</option><option value="ELO">ELO &mdash; East Lothian</option>
+              <option value="ERW">ERW &mdash; East Renfrewshire</option><option value="EDI">EDI &mdash; City of Edinburgh</option>
+              <option value="FAL">FAL &mdash; Falkirk</option><option value="FIF">FIF &mdash; Fife</option>
+              <option value="GLA">GLA &mdash; Glasgow City</option><option value="HLD">HLD &mdash; Highland</option>
+              <option value="INV">INV &mdash; Inverclyde</option><option value="MLO">MLO &mdash; Midlothian</option>
+              <option value="MOR">MOR &mdash; Moray</option><option value="NAH">NAH &mdash; Na h-Eileanan Siar</option>
+              <option value="NAY">NAY &mdash; North Ayrshire</option><option value="NLN">NLN &mdash; North Lanarkshire</option>
+              <option value="ORK">ORK &mdash; Orkney Islands</option><option value="PER">PER &mdash; Perth &amp; Kinross</option>
+              <option value="RFW">RFW &mdash; Renfrewshire</option><option value="SCB">SCB &mdash; Scottish Borders</option>
+              <option value="SHE">SHE &mdash; Shetland Islands</option><option value="SAY">SAY &mdash; South Ayrshire</option>
+              <option value="SLN">SLN &mdash; South Lanarkshire</option><option value="STI">STI &mdash; Stirling</option>
+              <option value="WDN">WDN &mdash; West Dunbartonshire</option><option value="WLO">WLO &mdash; West Lothian</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Property / Client Name</label><input type="text" class="form-control" id="cg-clientName" placeholder="e.g. Loch View Cottage / J. Smith"></div>
+        </div>
+        <div class="form-group"><label>Internal Notes</label><input type="text" class="form-control" id="cg-notes" placeholder="Any internal notes about this property"></div>
+        <button class="btn btn-primary" onclick="generateCode()">Generate Code</button>
+      </div>
+      <div id="generatedCodeDisplay" style="display:none;">
+        <div class="generated-code" id="generatedCodeText" onclick="copyGeneratedCode()">STL-ARG-2025-001<small>Click to copy</small></div>
+        <div class="alert" id="generatedCodeMsg"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">All STL Properties</div><button class="btn btn-outline btn-sm" onclick="loadAllStlProperties()">Refresh</button></div>
+      <div id="allStlProperties"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+</div><!-- /mainApp -->
+<div id="toast"></div>
+
+
+<script>
+// ================================================
+// CONDITION DEFINITIONS — all 13 + extras
+// ================================================
+const CONDITIONS = [
+  { key:'gas', num:'1', title:'Gas Safety', sub:'Annual gas safety inspection required', module:'SafeGas.PRO', moduleFile:'gas.html', fields:[
+    {id:'gas-certRef',label:'Gas Safe Certificate Number',type:'text',ph:'e.g. CP12-2024-XXXX'},
+    {id:'gas-engineer',label:'Engineer Name',type:'text',ph:'Full name'},
+    {id:'gas-gasNo',label:'Gas Safe Register Number',type:'text',ph:'6-digit number'},
+    {id:'gas-date',label:'Inspection Date',type:'date'},
+    {id:'gas-expiry',label:'Certificate Expiry / Next Due',type:'date'},
+    {id:'gas-outcome',label:'Outcome',type:'select',opts:['Satisfactory','Unsatisfactory','Advisory notices issued']},
+    {id:'gas-notes',label:'Notes',type:'textarea',ph:'Any observations or advisory notices...'}
+  ], doc:'gasCert'},
+  { key:'eicr', num:'2', title:'Electrical Installation (EICR)', sub:'5-year periodic inspection required', module:'SafeSpark.PRO+', moduleFile:'safespark.html', fields:[
+    {id:'eicr-certRef',label:'EICR Certificate Number',type:'text',ph:'e.g. EICR-2024-001'},
+    {id:'eicr-electrician',label:'Electrician Name',type:'text',ph:'Full name'},
+    {id:'eicr-scheme',label:'Competency Scheme',type:'select',opts:['SELECT','NICEIC','NAPIT','Part P','Other']},
+    {id:'eicr-date',label:'Inspection Date',type:'date'},
+    {id:'eicr-nextDue',label:'Next Due (5 years)',type:'date'},
+    {id:'eicr-result',label:'Overall Result',type:'select',opts:['Satisfactory','Unsatisfactory','Requires Further Investigation']},
+    {id:'eicr-notes',label:'Notes / Observations',type:'textarea',ph:'C-codes, observations, remedial work completed...'}
+  ], doc:'eicrCert'},
+  { key:'eet', num:'3', title:'Electrical Equipment Testing (EET)', sub:'Risk-based frequency — annually for most STLs', module:'SafeSpark.PRO+', moduleFile:'safespark.html', fields:[
+    {id:'eet-tester',label:'Tester Name',type:'text',ph:'Full name'},
+    {id:'eet-date',label:'Test Date',type:'date'},
+    {id:'eet-nextDue',label:'Next Due',type:'date'},
+    {id:'eet-items',label:'Items Tested',type:'text',ph:'Number of items tested'},
+    {id:'eet-result',label:'Overall Result',type:'select',opts:['Pass — all items satisfactory','Pass with failures — failed items withdrawn','Fail — action required']},
+    {id:'eet-notes',label:'Notes',type:'textarea',ph:'Failed items, actions taken...'}
+  ], doc:'eetCert'},
+  { key:'fire_detection', num:'4', title:'Fire Detection & CO Alarms', sub:'Smoke & CO detection to required standard', module:'SafeFire.PRO+', moduleFile:'safefire.html', fields:[
+    {id:'fd-smokeAlarms',label:'Smoke Alarm Locations',type:'textarea',ph:'List all smoke alarm locations — every room, hallways, landings'},
+    {id:'fd-coAlarms',label:'CO Alarm Locations',type:'textarea',ph:'List all CO alarm locations — rooms with gas appliances, boiler room'},
+    {id:'fd-heatAlarm',label:'Heat Alarm in Kitchen?',type:'select',opts:['Yes','No','Not applicable']},
+    {id:'fd-interlinked',label:'Alarms Interlinked?',type:'select',opts:['Yes — all interlinked','Partial','No']},
+    {id:'fd-lastTest',label:'Last Test Date',type:'date'},
+    {id:'fd-notes',label:'Notes',type:'textarea',ph:'Make/model of alarms, any faults or replacements...'}
+  ], doc:'fireDetectionDoc', checklist:[
+    'Smoke alarm in every room used for primary purpose (including living rooms)',
+    'Smoke alarm in every hallway and landing',
+    'CO detector in every room with a carbon-fuelled appliance or flue',
+    'Heat alarm fitted in kitchen',
+    'All alarms interlinked (where fitted after Feb 2022)',
+    'All alarms tested and in working order'
+  ]},
+  { key:'fire_safety', num:'5', title:'Fire Safety / Fire Risk Assessment', sub:'FRA required — Fire (Scotland) Act 2005', module:'SafeFire.PRO+', moduleFile:'safefire.html', fields:[
+    {id:'fra-assessor',label:'Assessor Name',type:'text',ph:'Full name'},
+    {id:'fra-assessorOrg',label:'Assessor Organisation',type:'text',ph:'Company name (or Self-assessed)'},
+    {id:'fra-date',label:'Assessment Date',type:'date'},
+    {id:'fra-reviewDate',label:'Next Review Date',type:'date'},
+    {id:'fra-outcome',label:'Outcome',type:'select',opts:['Satisfactory','Adequate with recommendations','Requires significant improvement']},
+    {id:'fra-actions',label:'Open Actions / Recommendations',type:'textarea',ph:'List any open actions from the FRA...'},
+    {id:'fra-notes',label:'Additional Notes',type:'textarea',ph:'Means of escape, fire doors, extinguishers, emergency lighting...'}
+  ], doc:'fraDoc'},
+  { key:'furnishings', num:'6', title:'Fire-Safe Furnishings', sub:'All upholstered furniture must meet fire safety regulations', fields:[
+    {id:'furn-notes',label:'Notes',type:'textarea',ph:'Note any items checked, labels verified, items replaced...'}
+  ], checklist:[
+    'All sofas, armchairs and upholstered furniture carry permanent BS7177 or FIRA label',
+    'All mattresses meet fire resistance standards',
+    'No non-compliant foam furniture present',
+    'All loose covers and fillings comply with Furniture & Furnishings (Fire Safety) Regulations 1988'
+  ]},
+  { key:'repairing', num:'7', title:'Repairing Standard', sub:'Property must meet Housing (Scotland) Act 2006 repairing standard', fields:[
+    {id:'rep-lastCheck',label:'Last Inspection Date',type:'date'},
+    {id:'rep-inspector',label:'Inspected By',type:'text',ph:'Name / company'},
+    {id:'rep-notes',label:'Condition Notes',type:'textarea',ph:'Overall condition, any known defects, works completed...'}
+  ], doc:'repairingDoc', checklist:[
+    'Structure and exterior in reasonable repair',
+    'Roof is wind and watertight',
+    'Plumbing, drainage and sanitary fittings in working order',
+    'Space and water heating systems in reasonable condition',
+    'All fixtures, fittings and appliances in safe working order',
+    'Free from dampness prejudicial to health'
+  ]},
+  { key:'occupancy', num:'8', title:'Maximum Occupancy', sub:'Occupancy limit must be set and not exceeded', fields:[
+    {id:'occ-max',label:'Maximum Occupancy (guests)',type:'text',ph:'e.g. 6'},
+    {id:'occ-basis',label:'Basis for Occupancy Limit',type:'text',ph:'e.g. 3 bedrooms x 2 = 6'},
+    {id:'occ-displayed',label:'Displayed to Guests?',type:'select',opts:['Yes — in property and on listing','Yes — in property only','Not yet displayed']},
+    {id:'occ-notes',label:'Notes',type:'textarea',ph:''}
+  ]},
+  { key:'guest_info', num:'9', title:'Guest Information Displayed', sub:'Required information must be accessible to all guests within the premises', fields:[
+    {id:'gi-location',label:'Where is the information displayed?',type:'text',ph:'e.g. Welcome folder, notice board in hallway'},
+    {id:'gi-notes',label:'Notes',type:'textarea',ph:''}
+  ], checklist:[
+    'Certified copy of the licence and licence conditions',
+    'Emergency contact number (owner/manager)',
+    'Emergency services — fire, police, ambulance procedures',
+    'Fire evacuation plan and assembly point',
+    'Location of fire extinguishers / fire blanket',
+    'Location of gas/electricity meter and isolation valves',
+    'WiFi password and any appliance instructions',
+    'Local information (bins, parking, noise)',
+    'Gas safety record (on request)',
+    'Safety instructions for any mobile gas heater'
+  ]},
+  { key:'epc', num:'10', title:'Energy Performance Certificate (EPC)', sub:'Valid EPC required — included in all commercial advertisements', fields:[
+    {id:'epc-rating',label:'EPC Rating',type:'select',opts:['A','B','C','D','E','F','G']},
+    {id:'epc-assessor',label:'Assessor Name',type:'text',ph:'Full name'},
+    {id:'epc-assessorNo',label:'Assessor Accreditation Number',type:'text',ph:'RRN or accreditation number'},
+    {id:'epc-date',label:'EPC Issue Date',type:'date'},
+    {id:'epc-expiry',label:'EPC Expiry (10 years)',type:'date'},
+    {id:'epc-notes',label:'Notes',type:'textarea',ph:'Any improvement works planned to raise rating...'}
+  ], doc:'epcDoc'},
+  { key:'legionella', num:'11', title:'Legionella Risk Assessment', sub:'Required regardless of water supply type', module:'SafeWater.PRO Legionella', moduleFile:'safewater-legionella.html', fields:[
+    {id:'leg-assessedBy',label:'Assessment Carried Out By',type:'text',ph:'Name (can be owner — professional not required)'},
+    {id:'leg-date',label:'Assessment Date',type:'date'},
+    {id:'leg-reviewDate',label:'Next Review Date',type:'date'},
+    {id:'leg-outcome',label:'Outcome',type:'select',opts:['Low risk — no action required','Low risk — minor controls recommended','Further investigation required']},
+    {id:'leg-controls',label:'Control Measures in Place',type:'textarea',ph:'e.g. Regular flushing, temperature control, showerhead descaling...'},
+    {id:'leg-notes',label:'Notes',type:'textarea',ph:''}
+  ], doc:'legDoc'},
+  { key:'pws', num:'12', title:'Private Water Supply', sub:'If the property has a private water supply — PWS Regulations 2017', module:'SafeWater.PRO (PWS)', moduleFile:'oban-water-management-system.html', fields:[
+    {id:'pws-applies',label:'Does this property have a private water supply?',type:'select',opts:['No — mains water supply only','Yes — private supply (borehole, spring, well etc)']},
+    {id:'pws-type',label:'Supply Type',type:'text',ph:'e.g. Borehole, spring, private reservoir'},
+    {id:'pws-lastTest',label:'Last Water Quality Test Date',type:'date'},
+    {id:'pws-outcome',label:'Test Outcome',type:'select',opts:['Satisfactory — meets parameters','Advisory — minor exceedances','Unsatisfactory — remedial action required','Not yet tested']},
+    {id:'pws-riskAssessment',label:'Risk Assessment Date',type:'date'},
+    {id:'pws-notes',label:'Notes',type:'textarea',ph:'Treatment systems, filtration, testing frequency...'}
+  ], doc:'pwsDoc'},
+  { key:'planning', num:'13', title:'Planning Permission', sub:'Required if in a designated short-term let control area', fields:[
+    {id:'plan-required',label:'Is planning permission required?',type:'select',opts:['Not applicable — not in a control area','Not required — pre-existing use','Yes — planning permission granted','Yes — application submitted and pending']},
+    {id:'plan-ref',label:'Planning Reference Number',type:'text',ph:'e.g. 24/00123/FUL'},
+    {id:'plan-grantedDate',label:'Permission Granted Date',type:'date'},
+    {id:'plan-notes',label:'Notes',type:'textarea',ph:''}
+  ], doc:'planningDoc'},
+  { key:'insurance', num:'+A', title:'Public Liability Insurance', sub:'Strongly recommended — required by most councils', fields:[
+    {id:'ins-insurer',label:'Insurer',type:'text',ph:'Insurance company name'},
+    {id:'ins-policyNo',label:'Policy Number',type:'text',ph:'Policy reference number'},
+    {id:'ins-cover',label:'Level of Cover',type:'text',ph:'e.g. £2,000,000 public liability'},
+    {id:'ins-start',label:'Policy Start Date',type:'date'},
+    {id:'ins-expiry',label:'Policy Expiry Date',type:'date'},
+    {id:'ins-notes',label:'Notes',type:'textarea',ph:''}
+  ], doc:'insuranceDoc'},
+  { key:'hmo', num:'+B', title:'HMO Licence (if applicable)', sub:'Required if property is let to 3+ unrelated persons', fields:[
+    {id:'hmo-applies',label:'Does this property require an HMO licence?',type:'select',opts:['No — not applicable','Yes — HMO licence held','Yes — application in progress','Unsure — checking with council']},
+    {id:'hmo-ref',label:'HMO Licence Reference',type:'text',ph:'Licence number'},
+    {id:'hmo-expiry',label:'HMO Licence Expiry',type:'date'},
+    {id:'hmo-notes',label:'Notes',type:'textarea',ph:''}
+  ], doc:'hmoDoc'}
+];
+
+// ================================================
+// STATE
+// ================================================
+let db = null;
+let currentUser = { name:'', code:'', level:'admin' };
+let propData = {};
+let condData = {};
+let docStore = {};
+const MASTER_CODE = 'CQR365SPP25';
+
+// ================================================
+// FIREBASE INIT
+// ================================================
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof firebase !== 'undefined') {
+    try { db = firebase.firestore(); } catch(e) {}
+  }
+  // Auto-login from URL param or sessionStorage
+  const params = new URLSearchParams(window.location.search);
+  const code = (params.get('access_code') || params.get('code') || sessionStorage.getItem('currentAccessCode') || '').toUpperCase();
+  if (code) attemptLogin(code);
+  // postMessage passthrough from index.html
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'safecore-auth-success') {
+      const c = (e.data.accessCode || '').toUpperCase();
+      if (c && !currentUser.code) attemptLogin(c);
+    }
+  });
+});
+
+// ================================================
+// AUTH
+// ================================================
+async function handleLogin() {
+  const code = (document.getElementById('loginCode').value || '').trim().toUpperCase();
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+  if (!code) { showLoginError('Please enter your access code.'); return; }
+  await attemptLogin(code);
+}
+
+async function attemptLogin(code) {
+  if (code === MASTER_CODE) {
+    // Master admin — can see all STL properties
+    currentUser = { name:'Stephen — Omnibosh', code:MASTER_CODE, level:'master_admin' };
+    sessionStorage.setItem('currentAccessCode', code);
+    enterApp(code);
+    return;
+  }
+  // Check Firestore for STL code
+  if (!db) { showLoginError('Database not available. Check connection.'); return; }
+  try {
+    const snap = await db.collection('stl_properties').doc(code).get();
+    if (!snap.exists) { showLoginError('Access code not recognised. Check the code and try again.'); return; }
+    const d = snap.data();
+    if (d.status === 'inactive') { showLoginError('This access code has been deactivated. Contact Omnibosh Safety Solutions.'); return; }
+    currentUser = { name: d.clientName || 'Property User', code, level:'stl_user', propertyName: d.propertyName || '' };
+    sessionStorage.setItem('currentAccessCode', code);
+    propData = d.propertyDetails || {};
+    condData = d.conditions || {};
+    enterApp(code);
+  } catch(e) { showLoginError('Connection error. Please try again.'); }
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+function enterApp(code) {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  document.getElementById('userDisplay').textContent = currentUser.name;
+  document.getElementById('codeDisplay').textContent = code;
+  document.getElementById('shareUrl').textContent = window.location.origin + window.location.pathname + '?access_code=' + code;
+  document.getElementById('shareCode').textContent = code;
+  if (currentUser.level === 'master_admin') {
+    document.getElementById('nav-admin').style.display = 'block';
+    document.getElementById('propNameDisplay').textContent = 'Master Admin — Omnibosh Safety Solutions';
+    loadAllStlProperties();
+  } else {
+    document.getElementById('propNameDisplay').textContent = currentUser.propertyName || 'Short-Term Let Licensing';
+    loadPropertyData(code);
+  }
+  buildConditions();
+  buildModuleLaunches(code);
+  buildRagGrid();
+  showTab('dashboard');
+}
+
+function handleSignOut() {
+  if (confirm('Sign out of STL Property Passport?')) {
+    sessionStorage.removeItem('currentAccessCode');
+    currentUser = { name:'', code:'', level:'admin' };
+    propData = {}; condData = {}; docStore = {};
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('mainApp').style.display = 'none';
+    document.getElementById('loginCode').value = '';
+  }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && document.getElementById('loginScreen').style.display !== 'none') handleLogin(); });
+
+// ================================================
+// NAVIGATION
+// ================================================
+function showTab(tab) {
+  document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('nav-' + tab).classList.add('active');
+  if (tab === 'dashboard') buildRagGrid();
+  if (tab === 'documents') buildDocLibrary();
+  if (tab === 'admin' && currentUser.level === 'master_admin') loadAllStlProperties();
+}
+
+// ================================================
+// PROPERTY DATA LOAD / SAVE
+// ================================================
+async function loadPropertyData(code) {
+  if (!db) return;
+  try {
+    const snap = await db.collection('stl_properties').doc(code).get();
+    if (snap.exists) {
+      const d = snap.data();
+      propData = d.propertyDetails || {};
+      condData = d.conditions || {};
+      docStore = d.documents || {};
+      populatePropertyForm();
+      populateConditionData();
+      buildRagGrid();
+      if (propData['pd-propName']) {
+        document.getElementById('propNameDisplay').textContent = propData['pd-propName'];
+      }
+    }
+  } catch(e) { console.warn('Load error:', e); }
+}
+
+function populatePropertyForm() {
+  Object.keys(propData).forEach(k => {
+    const el = document.getElementById(k);
+    if (el) el.value = propData[k] || '';
+  });
+}
+
+async function savePropertyDetails() {
+  const fields = ['pd-propName','pd-propType','pd-address','pd-council','pd-licenceType',
+    'pd-bedrooms','pd-occupancy','pd-controlArea','pd-ownerName','pd-ownerDob',
+    'pd-ownerAddress','pd-ownerPhone','pd-ownerEmail','pd-managementType','pd-agentDetails'];
+  fields.forEach(f => { const el = document.getElementById(f); if (el) propData[f] = el.value; });
+  if (propData['pd-propName']) document.getElementById('propNameDisplay').textContent = propData['pd-propName'];
+  await saveToFirestore();
+  showToast('Property details saved.');
+}
+
+// ================================================
+// CONDITION BUILDER
+// ================================================
+function buildConditions() {
+  const container = document.getElementById('conditionsContainer');
+  if (!container) return;
+  container.innerHTML = CONDITIONS.map(c => buildConditionCard(c)).join('');
+}
+
+function buildConditionCard(c) {
+  const fields = (c.fields || []).map(f => {
+    const id = f.id;
+    if (f.type === 'select') {
+      return `<div class="form-group"><label>${f.label}</label><select class="form-control cond-field" id="${id}" data-key="${c.key}" data-field="${id}">
+        ${f.opts.map(o => `<option value="${o}">${o}</option>`).join('')}</select></div>`;
+    } else if (f.type === 'textarea') {
+      return `<div class="form-group"><label>${f.label}</label><textarea class="form-control cond-field" id="${id}" data-key="${c.key}" data-field="${id}" rows="2" placeholder="${f.ph||''}" oninput="autoSaveCondField(this)"></textarea></div>`;
+    } else {
+      return `<div class="form-group"><label>${f.label}</label><input type="${f.type}" class="form-control cond-field" id="${id}" data-key="${c.key}" data-field="${id}" placeholder="${f.ph||''}" oninput="autoSaveCondField(this)"></div>`;
+    }
+  }).join('');
+
+  const checklist = (c.checklist || []).map((item,i) =>
+    `<li><input type="checkbox" id="${c.key}-chk-${i}" data-key="${c.key}" data-chk="${i}" onchange="autoSaveCondField(this)"> ${item}</li>`
+  ).join('');
+
+  const docSection = c.doc ? `
+    <div class="form-group">
+      <label>Upload Document / Certificate</label>
+      <div class="doc-upload-zone" id="duz-${c.key}">
+        <div class="doc-placeholder">
+          <div class="doc-type-icon">DOC</div>
+          <div class="doc-upload-text">No document uploaded</div>
+          <label class="btn btn-outline btn-sm" style="cursor:pointer;margin-top:8px;">
+            Select File
+            <input type="file" accept=".pdf,image/*" style="display:none;" onchange="handleDocUpload(this,'${c.key}','${c.doc}')">
+          </label>
+        </div>
+        <div class="doc-preview" id="dprev-${c.key}">
+          <div class="doc-info">
+            <div class="doc-filetype" id="dft-${c.key}">PDF</div>
+            <div><div class="doc-filename" id="dfn-${c.key}">document.pdf</div><div class="doc-filesize" id="dfs-${c.key}"></div></div>
+          </div>
+          <div class="doc-actions">
+            <button class="btn btn-outline btn-sm" onclick="viewDoc('${c.key}')">View</button>
+            <button class="btn btn-outline btn-sm" onclick="downloadDoc('${c.key}')">Download</button>
+            <button class="btn btn-danger btn-sm" onclick="removeDoc('${c.key}')">Remove</button>
+          </div>
+        </div>
+      </div>
+    </div>` : '';
+
+  const moduleBtn = c.module ? `
+    <div class="ref-box" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div><strong>Linked Module:</strong> ${c.module} — contractors use the same access code to update this section.</div>
+      <button class="btn btn-outline btn-sm no-print" onclick="launchModule('${c.moduleFile}')">Open ${c.module}</button>
+    </div>` : '';
+
+  return `
+    <div class="condition-card" id="cc-${c.key}">
+      <div class="condition-header" onclick="toggleCondition('${c.key}')">
+        <div class="condition-num">${c.num}</div>
+        <div class="condition-title-wrap">
+          <div class="condition-title">${c.title}</div>
+          <div class="condition-subtitle">${c.sub}</div>
+        </div>
+        <div class="condition-rag grey" id="crag-${c.key}"></div>
+        <div class="condition-chevron">&#9660;</div>
+      </div>
+      <div class="condition-body">
+        <div class="status-row">
+          <button class="status-btn ns" id="cst-ns-${c.key}" onclick="setCondStatus('${c.key}','not_started')">Not Started</button>
+          <button class="status-btn ip" id="cst-ip-${c.key}" onclick="setCondStatus('${c.key}','in_progress')">In Progress</button>
+          <button class="status-btn done" id="cst-done-${c.key}" onclick="setCondStatus('${c.key}','complete')">Complete</button>
+          <button class="status-btn na" id="cst-na-${c.key}" onclick="setCondStatus('${c.key}','not_applicable')">N/A</button>
+        </div>
+        ${moduleBtn}
+        <div class="form-grid">${fields}</div>
+        ${checklist ? `<hr class="divider"><div style="font-family:'Orbitron',monospace;font-size:0.72rem;color:var(--stl-light);margin-bottom:10px;letter-spacing:1px;">CHECKLIST</div><ul class="checklist">${checklist}</ul>` : ''}
+        ${docSection}
+        <div class="form-group" style="margin-top:10px;">
+          <label>Additional Notes</label>
+          <textarea class="form-control cond-field" id="${c.key}-addnotes" data-key="${c.key}" data-field="${c.key}-addnotes" rows="2" placeholder="Any additional notes for this condition..." oninput="autoSaveCondField(this)"></textarea>
+        </div>
+      </div>
+    </div>`;
+}
+
+function toggleCondition(key) {
+  const card = document.getElementById('cc-' + key);
+  card.classList.toggle('open');
+}
+
+function setCondStatus(key, status) {
+  if (!condData[key]) condData[key] = {};
+  condData[key].status = status;
+  ['ns','ip','done','na'].forEach(s => document.getElementById('cst-' + s + '-' + key)?.classList.remove('active'));
+  const map = {not_started:'ns', in_progress:'ip', complete:'done', not_applicable:'na'};
+  document.getElementById('cst-' + map[status] + '-' + key)?.classList.add('active');
+  updateCondRag(key, status);
+  debounceSave();
+}
+
+function updateCondRag(key, status) {
+  const el = document.getElementById('crag-' + key);
+  if (!el) return;
+  el.className = 'condition-rag';
+  if (status === 'complete') el.classList.add('green');
+  else if (status === 'in_progress') el.classList.add('amber');
+  else if (status === 'not_applicable') { el.style.background = '#6c757d'; el.style.color = '#6c757d'; el.style.boxShadow = 'none'; }
+  else el.classList.add('grey');
+}
+
+function autoSaveCondField(el) {
+  const key = el.dataset.key;
+  const field = el.dataset.field || (el.dataset.chk !== undefined ? key + '-chk-' + el.dataset.chk : null);
+  if (!key) return;
+  if (!condData[key]) condData[key] = {};
+  if (el.type === 'checkbox') {
+    condData[key]['chk_' + el.dataset.chk] = el.checked;
+  } else {
+    condData[key][field] = el.value;
+  }
+  debounceSave();
+}
+
+function populateConditionData() {
+  CONDITIONS.forEach(c => {
+    const d = condData[c.key] || {};
+    // Status
+    if (d.status) setCondStatus(c.key, d.status);
+    // Fields
+    c.fields.forEach(f => {
+      const el = document.getElementById(f.id);
+      if (el && d[f.id]) el.value = d[f.id];
+    });
+    // Checklists
+    (c.checklist || []).forEach((_, i) => {
+      const el = document.getElementById(c.key + '-chk-' + i);
+      if (el && d['chk_' + i]) el.checked = d['chk_' + i];
+    });
+    // Add notes
+    const an = document.getElementById(c.key + '-addnotes');
+    if (an && d[c.key + '-addnotes']) an.value = d[c.key + '-addnotes'];
+    // Documents
+    if (docStore[c.key]) renderDocPreview(c.key, docStore[c.key]);
+  });
+}
+
+// ================================================
+// SAVE / DEBOUNCE
+// ================================================
+let saveTimer = null;
+function debounceSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveAllConditions, 2000);
+}
+
+async function saveAllConditions() {
+  // Collect any unsaved field data
+  document.querySelectorAll('.cond-field').forEach(el => {
+    const key = el.dataset.key;
+    const field = el.dataset.field;
+    if (!key || !field) return;
+    if (!condData[key]) condData[key] = {};
+    condData[key][field] = el.type === 'checkbox' ? el.checked : el.value;
+  });
+  await saveToFirestore();
+  showToast('Conditions saved.');
+  buildRagGrid();
+}
+
+async function saveToFirestore() {
+  if (!db || !currentUser.code || currentUser.level === 'master_admin') return;
+  try {
+    await db.collection('stl_properties').doc(currentUser.code).update({
+      propertyDetails: propData,
+      conditions: condData,
+      documents: docStore,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch(e) { console.warn('Save error:', e); }
+}
+
+// ================================================
+// DOCUMENT UPLOAD
+// ================================================
+function handleDocUpload(input, key, docKey) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  if (file.size > 8 * 1024 * 1024) { showToast('File too large — maximum 8MB.'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    if (!isPdf && file.type.startsWith('image/')) {
+      compressImage(e.target.result, 1400, 0.85, compressed => {
+        docStore[key] = { dataUrl: compressed, fileName: file.name, fileType:'image', fileSize: formatFileSize(file.size) };
+        renderDocPreview(key, docStore[key]);
+        debounceSave();
+      });
+    } else {
+      docStore[key] = { dataUrl: e.target.result, fileName: file.name, fileType:'pdf', fileSize: formatFileSize(file.size) };
+      renderDocPreview(key, docStore[key]);
+      debounceSave();
+    }
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function renderDocPreview(key, doc) {
+  const zone = document.getElementById('duz-' + key);
+  if (!zone) return;
+  const ph = zone.querySelector('.doc-placeholder');
+  const pv = document.getElementById('dprev-' + key);
+  if (!ph || !pv) return;
+  ph.style.display = 'none';
+  pv.classList.add('visible');
+  const ft = document.getElementById('dft-' + key);
+  const fn = document.getElementById('dfn-' + key);
+  const fs = document.getElementById('dfs-' + key);
+  if (ft) ft.textContent = doc.fileType === 'pdf' ? 'PDF' : 'IMG';
+  if (fn) fn.textContent = doc.fileName || 'document';
+  if (fs) fs.textContent = (doc.fileSize || '') + ' — stored';
+}
+
+function viewDoc(key) {
+  const d = docStore[key]; if (!d) return;
+  if (d.fileType === 'pdf') {
+    const w = window.open('');
+    w.document.write('<html><head><title>' + d.fileName + '</title></head><body style="margin:0;background:#111;"><embed src="' + d.dataUrl + '" type="application/pdf" width="100%" height="100%" style="position:fixed;top:0;left:0;width:100%;height:100%;"></body></html>');
+    w.document.close();
+  } else {
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.95);z-index:9998;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;';
+    ov.innerHTML = '<div style="color:#B8B8B8;font-family:Orbitron,monospace;font-size:0.7rem;letter-spacing:2px;margin-bottom:12px;">' + d.fileName + '</div><img src="' + d.dataUrl + '" style="max-width:100%;max-height:80vh;border-radius:6px;"><button onclick="this.parentNode.remove()" style="margin-top:16px;background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);color:var(--stl-light);padding:10px 24px;border-radius:8px;font-family:Orbitron,monospace;font-size:0.7rem;cursor:pointer;letter-spacing:1px;">CLOSE</button>';
+    ov.onclick = e => { if (e.target === ov) ov.remove(); };
+    document.body.appendChild(ov);
+  }
+}
+
+function downloadDoc(key) {
+  const d = docStore[key]; if (!d) return;
+  const a = document.createElement('a'); a.href = d.dataUrl; a.download = d.fileName; a.click();
+}
+
+function removeDoc(key) {
+  if (!confirm('Remove this document?')) return;
+  delete docStore[key];
+  const zone = document.getElementById('duz-' + key);
+  if (zone) { zone.querySelector('.doc-placeholder').style.display = 'flex'; const pv = document.getElementById('dprev-' + key); if (pv) pv.classList.remove('visible'); }
+  debounceSave();
+}
+
+function compressImage(dataUrl, maxW, q, cb) {
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    let w = img.width, h = img.height;
+    if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    cb(canvas.toDataURL('image/jpeg', q));
+  };
+  img.src = dataUrl;
+}
+
+// ================================================
+// RAG GRID
+// ================================================
+function buildRagGrid() {
+  const grid = document.getElementById('ragGrid');
+  if (!grid) return;
+  let complete = 0, total = 0;
+  grid.innerHTML = CONDITIONS.map(c => {
+    const d = condData[c.key] || {};
+    const status = d.status || 'not_started';
+    let dotCls = 'grey', statusLabel = 'Not Started', statusCls = 'not-started';
+    if (status === 'complete') { dotCls = 'green'; statusLabel = 'Complete'; statusCls = 'complete'; complete++; total++; }
+    else if (status === 'in_progress') { dotCls = 'amber'; statusLabel = 'In Progress'; statusCls = 'in-progress'; total++; }
+    else if (status === 'not_applicable') { dotCls = 'grey'; statusLabel = 'N/A'; statusCls = 'na'; complete++; total++; }
+    else { total++; }
+    return `<div class="rag-tile" onclick="showTab('conditions');setTimeout(()=>toggleCondition('${c.key}'),100)">
+      <div class="rag-dot ${dotCls}"></div>
+      <div class="rag-label">${c.num}. ${c.title}</div>
+      <div class="rag-status ${statusCls}">${statusLabel}</div>
+    </div>`;
+  }).join('');
+  const pct = total > 0 ? Math.round((complete / total) * 100) : 0;
+  const pctEl = document.getElementById('readinessPct');
+  const barEl = document.getElementById('readinessBar');
+  const msgEl = document.getElementById('readinessMsg');
+  if (pctEl) pctEl.textContent = pct + '%';
+  if (barEl) barEl.style.width = pct + '%';
+  if (msgEl) {
+    if (pct === 100) msgEl.textContent = 'All conditions complete — ready to submit application.';
+    else if (pct >= 75) msgEl.textContent = 'Almost there — ' + (total - complete) + ' condition(s) remaining.';
+    else if (pct > 0) msgEl.textContent = complete + ' of ' + total + ' conditions complete.';
+    else msgEl.textContent = 'Complete all mandatory conditions to submit your licence application.';
+  }
+}
+
+// ================================================
+// MODULE LAUNCHES
+// ================================================
+function buildModuleLaunches(code) {
+  const modules = [
+    { name:'SafeSpark.PRO+', sub:'EICR + EET + Equipment', file:'safespark.html', col:'#00d4ff' },
+    { name:'SafeFire.PRO+', sub:'FRA + Fire Detection', file:'safefire.html', col:'#f492f0' },
+    { name:'SafeGas.PRO', sub:'Gas Safety Certificates', file:'gas.html', col:'#0dcaf0' },
+    { name:'SafeWater.PRO (HT)', sub:'Hot Tub Management', file:'hot-tub.html', col:'#0dcaf0' },
+    { name:'SafeWater.PRO Legionella', sub:'Legionella Risk Assessment', file:'safewater-legionella.html', col:'#4A90E2' },
+    { name:'SafeWater.PRO (PWS)', sub:'Private Water Supply', file:'oban-water-management-system.html', col:'#0dcaf0' }
+  ];
+  const container = document.getElementById('moduleLaunches');
+  if (!container) return;
+  container.innerHTML = modules.map(m =>
+    `<div class="module-launch-btn" onclick="launchModule('${m.file}')">
+      <div><div class="mod-name" style="color:${m.col};">${m.name}</div><div class="mod-sub">${m.sub}</div></div>
+      <div class="mod-arrow">&#8594;</div>
+    </div>`
+  ).join('');
+}
+
+function launchModule(file) {
+  const code = currentUser.code;
+  const base = window.location.href.split('/').slice(0,-1).join('/');
+  window.open(base + '/' + file + '?access_code=' + code, '_blank');
+}
+
+// ================================================
+// DOCUMENT LIBRARY TAB
+// ================================================
+function buildDocLibrary() {
+  const el = document.getElementById('documentsLibrary');
+  if (!el) return;
+  const docs = CONDITIONS.filter(c => c.doc && docStore[c.key]);
+  if (!docs.length) { el.innerHTML = '<div class="empty-state"><p>No documents uploaded yet. Upload certificates in the Conditions tab.</p></div>'; return; }
+  el.innerHTML = '<div class="card"><div class="table-wrapper"><table><thead><tr><th>#</th><th>Condition</th><th>Document</th><th>Type</th><th>Actions</th></tr></thead><tbody>' +
+    docs.map(c => {
+      const d = docStore[c.key];
+      return `<tr>
+        <td style="font-family:'Orbitron',monospace;font-size:0.72rem;color:var(--stl-light);">${c.num}</td>
+        <td>${c.title}</td>
+        <td style="font-size:0.78rem;">${d.fileName || '-'}</td>
+        <td><span class="badge ${d.fileType === 'pdf' ? 'badge-active' : 'badge-inactive'}">${(d.fileType||'').toUpperCase()}</span></td>
+        <td>
+          <button class="btn btn-outline btn-sm" onclick="viewDoc('${c.key}')">View</button>
+          <button class="btn btn-outline btn-sm" onclick="downloadDoc('${c.key}')">Download</button>
+        </td>
+      </tr>`;
+    }).join('') +
+    '</tbody></table></div></div>';
+}
+
+// ================================================
+// ADMIN — CODE GENERATOR
+// ================================================
+async function generateCode() {
+  const region = document.getElementById('cg-region').value;
+  const clientName = document.getElementById('cg-clientName').value.trim();
+  const notes = document.getElementById('cg-notes').value.trim();
+  if (!region) { showToast('Select a council region.'); return; }
+  if (!db) { showToast('Database not available.'); return; }
+  const year = new Date().getFullYear();
+  // Find next sequence number for this region+year
+  let seq = 1;
+  try {
+    const snap = await db.collection('stl_properties')
+      .where('region', '==', region)
+      .where('year', '==', year)
+      .get();
+    seq = snap.size + 1;
+  } catch(e) {}
+  const code = 'STL-' + region + '-' + year + '-' + String(seq).padStart(3, '0');
+  // Save to Firestore
+  try {
+    await db.collection('stl_properties').doc(code).set({
+      code, region, year, seq,
+      clientName: clientName || 'Not specified',
+      propertyName: clientName || '',
+      notes,
+      status: 'active',
+      propertyDetails: {},
+      conditions: {},
+      documents: {},
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy: 'CQR365SPP25'
+    });
+    const dispEl = document.getElementById('generatedCodeDisplay');
+    const codeEl = document.getElementById('generatedCodeText');
+    const msgEl = document.getElementById('generatedCodeMsg');
+    codeEl.innerHTML = code + '<small>Click to copy</small>';
+    msgEl.className = 'alert alert-success';
+    msgEl.textContent = 'Code created and saved. Issue this code to ' + (clientName || 'the property owner') + ' and all contractors.';
+    dispEl.style.display = 'block';
+    loadAllStlProperties();
+    document.getElementById('cg-clientName').value = '';
+    document.getElementById('cg-notes').value = '';
+    showToast('Code ' + code + ' generated.');
+  } catch(e) { showToast('Error saving code: ' + e.message); }
+}
+
+function copyGeneratedCode() {
+  const code = document.getElementById('generatedCodeText').textContent.split('\n')[0].trim();
+  navigator.clipboard.writeText(code).then(() => showToast('Code copied: ' + code));
+}
+
+async function loadAllStlProperties() {
+  const el = document.getElementById('allStlProperties');
+  if (!el || !db) return;
+  el.innerHTML = '<div class="spinner"></div>';
+  try {
+    const snap = await db.collection('stl_properties').orderBy('createdAt', 'desc').get();
+    if (snap.empty) { el.innerHTML = '<div class="empty-state"><p>No STL properties created yet.</p></div>'; return; }
+    const props = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    el.innerHTML = '<div class="table-wrapper"><table><thead><tr><th>Code</th><th>Client / Property</th><th>Region</th><th>Year</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead><tbody>' +
+      props.map(p => `<tr>
+        <td style="font-family:'Orbitron',monospace;font-size:0.76rem;color:var(--stl-light);letter-spacing:1px;">${p.code}</td>
+        <td>${p.clientName || '-'}</td>
+        <td>${p.region || '-'}</td>
+        <td>${p.year || '-'}</td>
+        <td><span class="badge badge-${p.status === 'active' ? 'active' : 'inactive'}">${p.status || 'active'}</span></td>
+        <td style="font-size:0.74rem;">${p.createdAt ? new Date(p.createdAt.seconds * 1000).toLocaleDateString('en-GB') : '-'}</td>
+        <td>
+          <button class="btn btn-outline btn-sm" onclick="viewProperty('${p.code}')">View</button>
+          <button class="btn btn-danger btn-sm" onclick="deactivateCode('${p.code}')">Deactivate</button>
+        </td>
+      </tr>`).join('') +
+      '</tbody></table></div>';
+  } catch(e) { el.innerHTML = '<div class="empty-state"><p>Error loading properties: ' + e.message + '</p></div>'; }
+}
+
+function viewProperty(code) {
+  window.open(window.location.origin + window.location.pathname + '?access_code=' + code, '_blank');
+}
+
+async function deactivateCode(code) {
+  if (!confirm('Deactivate code ' + code + '? The property owner will no longer be able to access the passport.')) return;
+  await db.collection('stl_properties').doc(code).update({ status: 'inactive' });
+  loadAllStlProperties(); showToast('Code deactivated.');
+}
+
+// ================================================
+// REPORT
+// ================================================
+function printReport() {
+  const html = buildReport();
+  if (!html) return;
+  document.getElementById('printArea').innerHTML = html;
+  document.body.classList.add('printing-report');
+  window.print();
+  setTimeout(() => { document.body.classList.remove('printing-report'); document.getElementById('printArea').innerHTML = ''; }, 1000);
+}
+
+function previewReport() {
+  const html = buildReport();
+  if (!html) return;
+  const w = window.open('', '_blank');
+  w.document.write('<!DOCTYPE html><html><head><title>STL Compliance Report</title>' + getReportStyles() + '</head><body>' + html + '</body></html>');
+  w.document.close();
+}
+
+function getReportStyles() {
+  return `<style>
+    body{font-family:Arial,sans-serif;margin:30px;color:#111;font-size:11px;}
+    h1{color:#5b21b6;font-size:18px;margin-bottom:4px;}
+    h2{color:#5b21b6;font-size:12px;border-left:4px solid #5b21b6;padding-left:8px;margin:16px 0 8px;}
+    h3{font-size:11px;color:#333;margin:10px 0 5px;}
+    table{width:100%;border-collapse:collapse;margin:8px 0;font-size:10px;}
+    th{background:#ede9fe;color:#5b21b6;padding:5px 8px;border:1px solid #c4b5fd;text-align:left;}
+    td{padding:5px 8px;border:1px solid #e5e7eb;}
+    tr:nth-child(even) td{background:#faf5ff;}
+    .complete{color:#15803d;font-weight:bold;}
+    .in-progress{color:#b45309;font-weight:bold;}
+    .not-started{color:#6b7280;}
+    .badge{display:inline-block;padding:2px 8px;border-radius:8px;font-size:9px;font-weight:bold;}
+    .badge-complete{background:#d1fae5;color:#065f46;}
+    .badge-progress{background:#fef3c7;color:#92400e;}
+    .badge-ns{background:#f3f4f6;color:#6b7280;}
+    .section{margin-bottom:20px;padding:14px;border:1px solid #ddd;border-radius:6px;page-break-inside:avoid;}
+    .sig-block{border-top:1px solid #333;margin-top:50px;padding-top:6px;font-size:9px;color:#666;}
+    .header-bar{border-bottom:3px solid #5b21b6;padding-bottom:12px;margin-bottom:20px;display:flex;justify-content:space-between;}
+    .doc-row{background:#faf5ff;padding:6px 10px;border:1px solid #e5e7eb;border-radius:4px;margin:4px 0;font-size:10px;}
+  </style>`;
+}
+
+function buildReport() {
+  const incProp = document.getElementById('rpt-property')?.checked;
+  const incCond = document.getElementById('rpt-conditions')?.checked;
+  const incDocs = document.getElementById('rpt-docs')?.checked;
+  const incSigs = document.getElementById('rpt-sigs')?.checked;
+  const propName = propData['pd-propName'] || 'Property Name Not Set';
+  const ownerName = propData['pd-ownerName'] || '-';
+  let html = `<div class="header-bar">
+    <div><h1>STL PROPERTY COMPLIANCE PASSPORT</h1>
+    <div style="font-size:10px;color:#555;">Scottish Licensing Order 2022 &middot; SafeSystems.PRO &middot; Omnibosh Safety Solutions Ltd</div></div>
+    <div style="text-align:right;font-size:10px;color:#888;"><strong>${propName}</strong><br>Code: ${currentUser.code}<br>Generated: ${new Date().toLocaleDateString('en-GB')}</div>
+  </div>`;
+
+  if (incProp) {
+    html += '<h2>1. PROPERTY DETAILS</h2><div class="section"><table><tbody>';
+    const rows = [
+      ['Property Name', propData['pd-propName']],
+      ['Property Type', propData['pd-propType']],
+      ['Address', propData['pd-address']],
+      ['Local Authority', propData['pd-council']],
+      ['Licence Type', propData['pd-licenceType']],
+      ['Bedrooms', propData['pd-bedrooms']],
+      ['Maximum Occupancy', propData['pd-occupancy']],
+      ['Planning Control Area', propData['pd-controlArea']],
+      ['Owner / Duty Holder', propData['pd-ownerName']],
+      ['Owner Date of Birth', propData['pd-ownerDob']],
+      ['Contact Number', propData['pd-ownerPhone']],
+      ['Email', propData['pd-ownerEmail']],
+      ['Management', propData['pd-managementType']],
+      ['Agent / Manager', propData['pd-agentDetails']]
+    ];
+    rows.forEach(([k,v]) => { if (v) html += `<tr><td style="width:40%;font-weight:bold;">${k}</td><td>${v}</td></tr>`; });
+    html += '</tbody></table></div>';
+  }
+
+  if (incCond) {
+    html += '<h2>2. MANDATORY CONDITIONS</h2>';
+    CONDITIONS.forEach((c, i) => {
+      const d = condData[c.key] || {};
+      const status = d.status || 'not_started';
+      const statusLabel = status === 'complete' ? 'COMPLETE' : status === 'in_progress' ? 'IN PROGRESS' : status === 'not_applicable' ? 'N/A' : 'NOT STARTED';
+      const badgeCls = status === 'complete' ? 'badge-complete' : status === 'in_progress' ? 'badge-progress' : 'badge-ns';
+      html += `<div class="section"><h3>${c.num}. ${c.title} &nbsp;<span class="badge ${badgeCls}">${statusLabel}</span></h3>`;
+      html += `<p style="font-size:9px;color:#666;margin-bottom:8px;">${c.sub}</p>`;
+      // Fields
+      const hasData = c.fields.some(f => d[f.id]);
+      if (hasData) {
+        html += '<table><tbody>';
+        c.fields.forEach(f => { if (d[f.id]) html += `<tr><td style="width:40%;font-weight:bold;">${f.label}</td><td>${d[f.id]}</td></tr>`; });
+        html += '</tbody></table>';
+      }
+      // Checklist
+      if (c.checklist && c.checklist.some((_,i) => d['chk_' + i])) {
+        html += '<div style="margin-top:8px;"><strong>Checklist:</strong><ul style="margin:4px 0 0 16px;">';
+        c.checklist.forEach((item,i) => { if (d['chk_' + i]) html += `<li style="font-size:10px;">${item}</li>`; });
+        html += '</ul></div>';
+      }
+      // Notes
+      if (d[c.key + '-addnotes']) html += `<p style="margin-top:8px;font-size:10px;"><strong>Notes:</strong> ${d[c.key + '-addnotes']}</p>`;
+      // Document
+      if (c.doc && docStore[c.key]) html += `<div class="doc-row">Attached: ${docStore[c.key].fileName || 'Document stored'}</div>`;
+      // Module link
+      if (c.module) html += `<p style="font-size:9px;color:#7c3aed;margin-top:6px;">Module: ${c.module} &mdash; records maintained in SafeSystems.PRO</p>`;
+      html += '</div>';
+    });
+  }
+
+  if (incDocs) {
+    const docList = CONDITIONS.filter(c => c.doc && docStore[c.key]);
+    if (docList.length) {
+      html += '<h2>3. DOCUMENT REGISTER</h2><table><thead><tr><th>#</th><th>Condition</th><th>Document</th><th>File Type</th></tr></thead><tbody>';
+      docList.forEach(c => {
+        const d = docStore[c.key];
+        html += `<tr><td>${c.num}</td><td>${c.title}</td><td>${d.fileName || '-'}</td><td>${(d.fileType || '').toUpperCase()}</td></tr>`;
+      });
+      html += '</tbody></table>';
+    }
+  }
+
+  if (incSigs) {
+    html += `<h2>${incDocs ? '4' : '3'}. DECLARATIONS &amp; SIGNATURES</h2>
+    <div class="section">
+      <p style="font-size:10px;margin-bottom:16px;">I/We declare that the information provided in this STL Property Passport is accurate and complete to the best of my/our knowledge. I/We understand that it is a criminal offence to operate a short-term let without a valid licence, and that the property must comply with all mandatory conditions at all times.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:20px;">
+        <div><div class="sig-block">Applicant / Owner<br><strong>${ownerName}</strong><br>Signature: _______________________<br>Date: __________________</div></div>
+        <div><div class="sig-block">SafeSystems.PRO Record Holder<br><strong>Omnibosh Safety Solutions Ltd</strong><br>Signature: _______________________<br>Date: __________________</div></div>
+      </div>
+    </div>
+    <div style="margin-top:16px;border-top:1px solid #ccc;padding-top:8px;display:flex;justify-content:space-between;font-size:8px;color:#888;">
+      <span>STL Property Passport &middot; SafeSystems.PRO</span>
+      <span>Code: ${currentUser.code}</span>
+      <span>Omnibosh Safety Solutions Ltd &middot; ${new Date().toLocaleDateString('en-GB')}</span>
+    </div>`;
+  }
+  return html;
+}
+
+// ================================================
+// UTILITIES
+// ================================================
+function copyShareLink() {
+  const url = document.getElementById('shareUrl').textContent;
+  navigator.clipboard.writeText(url).then(() => showToast('Link copied to clipboard.'));
+}
+function copyCode() {
+  const code = document.getElementById('shareCode').textContent;
+  navigator.clipboard.writeText(code).then(() => showToast('Code copied: ' + code));
+}
+function formatFileSize(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
+  return (b/(1024*1024)).toFixed(1) + ' MB';
+}
+function showToast(msg, dur) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove('show'), dur || 3200);
+}
+
+// Print area
+const pa = document.createElement('div');
+pa.id = 'printArea';
+pa.style.display = 'none';
+document.body.appendChild(pa);
+document.head.insertAdjacentHTML('beforeend', '<style>@media print{body.printing-report *{visibility:hidden;}body.printing-report #printArea,body.printing-report #printArea *{visibility:visible;}body.printing-report #printArea{position:fixed;top:0;left:0;width:100%;background:white;}}</style>');
+</script>
+</body>
+</html>
