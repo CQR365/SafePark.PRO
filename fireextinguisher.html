@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>SafeFire.PRO - Fire Extinguisher Compliance Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <style>
+        :root {
+            --primary-red: #DC3545; --dark-red: #B71C1C; --light-red: #FF6B6B;
+            --fire-orange: #FF6B35; --fire-amber: #FFA000;
+            --dark-bg: #1a1a1a; --card-bg: #2d2d2d; --border-color: #444;
+            --text-primary: #ffffff; --text-muted: #999;
+            --success: #28a745; --warning: #ffc107; --danger: #dc3545; --info: #17a2b8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--dark-bg); color: var(--text-primary); min-height: 100vh; line-height: 1.5; }
+        .header { background: linear-gradient(135deg, #1a1a1a, #2d2d2d); padding: 15px 20px; border-bottom: 3px solid var(--primary-red); position: sticky; top: 0; z-index: 100; }
+        .header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .brand-title { font-size: 1.5rem; font-weight: 700; letter-spacing: 1px; }
+        .brand-title .safe { color: #C0C0C0; } .brand-title .fire { color: var(--primary-red); } .brand-title .pro { color: #C0C0C0; font-weight: 400; }
+        .brand-subtitle { font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.5px; margin-top: 2px; }
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        .firebase-status { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warning); animation: pulse 2s infinite; }
+        .status-dot.connected { background: var(--success); animation: none; }
+        .status-dot.error { background: var(--danger); animation: none; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .park-selector { background: var(--card-bg); border-radius: 10px; padding: 15px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; border: 1px solid var(--border-color); }
+        .park-selector label { font-weight: 600; color: var(--primary-red); }
+        .park-selector select { flex: 1; min-width: 200px; padding: 10px 15px; background: #1a1a1a; border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 14px; }
+        .park-selector select:focus { outline: none; border-color: var(--primary-red); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 25px; }
+        .stat-card { background: var(--card-bg); border-radius: 10px; padding: 18px; text-align: center; border: 1px solid var(--border-color); cursor: pointer; transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .stat-card.total { border-left: 4px solid var(--primary-red); } .stat-card.compliant { border-left: 4px solid var(--success); }
+        .stat-card.due-soon { border-left: 4px solid var(--warning); } .stat-card.overdue { border-left: 4px solid var(--danger); }
+        .stat-card.expired { border-left: 4px solid #888; } .stat-card.points { border-left: 4px solid var(--info); }
+        .stat-value { font-size: 2.2rem; font-weight: 700; line-height: 1; margin-bottom: 5px; }
+        .stat-card.total .stat-value { color: var(--primary-red); } .stat-card.compliant .stat-value { color: var(--success); }
+        .stat-card.due-soon .stat-value { color: var(--warning); } .stat-card.overdue .stat-value { color: var(--danger); }
+        .stat-card.expired .stat-value { color: #888; } .stat-card.points .stat-value { color: var(--info); }
+        .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 20px; flex-wrap: wrap; background: var(--card-bg); padding: 8px; border-radius: 10px; border: 1px solid var(--border-color); }
+        .tab-btn { padding: 12px 18px; background: transparent; border: none; color: var(--text-muted); font-size: 13px; font-weight: 500; cursor: pointer; border-radius: 6px; transition: all 0.2s; white-space: nowrap; }
+        .tab-btn:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); }
+        .tab-btn.active { background: var(--primary-red); color: white; }
+        .content-section { display: none; } .content-section.active { display: block; }
+        .card { background: var(--card-bg); border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 20px; overflow: hidden; }
+        .card-header { background: linear-gradient(135deg, #333, #2d2d2d); padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .card-header h2 { font-size: 1.1rem; color: var(--primary-red); display: flex; align-items: center; gap: 10px; }
+        .card-body { padding: 20px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: var(--primary-red); color: white; } .btn-primary:hover { background: var(--dark-red); }
+        .btn-success { background: var(--success); color: white; } .btn-warning { background: var(--warning); color: #000; }
+        .btn-danger { background: var(--danger); color: white; } .btn-secondary { background: #444; color: white; } .btn-secondary:hover { background: #555; }
+        .btn-maint { background: #FF6B35; color: white; } .btn-maint:hover { background: #E55A25; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .data-table th { background: #333; color: var(--primary-red); padding: 12px 15px; text-align: left; font-weight: 600; white-space: nowrap; border-bottom: 2px solid var(--primary-red); }
+        .data-table td { padding: 12px 15px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        .data-table tr:hover { background: rgba(220,53,69,0.08); }
+        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+        .status-compliant { background: var(--success); color: white; } .status-due-soon { background: var(--warning); color: #000; }
+        .status-overdue { background: var(--danger); color: white; } .status-no-record { background: #666; color: white; } .status-expired { background: #888; color: white; }
+        .type-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; text-transform: uppercase; }
+        .type-water { background: #0077be; color: white; } .type-co2 { background: #444; color: white; }
+        .type-foam { background: #FFA000; color: #000; } .type-powder { background: #6f42c1; color: white; }
+        .type-wet-chemical { background: #28a745; color: white; } .type-fire-blanket { background: #fd7e14; color: white; }
+        .loc-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; text-transform: uppercase; }
+        .loc-external-firebox { background: var(--primary-red); color: white; } .loc-internal-cabinet { background: var(--info); color: white; }
+        .loc-wall-mounted { background: #6f42c1; color: white; } .loc-kitchen-point { background: var(--fire-orange); color: white; } .loc-accommodation { background: #17a2b8; color: white; }
+        .maint-flagged { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; background: #FF6B35; color: white; text-transform: uppercase; }
+        .check-icon { font-size: 14px; } .check-ok { color: var(--success); } .check-fail { color: var(--danger); } .check-na { color: var(--text-muted); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary); }
+        .form-group label .required { color: var(--danger); }
+        .form-control { width: 100%; padding: 12px 15px; background: #1a1a1a; border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 14px; }
+        .form-control:focus { outline: none; border-color: var(--primary-red); }
+        .form-control::placeholder { color: #777; opacity: 1; }
+        .form-control::-webkit-input-placeholder { color: #777; }
+        .form-control::-moz-placeholder { color: #777; }
+        select.form-control { appearance: auto; -webkit-appearance: menulist; }
+        select.form-control option { background: #2d2d2d; color: #ffffff; padding: 8px; }
+        select.form-control option:checked { background: var(--primary-red); color: #ffffff; }
+        .park-selector select option { background: #2d2d2d; color: #ffffff; padding: 8px; }
+        .park-selector select option:checked { background: var(--primary-red); color: #ffffff; }
+        input[type="date"].form-control { color-scheme: dark; }
+        input[type="month"].form-control { color-scheme: dark; }
+        input[type="number"].form-control { color-scheme: dark; }
+        input[type="file"].form-control { color-scheme: dark; }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .form-hint { color: var(--text-muted); font-size: 11px; margin-top: 4px; display: block; }
+        .checklist-group { background: #1a1a1a; border-radius: 8px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border-color); }
+        .checklist-group h4 { color: var(--primary-red); font-size: 0.95rem; margin-bottom: 12px; }
+        .checklist-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border-color); }
+        .checklist-item:last-child { border-bottom: none; }
+        .checklist-item label { flex: 1; margin: 0; font-weight: 400; font-size: 14px; cursor: pointer; }
+        .checklist-radio-group { display: flex; gap: 8px; }
+        .checklist-radio-group label { padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; border: 1px solid var(--border-color); transition: all 0.2s; }
+        .checklist-radio-group input { display: none; }
+        .checklist-radio-group input[value="pass"]:checked + label { background: var(--success); color: white; border-color: var(--success); }
+        .checklist-radio-group input[value="fail"]:checked + label { background: var(--danger); color: white; border-color: var(--danger); }
+        .checklist-radio-group input[value="na"]:checked + label { background: #555; color: white; border-color: #555; }
+        .fp-card { background: var(--card-bg); border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 15px; overflow: hidden; }
+        .fp-card:hover { border-color: var(--primary-red); }
+        .fp-card-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; gap: 10px; flex-wrap: wrap; }
+        .fp-card-header:hover { background: rgba(220,53,69,0.05); }
+        .fp-code { font-size: 1.1rem; font-weight: 700; color: var(--primary-red); }
+        .fp-location { color: var(--text-muted); font-size: 13px; margin-left: 10px; }
+        .fp-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .fp-detail { display: none; padding: 0 20px 20px; border-top: 1px solid var(--border-color); }
+        .fp-detail.open { display: block; }
+        .fp-ext-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: #1a1a1a; border-radius: 6px; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
+        .compliance-row { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 10px; }
+        .compliance-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--card-bg); border-radius: 12px; width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border-color); }
+        .modal-header { padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--card-bg); z-index: 1; }
+        .modal-header h3 { color: var(--primary-red); font-size: 1.2rem; }
+        .modal-close { background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; padding: 0; line-height: 1; }
+        .modal-close:hover { color: var(--danger); }
+        .modal-body { padding: 20px; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; padding-top: 20px; border-top: 1px solid var(--border-color); margin-top: 20px; }
+        .alerts-container { margin-bottom: 20px; }
+        .alert { padding: 15px 20px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
+        .alert-danger { background: rgba(220,53,69,0.15); border: 1px solid var(--danger); color: #ff6b7a; }
+        .alert-warning { background: rgba(255,193,7,0.15); border: 1px solid var(--warning); color: #ffda6a; }
+        .alert-icon { font-size: 20px; } .alert-content { flex: 1; } .alert-title { font-weight: 600; margin-bottom: 2px; } .alert-text { font-size: 13px; opacity: 0.9; }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .empty-state-icon { font-size: 48px; margin-bottom: 15px; opacity: 0.5; }
+        .expiry-date { display: flex; flex-direction: column; } .expiry-date .date { font-weight: 500; } .expiry-date .days { font-size: 11px; color: var(--text-muted); }
+        .expiry-date.overdue .days { color: var(--danger); } .expiry-date.due-soon .days { color: var(--warning); }
+        .filter-bar { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-bar .search-input { flex: 1; min-width: 200px; } .filter-bar select { min-width: 150px; }
+        .ext-inline-form { background: #1a1a1a; border: 1px dashed var(--border-color); border-radius: 8px; padding: 15px; margin-top: 15px; }
+        .ext-inline-form h4 { color: var(--primary-red); margin-bottom: 12px; font-size: 0.9rem; }
+        .park-progress { background: var(--card-bg); border-radius: 10px; padding: 15px 20px; border: 1px solid var(--border-color); margin-bottom: 12px; }
+        .park-progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .park-progress-name { font-weight: 600; font-size: 14px; }
+        .park-progress-pct { font-weight: 700; font-size: 16px; }
+        .park-progress-bar { height: 12px; background: #1a1a1a; border-radius: 6px; overflow: hidden; }
+        .park-progress-fill { height: 100%; border-radius: 6px; transition: width 0.5s ease; }
+        .park-progress-fill.pct-100 { background: var(--success); }
+        .park-progress-fill.pct-high { background: #6fbe44; }
+        .park-progress-fill.pct-mid { background: var(--warning); }
+        .park-progress-fill.pct-low { background: var(--fire-orange); }
+        .park-progress-fill.pct-zero { background: var(--danger); }
+        .park-progress-detail { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
+        .insp-card { background: var(--card-bg); border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 12px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; transition: all 0.2s; }
+        .insp-card:hover { border-color: var(--primary-red); }
+        .insp-card.done { border-left: 4px solid var(--success); opacity: 0.7; }
+        .insp-card.pending { border-left: 4px solid var(--warning); }
+        .insp-ext-check { background: #1a1a1a; border-radius: 8px; padding: 15px; margin-bottom: 12px; border: 1px solid var(--border-color); }
+        .insp-ext-check h4 { color: var(--primary-red); font-size: 0.9rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .mounting-label { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; background: #444; color: #ccc; text-transform: uppercase; }
+        @media (max-width: 768px) {
+            .header-content { flex-direction: column; align-items: flex-start; }
+            .container { padding: 12px; width: 100%; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); } .stat-value { font-size: 1.8rem; }
+            .tabs { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+            .tab-btn { flex-shrink: 0; padding: 10px 14px; font-size: 12px; }
+            .data-table { font-size: 13px; } .data-table th, .data-table td { padding: 10px 12px; }
+            .btn { padding: 8px 16px; } .form-row { grid-template-columns: 1fr; }
+            .modal { max-height: 95vh; margin: 10px; }
+            .fp-card-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .fp-meta { width: 100%; justify-content: flex-start; }
+            .fp-ext-item { flex-direction: column; align-items: flex-start; }
+            .fp-ext-item > div { width: 100%; }
+            .fp-ext-item > div:last-child { justify-content: flex-start; }
+            .filter-bar { flex-direction: column; }
+            .filter-bar .search-input { min-width: 0; width: 100%; }
+            .filter-bar select { min-width: 0; width: 100%; }
+            .checklist-item { flex-wrap: wrap; }
+            .checklist-item label { min-width: 0; flex-basis: 100%; margin-bottom: 4px; }
+            .checklist-radio-group { flex-shrink: 0; }
+            .compliance-row { gap: 8px; }
+            .compliance-item { font-size: 11px; }
+            .card-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .alert { flex-wrap: wrap; }
+            .park-selector { flex-direction: column; align-items: stretch; }
+            .park-selector select { min-width: 0; width: 100%; }
+        }
+        @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; } .stat-card { padding: 12px; } .stat-value { font-size: 1.6rem; } .fp-card-header { padding: 12px 15px; } .fp-code { font-size: 1rem; } .card-body { padding: 12px; } .card-header { padding: 12px 15px; } .modal-body { padding: 15px; } }
+        @media print { body { background: white; color: black; } .header, .tabs, .btn, .modal-overlay, .filter-bar { display: none; } .card { border: 1px solid #ccc; } .data-table th { background: #f0f0f0; color: #333; } }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div>
+                <h1 class="brand-title"><span class="safe">safe</span><span class="fire">fire</span><span class="pro">.pro</span></h1>
+                <div class="brand-subtitle">Fire Extinguisher &amp; Fire Point Compliance Tracker</div>
+            </div>
+            <div class="header-right">
+                <span id="headerUserName" style="font-size:12px;color:#ccc;"></span>
+                <span id="headerCompanyBadge" style="font-size:11px;padding:3px 10px;border-radius:4px;background:var(--primary-red);color:white;font-weight:600;display:none;"></span>
+                <div class="firebase-status"><div class="status-dot" id="statusDot"></div><span id="statusText">Connecting...</span></div>
+            </div>
+        </div>
+    </header>
+    <main class="container">
+        <div class="park-selector">
+            <label for="parkSelect" id="parkSelectorLabel">Location:</label>
+            <select id="parkSelect" onchange="refreshAll()">
+                <option value="all">Loading locations...</option>
+            </select>
+        </div>
+        <div class="alerts-container" id="alertsContainer"></div>
+        <div class="stats-grid">
+            <div class="stat-card points"><div class="stat-value" id="statPoints">0</div><div class="stat-label">Fire Points</div></div>
+            <div class="stat-card total"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Extinguishers</div></div>
+            <div class="stat-card compliant"><div class="stat-value" id="statCompliant">0</div><div class="stat-label">In Service</div></div>
+            <div class="stat-card due-soon"><div class="stat-value" id="statDueSoon">0</div><div class="stat-label">Service Due</div></div>
+            <div class="stat-card overdue"><div class="stat-value" id="statOverdue">0</div><div class="stat-label">Overdue</div></div>
+            <div class="stat-card expired"><div class="stat-value" id="statExpired">0</div><div class="stat-label">Run-Out</div></div>
+        </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('firepoints')">Fire Points</button>
+            <button class="tab-btn" onclick="switchTab('extinguishers')">Extinguishers</button>
+            <button class="tab-btn" onclick="switchTab('inspections')">Monthly Inspections</button>
+            <button class="tab-btn" onclick="switchTab('setup')">Setup / Add</button>
+            <button class="tab-btn" onclick="switchTab('services')">Service Records</button>
+            <button class="tab-btn" onclick="switchTab('import')">CSV Import</button>
+            <button class="tab-btn" onclick="switchTab('reports')">Reports</button>
+        </div>
+
+        <!-- FIRE POINTS TAB -->
+        <div id="tab-firepoints" class="content-section active">
+            <div class="card">
+                <div class="card-header">
+                    <h2>&#x1F9EF; Fire Points Register</h2>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                        <button class="btn btn-primary btn-sm" onclick="switchTab('setup')">+ Add Fire Point</button>
+                        <button class="btn btn-secondary btn-sm" onclick="exportRegister()">Export CSV</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="filter-bar">
+                        <input type="text" class="form-control search-input" id="fpSearchInput" placeholder="Search fire points..." oninput="renderFirePoints()">
+                        <select class="form-control" id="fpTypeFilter" onchange="renderFirePoints()" style="min-width:170px;">
+                            <option value="all">All Location Types</option>
+                            <option value="external-firebox">External Firebox</option>
+                            <option value="internal-cabinet">Internal Cabinet</option>
+                            <option value="wall-mounted">Wall Mounted</option>
+                            <option value="kitchen-point">Kitchen Point</option>
+                            <option value="accommodation">Accommodation Unit</option>
+                        </select>
+                    </div>
+                    <div id="firePointsList"></div>
+                    <div class="empty-state" id="emptyFirePoints" style="display:none;">
+                        <div class="empty-state-icon">&#x1F9EF;</div>
+                        <div>No fire points registered yet</div>
+                        <div style="margin-top:10px;"><button class="btn btn-primary" onclick="switchTab('setup')">Add First Fire Point</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EXTINGUISHERS TAB -->
+        <div id="tab-extinguishers" class="content-section">
+            <div class="card">
+                <div class="card-header">
+                    <h2>&#x1F525; Extinguisher Register</h2>
+                    <button class="btn btn-secondary btn-sm" onclick="exportRegister()">Export CSV</button>
+                </div>
+                <div class="card-body">
+                    <div class="filter-bar">
+                        <input type="text" class="form-control search-input" id="extSearchInput" placeholder="Search extinguishers..." oninput="renderExtTable()">
+                        <select class="form-control" id="extTypeFilter" onchange="renderExtTable()">
+                            <option value="all">All Types</option>
+                            <option value="Water">Water</option><option value="CO2">CO2</option><option value="Foam">Foam</option>
+                            <option value="Dry Powder">Dry Powder</option><option value="Wet Chemical">Wet Chemical</option><option value="Fire Blanket">Fire Blanket</option>
+                        </select>
+                        <select class="form-control" id="extStatusFilter" onchange="renderExtTable()">
+                            <option value="all">All Status</option>
+                            <option value="compliant">In Service</option><option value="due-soon">Service Due</option>
+                            <option value="overdue">Overdue</option><option value="expired">Run-Out</option>
+                            <option value="no-record">No Service Record</option>
+                        </select>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table"><thead><tr>
+                            <th>Code / Type</th><th>Fire Point</th><th>Location</th><th>Last Service</th><th>Next Due</th><th>Run-Out</th><th>Status</th><th>Actions</th>
+                        </tr></thead><tbody id="extTableBody"></tbody></table>
+                    </div>
+                    <div class="empty-state" id="emptyExt" style="display:none;">
+                        <div class="empty-state-icon">&#x1F9EF;</div><div>No extinguishers registered yet</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MONTHLY INSPECTIONS TAB -->
+        <div id="tab-inspections" class="content-section">
+            <div class="card">
+                <div class="card-header"><h2>&#x1F4CB; Monthly Fire Point Inspections</h2></div>
+                <div class="card-body">
+                    <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">Monthly visual inspection of all fire points and extinguishers. Each fire point must be inspected once per calendar month by a competent person.</p>
+                    <div id="inspMonthlyBars" style="margin-bottom:25px;"></div>
+                    <div class="form-row" style="margin-bottom:20px;">
+                        <div class="form-group"><label>Month</label>
+                            <input type="month" class="form-control" id="inspMonth" onchange="renderInspections()">
+                        </div>
+                        <div class="form-group"><label>Park</label>
+                            <select class="form-control" id="inspParkFilter" onchange="renderInspections()">
+                                <option value="all">All Locations</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="inspList"></div>
+                    <div class="empty-state" id="emptyInsp" style="display:none;">
+                        <div class="empty-state-icon">&#x2705;</div>
+                        <div>No fire points to inspect. Register fire points first in Setup / Add.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h2>&#x1F4C4; Inspection History</h2></div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="data-table"><thead><tr>
+                            <th>Date</th><th>Fire Point</th><th>Park</th><th>Inspected By</th><th>Result</th><th>Issues</th>
+                        </tr></thead><tbody id="inspHistBody"></tbody></table>
+                    </div>
+                    <div class="empty-state" id="emptyInspHist" style="display:none;"><div class="empty-state-icon">&#x1F4CB;</div><div>No inspection records yet</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SETUP / ADD TAB -->
+        <div id="tab-setup" class="content-section">
+            <div class="card">
+                <div class="card-header"><h2>&#x1F4CD; Register New Fire Point</h2></div>
+                <div class="card-body">
+                    <form id="addFpForm" onsubmit="saveFirePoint(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Location <span class="required">*</span></label>
+                                <select class="form-control" id="fpPark" required onchange="populateAccomDropdown()">
+                                    <option value="">Select location...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Fire Point Code <span class="required">*</span></label>
+                                <input type="text" class="form-control" id="fpCode" placeholder="e.g., OBF01, BNI03, TYK01" required>
+                                <span class="form-hint">Suggested: [Park][Type][Number] — OBF=Oban External, BNI=Ben Nevis Internal</span>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Location Type <span class="required">*</span></label>
+                                <select class="form-control" id="fpLocationType" required onchange="toggleFpFields()">
+                                    <option value="">Select type...</option>
+                                    <option value="external-firebox">External Firebox</option>
+                                    <option value="internal-cabinet">Internal Cabinet / Enclosure</option>
+                                    <option value="wall-mounted">Wall Mounted (Open)</option>
+                                    <option value="kitchen-point">Kitchen / Commercial Point</option>
+                                    <option value="accommodation">Accommodation Unit</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Location Description <span class="required">*</span></label>
+                                <input type="text" class="form-control" id="fpLocationDesc" placeholder="e.g., Car park entrance, Near reception, Poolside" required>
+                            </div>
+                        </div>
+                        <div class="form-group" id="fpUnitGroup" style="display:none;">
+                            <label>Accommodation Unit / Lodge Number</label>
+                            <select class="form-control" id="fpUnitSelect" onchange="toggleCustomUnit()">
+                                <option value="">Select unit...</option>
+                                <option value="__custom__">✏️ Enter custom location...</option>
+                            </select>
+                            <input type="text" class="form-control" id="fpUnitCustom" placeholder="e.g., Lodge 12, Pod 3, Caravan 45" style="display:none;margin-top:8px;">
+                        </div>
+                        <div class="checklist-group" id="fpChecks">
+                            <h4>Fire Point Compliance Checks</h4>
+                            <div class="checklist-item" style="flex-direction:column;align-items:flex-start;gap:8px;">
+                                <label style="font-weight:600;">Extinguisher ID signage</label>
+                                <div style="display:flex;gap:15px;align-items:center;flex-wrap:wrap;">
+                                    <div style="display:flex;align-items:center;gap:5px;"><span style="font-size:12px;color:var(--text-muted);">Required:</span><input type="number" class="form-control" id="fpSignReq" min="0" value="0" style="width:70px;padding:6px 10px;"></div>
+                                    <div style="display:flex;align-items:center;gap:5px;"><span style="font-size:12px;color:var(--text-muted);">Present:</span><input type="number" class="form-control" id="fpSignPres" min="0" value="0" style="width:70px;padding:6px 10px;"></div>
+                                    <span id="fpSignStatus" class="check-icon check-na">&mdash;</span>
+                                </div>
+                            </div>
+                            <div class="checklist-item" id="rowBoxSign">
+                                <label>Firebox / cabinet identification sign</label>
+                                <div class="checklist-radio-group">
+                                    <input type="radio" name="fpBoxSign" value="pass" id="fpBoxSignY"><label for="fpBoxSignY">Yes</label>
+                                    <input type="radio" name="fpBoxSign" value="fail" id="fpBoxSignN"><label for="fpBoxSignN">No</label>
+                                    <input type="radio" name="fpBoxSign" value="na" id="fpBoxSignNA"><label for="fpBoxSignNA">N/A</label>
+                                </div>
+                            </div>
+                            <div class="checklist-item" id="rowActions" style="flex-direction:column;align-items:flex-start;gap:8px;">
+                                <label style="font-weight:600;">Actions on discovery of fire notices</label>
+                                <div style="display:flex;gap:15px;align-items:center;flex-wrap:wrap;">
+                                    <div style="display:flex;align-items:center;gap:5px;"><span style="font-size:12px;color:var(--text-muted);">Required:</span><input type="number" class="form-control" id="fpActReq" min="0" value="0" style="width:70px;padding:6px 10px;"></div>
+                                    <div style="display:flex;align-items:center;gap:5px;"><span style="font-size:12px;color:var(--text-muted);">Present:</span><input type="number" class="form-control" id="fpActPres" min="0" value="0" style="width:70px;padding:6px 10px;"></div>
+                                    <span id="fpActStatus" class="check-icon check-na">&mdash;</span>
+                                </div>
+                            </div>
+                            <div class="checklist-item" id="rowAlarm">
+                                <label>Immediate means of raising the alarm</label>
+                                <div class="checklist-radio-group">
+                                    <input type="radio" name="fpAlarm" value="pass" id="fpAlarmY"><label for="fpAlarmY">Yes</label>
+                                    <input type="radio" name="fpAlarm" value="fail" id="fpAlarmN"><label for="fpAlarmN">No</label>
+                                    <input type="radio" name="fpAlarm" value="na" id="fpAlarmNA"><label for="fpAlarmNA">N/A</label>
+                                </div>
+                            </div>
+                            <div class="checklist-item" id="rowBoxCond">
+                                <label>Box / enclosure condition satisfactory</label>
+                                <div class="checklist-radio-group">
+                                    <input type="radio" name="fpBoxCond" value="pass" id="fpBoxY"><label for="fpBoxY">Yes</label>
+                                    <input type="radio" name="fpBoxCond" value="fail" id="fpBoxN"><label for="fpBoxN">No</label>
+                                    <input type="radio" name="fpBoxCond" value="na" id="fpBoxNA"><label for="fpBoxNA">N/A</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Notes</label>
+                            <textarea class="form-control" id="fpNotes" rows="2" placeholder="Any notes about this fire point..."></textarea>
+                        </div>
+                        <div id="extInlineSection">
+                            <h3 style="color:var(--primary-red);margin-bottom:15px;font-size:1rem;">&#x1F9EF; Extinguishers at this Fire Point</h3>
+                            <div id="extInlineList"></div>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="addExtRow()" style="margin-bottom:15px;">+ Add Extinguisher</button>
+                        </div>
+                        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+                            <button type="button" class="btn btn-secondary" onclick="clearFpForm()">Clear</button>
+                            <button type="submit" class="btn btn-primary">Save Fire Point &amp; Extinguishers</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- SERVICE RECORDS TAB -->
+        <div id="tab-services" class="content-section">
+            <div class="card">
+                <div class="card-header"><h2>&#x1F527; Service Records</h2><button class="btn btn-primary btn-sm" onclick="openSvcModal()">+ Record Service</button></div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="data-table"><thead><tr>
+                            <th>Ref</th><th>Extinguisher</th><th>Type</th><th>Engineer</th><th>Date</th><th>Next Due</th><th>Result</th><th>Actions</th>
+                        </tr></thead><tbody id="svcTableBody"></tbody></table>
+                    </div>
+                    <div class="empty-state" id="emptySvc" style="display:none;"><div class="empty-state-icon">&#x1F4CB;</div><div>No service records yet</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CSV IMPORT TAB -->
+        <div id="tab-import" class="content-section">
+            <div class="card">
+                <div class="card-header"><h2>&#x1F4C1; Bulk Import from CSV</h2><button class="btn btn-sm btn-secondary" onclick="downloadTemplate()">Download Template</button></div>
+                <div class="card-body">
+                    <p style="color:var(--text-muted);margin-bottom:15px;font-size:13px;">
+                        Upload a CSV to bulk-import fire points and extinguishers. The import auto-creates fire points from code structure (e.g., OBF01.1 creates extinguisher under fire point OBF01).
+                    </p>
+                    <div class="form-row">
+                        <div class="form-group"><label>Select CSV File</label><input type="file" class="form-control" id="csvFile" accept=".csv"></div>
+                        <div class="form-group"><label>Default Park (if not in CSV)</label>
+                            <select class="form-control" id="csvPark">
+                                <option value="">— Use CSV column —</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="csvPreview" style="display:none;margin-bottom:15px;">
+                        <h3 style="color:var(--primary-red);font-size:1rem;margin-bottom:10px;">Preview (<span id="csvCount">0</span> rows)</h3>
+                        <div class="table-responsive" style="max-height:300px;overflow-y:auto;"><table class="data-table"><thead id="csvHead"></thead><tbody id="csvBody"></tbody></table></div>
+                        <div id="csvErrors" style="margin-top:10px;"></div>
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                        <button class="btn btn-primary" onclick="previewCsv()">Preview Import</button>
+                        <button class="btn btn-success" onclick="importCsv()" id="csvImportBtn" style="display:none;">Import <span id="csvImportN">0</span> Records</button>
+                        <button class="btn btn-secondary" onclick="clearCsv()" id="csvClearBtn" style="display:none;">Clear</button>
+                    </div>
+                    <div id="csvProgress" style="display:none;margin-top:15px;">
+                        <div style="background:#1a1a1a;border-radius:6px;overflow:hidden;height:24px;">
+                            <div id="csvBar" style="background:var(--primary-red);height:100%;width:0%;transition:width 0.3s;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:white;"></div>
+                        </div>
+                        <p id="csvText" style="color:var(--text-muted);font-size:12px;margin-top:5px;"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- REPORTS TAB -->
+        <div id="tab-reports" class="content-section">
+            <div class="card">
+                <div class="card-header"><h2>&#x1F4CA; Compliance Reports</h2></div>
+                <div class="card-body">
+                    <div class="form-row" style="margin-bottom:20px;">
+                        <div class="form-group"><label>Report Type</label>
+                            <select class="form-control" id="reportType">
+                                <option value="compliance">Compliance Summary</option>
+                                <option value="expiring">Services Due (Next 60 Days)</option>
+                                <option value="overdue">Overdue Inspections</option>
+                                <option value="runout">Run-Out / Replacement Due</option>
+                                <option value="firepoints">Fire Points Compliance</option>
+                                <option value="full">Full Register Export</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Park Filter</label>
+                            <select class="form-control" id="reportPark">
+                                <option value="all">All Locations</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                        <button class="btn btn-primary" onclick="generateReport()">Generate Report</button>
+                        <button class="btn btn-secondary" onclick="window.print()">Print</button>
+                    </div>
+                    <div id="reportOutput" style="margin-top:30px;"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- SERVICE MODAL -->
+    <div class="modal-overlay" id="svcModal">
+        <div class="modal">
+            <div class="modal-header"><h3>&#x1F527; Record Service</h3><button class="modal-close" onclick="closeModal('svcModal')">&times;</button></div>
+            <div class="modal-body">
+                <div class="form-group"><label>Select Extinguisher <span class="required">*</span></label><select class="form-control" id="svcExt" required></select></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Service Reference</label><input type="text" class="form-control" id="svcRef" placeholder="e.g., SVC-2026-001"></div>
+                    <div class="form-group"><label>Service Type <span class="required">*</span></label>
+                        <select class="form-control" id="svcType" required><option value="">Select...</option><option value="annual">Annual Service</option><option value="extended">Extended Service (5yr)</option><option value="discharge-test">Discharge Test</option><option value="replacement">Replacement</option><option value="visual-check">Visual Inspection</option></select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Engineer Name <span class="required">*</span></label><input type="text" class="form-control" id="svcEngineer" required></div>
+                    <div class="form-group"><label>Company</label><input type="text" class="form-control" id="svcCompany"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Service Date <span class="required">*</span></label><input type="date" class="form-control" id="svcDate" required></div>
+                    <div class="form-group"><label>Next Service Due <span class="required">*</span></label><input type="date" class="form-control" id="svcNextDue" required></div>
+                </div>
+                <div class="form-group"><label>Result <span class="required">*</span></label>
+                    <select class="form-control" id="svcResult" required><option value="">Select...</option><option value="pass">Pass - Serviceable</option><option value="pass-minor">Pass - Minor Issues</option><option value="fail-repair">Fail - Requires Repair</option><option value="fail-replace">Fail - Requires Replacement</option><option value="condemned">Condemned</option></select>
+                </div>
+                <div class="form-group"><label>Certificate (PDF/Image)</label><input type="file" class="form-control" id="svcFile" accept=".pdf,.jpg,.jpeg,.png"></div>
+                <div class="form-group"><label>Notes</label><textarea class="form-control" id="svcNotes" rows="2" placeholder="Defects, pressure readings..."></textarea></div>
+                <div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal('svcModal')">Cancel</button><button class="btn btn-primary" onclick="saveSvc()">Save Service Record</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT EXTINGUISHER MODAL -->
+    <div class="modal-overlay" id="editExtModal">
+        <div class="modal">
+            <div class="modal-header"><h3>Edit Extinguisher</h3><button class="modal-close" onclick="closeModal('editExtModal')">&times;</button></div>
+            <div class="modal-body">
+                <input type="hidden" id="editExtId">
+                <div class="form-row">
+                    <div class="form-group"><label>Code</label><input type="text" class="form-control" id="editExtCode"></div>
+                    <div class="form-group"><label>Type</label><select class="form-control" id="editExtType"><option value="Water">Water</option><option value="CO2">CO2</option><option value="Foam">Foam</option><option value="Dry Powder">Dry Powder</option><option value="Wet Chemical">Wet Chemical</option><option value="Fire Blanket">Fire Blanket</option></select></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Weight / Size</label><select class="form-control" id="editExtWeight"><option value="">Select...</option><option value="1kg">1kg</option><option value="2kg">2kg</option><option value="3kg">3kg</option><option value="5kg">5kg</option><option value="6kg">6kg</option><option value="6L">6 Litre</option><option value="9L">9 Litre</option><option value="N/A">N/A (Blanket)</option></select></div>
+                    <div class="form-group"><label>Mounting Method</label><select class="form-control" id="editExtMounting"><option value="">Select...</option><option value="wall-bracket">Wall Bracket</option><option value="floor-stand">Floor Stand</option><option value="cabinet">In Cabinet / Enclosure</option><option value="hook">Wall Hook</option><option value="free-standing">Free Standing</option></select></div>
+                </div>
+                <div class="form-group"><label>Manufacturer</label><input type="text" class="form-control" id="editExtManuf"></div>
+                <div class="form-group"><label>Serial Number / Reference</label><input type="text" class="form-control" id="editExtSerial"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Tare Weight</label><input type="text" class="form-control" id="editExtTareWeight" placeholder="e.g., 3.5kg"></div>
+                    <div class="form-group"><label>Year of Manufacture</label><input type="text" class="form-control" id="editExtYearManuf" placeholder="e.g., 2022"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>BS EN Rating</label><input type="text" class="form-control" id="editExtBsRating" placeholder="e.g., 13A 89B"></div>
+                    <div class="form-group"><label>Condition on Setup</label><select class="form-control" id="editExtCondition"><option value="">Select...</option><option value="new">New</option><option value="refurbished">Refurbished</option><option value="existing">Existing</option><option value="transferred">Transferred</option></select></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Pin &amp; Tamper Seal</label><select class="form-control" id="editExtPinSeal"><option value="">Select...</option><option value="yes">Yes — Present</option><option value="no">No — Missing</option></select></div>
+                    <div class="form-group"><label>Pressure Gauge</label><select class="form-control" id="editExtPressureGauge"><option value="">Select...</option><option value="good">Good</option><option value="faulty">Faulty</option><option value="na">N/A (CO2)</option></select></div>
+                </div>
+                <div class="form-group"><label>Instructions Legible</label><select class="form-control" id="editExtInstructions"><option value="">Select...</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Last Service</label><input type="date" class="form-control" id="editExtLastSvc"></div>
+                    <div class="form-group"><label>Next Service Due</label><input type="date" class="form-control" id="editExtNextSvc"></div>
+                </div>
+                <div class="form-group"><label>Run-Out Date</label><input type="date" class="form-control" id="editExtRunOut"></div>
+                <div class="form-group"><label>Notes</label><textarea class="form-control" id="editExtNotes" rows="2"></textarea></div>
+                <div class="modal-actions">
+                    <button class="btn btn-danger" onclick="deleteExt()">Delete</button>
+                    <button class="btn btn-secondary" onclick="closeModal('editExtModal')">Cancel</button>
+                    <button class="btn btn-primary" onclick="updateExt()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT FIRE POINT MODAL -->
+    <div class="modal-overlay" id="editFpModal">
+        <div class="modal">
+            <div class="modal-header"><h3>Edit Fire Point</h3><button class="modal-close" onclick="closeModal('editFpModal')">&times;</button></div>
+            <div class="modal-body">
+                <input type="hidden" id="editFpId">
+                <div class="form-row">
+                    <div class="form-group"><label>Fire Point Code</label><input type="text" class="form-control" id="editFpCode"></div>
+                    <div class="form-group"><label>Location Type</label><select class="form-control" id="editFpType"><option value="external-firebox">External Firebox</option><option value="internal-cabinet">Internal Cabinet</option><option value="wall-mounted">Wall Mounted</option><option value="kitchen-point">Kitchen Point</option><option value="accommodation">Accommodation Unit</option></select></div>
+                </div>
+                <div class="form-group"><label>Location Description</label><input type="text" class="form-control" id="editFpLocation"></div>
+                <div class="form-group"><label>Unit Number</label><select class="form-control" id="editFpUnitSelect" onchange="toggleEditCustomUnit()"><option value="">Select unit...</option><option value="__custom__">✏️ Enter custom location...</option></select><input type="text" class="form-control" id="editFpUnit" style="display:none;margin-top:8px;"></div>
+                <div class="checklist-group">
+                    <h4>Compliance Checks</h4>
+                    <div class="checklist-item" style="flex-direction:column;align-items:flex-start;gap:8px;">
+                        <label style="font-weight:600;">Extinguisher ID signage</label>
+                        <div style="display:flex;gap:15px;align-items:center;flex-wrap:wrap;">
+                            <div style="display:flex;align-items:center;gap:5px;"><span style="font-size:12px;color:var(--text-muted);">Required:</span><input type="number" class="form-control" id="eFpSignReq" min="0" value="0" style="width:70px;padding:6px 10px;"></div>
+                            <div style="display:flex;align-items:center;gap:5px;"><span style="font-size:12px;color:var(--text-muted);">Present:</span><input type="number" class="form-control" id="eFpSignPres" min="0" value="0" style="width:70px;padding:6px 10px;"></div>
+                        </div>
+                    </div>
+                    <div class="checklist-item"><label>Firebox / cabinet ID sign</label><div class="checklist-radio-group"><input type="radio" name="eFpBoxSign" value="pass" id="eFpBoxSignY"><label for="eFpBoxSignY">Yes</label><input type="radio" name="eFpBoxSign" value="fail" id="eFpBoxSignN"><label for="eFpBoxSignN">No</label><input type="radio" name="eFpBoxSign" value="na" id="eFpBoxSignNA"><label for="eFpBoxSignNA">N/A</label></div></div>
+                    <div class="checklist-item" style="flex-direction:column;align-items:flex-start;gap:8px;">
+                        <label style="font-weight:600;">Actions on fire notices</label>
+                        <div style="display:flex;gap:15px;align-items:center;flex-wrap:wrap;">
+                            <div style="display:flex;align-items:center;gap:5px;"><span style="font-size:12px;color:var(--text-muted);">Required:</span><input type="number" class="form-control" id="eFpActReq" min="0" value="0" style="width:70px;padding:6px 10px;"></div>
+                            <div style="display:flex;align-items:center;gap:5px;"><span style="font-size:12px;color:var(--text-muted);">Present:</span><input type="number" class="form-control" id="eFpActPres" min="0" value="0" style="width:70px;padding:6px 10px;"></div>
+                        </div>
+                    </div>
+                    <div class="checklist-item"><label>Means of raising alarm</label><div class="checklist-radio-group"><input type="radio" name="eFpAlarm" value="pass" id="eFpAlarmY"><label for="eFpAlarmY">Yes</label><input type="radio" name="eFpAlarm" value="fail" id="eFpAlarmN"><label for="eFpAlarmN">No</label><input type="radio" name="eFpAlarm" value="na" id="eFpAlarmNA"><label for="eFpAlarmNA">N/A</label></div></div>
+                    <div class="checklist-item"><label>Box / enclosure condition</label><div class="checklist-radio-group"><input type="radio" name="eFpBox" value="pass" id="eFpBoxY"><label for="eFpBoxY">Yes</label><input type="radio" name="eFpBox" value="fail" id="eFpBoxN"><label for="eFpBoxN">No</label><input type="radio" name="eFpBox" value="na" id="eFpBoxNA"><label for="eFpBoxNA">N/A</label></div></div>
+                </div>
+                <div class="form-group"><label>Notes</label><textarea class="form-control" id="editFpNotes" rows="2"></textarea></div>
+                <div class="modal-actions">
+                    <button class="btn btn-danger" onclick="deleteFp()">Delete</button>
+                    <button class="btn btn-secondary" onclick="closeModal('editFpModal')">Cancel</button>
+                    <button class="btn btn-primary" onclick="updateFp()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SAFEMAINT MODAL -->
+    <div class="modal-overlay" id="maintModal">
+        <div class="modal">
+            <div class="modal-header"><h3>&#x1F527; Flag to SafeMaint</h3><button class="modal-close" onclick="closeModal('maintModal')">&times;</button></div>
+            <div class="modal-body">
+                <input type="hidden" id="maintSrcType"><input type="hidden" id="maintSrcId">
+                <div class="form-group"><label>Location / Fire Point</label><input type="text" class="form-control" id="maintLoc" readonly></div>
+                <div class="form-group"><label>Issue Title <span class="required">*</span></label><input type="text" class="form-control" id="maintTitle"></div>
+                <div class="form-group"><label>Priority <span class="required">*</span></label>
+                    <select class="form-control" id="maintPriority"><option value="low">Low</option><option value="medium" selected>Medium - Within 7 days</option><option value="high">High - Within 24 hours</option><option value="critical">Critical - Immediate</option></select>
+                </div>
+                <div class="form-group"><label>Description <span class="required">*</span></label><textarea class="form-control" id="maintDesc" rows="4" required></textarea></div>
+                <div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal('maintModal')">Cancel</button><button class="btn btn-maint" onclick="submitMaint()">Submit to SafeMaint</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- INSPECTION MODAL -->
+    <div class="modal-overlay" id="inspModal">
+        <div class="modal" style="max-width:750px;">
+            <div class="modal-header"><h3>&#x1F4CB; Monthly Fire Point Inspection</h3><button class="modal-close" onclick="closeModal('inspModal')">&times;</button></div>
+            <div class="modal-body">
+                <input type="hidden" id="inspFpId">
+                <div style="background:#1a1a1a;border-radius:8px;padding:15px;margin-bottom:20px;border:1px solid var(--border-color);">
+                    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+                        <div><strong id="inspFpCode" style="color:var(--primary-red);font-size:1.1rem;"></strong> <span id="inspFpLocBadge"></span></div>
+                        <div style="font-size:13px;color:var(--text-muted);" id="inspFpDesc"></div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Inspection Date <span class="required">*</span></label><input type="date" class="form-control" id="inspDate" required></div>
+                    <div class="form-group"><label>Inspector Initials <span class="required">*</span></label><input type="text" class="form-control" id="inspInitials" maxlength="5" placeholder="e.g., SG" required style="text-transform:uppercase;font-weight:700;font-size:18px;text-align:center;letter-spacing:3px;"></div>
+                </div>
+                <div class="checklist-group">
+                    <h4>Fire Point Checks</h4>
+                    <div class="checklist-item"><label>Signage present &amp; legible</label><div class="checklist-radio-group"><input type="radio" name="iSign" value="pass" id="iSignY"><label for="iSignY">Pass</label><input type="radio" name="iSign" value="fail" id="iSignN"><label for="iSignN">Fail</label><input type="radio" name="iSign" value="na" id="iSignNA"><label for="iSignNA">N/A</label></div></div>
+                    <div class="checklist-item" id="iRowBox"><label>Box / cabinet condition &amp; accessible</label><div class="checklist-radio-group"><input type="radio" name="iBox" value="pass" id="iBoxY"><label for="iBoxY">Pass</label><input type="radio" name="iBox" value="fail" id="iBoxN"><label for="iBoxN">Fail</label><input type="radio" name="iBox" value="na" id="iBoxNA"><label for="iBoxNA">N/A</label></div></div>
+                    <div class="checklist-item"><label>Actions on fire notice present</label><div class="checklist-radio-group"><input type="radio" name="iAct" value="pass" id="iActY"><label for="iActY">Pass</label><input type="radio" name="iAct" value="fail" id="iActN"><label for="iActN">Fail</label><input type="radio" name="iAct" value="na" id="iActNA"><label for="iActNA">N/A</label></div></div>
+                    <div class="checklist-item"><label>Means of raising alarm present</label><div class="checklist-radio-group"><input type="radio" name="iAlarm" value="pass" id="iAlarmY"><label for="iAlarmY">Pass</label><input type="radio" name="iAlarm" value="fail" id="iAlarmN"><label for="iAlarmN">Fail</label><input type="radio" name="iAlarm" value="na" id="iAlarmNA"><label for="iAlarmNA">N/A</label></div></div>
+                    <div class="checklist-item"><label>Access / egress clear, no obstructions</label><div class="checklist-radio-group"><input type="radio" name="iAccess" value="pass" id="iAccessY"><label for="iAccessY">Pass</label><input type="radio" name="iAccess" value="fail" id="iAccessN"><label for="iAccessN">Fail</label><input type="radio" name="iAccess" value="na" id="iAccessNA"><label for="iAccessNA">N/A</label></div></div>
+                </div>
+                <div id="inspExtChecks"></div>
+                <div class="form-group"><label>Notes / Defects</label><textarea class="form-control" id="inspNotes" rows="3" placeholder="Record any defects, observations, or follow-up actions..."></textarea></div>
+                <div style="background:#1a1a1a;border:2px solid var(--border-color);border-radius:8px;padding:20px;margin-top:20px;">
+                    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:15px;">
+                        <input type="checkbox" id="inspAck" style="width:22px;height:22px;margin-top:2px;accent-color:var(--primary-red);flex-shrink:0;">
+                        <label for="inspAck" style="font-size:13px;color:var(--text-primary);cursor:pointer;line-height:1.5;">I confirm that I have physically attended this fire point, visually inspected all extinguishers and fire safety equipment listed above, and that the information recorded is an accurate representation of the condition found at the time of inspection.</label>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label style="font-weight:700;">Confirm Initials <span class="required">*</span></label>
+                        <input type="text" class="form-control" id="inspInitialsConfirm" maxlength="5" placeholder="Re-enter initials to confirm" style="text-transform:uppercase;font-weight:700;font-size:18px;text-align:center;letter-spacing:3px;max-width:200px;">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeModal('inspModal')">Cancel</button>
+                    <button class="btn btn-primary" onclick="submitInspection()" id="inspSubmitBtn">Submit Inspection</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ============ CONFIG & STATE ============
+    const firebaseConfig = {
+        apiKey: "AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+        authDomain: "safepark-pro.firebaseapp.com",
+        projectId: "safepark-pro",
+        storageBucket: "safepark-pro.firebasestorage.app",
+        messagingSenderId: "511221743341",
+        appId: "1:511221743341:web:95bcc7e83d4861578016e4"
+    };
+    let db, storage, fbReady = false;
+    let firePoints = [], extinguishers = [], serviceRecords = [], inspections = [];
+    let accomUnits = {};
+    let inlineIdx = 0, inlineRows = [];
+    let companyLocations = [];
+    let companyName = '';
+    let companyId = null;
+    let userLevel = 'location_user';
+    let userLocations = [];
+    const EXT_TYPES = ['Water','CO2','Foam','Dry Powder','Wet Chemical','Fire Blanket'];
+
+    // ============ USER SESSION ============
+    const _urlParams = new URLSearchParams(window.location.search);
+    let currentUser = {
+        name: _urlParams.get('user') || sessionStorage.getItem('currentUser') || 'User',
+        accessCode: (_urlParams.get('code') || sessionStorage.getItem('currentAccessCode') || '').toUpperCase(),
+        park: _urlParams.get('park') || sessionStorage.getItem('currentPark') || '',
+        level: sessionStorage.getItem('userAccessLevel') || 'admin'
+    };
+
+    async function loadCompanyData() {
+        if (!db) return;
+        const code = currentUser.accessCode;
+        const isMaster = code === 'CQR365SPP25';
+
+        // Look up access code in Firestore
+        if (code && !isMaster) {
+            try {
+                const snap = await db.collection('companyAccessCodes').where('code', '==', code).where('active', '==', true).get();
+                if (!snap.empty) {
+                    const ac = snap.docs[0].data();
+                    companyId = ac.companyId;
+                    userLevel = ac.level || 'location_user';
+                    userLocations = ac.locations || [];
+                    if (ac.userName) currentUser.name = ac.userName;
+                } else {
+                    // Fallback: check hardcoded Highland Holidays codes for backward compat
+                    const hhCodes = {'BN2025HH':'Ben Nevis Holiday Park','OB2025HH':'Oban Holiday Park','TY2025HH':'Tyndrum Holiday Park','OF2025HH':'Overburns Farm','1010':'Ben Nevis Holiday Park','1020':'Tyndrum Holiday Park','1030':'Oban Holiday Park','365':'Overburns Farm'};
+                    if (hhCodes[code]) {
+                        companyId = 'highland-holidays';
+                        userLevel = 'location_user';
+                        userLocations = [hhCodes[code]];
+                    } else if (code.startsWith('STL-')) {
+                        // ── STL Property Passport mode ────────────────────
+                        try {
+                            const stlSnap = await db.collection('stl_properties').doc(code).get();
+                            if (stlSnap.exists && stlSnap.data().status !== 'inactive') {
+                                const d = stlSnap.data();
+                                const propName = d.propertyDetails && d.propertyDetails['pd-propName']
+                                    ? d.propertyDetails['pd-propName']
+                                    : (d.clientName || d.propertyName || code);
+                                companyId = 'stl-' + code.toLowerCase();
+                                userLevel = 'location_user';
+                                userLocations = [propName];
+                                currentUser.park = propName;
+                                currentUser.stlCode = code;
+                                currentUser.stlPropertyName = propName;
+                                console.log('[SafeFire Ext] STL mode:', code, propName);
+                            }
+                        } catch(e) { console.warn('[SafeFire Ext] STL lookup failed:', e); }
+                        // ── End STL mode ──────────────────────────────────
+                    }
+                }
+            } catch(e) { console.warn('[SafeFire] Access code lookup failed:', e); }
+        }
+
+        if (isMaster) { userLevel = 'master_admin'; }
+
+        // Load company info
+        if (companyId) {
+            try {
+                const cSnap = await db.collection('companies').doc(companyId).get();
+                if (cSnap.exists) companyName = cSnap.data().name || '';
+            } catch(e) { console.warn('[SafeFire] Company lookup failed:', e); }
+
+            // Load locations for this company
+            try {
+                const lSnap = await db.collection('companyLocations').where('companyId', '==', companyId).where('active', '==', true).get();
+                companyLocations = [];
+                lSnap.forEach(d => companyLocations.push(d.data().name));
+                companyLocations.sort();
+            } catch(e) { console.warn('[SafeFire] Locations lookup failed:', e); }
+        }
+
+        if (isMaster) {
+            // Master admin: load ALL locations across all companies
+            try {
+                const lSnap = await db.collection('companyLocations').where('active', '==', true).get();
+                companyLocations = [];
+                lSnap.forEach(d => companyLocations.push(d.data().name));
+                companyLocations.sort();
+                companyLocations = [...new Set(companyLocations)];
+            } catch(e) { console.warn('[SafeFire] All locations lookup failed:', e); }
+            companyName = 'All Companies';
+        }
+
+        // Fallback: if no locations found from Firestore, derive from loaded data
+        if (companyLocations.length === 0 && firePoints.length > 0) {
+            companyLocations = [...new Set(firePoints.map(f => f.park).filter(Boolean))].sort();
+        }
+
+        // If location_user with specific locations, lock the view
+        if (userLevel === 'location_user' && userLocations.length === 1) {
+            currentUser.park = userLocations[0];
+        }
+
+        populateParkDropdowns();
+        updateHeaderUser();
+    }
+
+    function populateParkDropdowns() {
+        const locs = (userLevel === 'location_user' && userLocations.length > 0) ? userLocations : companyLocations;
+        const allLabel = companyName ? 'All ' + companyName + ' Locations' : 'All Locations';
+        const showAll = userLevel !== 'location_user' || userLocations.length > 1;
+
+        ['parkSelect', 'fpPark', 'inspParkFilter', 'reportPark', 'csvPark'].forEach(id => {
+            const sel = document.getElementById(id);
+            if (!sel) return;
+            const isForm = id === 'fpPark';
+            const isCsv = id === 'csvPark';
+            sel.innerHTML = '';
+            if (isCsv) {
+                const o = document.createElement('option');
+                o.value = '';
+                o.textContent = '— Use CSV column —';
+                sel.appendChild(o);
+            } else if (showAll) {
+                const o = document.createElement('option');
+                o.value = isForm ? '' : 'all';
+                o.textContent = isForm ? 'Select location...' : allLabel;
+                sel.appendChild(o);
+            }
+            locs.forEach(loc => {
+                const o = document.createElement('option');
+                o.value = loc;
+                o.textContent = loc;
+                sel.appendChild(o);
+            });
+            // Auto-select if single location
+            if (locs.length === 1) sel.value = locs[0];
+        });
+    }
+
+    function updateHeaderUser() {
+        const nameEl = document.getElementById('headerUserName');
+        const badgeEl = document.getElementById('headerCompanyBadge');
+        if (nameEl) nameEl.textContent = currentUser.name || '';
+        if (badgeEl && companyName && companyName !== 'All Companies') {
+            badgeEl.textContent = companyName;
+            badgeEl.style.display = 'inline-block';
+        }
+    }
+
+    // ============ FIREBASE ============
+    async function initFB() {
+        try {
+            updateSt('Connecting...','connecting');
+            let a=0; while(typeof firebase==='undefined'&&a<50){await new Promise(r=>setTimeout(r,100));a++;}
+            if(typeof firebase==='undefined') throw new Error('Firebase not loaded');
+            if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+            db=firebase.firestore(); storage=firebase.storage();
+            try{await firebase.auth().signInAnonymously();}catch(e){console.warn('Auth:',e);}
+            fbReady=true; updateSt('Connected','connected');
+            await loadAll();
+            await loadCompanyData();
+            // Re-filter after company data loaded
+            filterDataByCompany();
+            populateParkDropdowns();
+            refreshAll();
+        } catch(e){ console.error('FB error:',e); updateSt('Offline','error'); }
+    }
+    function updateSt(m,s){document.getElementById('statusText').textContent=m;const d=document.getElementById('statusDot');d.className='status-dot';if(s==='connected')d.classList.add('connected');if(s==='error')d.classList.add('error');}
+
+    // ============ DATA LOADING ============
+    async function loadAll(){await Promise.all([loadFPs(),loadExts(),loadSvcs(),loadInsps(),loadAccomUnits()]);initInspMonth();refreshAll();}
+    async function loadFPs(){if(!db)return;try{const s=await db.collection('firePoints').orderBy('createdAt','desc').get();firePoints=[];s.forEach(d=>firePoints.push({id:d.id,...d.data()}));}catch(e){console.error(e);}}
+    async function loadExts(){if(!db)return;try{const s=await db.collection('fireExtinguishers').orderBy('createdAt','desc').get();extinguishers=[];s.forEach(d=>extinguishers.push({id:d.id,...d.data()}));}catch(e){console.error(e);}}
+    async function loadSvcs(){if(!db)return;try{const s=await db.collection('fireServiceRecords').orderBy('serviceDate','desc').get();serviceRecords=[];s.forEach(d=>serviceRecords.push({id:d.id,...d.data()}));}catch(e){console.error(e);}}
+    async function loadInsps(){if(!db)return;try{const s=await db.collection('fireInspections').orderBy('inspectionDate','desc').get();inspections=[];s.forEach(d=>inspections.push({id:d.id,...d.data()}));}catch(e){console.error(e);}}
+    async function loadAccomUnits(){if(!db)return;try{const s=await db.collection('accommodation_config').get();accomUnits={};s.forEach(d=>{const data=d.data();if(data.parkName&&data.units)accomUnits[data.parkName]=data.units;});console.log('[SafeFire] Loaded accommodation units:',Object.keys(accomUnits).map(k=>k+': '+accomUnits[k].length));}catch(e){console.warn('[SafeFire] Could not load accommodation units:',e);}}
+    function filterDataByCompany(){
+        if(userLevel==='master_admin')return;
+        if(companyId){
+            firePoints=firePoints.filter(f=>f.companyId===companyId||(!f.companyId&&companyId==='highland-holidays'));
+            extinguishers=extinguishers.filter(e=>e.companyId===companyId||(!e.companyId&&companyId==='highland-holidays'));
+            serviceRecords=serviceRecords.filter(s=>s.companyId===companyId||(!s.companyId&&companyId==='highland-holidays'));
+            inspections=inspections.filter(i=>i.companyId===companyId||(!i.companyId&&companyId==='highland-holidays'));
+        }
+        if(userLevel==='location_user'&&userLocations.length>0){
+            firePoints=firePoints.filter(f=>userLocations.includes(f.park));
+            extinguishers=extinguishers.filter(e=>userLocations.includes(e.park));
+            serviceRecords=serviceRecords.filter(s=>{const e=extinguishers.find(x=>x.id===s.extinguisherId);return e||userLocations.includes(s.park);});
+            inspections=inspections.filter(i=>userLocations.includes(i.park));
+        }
+    }
+    function refreshAll(){updateDash();renderFirePoints();renderExtTable();renderSvcTable();checkAlerts();renderInspections();renderInspHistory();renderMonthlyBars();}
+    function initInspMonth(){const n=new Date();document.getElementById('inspMonth').value=n.getFullYear()+'-'+(n.getMonth()+1).toString().padStart(2,'0');}
+
+    // ============ HELPERS ============
+    function getPark(){return document.getElementById('parkSelect').value;}
+    function getExtStatus(e){
+        const t=new Date();
+        if(e.runOutDate){const r=new Date(e.runOutDate);if(r<=t)return'expired';}
+        if(!e.nextServiceDue)return'no-record';
+        const d=Math.ceil((new Date(e.nextServiceDue)-t)/(864e5));
+        if(d<0)return'overdue';if(d<=60)return'due-soon';return'compliant';
+    }
+    function daysTo(ds){if(!ds)return null;return Math.ceil((new Date(ds)-new Date())/(864e5));}
+    function fmtDate(ds){if(!ds)return'-';return new Date(ds).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'});}
+    function typeBadge(t){const m={'Water':'type-water','CO2':'type-co2','Foam':'type-foam','Dry Powder':'type-powder','Wet Chemical':'type-wet-chemical','Fire Blanket':'type-fire-blanket'};return'<span class="type-badge '+(m[t]||'type-water')+'">'+t+'</span>';}
+    function locBadge(lt){const l={'external-firebox':'External Firebox','internal-cabinet':'Internal Cabinet','wall-mounted':'Wall Mounted','kitchen-point':'Kitchen Point','accommodation':'Accommodation'};return'<span class="loc-badge loc-'+lt+'">'+(l[lt]||lt)+'</span>';}
+    function chkIcon(v){if(v==='pass')return'<span class="check-icon check-ok">&#10003;</span>';if(v==='fail')return'<span class="check-icon check-fail">&#10007;</span>';return'<span class="check-icon check-na">&mdash;</span>';}
+    function fpExts(fpId){return extinguishers.filter(e=>e.firePointId===fpId);}
+    function fpHasComplianceFail(fp){return fp.signage==='fail'||fp.boxSign==='fail'||fp.actionsNotice==='fail'||fp.alarmMeans==='fail'||fp.boxCondition==='fail';}
+    function fpWorst(fpId){const fp=firePoints.find(f=>f.id===fpId);const ex=fpExts(fpId);const o={'expired':0,'overdue':1,'due-soon':2,'no-record':3,'compliant':4};let w='compliant';if(fp&&fpHasComplianceFail(fp))w='overdue';ex.forEach(e=>{const s=getExtStatus(e);if((o[s]||5)<(o[w]||5))w=s;});if(!ex.length&&w==='compliant')return fp&&fpHasComplianceFail(fp)?'overdue':'no-record';return w;}
+    function getRadio(n){const el=document.querySelector('input[name="'+n+'"]:checked');return el?el.value:'na';}
+    function setRadio(n,v){const el=document.querySelector('input[name="'+n+'"][value="'+v+'"]');if(el)el.checked=true;}
+
+    // ============ DASHBOARD ============
+    function updateDash(){
+        const p=getPark();
+        const fE=p==='all'?extinguishers:extinguishers.filter(e=>e.park===p);
+        const fF=p==='all'?firePoints:firePoints.filter(f=>f.park===p);
+        let c=0,d=0,o=0,x=0;
+        fE.forEach(e=>{const s=getExtStatus(e);if(s==='compliant')c++;else if(s==='due-soon')d++;else if(s==='overdue')o++;else if(s==='expired')x++;});
+        document.getElementById('statPoints').textContent=fF.length;
+        document.getElementById('statTotal').textContent=fE.length;
+        document.getElementById('statCompliant').textContent=c;
+        document.getElementById('statDueSoon').textContent=d;
+        document.getElementById('statOverdue').textContent=o;
+        document.getElementById('statExpired').textContent=x;
+    }
+
+    // ============ ALERTS ============
+    function checkAlerts(){
+        const p=getPark();const fE=p==='all'?extinguishers:extinguishers.filter(e=>e.park===p);
+        const fF=p==='all'?firePoints:firePoints.filter(f=>f.park===p);
+        const c=document.getElementById('alertsContainer');
+        const exp=fE.filter(e=>getExtStatus(e)==='expired');
+        const ovr=fE.filter(e=>getExtStatus(e)==='overdue');
+        const urg=fE.filter(e=>{const d=daysTo(e.nextServiceDue);return d!==null&&d>=0&&d<=14;});
+        const fpFail=fF.filter(f=>fpHasComplianceFail(f));
+        let h='';
+        if(exp.length)h+='<div class="alert alert-danger"><span class="alert-icon">&#x1F6AB;</span><div class="alert-content"><div class="alert-title">'+exp.length+' Past Run-Out Date</div><div class="alert-text">'+exp.map(e=>e.code).join(', ')+'</div></div></div>';
+        if(ovr.length)h+='<div class="alert alert-danger"><span class="alert-icon">&#x26A0;&#xFE0F;</span><div class="alert-content"><div class="alert-title">'+ovr.length+' Overdue Service'+(ovr.length>1?'s':'')+'</div><div class="alert-text">'+ovr.map(e=>e.code).join(', ')+'</div></div></div>';
+        if(fpFail.length)h+='<div class="alert alert-danger"><span class="alert-icon">&#x1F6A8;</span><div class="alert-content"><div class="alert-title">'+fpFail.length+' Fire Point'+(fpFail.length>1?'s':'')+' with Compliance Failures</div><div class="alert-text">'+fpFail.map(f=>f.code+' ('+[f.signage==='fail'?'signage':'',f.boxSign==='fail'?'box sign':'',f.actionsNotice==='fail'?'actions':'',f.alarmMeans==='fail'?'alarm':'',f.boxCondition==='fail'?'box cond':''].filter(Boolean).join(', ')+')').join('; ')+'</div></div></div>';
+        if(urg.length)h+='<div class="alert alert-warning"><span class="alert-icon">&#x1F514;</span><div class="alert-content"><div class="alert-title">'+urg.length+' Due Within 14 Days</div><div class="alert-text">'+urg.map(e=>e.code).join(', ')+'</div></div></div>';
+        c.innerHTML=h;
+    }
+
+    // ============ FIRE POINTS RENDERING ============
+    function renderFirePoints(){
+        const p=getPark(),sr=(document.getElementById('fpSearchInput').value||'').toLowerCase(),tf=document.getElementById('fpTypeFilter').value;
+        let fl=firePoints;
+        if(p!=='all')fl=fl.filter(f=>f.park===p);
+        if(sr)fl=fl.filter(f=>(f.code||'').toLowerCase().includes(sr)||(f.locationDescription||'').toLowerCase().includes(sr)||(f.unitNumber||'').toLowerCase().includes(sr));
+        if(tf!=='all')fl=fl.filter(f=>f.locationType===tf);
+        const ct=document.getElementById('firePointsList'),em=document.getElementById('emptyFirePoints');
+        if(!fl.length){ct.innerHTML='';em.style.display='block';return;}
+        em.style.display='none';
+        ct.innerHTML=fl.map(fp=>{
+            const ex=fpExts(fp.id),ws=fpWorst(fp.id),n=ex.length;
+            const ci=chkIcon(fp.signage)+' '+chkIcon(fp.boxSign)+' '+chkIcon(fp.actionsNotice)+' '+chkIcon(fp.alarmMeans)+' '+chkIcon(fp.boxCondition);
+            const exH=ex.map(e=>{
+                const s=getExtStatus(e),d=daysTo(e.nextServiceDue);let dt='';
+                if(d!==null)dt=d<0?Math.abs(d)+'d overdue':d+'d';
+                return '<div class="fp-ext-item"><div><strong>'+e.code+'</strong> '+typeBadge(e.type)+(e.weight?' <small style="color:var(--text-muted)">'+e.weight+'</small>':'')+(e.mounting?' <span class="mounting-label">'+(({'wall-bracket':'Bracket','floor-stand':'Floor','cabinet':'Cabinet','hook':'Hook','free-standing':'Free'})[e.mounting]||e.mounting)+'</span>':'')+(e.serialNumber?' <small style="color:var(--text-muted);font-style:italic;">Ref: '+e.serialNumber+'</small>':'')+(e.maintFlagged?' <span class="maint-flagged">SafeMaint</span>':'')+'</div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;"><span class="status-badge status-'+s+'">'+s.replace('-',' ')+'</span><small style="color:var(--text-muted)">'+dt+'</small><button class="btn btn-sm btn-secondary" onclick="editExt(\''+e.id+'\')">Edit</button><button class="btn btn-sm btn-primary" onclick="recordSvc(\''+e.id+'\')">Service</button><button class="btn btn-sm btn-maint" onclick="openMaint(\'ext\',\''+e.id+'\')">Flag</button></div></div>';
+            }).join('');
+            return '<div class="fp-card"><div class="fp-card-header" onclick="toggleFp(\''+fp.id+'\')"><div><span class="fp-code">'+fp.code+'</span> '+locBadge(fp.locationType)+(fp.maintFlagged?' <span class="maint-flagged">SafeMaint</span>':'')+'<span class="fp-location">'+((fp.locationDescription||'')+(fp.unitNumber?' &mdash; '+fp.unitNumber:''))+'</span></div><div class="fp-meta"><span style="font-size:12px;color:var(--text-muted)">'+n+' ext'+(n!==1?'s':'')+'</span><span class="status-badge status-'+ws+'">'+ws.replace('-',' ')+'</span><span style="font-size:12px">'+ci+'</span></div></div><div class="fp-detail" id="fpD-'+fp.id+'"><div class="compliance-row"><div class="compliance-item">'+chkIcon(fp.signage)+' Signs '+(fp.signageRequired>0?(fp.signagePresent||0)+'/'+fp.signageRequired:'')+'</div><div class="compliance-item">'+chkIcon(fp.boxSign)+' Box Sign</div><div class="compliance-item">'+chkIcon(fp.actionsNotice)+' Actions '+(fp.actionsRequired>0?(fp.actionsPresent||0)+'/'+fp.actionsRequired:'')+'</div><div class="compliance-item">'+chkIcon(fp.alarmMeans)+' Alarm</div><div class="compliance-item">'+chkIcon(fp.boxCondition)+' Box Cond</div></div><div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-sm btn-secondary" onclick="editFp(\''+fp.id+'\')">Edit Point</button><button class="btn btn-sm btn-maint" onclick="openMaint(\'fp\',\''+fp.id+'\')">Flag to SafeMaint</button></div><div style="margin-top:12px">'+(exH||'<p style="color:var(--text-muted);font-size:13px">No extinguishers at this fire point.</p>')+'</div></div></div>';
+        }).join('');
+    }
+    function toggleFp(id){const el=document.getElementById('fpD-'+id);if(el)el.classList.toggle('open');}
+
+    // ============ EXTINGUISHER TABLE ============
+    function renderExtTable(){
+        const p=getPark(),sr=(document.getElementById('extSearchInput').value||'').toLowerCase(),tf=document.getElementById('extTypeFilter').value,sf=document.getElementById('extStatusFilter').value;
+        const tb=document.getElementById('extTableBody');
+        let fl=extinguishers;
+        if(p!=='all')fl=fl.filter(e=>e.park===p);
+        if(sr)fl=fl.filter(e=>(e.code||'').toLowerCase().includes(sr)||(e.type||'').toLowerCase().includes(sr)||(e.locationDescription||'').toLowerCase().includes(sr)||(e.firePointCode||'').toLowerCase().includes(sr));
+        if(tf!=='all')fl=fl.filter(e=>e.type===tf);
+        if(sf!=='all')fl=fl.filter(e=>getExtStatus(e)===sf);
+        fl.sort((a,b)=>{const o={'expired':0,'overdue':1,'due-soon':2,'no-record':3,'compliant':4};return(o[getExtStatus(a)]||5)-(o[getExtStatus(b)]||5);});
+        const em=document.getElementById('emptyExt');
+        if(!fl.length){tb.innerHTML='';em.style.display='block';return;}
+        em.style.display='none';
+        tb.innerHTML=fl.map(e=>{
+            const s=getExtStatus(e),sd=daysTo(e.nextServiceDue),rd=daysTo(e.runOutDate);
+            let st='',sc='',rt='',rc='';
+            if(sd!==null){if(sd<0){st=Math.abs(sd)+'d overdue';sc='overdue';}else{st=sd+'d';sc=sd<=60?'due-soon':'';}}
+            if(rd!==null){if(rd<0){rt=Math.abs(rd)+'d past';rc='overdue';}else if(rd<=90){rt=rd+'d';rc='due-soon';}else rt=rd+'d';}
+            const fp=firePoints.find(f=>f.id===e.firePointId);
+            return '<tr><td><strong>'+e.code+'</strong>'+(e.serialNumber?'<br><small style="color:var(--text-muted);font-style:italic;">Ref: '+e.serialNumber+'</small>':'')+'<br>'+typeBadge(e.type)+(e.weight?' <small style="color:var(--text-muted)">'+e.weight+'</small>':'')+(e.maintFlagged?' <span class="maint-flagged">SafeMaint</span>':'')+'</td><td><strong>'+(fp?fp.code:(e.firePointCode||'-'))+'</strong></td><td>'+e.park+'<br><small style="color:var(--text-muted)">'+(e.locationDescription||'')+'</small></td><td>'+(e.lastServiceDate?fmtDate(e.lastServiceDate):'<span style="color:var(--text-muted)">No record</span>')+'</td><td><div class="expiry-date '+sc+'"><span class="date">'+(e.nextServiceDue?fmtDate(e.nextServiceDue):'-')+'</span><span class="days">'+st+'</span></div></td><td><div class="expiry-date '+rc+'"><span class="date">'+(e.runOutDate?fmtDate(e.runOutDate):'-')+'</span><span class="days">'+rt+'</span></div></td><td><span class="status-badge status-'+s+'">'+s.replace('-',' ')+'</span></td><td><button class="btn btn-sm btn-secondary" onclick="editExt(\''+e.id+'\')">Edit</button> <button class="btn btn-sm btn-primary" onclick="recordSvc(\''+e.id+'\')">Svc</button></td></tr>';
+        }).join('');
+    }
+
+    // ============ SERVICES TABLE ============
+    function renderSvcTable(){
+        const p=getPark(),tb=document.getElementById('svcTableBody');
+        let fl=serviceRecords;
+        if(p!=='all')fl=fl.filter(s=>{const e=extinguishers.find(x=>x.id===s.extinguisherId);return e&&e.park===p;});
+        const em=document.getElementById('emptySvc');
+        if(!fl.length){tb.innerHTML='';em.style.display='block';return;}
+        em.style.display='none';
+        const rc={'pass':'var(--success)','pass-minor':'var(--warning)','fail-repair':'var(--danger)','fail-replace':'var(--danger)','condemned':'#888'};
+        const rl={'pass':'Pass','pass-minor':'Pass (Minor)','fail-repair':'Fail - Repair','fail-replace':'Fail - Replace','condemned':'Condemned'};
+        const tl={'annual':'Annual Service','extended':'Extended (5yr)','discharge-test':'Discharge Test','replacement':'Replacement','visual-check':'Visual Check'};
+        tb.innerHTML=fl.map(s=>{const e=extinguishers.find(x=>x.id===s.extinguisherId);return'<tr><td><strong>'+(s.reference||'N/A')+'</strong></td><td>'+(e?e.code:'?')+'</td><td>'+(tl[s.serviceType]||s.serviceType||'-')+'</td><td>'+(s.engineerName||'-')+'</td><td>'+fmtDate(s.serviceDate)+'</td><td>'+fmtDate(s.nextDue)+'</td><td><span style="color:'+(rc[s.result]||'#999')+';font-weight:600">'+(rl[s.result]||s.result||'-')+'</span></td><td>'+(s.fileUrl?'<a href="'+s.fileUrl+'" target="_blank" class="btn btn-sm btn-secondary">View</a>':'')+'</td></tr>';}).join('');
+    }
+
+    // ============ SETUP FORM ============
+    function toggleFpFields(){
+        const lt=document.getElementById('fpLocationType').value;
+        const isAcc=lt==='accommodation';
+        const hasBox=lt==='external-firebox'||lt==='internal-cabinet';
+        document.getElementById('fpUnitGroup').style.display=isAcc?'block':'none';
+        if(isAcc)populateAccomDropdown();
+        // Box-specific checks only for enclosed types
+        document.getElementById('rowBoxSign').style.display=hasBox?'flex':'none';
+        document.getElementById('rowBoxCond').style.display=hasBox?'flex':'none';
+        // Signage, actions, alarm show for ALL types
+        document.getElementById('rowActions').style.display='flex';
+        document.getElementById('rowAlarm').style.display='flex';
+    }
+    function populateAccomDropdown(){
+        const park=document.getElementById('fpPark').value;
+        const sel=document.getElementById('fpUnitSelect');
+        const units=accomUnits[park]||[];
+        sel.innerHTML='<option value="">Select unit...</option>'+units.map(u=>'<option value="'+u+'">'+u+'</option>').join('')+'<option value="__custom__">✏️ Enter custom location...</option>';
+        document.getElementById('fpUnitCustom').style.display='none';
+        document.getElementById('fpUnitCustom').value='';
+    }
+    function populateEditAccomDropdown(park,current){
+        const sel=document.getElementById('editFpUnitSelect');
+        const units=accomUnits[park]||[];
+        const inList=units.includes(current);
+        sel.innerHTML='<option value="">Select unit...</option>'+units.map(u=>'<option value="'+u+'"'+(u===current?' selected':'')+'>'+u+'</option>').join('')+'<option value="__custom__"'+(current&&!inList?' selected':'')+'>✏️ Enter custom location...</option>';
+        const customInput=document.getElementById('editFpUnit');
+        if(current&&!inList){customInput.style.display='block';customInput.value=current;}
+        else{customInput.style.display='none';customInput.value='';}
+    }
+    function toggleCustomUnit(){
+        const v=document.getElementById('fpUnitSelect').value;
+        document.getElementById('fpUnitCustom').style.display=v==='__custom__'?'block':'none';
+        if(v!=='__custom__')document.getElementById('fpUnitCustom').value='';
+    }
+    function toggleEditCustomUnit(){
+        const v=document.getElementById('editFpUnitSelect').value;
+        document.getElementById('editFpUnit').style.display=v==='__custom__'?'block':'none';
+        if(v!=='__custom__')document.getElementById('editFpUnit').value='';
+    }
+    function getUnitValue(){
+        const sel=document.getElementById('fpUnitSelect').value;
+        if(sel==='__custom__')return document.getElementById('fpUnitCustom').value.trim()||null;
+        return sel||null;
+    }
+    function getEditUnitValue(){
+        const sel=document.getElementById('editFpUnitSelect').value;
+        if(sel==='__custom__')return document.getElementById('editFpUnit').value.trim()||null;
+        return sel||null;
+    }
+
+    function addExtRow(){
+        inlineIdx++;const i=inlineIdx;
+        const d=document.createElement('div');d.className='ext-inline-form';d.id='eR-'+i;
+        d.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><h4>Extinguisher #'+i+'</h4><button type="button" class="btn btn-sm btn-danger" onclick="rmExtRow('+i+')">Remove</button></div><div class="form-row"><div class="form-group"><label>Type <span class="required">*</span></label><select class="form-control" id="eRT-'+i+'" required><option value="">Select...</option><option value="Water">Water (Red)</option><option value="CO2">CO2 (Black)</option><option value="Foam">Foam (Cream)</option><option value="Dry Powder">Dry Powder (Blue)</option><option value="Wet Chemical">Wet Chemical (Yellow)</option><option value="Fire Blanket">Fire Blanket</option></select></div><div class="form-group"><label>Weight / Size</label><select class="form-control" id="eRW-'+i+'"><option value="">Select...</option><option value="1kg">1kg</option><option value="2kg">2kg</option><option value="3kg">3kg</option><option value="5kg">5kg</option><option value="6kg">6kg</option><option value="6L">6 Litre</option><option value="9L">9 Litre</option><option value="N/A">N/A (Blanket)</option></select></div></div><div class="form-row"><div class="form-group"><label>Mounting Method</label><select class="form-control" id="eRMT-'+i+'"><option value="">Select...</option><option value="wall-bracket">Wall Bracket</option><option value="floor-stand">Floor Stand</option><option value="cabinet">In Cabinet / Enclosure</option><option value="hook">Wall Hook</option><option value="free-standing">Free Standing</option></select></div><div class="form-group"><label>Manufacturer</label><input type="text" class="form-control" id="eRM-'+i+'" placeholder="e.g., Kidde, Thomas Glover"></div></div><div class="form-row"><div class="form-group"><label>Serial Number</label><input type="text" class="form-control" id="eRS-'+i+'"></div><div class="form-group"><label>Tare Weight</label><input type="text" class="form-control" id="eRTW-'+i+'" placeholder="e.g., 3.5kg (stamped on body)"></div></div><div class="form-row"><div class="form-group"><label>Year of Manufacture</label><input type="text" class="form-control" id="eRYM-'+i+'" placeholder="e.g., 2022"></div><div class="form-group"><label>BS EN Rating</label><input type="text" class="form-control" id="eRBE-'+i+'" placeholder="e.g., 13A 89B"></div></div><div class="form-row"><div class="form-group"><label>Condition on Setup</label><select class="form-control" id="eRCO-'+i+'"><option value="">Select...</option><option value="new">New</option><option value="refurbished">Refurbished</option><option value="existing">Existing</option><option value="transferred">Transferred</option></select></div><div class="form-group"><label>Pin &amp; Tamper Seal</label><select class="form-control" id="eRPN-'+i+'"><option value="">Select...</option><option value="yes">Yes — Present</option><option value="no">No — Missing</option></select></div></div><div class="form-row"><div class="form-group"><label>Pressure Gauge</label><select class="form-control" id="eRPG-'+i+'"><option value="">Select...</option><option value="good">Good</option><option value="faulty">Faulty</option><option value="na">N/A (CO2)</option></select></div><div class="form-group"><label>Instructions Legible</label><select class="form-control" id="eROI-'+i+'"><option value="">Select...</option><option value="yes">Yes</option><option value="no">No</option></select></div></div><div class="form-row"><div class="form-group"><label>Run-Out Date <span class="required">*</span></label><input type="date" class="form-control" id="eRR-'+i+'" required></div><div class="form-group"><label>Last Service</label><input type="date" class="form-control" id="eRL-'+i+'"></div></div><div class="form-row"><div class="form-group"><label>Next Service Due</label><input type="date" class="form-control" id="eRN-'+i+'"></div><div class="form-group"></div></div>';
+        document.getElementById('extInlineList').appendChild(d);
+        inlineRows.push(i);
+    }
+    function rmExtRow(i){const el=document.getElementById('eR-'+i);if(el)el.remove();inlineRows=inlineRows.filter(x=>x!==i);}
+
+    async function saveFirePoint(ev){
+        ev.preventDefault();
+        if(!fbReady){alert('Firebase not connected.');return;}
+        const code=document.getElementById('fpCode').value.trim().toUpperCase();
+        if(firePoints.some(f=>f.code===code)){alert('Fire point '+code+' already exists.');return;}
+        const fpD={
+            park:document.getElementById('fpPark').value, code:code,
+            locationType:document.getElementById('fpLocationType').value,
+            locationDescription:document.getElementById('fpLocationDesc').value,
+            unitNumber:getUnitValue(),
+            signageRequired:parseInt(document.getElementById('fpSignReq').value)||0,
+            signagePresent:parseInt(document.getElementById('fpSignPres').value)||0,
+            signage:parseInt(document.getElementById('fpSignPres').value)>=parseInt(document.getElementById('fpSignReq').value)&&parseInt(document.getElementById('fpSignReq').value)>0?'pass':parseInt(document.getElementById('fpSignReq').value)>0?'fail':'na',
+            boxSign:getRadio('fpBoxSign'),
+            actionsRequired:parseInt(document.getElementById('fpActReq').value)||0,
+            actionsPresent:parseInt(document.getElementById('fpActPres').value)||0,
+            actionsNotice:parseInt(document.getElementById('fpActPres').value)>=parseInt(document.getElementById('fpActReq').value)&&parseInt(document.getElementById('fpActReq').value)>0?'pass':parseInt(document.getElementById('fpActReq').value)>0?'fail':'na',
+            alarmMeans:getRadio('fpAlarm'),
+            boxCondition:getRadio('fpBoxCond'), notes:document.getElementById('fpNotes').value||null,
+            companyId:companyId||null, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString()
+        };
+        try{
+            const ref=await db.collection('firePoints').add(fpD);
+            fpD.id=ref.id; firePoints.unshift(fpD);
+            let extNum=0;
+            for(const i of inlineRows){
+                extNum++;
+                const t=document.getElementById('eRT-'+i)?.value;
+                const r=document.getElementById('eRR-'+i)?.value;
+                if(!t||!r)continue;
+                const eD={
+                    firePointId:ref.id, firePointCode:code, code:code+'.'+extNum,
+                    park:fpD.park, locationType:fpD.locationType,
+                    locationDescription:fpD.locationDescription, unitNumber:fpD.unitNumber,
+                    type:t, weight:document.getElementById('eRW-'+i)?.value||null,
+                    mounting:document.getElementById('eRMT-'+i)?.value||null,
+                    manufacturer:document.getElementById('eRM-'+i)?.value||null,
+                    serialNumber:document.getElementById('eRS-'+i)?.value||null,
+                    tareWeight:document.getElementById('eRTW-'+i)?.value||null,
+                    yearOfManufacture:document.getElementById('eRYM-'+i)?.value||null,
+                    bsEnRating:document.getElementById('eRBE-'+i)?.value||null,
+                    conditionOnSetup:document.getElementById('eRCO-'+i)?.value||null,
+                    pinTamperSeal:document.getElementById('eRPN-'+i)?.value||null,
+                    pressureGauge:document.getElementById('eRPG-'+i)?.value||null,
+                    instructionsLegible:document.getElementById('eROI-'+i)?.value||null,
+                    runOutDate:r, lastServiceDate:document.getElementById('eRL-'+i)?.value||null,
+                    nextServiceDue:document.getElementById('eRN-'+i)?.value||null,
+                    maintFlagged:false, companyId:companyId||null, createdAt:new Date().toISOString(),
+                    updatedAt:new Date().toISOString(), status:'active'
+                };
+                const eRef=await db.collection('fireExtinguishers').add(eD);
+                eD.id=eRef.id; extinguishers.unshift(eD);
+            }
+            clearFpForm(); refreshAll(); switchTab('firepoints');
+            alert('Fire point '+code+' saved with '+extNum+' extinguisher'+(extNum!==1?'s':'')+'!');
+        }catch(e){console.error(e);alert('Error saving. Try again.');}
+    }
+    function clearFpForm(){document.getElementById('addFpForm').reset();document.getElementById('extInlineList').innerHTML='';inlineRows=[];inlineIdx=0;document.getElementById('fpUnitGroup').style.display='none';document.getElementById('fpUnitCustom').style.display='none';document.getElementById('fpUnitCustom').value='';}
+
+    // ============ EDIT FIRE POINT ============
+    function editFp(id){
+        const fp=firePoints.find(f=>f.id===id);if(!fp)return;
+        document.getElementById('editFpId').value=id;
+        document.getElementById('editFpCode').value=fp.code;
+        document.getElementById('editFpType').value=fp.locationType;
+        document.getElementById('editFpLocation').value=fp.locationDescription||'';
+        populateEditAccomDropdown(fp.park,fp.unitNumber||'');
+        document.getElementById('editFpNotes').value=fp.notes||'';
+        document.getElementById('eFpSignReq').value=fp.signageRequired||0;
+        document.getElementById('eFpSignPres').value=fp.signagePresent||0;
+        setRadio('eFpBoxSign',fp.boxSign||'na');
+        document.getElementById('eFpActReq').value=fp.actionsRequired||0;
+        document.getElementById('eFpActPres').value=fp.actionsPresent||0;
+        setRadio('eFpAlarm',fp.alarmMeans||'na');
+        setRadio('eFpBox',fp.boxCondition||'na');
+        openModal('editFpModal');
+    }
+    async function updateFp(){
+        const id=document.getElementById('editFpId').value;
+        const newCode=document.getElementById('editFpCode').value.trim().toUpperCase();
+        const oldFp=firePoints.find(f=>f.id===id);
+        const oldCode=oldFp?oldFp.code:'';
+        const u={code:newCode,locationType:document.getElementById('editFpType').value,locationDescription:document.getElementById('editFpLocation').value,unitNumber:getEditUnitValue(),notes:document.getElementById('editFpNotes').value||null,signageRequired:parseInt(document.getElementById('eFpSignReq').value)||0,signagePresent:parseInt(document.getElementById('eFpSignPres').value)||0,signage:parseInt(document.getElementById('eFpSignPres').value)>=parseInt(document.getElementById('eFpSignReq').value)&&parseInt(document.getElementById('eFpSignReq').value)>0?'pass':parseInt(document.getElementById('eFpSignReq').value)>0?'fail':'na',boxSign:getRadio('eFpBoxSign'),actionsRequired:parseInt(document.getElementById('eFpActReq').value)||0,actionsPresent:parseInt(document.getElementById('eFpActPres').value)||0,actionsNotice:parseInt(document.getElementById('eFpActPres').value)>=parseInt(document.getElementById('eFpActReq').value)&&parseInt(document.getElementById('eFpActReq').value)>0?'pass':parseInt(document.getElementById('eFpActReq').value)>0?'fail':'na',alarmMeans:getRadio('eFpAlarm'),boxCondition:getRadio('eFpBox'),updatedAt:new Date().toISOString()};
+        try{await db.collection('firePoints').doc(id).update(u);const i=firePoints.findIndex(f=>f.id===id);if(i!==-1)Object.assign(firePoints[i],u);
+        if(newCode!==oldCode){for(const e of fpExts(id)){await db.collection('fireExtinguishers').doc(e.id).update({firePointCode:newCode,updatedAt:new Date().toISOString()});e.firePointCode=newCode;}}
+        closeModal('editFpModal');refreshAll();}catch(e){console.error(e);alert('Error updating.');}
+    }
+    async function deleteFp(){
+        if(!confirm('Delete this fire point and ALL its extinguishers?'))return;
+        const id=document.getElementById('editFpId').value;
+        try{for(const e of fpExts(id))await db.collection('fireExtinguishers').doc(e.id).delete();await db.collection('firePoints').doc(id).delete();extinguishers=extinguishers.filter(e=>e.firePointId!==id);firePoints=firePoints.filter(f=>f.id!==id);closeModal('editFpModal');refreshAll();}catch(e){console.error(e);alert('Error deleting.');}
+    }
+
+    // ============ EDIT EXTINGUISHER ============
+    function editExt(id){
+        const e=extinguishers.find(x=>x.id===id);if(!e)return;
+        document.getElementById('editExtId').value=id;
+        document.getElementById('editExtCode').value=e.code||'';
+        document.getElementById('editExtType').value=e.type;
+        document.getElementById('editExtWeight').value=e.weight||'';
+        document.getElementById('editExtMounting').value=e.mounting||'';
+        document.getElementById('editExtManuf').value=e.manufacturer||'';
+        document.getElementById('editExtSerial').value=e.serialNumber||'';
+        document.getElementById('editExtTareWeight').value=e.tareWeight||'';
+        document.getElementById('editExtYearManuf').value=e.yearOfManufacture||'';
+        document.getElementById('editExtBsRating').value=e.bsEnRating||'';
+        document.getElementById('editExtCondition').value=e.conditionOnSetup||'';
+        document.getElementById('editExtPinSeal').value=e.pinTamperSeal||'';
+        document.getElementById('editExtPressureGauge').value=e.pressureGauge||'';
+        document.getElementById('editExtInstructions').value=e.instructionsLegible||'';
+        document.getElementById('editExtLastSvc').value=e.lastServiceDate||'';
+        document.getElementById('editExtNextSvc').value=e.nextServiceDue||'';
+        document.getElementById('editExtRunOut').value=e.runOutDate||'';
+        document.getElementById('editExtNotes').value=e.notes||'';
+        openModal('editExtModal');
+    }
+    async function updateExt(){
+        const id=document.getElementById('editExtId').value;
+        const u={code:document.getElementById('editExtCode').value,type:document.getElementById('editExtType').value,weight:document.getElementById('editExtWeight').value||null,mounting:document.getElementById('editExtMounting').value||null,manufacturer:document.getElementById('editExtManuf').value||null,serialNumber:document.getElementById('editExtSerial').value||null,tareWeight:document.getElementById('editExtTareWeight').value||null,yearOfManufacture:document.getElementById('editExtYearManuf').value||null,bsEnRating:document.getElementById('editExtBsRating').value||null,conditionOnSetup:document.getElementById('editExtCondition').value||null,pinTamperSeal:document.getElementById('editExtPinSeal').value||null,pressureGauge:document.getElementById('editExtPressureGauge').value||null,instructionsLegible:document.getElementById('editExtInstructions').value||null,lastServiceDate:document.getElementById('editExtLastSvc').value||null,nextServiceDue:document.getElementById('editExtNextSvc').value||null,runOutDate:document.getElementById('editExtRunOut').value||null,notes:document.getElementById('editExtNotes').value||null,updatedAt:new Date().toISOString()};
+        try{await db.collection('fireExtinguishers').doc(id).update(u);const i=extinguishers.findIndex(e=>e.id===id);if(i!==-1)Object.assign(extinguishers[i],u);closeModal('editExtModal');refreshAll();}catch(e){console.error(e);alert('Error updating.');}
+    }
+    async function deleteExt(){
+        if(!confirm('Delete this extinguisher?'))return;
+        const id=document.getElementById('editExtId').value;
+        try{await db.collection('fireExtinguishers').doc(id).delete();extinguishers=extinguishers.filter(e=>e.id!==id);closeModal('editExtModal');refreshAll();}catch(e){console.error(e);alert('Error deleting.');}
+    }
+
+    // ============ SAFEMAINT ============
+    function openMaint(srcType,srcId){
+        document.getElementById('maintSrcType').value=srcType;
+        document.getElementById('maintSrcId').value=srcId;
+        let title='',loc='',desc='';
+        if(srcType==='fp'){
+            const fp=firePoints.find(f=>f.id===srcId);if(!fp)return;
+            title='[Fire Point] '+fp.code+' - '+fp.park;
+            loc=fp.code+' - '+(fp.locationDescription||'')+(fp.unitNumber?' ('+fp.unitNumber+')':'');
+            desc='Fire Point: '+fp.code+'\nType: '+fp.locationType+'\nLocation: '+(fp.locationDescription||'')+'\nPark: '+fp.park+(fp.unitNumber?'\nUnit: '+fp.unitNumber:'')+'\n\nIssue: ';
+        }else{
+            const e=extinguishers.find(x=>x.id===srcId);if(!e)return;
+            const fp=firePoints.find(f=>f.id===e.firePointId);
+            title='[Extinguisher] '+e.code+' - '+e.type+' - '+e.park;
+            loc=e.code+' at '+(fp?fp.code:'?')+' - '+(e.locationDescription||e.park)+(e.unitNumber?' ('+e.unitNumber+')':'');
+            desc='Extinguisher: '+e.code+'\nType: '+e.type+' ('+(e.weight||'N/A')+')\nFire Point: '+(fp?fp.code:'N/A')+'\nLocation: '+(e.locationDescription||'')+'\nPark: '+e.park+(e.unitNumber?'\nUnit: '+e.unitNumber:'')+'\nStatus: '+getExtStatus(e)+'\n\nIssue: ';
+        }
+        document.getElementById('maintLoc').value=loc;
+        document.getElementById('maintTitle').value=title;
+        document.getElementById('maintDesc').value=desc;
+        openModal('maintModal');
+    }
+    async function submitMaint(){
+        const srcType=document.getElementById('maintSrcType').value,srcId=document.getElementById('maintSrcId').value;
+        const title=document.getElementById('maintTitle').value,desc=document.getElementById('maintDesc').value;
+        if(!title||!desc){alert('Complete all fields.');return;}
+        const now=new Date().toISOString();
+        let park='';
+        if(srcType==='fp'){const fp=firePoints.find(f=>f.id===srcId);park=fp?.park||'';}
+        else{const e=extinguishers.find(x=>x.id===srcId);park=e?.park||'';}
+        const req={id:Date.now().toString(),title,category:'fire-safety',location:park,priority:document.getElementById('maintPriority').value,description:desc,reporter:'SafeFire Module',contact:'',status:'pending',dateSubmitted:now,dateCompleted:null,assignedTo:null,notes:[],sourceModule:'Fire Extinguisher Management',sourcePage:'fireextinguisher.html',sourceType:srcType,sourceId:srcId,parkLocation:park,companyId:companyId||null,submittedBy:{name:currentUser.name||'SafeFire Module User',role:'fire-safety',park,accessCode:currentUser.accessCode||''}};
+        try{
+            await db.collection('maintenanceRecords').doc(req.id).set(req);
+            if(srcType==='ext'){await db.collection('fireExtinguishers').doc(srcId).update({maintFlagged:true,maintRequestId:req.id,updatedAt:now});const i=extinguishers.findIndex(e=>e.id===srcId);if(i!==-1){extinguishers[i].maintFlagged=true;extinguishers[i].maintRequestId=req.id;}}
+            if(srcType==='fp'){await db.collection('firePoints').doc(srcId).update({maintFlagged:true,maintRequestId:req.id,updatedAt:now});const i=firePoints.findIndex(f=>f.id===srcId);if(i!==-1){firePoints[i].maintFlagged=true;firePoints[i].maintRequestId=req.id;}}
+            closeModal('maintModal');refreshAll();alert('Maintenance request submitted!');
+        }catch(e){console.error(e);alert('Error submitting.');}
+    }
+
+    // ============ SERVICE RECORDS ============
+    function openSvcModal(){popExtDD();document.getElementById('svcDate').value=new Date().toISOString().split('T')[0];const ny=new Date();ny.setFullYear(ny.getFullYear()+1);document.getElementById('svcNextDue').value=ny.toISOString().split('T')[0];openModal('svcModal');}
+    function recordSvc(eid){popExtDD();document.getElementById('svcExt').value=eid;document.getElementById('svcDate').value=new Date().toISOString().split('T')[0];const ny=new Date();ny.setFullYear(ny.getFullYear()+1);document.getElementById('svcNextDue').value=ny.toISOString().split('T')[0];openModal('svcModal');}
+    function popExtDD(){const s=document.getElementById('svcExt'),p=getPark();let l=p==='all'?extinguishers:extinguishers.filter(e=>e.park===p);s.innerHTML='<option value="">Select extinguisher...</option>'+l.map(e=>'<option value="'+e.id+'">'+e.code+' - '+e.type+' ('+(e.locationDescription||e.park)+')</option>').join('');}
+    async function saveSvc(){
+        const eid=document.getElementById('svcExt').value,eng=document.getElementById('svcEngineer').value,sd=document.getElementById('svcDate').value,nd=document.getElementById('svcNextDue').value,res=document.getElementById('svcResult').value,st=document.getElementById('svcType').value;
+        if(!eid||!eng||!sd||!nd||!res||!st){alert('Complete all required fields.');return;}
+        const d={extinguisherId:eid,reference:document.getElementById('svcRef').value||'FE-SVC-'+Date.now(),serviceType:st,engineerName:eng,company:document.getElementById('svcCompany').value||null,serviceDate:sd,nextDue:nd,result:res,notes:document.getElementById('svcNotes').value||null,companyId:companyId||null,createdAt:new Date().toISOString()};
+        try{
+            const fi=document.getElementById('svcFile');
+            if(fi.files.length>0){const f=fi.files[0];const r=storage.ref('fire-service-records/'+eid+'/'+Date.now()+'_'+f.name);const u=await r.put(f);d.fileUrl=await u.ref.getDownloadURL();d.fileName=f.name;}
+            const ref=await db.collection('fireServiceRecords').add(d);d.id=ref.id;serviceRecords.unshift(d);
+            const eu={lastServiceDate:sd,nextServiceDue:nd,updatedAt:new Date().toISOString()};
+            if(res==='condemned'||res==='fail-replace')eu.status='out-of-service';
+            await db.collection('fireExtinguishers').doc(eid).update(eu);
+            const ei=extinguishers.findIndex(e=>e.id===eid);if(ei!==-1)Object.assign(extinguishers[ei],eu);
+            closeModal('svcModal');refreshAll();
+            ['svcRef','svcType','svcEngineer','svcCompany','svcResult','svcNotes'].forEach(id=>document.getElementById(id).value='');
+            document.getElementById('svcFile').value='';
+            alert('Service record saved!');
+        }catch(e){console.error(e);alert('Error saving.');}
+    }
+
+    // ============ CSV IMPORT ============
+    let csvRows=[];
+    const CMAP={'fire point code':'fpCode','fire point':'fpCode','fp code':'fpCode','point code':'fpCode','extinguisher code':'code','ext code':'code','code':'code','asset id':'code','reference':'code','type':'type','extinguisher type':'type','weight':'weight','size':'weight','park':'park','holiday park':'park','site':'park','location':'locDesc','location description':'locDesc','position':'locDesc','location type':'locType','loc type':'locType','unit':'unit','unit number':'unit','lodge':'unit','manufacturer':'manuf','make':'manuf','serial':'serial','serial number':'serial','tare':'tareWt','tare weight':'tareWt','year of manufacture':'yom','year manufactured':'yom','year':'yom','bs en':'bsEn','bs en rating':'bsEn','rating':'bsEn','condition':'cond','condition on setup':'cond','pin':'pin','pin seal':'pin','pin tamper':'pin','tamper seal':'pin','pressure gauge':'gauge','gauge':'gauge','instructions':'instr','instructions legible':'instr','run out':'runOut','run-out':'runOut','run out date':'runOut','run-out date':'runOut','replace by':'runOut','expiry':'runOut','last service':'lastSvc','last service date':'lastSvc','next service':'nextSvc','next service due':'nextSvc','next due':'nextSvc','notes':'notes','comments':'notes'};
+
+    function downloadTemplate(){
+        const csv='Fire Point Code,Extinguisher Code,Type,Weight,Park,Location,Location Type,Unit Number,Manufacturer,Serial Number,Run-Out Date,Last Service Date,Next Service Due,Notes\nOBF01,OBF01.1,Water,6L,Oban Holiday Park,Car park entrance,external-firebox,,Kidde,SN12345,2031-03-15,2025-06-10,2026-06-10,\nOBF01,OBF01.2,Dry Powder,2kg,Oban Holiday Park,Car park entrance,external-firebox,,Thomas Glover,SN67890,2030-08-20,2025-06-10,2026-06-10,';
+        const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='fire-point-import-template.csv';a.click();
+    }
+    function parseLine(l){const r=[];let c='',q=false;for(let i=0;i<l.length;i++){const ch=l[i];if(q){if(ch==='"'&&l[i+1]==='"'){c+='"';i++;}else if(ch==='"')q=false;else c+=ch;}else{if(ch==='"')q=true;else if(ch===','){r.push(c.trim());c='';}else c+=ch;}}r.push(c.trim());return r;}
+    function pDate(v){if(!v)return null;v=v.trim();let m=v.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);if(m){const d=new Date(m[3],m[2]-1,m[1]);if(!isNaN(d))return d.toISOString().split('T')[0];}m=v.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);if(m){const d=new Date(m[1],m[2]-1,m[3]);if(!isNaN(d))return d.toISOString().split('T')[0];}return null;}
+    function fzPark(v){if(!v)return null;const l=v.toLowerCase().trim();const locs=companyLocations.length>0?companyLocations:[...new Set(firePoints.map(f=>f.park).filter(Boolean))];for(const p of locs)if(p.toLowerCase()===l)return p;for(const p of locs)if(p.toLowerCase().includes(l)||l.includes(p.toLowerCase()))return p;if(l.includes('ben nevis')||l==='ben'){const m=locs.find(p=>p.toLowerCase().includes('ben nevis'));if(m)return m;}if(l.includes('oban')){const m=locs.find(p=>p.toLowerCase().includes('oban'));if(m)return m;}if(l.includes('tyndrum')){const m=locs.find(p=>p.toLowerCase().includes('tyndrum'));if(m)return m;}if(l.includes('overburns')||l.includes('farm')){const m=locs.find(p=>p.toLowerCase().includes('overburns')||p.toLowerCase().includes('farm'));if(m)return m;}return v.trim();}
+    function fzType(v){if(!v)return null;const l=v.toLowerCase().trim();for(const t of EXT_TYPES)if(t.toLowerCase()===l)return t;if(l.includes('water'))return'Water';if(l.includes('co2')||l.includes('carbon'))return'CO2';if(l.includes('foam'))return'Foam';if(l.includes('powder')||l.includes('dry'))return'Dry Powder';if(l.includes('wet')||l.includes('chemical'))return'Wet Chemical';if(l.includes('blanket'))return'Fire Blanket';return v.trim();}
+
+    function previewCsv(){
+        const fi=document.getElementById('csvFile');if(!fi.files.length){alert('Select a CSV file.');return;}
+        const rd=new FileReader();
+        rd.onload=function(ev){
+            const lines=ev.target.result.split(/\r?\n/).filter(l=>l.trim());
+            if(lines.length<2){alert('Need header + data rows.');return;}
+            const hdr=parseLine(lines[0]).map(h=>{const k=h.toLowerCase().trim();return CMAP[k]||k;});
+            const dp=document.getElementById('csvPark').value;
+            csvRows=[];
+            for(let i=1;i<lines.length;i++){
+                const vals=parseLine(lines[i]);if(vals.length===0||(vals.length===1&&!vals[0]))continue;
+                const row={};hdr.forEach((h,j)=>{row[h]=vals[j]||'';});
+                row.type=fzType(row.type)||row.type;row.park=fzPark(row.park)||dp||row.park;
+                row.runOut=pDate(row.runOut);row.lastSvc=pDate(row.lastSvc);row.nextSvc=pDate(row.nextSvc);
+                if(!row.fpCode&&row.code){const parts=row.code.split('.');if(parts.length>1)row.fpCode=parts[0];}
+                const errs=[];
+                if(!row.code)errs.push('Missing code');
+                if(!row.type||!EXT_TYPES.includes(row.type))errs.push('Invalid type');
+                if(!row.park||(companyLocations.length>0&&!companyLocations.includes(row.park)))errs.push('Invalid location');
+                row._row=i+1;row._errs=errs;row._ok=errs.length===0;
+                csvRows.push(row);
+            }
+            const ok=csvRows.filter(r=>r._ok).length,bad=csvRows.filter(r=>!r._ok).length;
+            document.getElementById('csvCount').textContent=csvRows.length;
+            document.getElementById('csvImportN').textContent=ok;
+            document.getElementById('csvHead').innerHTML='<tr><th>#</th><th>FP</th><th>Code</th><th>Type</th><th>Park</th><th>Location</th><th>Run-Out</th><th>Status</th></tr>';
+            document.getElementById('csvBody').innerHTML=csvRows.map(r=>'<tr style="'+(r._ok?'':'background:rgba(220,53,69,0.1);')+'"><td>'+r._row+'</td><td>'+(r.fpCode||'-')+'</td><td>'+(r.code||'-')+'</td><td>'+(r.type||'-')+'</td><td>'+(r.park||'-')+'</td><td>'+(r.locDesc||'-')+'</td><td>'+(r.runOut?fmtDate(r.runOut):'-')+'</td><td>'+(r._ok?'<span class="status-badge status-compliant">OK</span>':'<span class="status-badge status-overdue" title="'+r._errs.join('; ')+'">ERROR</span>')+'</td></tr>').join('');
+            document.getElementById('csvErrors').innerHTML=bad>0?'<div style="background:rgba(220,53,69,0.1);border:1px solid var(--danger);border-radius:6px;padding:12px;"><strong style="color:var(--danger)">'+bad+' error'+(bad>1?'s':'')+':</strong><div style="margin-top:8px;max-height:150px;overflow-y:auto;">'+csvRows.filter(r=>!r._ok).map(r=>'<div style="color:#ff6b7a;font-size:12px">Row '+r._row+': '+r._errs.join(', ')+'</div>').join('')+'</div></div>':'<div style="color:var(--success);font-size:13px;margin-top:8px;">All '+ok+' rows valid.</div>';
+            document.getElementById('csvPreview').style.display='block';
+            document.getElementById('csvImportBtn').style.display=ok>0?'inline-flex':'none';
+            document.getElementById('csvClearBtn').style.display='inline-flex';
+        };rd.readAsText(fi.files[0]);
+    }
+
+    async function importCsv(){
+        const valid=csvRows.filter(r=>r._ok);if(!valid.length){alert('No valid rows.');return;}
+        if(!confirm('Import '+valid.length+' record'+(valid.length>1?'s':'')+'?'))return;
+        if(!fbReady){alert('Firebase not connected.');return;}
+        const bar=document.getElementById('csvBar'),txt=document.getElementById('csvText');
+        document.getElementById('csvProgress').style.display='block';
+        const groups={};valid.forEach(r=>{const fp=(r.fpCode||r.code.split('.')[0]||'').toUpperCase();if(!groups[fp])groups[fp]={rows:[],fp};groups[fp].rows.push(r);});
+        let imp=0,total=valid.length;
+        for(const fpCode of Object.keys(groups)){
+            const g=groups[fpCode],first=g.rows[0];
+            let fpId=null;const ex=firePoints.find(f=>f.code===fpCode);
+            if(ex){fpId=ex.id;}else{
+                const fpD={park:first.park,code:fpCode,locationType:first.locType||'external-firebox',locationDescription:first.locDesc||'',unitNumber:first.unit||null,signageRequired:0,signagePresent:0,signage:'na',boxSign:'na',actionsRequired:0,actionsPresent:0,actionsNotice:'na',alarmMeans:'na',boxCondition:'na',notes:'CSV import — review compliance checks',companyId:companyId||null,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+                try{const ref=await db.collection('firePoints').add(fpD);fpD.id=ref.id;fpId=ref.id;firePoints.unshift(fpD);}catch(e){console.error(e);}
+            }
+            for(const r of g.rows){
+                const eD={firePointId:fpId,firePointCode:fpCode,code:(r.code||'').toUpperCase(),park:r.park,type:r.type,weight:r.weight||null,locationType:r.locType||first.locType||'external-firebox',locationDescription:r.locDesc||'',unitNumber:r.unit||null,manufacturer:r.manuf||null,serialNumber:r.serial||null,tareWeight:r.tareWt||null,yearOfManufacture:r.yom||null,bsEnRating:r.bsEn||null,conditionOnSetup:r.cond||null,pinTamperSeal:r.pin||null,pressureGauge:r.gauge||null,instructionsLegible:r.instr||null,runOutDate:r.runOut,lastServiceDate:r.lastSvc||null,nextServiceDue:r.nextSvc||null,maintFlagged:false,companyId:companyId||null,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),status:'active',importedFromCsv:true};
+                try{const ref=await db.collection('fireExtinguishers').add(eD);eD.id=ref.id;extinguishers.unshift(eD);imp++;}catch(e){console.error(e);}
+                const pct=Math.round((imp/total)*100);bar.style.width=pct+'%';bar.textContent=pct+'%';txt.textContent='Importing '+imp+' of '+total+'...';
+            }
+        }
+        txt.textContent='Done: '+imp+' imported across '+Object.keys(groups).length+' fire point'+(Object.keys(groups).length!==1?'s':'')+'.';
+        refreshAll();alert('Import complete! '+imp+' extinguisher'+(imp!==1?'s':'')+' imported.');
+    }
+    function clearCsv(){csvRows=[];document.getElementById('csvFile').value='';document.getElementById('csvPreview').style.display='none';document.getElementById('csvImportBtn').style.display='none';document.getElementById('csvClearBtn').style.display='none';document.getElementById('csvProgress').style.display='none';}
+
+    // ============ REPORTS ============
+    function generateReport(){
+        const type=document.getElementById('reportType').value,park=document.getElementById('reportPark').value;
+        const out=document.getElementById('reportOutput'),pl=park==='all'?(companyName?'All '+companyName+' Locations':'All Locations'):park;
+        const rd=new Date().toLocaleDateString('en-GB');
+        let fE=park==='all'?extinguishers:extinguishers.filter(e=>e.park===park);
+        let fF=park==='all'?firePoints:firePoints.filter(f=>f.park===park);
+        let h='';
+        if(type==='compliance'){
+            const c=fE.filter(e=>getExtStatus(e)==='compliant').length,d=fE.filter(e=>getExtStatus(e)==='due-soon').length,o=fE.filter(e=>getExtStatus(e)==='overdue').length,x=fE.filter(e=>getExtStatus(e)==='expired').length;
+            const rate=fE.length>0?Math.round(((c+d)/fE.length)*100):0;
+            h='<h3 style="color:var(--primary-red);margin-bottom:20px;">Compliance Summary</h3><p><strong>Park:</strong> '+pl+' | <strong>Date:</strong> '+rd+'</p><hr style="border-color:var(--border-color);margin:20px 0;"><div class="stats-grid"><div class="stat-card points"><div class="stat-value">'+fF.length+'</div><div class="stat-label">Fire Points</div></div><div class="stat-card total"><div class="stat-value">'+fE.length+'</div><div class="stat-label">Extinguishers</div></div><div class="stat-card compliant"><div class="stat-value">'+c+'</div><div class="stat-label">In Service</div></div><div class="stat-card due-soon"><div class="stat-value">'+d+'</div><div class="stat-label">Due Soon</div></div><div class="stat-card overdue"><div class="stat-value">'+o+'</div><div class="stat-label">Overdue</div></div><div class="stat-card expired"><div class="stat-value">'+x+'</div><div class="stat-label">Run-Out</div></div></div><p><strong>Compliance Rate: '+rate+'%</strong></p>';
+        }else if(type==='firepoints'){
+            h='<h3 style="color:var(--primary-red);margin-bottom:20px;">Fire Points Compliance</h3><p><strong>Park:</strong> '+pl+' | <strong>Date:</strong> '+rd+'</p><hr style="border-color:var(--border-color);margin:20px 0;"><table class="data-table"><thead><tr><th>Code</th><th>Type</th><th>Location</th><th>Signs</th><th>Box Sign</th><th>Actions</th><th>Alarm</th><th>Box</th><th>Exts</th></tr></thead><tbody>'+fF.map(f=>'<tr><td><strong>'+f.code+'</strong></td><td>'+f.locationType+'</td><td>'+(f.locationDescription||'-')+'</td><td>'+chkIcon(f.signage)+(f.signageRequired>0?' '+(f.signagePresent||0)+'/'+f.signageRequired:'')+'</td><td>'+chkIcon(f.boxSign)+'</td><td>'+chkIcon(f.actionsNotice)+(f.actionsRequired>0?' '+(f.actionsPresent||0)+'/'+f.actionsRequired:'')+'</td><td>'+chkIcon(f.alarmMeans)+'</td><td>'+chkIcon(f.boxCondition)+'</td><td>'+fpExts(f.id).length+'</td></tr>').join('')+'</tbody></table>';
+        }else if(type==='full'){
+            h='<h3 style="color:var(--primary-red);margin-bottom:20px;">Full Register</h3><p><strong>Park:</strong> '+pl+' | <strong>Date:</strong> '+rd+' | <strong>Total:</strong> '+fE.length+'</p><hr style="border-color:var(--border-color);margin:20px 0;"><table class="data-table"><thead><tr><th>Code</th><th>FP</th><th>Type</th><th>Weight</th><th>Mounting</th><th>Park</th><th>Location</th><th>Last Svc</th><th>Next Due</th><th>Run-Out</th><th>Status</th></tr></thead><tbody>'+fE.map(e=>{const fp=firePoints.find(f=>f.id===e.firePointId);const ml={'wall-bracket':'Wall Bracket','floor-stand':'Floor Stand','cabinet':'Cabinet','hook':'Hook','free-standing':'Free Standing'};return'<tr><td>'+e.code+'</td><td>'+(fp?fp.code:'-')+'</td><td>'+e.type+'</td><td>'+(e.weight||'-')+'</td><td>'+(ml[e.mounting]||e.mounting||'-')+'</td><td>'+e.park+'</td><td>'+(e.locationDescription||'-')+'</td><td>'+(e.lastServiceDate?fmtDate(e.lastServiceDate):'-')+'</td><td>'+(e.nextServiceDue?fmtDate(e.nextServiceDue):'-')+'</td><td>'+(e.runOutDate?fmtDate(e.runOutDate):'-')+'</td><td><span class="status-badge status-'+getExtStatus(e)+'">'+getExtStatus(e).replace('-',' ')+'</span></td></tr>';}).join('')+'</tbody></table>';
+        }else{
+            const items=type==='runout'?fE.filter(e=>{const d=daysTo(e.runOutDate);return d!==null&&d<=180;}).sort((a,b)=>daysTo(a.runOutDate)-daysTo(b.runOutDate)):type==='overdue'?fE.filter(e=>getExtStatus(e)==='overdue'):fE.filter(e=>{const d=daysTo(e.nextServiceDue);return d!==null&&d>=0&&d<=60;}).sort((a,b)=>daysTo(a.nextServiceDue)-daysTo(b.nextServiceDue));
+            const titles={'expiring':'Services Due (60 Days)','overdue':'Overdue Inspections','runout':'Run-Out / Replacement Due'};
+            const dk=type==='runout'?'runOutDate':'nextServiceDue';
+            h='<h3 style="color:var(--primary-red);margin-bottom:20px;">'+(titles[type]||'')+'</h3><p><strong>Park:</strong> '+pl+' | <strong>Date:</strong> '+rd+' | <strong>Count:</strong> '+items.length+'</p><hr style="border-color:var(--border-color);margin:20px 0;">'+(items.length===0?'<p style="color:var(--success)">Nothing to report.</p>':'<table class="data-table"><thead><tr><th>Code</th><th>Type</th><th>Location</th><th>Date</th><th>Days</th></tr></thead><tbody>'+items.map(e=>{const d=daysTo(e[dk]);return'<tr><td>'+e.code+'</td><td>'+e.type+'</td><td>'+(e.locationDescription||e.park)+'</td><td>'+fmtDate(e[dk])+'</td><td>'+(d<0?'<span style="color:var(--danger)">'+Math.abs(d)+'d overdue</span>':d+'d')+'</td></tr>';}).join('')+'</tbody></table>');
+        }
+        out.innerHTML=h;
+    }
+
+    // ============ EXPORT ============
+    function exportRegister(){
+        const p=getPark();let fE=p==='all'?extinguishers:extinguishers.filter(e=>e.park===p);
+        const hdr=['Code','Fire Point','Type','Weight','Mounting','Park','Location','Unit','Manufacturer','Serial','Tare Weight','Year Manuf','BS EN Rating','Condition','Pin Seal','Pressure Gauge','Instructions','Last Service','Next Due','Run-Out','Status'];
+        const rows=fE.map(e=>{const fp=firePoints.find(f=>f.id===e.firePointId);return[e.code,fp?fp.code:'',e.type,e.weight||'',e.mounting||'',e.park,e.locationDescription||'',e.unitNumber||'',e.manufacturer||'',e.serialNumber||'',e.tareWeight||'',e.yearOfManufacture||'',e.bsEnRating||'',e.conditionOnSetup||'',e.pinTamperSeal||'',e.pressureGauge||'',e.instructionsLegible||'',e.lastServiceDate||'',e.nextServiceDue||'',e.runOutDate||'',getExtStatus(e)];});
+        const csv=[hdr,...rows].map(r=>r.map(c=>'"'+c+'"').join(',')).join('\n');
+        const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='fire-register-'+new Date().toISOString().split('T')[0]+'.csv';a.click();
+    }
+
+    // ============ MONTHLY INSPECTIONS ============
+    function getInspMonth(){return document.getElementById('inspMonth').value;}
+    function inspDoneThisMonth(fpId,month){return inspections.some(i=>i.firePointId===fpId&&i.inspectionMonth===month);}
+    function getMonthInsps(month){return inspections.filter(i=>i.inspectionMonth===month);}
+
+    function renderMonthlyBars(){
+        const month=getInspMonth(),c=document.getElementById('inspMonthlyBars');
+        const ml={'wall-bracket':'Wall Bracket','floor-stand':'Floor Stand','cabinet':'Cabinet','hook':'Hook','free-standing':'Free Standing'};
+        let h='<h3 style="color:var(--primary-red);font-size:1rem;margin-bottom:15px;">Monthly Completion — '+month+'</h3>';
+        const barsLocs=companyLocations.length>0?companyLocations:[...new Set(firePoints.map(f=>f.park).filter(Boolean))];
+        barsLocs.forEach(p=>{
+            const pFPs=firePoints.filter(f=>f.park===p);
+            const total=pFPs.length;
+            const done=pFPs.filter(f=>inspDoneThisMonth(f.id,month)).length;
+            const pct=total>0?Math.round((done/total)*100):0;
+            const cls=pct===100?'pct-100':pct>=75?'pct-high':pct>=50?'pct-mid':pct>0?'pct-low':'pct-zero';
+            h+='<div class="park-progress"><div class="park-progress-header"><span class="park-progress-name">'+p+'</span><span class="park-progress-pct" style="color:'+(pct===100?'var(--success)':pct>=50?'var(--warning)':'var(--danger)')+'">'+pct+'%</span></div><div class="park-progress-bar"><div class="park-progress-fill '+cls+'" style="width:'+pct+'%"></div></div><div class="park-progress-detail">'+done+' of '+total+' fire points inspected</div></div>';
+        });
+        c.innerHTML=h;
+    }
+
+    function renderInspections(){
+        const month=getInspMonth(),pf=document.getElementById('inspParkFilter').value;
+        let fps=firePoints;
+        if(pf!=='all')fps=fps.filter(f=>f.park===pf);
+        const ct=document.getElementById('inspList'),em=document.getElementById('emptyInsp');
+        if(!fps.length){ct.innerHTML='';em.style.display='block';return;}
+        em.style.display='none';
+        fps.sort((a,b)=>{const ad=inspDoneThisMonth(a.id,month)?1:0,bd=inspDoneThisMonth(b.id,month)?1:0;return ad-bd;});
+        ct.innerHTML=fps.map(fp=>{
+            const done=inspDoneThisMonth(fp.id,month);
+            const exCount=fpExts(fp.id).length;
+            const ins=done?inspections.find(i=>i.firePointId===fp.id&&i.inspectionMonth===month):null;
+            return '<div class="insp-card '+(done?'done':'pending')+'"><div><span class="fp-code">'+fp.code+'</span> '+locBadge(fp.locationType)+'<br><span style="font-size:13px;color:var(--text-muted)">'+(fp.locationDescription||'')+(fp.unitNumber?' — '+fp.unitNumber:'')+'</span><br><span style="font-size:12px;color:var(--text-muted)">'+exCount+' extinguisher'+(exCount!==1?'s':'')+'</span></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'+(done?'<span class="status-badge status-compliant">Inspected</span><span style="font-size:12px;color:var(--text-muted)">'+fmtDate(ins?.inspectionDate)+' by '+(ins?.inspectorInitials||'?')+'</span>'+(ins?.hasFailures?'<span class="status-badge status-overdue">Issues</span>':''):'<span class="status-badge status-due-soon">Due</span><button class="btn btn-sm btn-primary" onclick="openInspection(\''+fp.id+'\')">Inspect Now</button>')+'</div></div>';
+        }).join('');
+        renderMonthlyBars();
+    }
+
+    function renderInspHistory(){
+        const tb=document.getElementById('inspHistBody'),em=document.getElementById('emptyInspHist');
+        const p=getPark();
+        let fl=inspections;
+        if(p!=='all')fl=fl.filter(i=>i.park===p);
+        fl=fl.slice(0,50);
+        if(!fl.length){tb.innerHTML='';em.style.display='block';return;}
+        em.style.display='none';
+        tb.innerHTML=fl.map(i=>{
+            const fc=i.failCount||0;
+            return'<tr><td>'+fmtDate(i.inspectionDate)+'</td><td><strong>'+i.firePointCode+'</strong></td><td>'+i.park+'</td><td><span style="font-weight:700;letter-spacing:1px;">'+i.inspectorInitials+'</span></td><td><span class="status-badge status-'+(i.hasFailures?'overdue':'compliant')+'">'+(i.hasFailures?'Issues':'Pass')+'</span></td><td>'+(fc>0?'<span style="color:var(--danger)">'+fc+' failure'+(fc>1?'s':'')+'</span>':'—')+'</td></tr>';
+        }).join('');
+    }
+
+    function openInspection(fpId){
+        const fp=firePoints.find(f=>f.id===fpId);if(!fp)return;
+        document.getElementById('inspFpId').value=fpId;
+        document.getElementById('inspFpCode').textContent=fp.code;
+        document.getElementById('inspFpLocBadge').innerHTML=locBadge(fp.locationType);
+        document.getElementById('inspFpDesc').textContent=(fp.locationDescription||'')+(fp.unitNumber?' — '+fp.unitNumber:'')+(fp.park?' | '+fp.park:'');
+        document.getElementById('inspDate').value=new Date().toISOString().split('T')[0];
+        document.getElementById('inspInitials').value='';
+        document.getElementById('inspInitialsConfirm').value='';
+        document.getElementById('inspAck').checked=false;
+        document.getElementById('inspNotes').value='';
+        // Reset fire point checks
+        ['iSign','iBox','iAct','iAlarm','iAccess'].forEach(n=>{document.querySelectorAll('input[name="'+n+'"]').forEach(r=>r.checked=false);});
+        const hasBox=fp.locationType==='external-firebox'||fp.locationType==='internal-cabinet';
+        document.getElementById('iRowBox').style.display=hasBox?'flex':'none';
+        // Build extinguisher checklists
+        const exts=fpExts(fpId);
+        const ml={'wall-bracket':'Wall Bracket','floor-stand':'Floor Stand','cabinet':'Cabinet','hook':'Hook','free-standing':'Free Standing'};
+        const ec=document.getElementById('inspExtChecks');
+        if(!exts.length){ec.innerHTML='<p style="color:var(--text-muted);font-size:13px;padding:10px;">No extinguishers registered at this fire point.</p>';}
+        else{
+            function chkRow(name,label,opts){opts=opts||'pf';let h='<div class="checklist-item"><label>'+label+'</label><div class="checklist-radio-group">';
+                h+='<input type="radio" name="'+name+'" value="pass" id="'+name+'Y"><label for="'+name+'Y">Pass</label>';
+                h+='<input type="radio" name="'+name+'" value="fail" id="'+name+'N"><label for="'+name+'N">Fail</label>';
+                if(opts.includes('n'))h+='<input type="radio" name="'+name+'" value="na" id="'+name+'NA"><label for="'+name+'NA">N/A</label>';
+                return h+'</div></div>';}
+            ec.innerHTML='<h3 style="color:var(--primary-red);font-size:1rem;margin-bottom:12px;">&#x1F9EF; Extinguisher Checks ('+exts.length+')</h3>'+exts.map((e,idx)=>{
+                const p='iE'+idx;
+                const isBlanket=e.type==='Fire Blanket';
+                const isCO2=e.type==='CO2';
+                const hasGauge=!isCO2&&!isBlanket;
+                const hasHose=!isBlanket;
+                const hasBoot=!isCO2&&!isBlanket;
+                let rows='';
+                rows+=chkRow(p+'pos','Present in correct position &amp; accessible');
+                if(isBlanket){
+                    rows+=chkRow(p+'case','Container / case condition satisfactory');
+                    rows+=chkRow(p+'open','Container opens easily, not seized');
+                    rows+=chkRow(p+'blan','Blanket condition (no damage, holes, contamination)');
+                }else{
+                    rows+=chkRow(p+'tag','Tamper-proof tag / anti-tamper device intact');
+                    rows+=chkRow(p+'pin','Safety pin present &amp; correctly seated');
+                    rows+=chkRow(p+'body','Body condition (no dents, corrosion, damage, leaks)');
+                    rows+=chkRow(p+'hose',(isCO2?'Horn / discharge horn':'Hose')+' condition (no cracks, splits, blockages, coupling secure)');
+                    rows+=chkRow(p+'nozz','Nozzle / applicator condition','pfn');
+                    rows+=chkRow(p+'hand','Operating handle &amp; lever mechanism');
+                    if(hasGauge){
+                        rows+=chkRow(p+'gauge','Pressure gauge reading in green zone');
+                        rows+=chkRow(p+'gseal','Gauge seal intact (clear dot / dated dot)');
+                    }
+                    if(hasBoot) rows+=chkRow(p+'boot','Boot / base present &amp; secure');
+                    rows+=chkRow(p+'label','Service label present &amp; legible');
+                }
+                rows+=chkRow(p+'sign','ID signage present &amp; legible');
+                rows+=chkRow(p+'mount','Mounting secure'+(e.mounting?' ('+( ml[e.mounting]||e.mounting)+')':''),'pfn');
+                return '<div class="insp-ext-check"><h4>'+e.code+' '+typeBadge(e.type)+(e.weight?' <small style="color:var(--text-muted)">'+e.weight+'</small>':'')+(e.mounting?' <span class="mounting-label">'+(ml[e.mounting]||e.mounting)+'</span>':'')+'</h4><div class="checklist-group" style="margin-bottom:0;">'+rows+'</div></div>';
+            }).join('');
+        }
+        openModal('inspModal');
+    }
+
+    async function submitInspection(){
+        const fpId=document.getElementById('inspFpId').value;
+        const fp=firePoints.find(f=>f.id===fpId);if(!fp)return;
+        const initials=document.getElementById('inspInitials').value.trim().toUpperCase();
+        const confirm=document.getElementById('inspInitialsConfirm').value.trim().toUpperCase();
+        const ack=document.getElementById('inspAck').checked;
+        const date=document.getElementById('inspDate').value;
+        // Validation
+        if(!date){alert('Enter inspection date.');return;}
+        if(!initials||initials.length<2){alert('Enter your initials (minimum 2 characters).');return;}
+        if(!ack){alert('You must tick the acknowledgment checkbox to confirm this inspection has been carried out.');return;}
+        if(initials!==confirm){alert('Initials do not match. Please re-enter your initials in both fields to confirm.');return;}
+        // Gather fire point checks
+        const fpChecks={signage:getRadio('iSign'),boxCondition:getRadio('iBox'),actionsNotice:getRadio('iAct'),alarmMeans:getRadio('iAlarm'),accessClear:getRadio('iAccess')};
+        // Gather extinguisher checks
+        const exts=fpExts(fpId);
+        const extChecks=[];let failCount=0,hasFailures=false;
+        exts.forEach((e,idx)=>{
+            const p='iE'+idx;
+            const isBlanket=e.type==='Fire Blanket';
+            const isCO2=e.type==='CO2';
+            const hasGauge=!isCO2&&!isBlanket;
+            const hasBoot=!isCO2&&!isBlanket;
+            const checks={extId:e.id,code:e.code,type:e.type,mounting:e.mounting||null};
+            checks.inPosition=getRadio(p+'pos');
+            if(isBlanket){
+                checks.caseCondition=getRadio(p+'case');
+                checks.caseOpens=getRadio(p+'open');
+                checks.blanketCondition=getRadio(p+'blan');
+            }else{
+                checks.tamperTag=getRadio(p+'tag');
+                checks.safetyPin=getRadio(p+'pin');
+                checks.bodyCondition=getRadio(p+'body');
+                checks.hoseCondition=getRadio(p+'hose');
+                checks.nozzle=getRadio(p+'nozz');
+                checks.handle=getRadio(p+'hand');
+                if(hasGauge){checks.gaugeReading=getRadio(p+'gauge');checks.gaugeSeal=getRadio(p+'gseal');}
+                if(hasBoot)checks.bootBase=getRadio(p+'boot');
+                checks.serviceLabel=getRadio(p+'label');
+            }
+            checks.signage=getRadio(p+'sign');
+            checks.mountingSecure=getRadio(p+'mount');
+            const vals=Object.values(checks).filter(v=>typeof v==='string'&&(v==='pass'||v==='fail'||v==='na'));
+            const fails=vals.filter(v=>v==='fail');
+            if(fails.length>0){failCount+=fails.length;hasFailures=true;}
+            checks.pass=fails.length===0;
+            checks.failItems=fails.length>0?Object.entries(checks).filter(([k,v])=>v==='fail').map(([k])=>k):[];
+            extChecks.push(checks);
+        });
+        // Check FP-level failures
+        const fpFails=Object.values(fpChecks).filter(v=>v==='fail');
+        if(fpFails.length>0){failCount+=fpFails.length;hasFailures=true;}
+        // Build inspection record
+        const month=getInspMonth();
+        const rec={firePointId:fpId,firePointCode:fp.code,park:fp.park,inspectionDate:date,inspectionMonth:month,inspectorInitials:initials,acknowledgment:true,firePointChecks:fpChecks,extinguisherChecks:extChecks,notes:document.getElementById('inspNotes').value||null,hasFailures,failCount,extCount:exts.length,companyId:companyId||null,createdAt:new Date().toISOString()};
+        if(!fbReady){alert('Firebase not connected.');return;}
+        try{
+            const ref=await db.collection('fireInspections').add(rec);
+            rec.id=ref.id;inspections.unshift(rec);
+            // Auto-flag failures to SafeMaint
+            if(hasFailures){
+                const failLabels={tamperTag:'Tamper tag',safetyPin:'Safety pin',bodyCondition:'Body condition',hoseCondition:'Hose condition',nozzle:'Nozzle/applicator',handle:'Handle/lever',gaugeReading:'Gauge reading',gaugeSeal:'Gauge seal',bootBase:'Boot/base',serviceLabel:'Service label',signage:'ID signage',mountingSecure:'Mounting',inPosition:'Not in position',caseCondition:'Blanket case',caseOpens:'Case opens',blanketCondition:'Blanket condition',accessClear:'Access clear'};
+                const failDescs=[];
+                if(fpFails.length>0)failDescs.push('FIRE POINT: '+Object.entries(fpChecks).filter(([k,v])=>v==='fail').map(([k])=>failLabels[k]||k).join(', '));
+                extChecks.filter(ec=>!ec.pass).forEach(ec=>{failDescs.push(ec.code+' ('+ec.type+'): '+(ec.failItems||[]).map(k=>failLabels[k]||k).join(', '));});
+                const mReq={id:Date.now().toString(),title:'[Monthly Inspection] '+fp.code+' — '+failCount+' failure'+(failCount>1?'s':''),category:'fire-safety',location:fp.park,priority:failCount>=3?'high':'medium',description:'Monthly inspection of '+fp.code+' on '+fmtDate(date)+' by '+initials+'\n\nFailures found:\n'+failDescs.join('\n')+'\n\nNotes: '+(rec.notes||'None'),reporter:'SafeFire Monthly Inspection',contact:initials,status:'pending',dateSubmitted:new Date().toISOString(),dateCompleted:null,assignedTo:null,notes:[],sourceModule:'Fire Extinguisher Management',sourcePage:'fireextinguisher.html',sourceType:'inspection',sourceId:ref.id,parkLocation:fp.park,companyId:companyId||null,submittedBy:{name:initials,role:'fire-inspector',park:fp.park,accessCode:currentUser.accessCode||''}};
+                await db.collection('maintenanceRecords').doc(mReq.id).set(mReq);
+            }
+            closeModal('inspModal');refreshAll();
+            if(hasFailures)alert('Inspection saved with '+failCount+' failure'+(failCount>1?'s':'')+'. Maintenance request auto-submitted to SafeMaint.');
+            else alert('Inspection saved. All checks passed ✓');
+        }catch(e){console.error(e);alert('Error saving inspection.');}
+    }
+
+    // ============ UI HELPERS ============
+    function switchTab(n){document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.querySelector('.tab-btn[onclick="switchTab(\''+n+'\')"]').classList.add('active');document.querySelectorAll('.content-section').forEach(s=>s.classList.remove('active'));document.getElementById('tab-'+n).classList.add('active');}
+    function openModal(id){document.getElementById(id).classList.add('active');document.body.style.overflow='hidden';}
+    function closeModal(id){document.getElementById(id).classList.remove('active');document.body.style.overflow='';}
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.modal-overlay.active').forEach(m=>m.classList.remove('active'));document.body.style.overflow='';}});
+    document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',function(e){if(e.target===this){this.classList.remove('active');document.body.style.overflow='';}});});
+    document.addEventListener('DOMContentLoaded',initFB);
+    </script>
+</body>
+</html>
