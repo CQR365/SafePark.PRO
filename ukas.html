@@ -1,0 +1,1810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#4A90E2">
+    <title>SafeWater.PRO — UKAS Microbiological Testing</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==">
+
+    <style>
+        :root {
+            --primary-orange: #CC5500;
+            --dark-orange:    #B04A00;
+            --light-orange:   #E67300;
+            --safewater-blue: #4A90E2;
+            --sw-blue-dark:   #2E6DB4;
+            --sw-blue-light:  #6AABF7;
+            --white:  #FFFFFF;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger:  #DC3545;
+            --dark-bg:    #1a1a1a;
+            --tile-bg:    #252525;
+            --content-bg: #2F2F2F;
+            --border:     #3a3a3a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
+            color: var(--white);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h2, h3, h4, h5 { font-family: 'Orbitron', monospace; font-weight: 600; letter-spacing: 1px; }
+
+        /* ── CONTAINER ── */
+        .container { max-width: 1200px; margin: 0 auto; padding: 16px 16px 40px; }
+
+        /* ── HEADER ── */
+        .header {
+            background: linear-gradient(145deg, #3a3a3a, #1a1a1a);
+            text-align: center;
+            padding: 32px 24px 28px;
+            border-radius: 15px;
+            border: 3px solid var(--safewater-blue);
+            margin-bottom: 22px;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8), inset 0 8px 20px rgba(255,255,255,0.05), inset 0 -8px 20px rgba(0,0,0,0.5);
+        }
+        .header::before {
+            content: '';
+            position: absolute; top:0; left:0; right:0; bottom:0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 40%, rgba(0,0,0,0.15) 100%);
+            border-radius: 12px; pointer-events: none;
+        }
+        .header .logo {
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(1.4rem, 5vw, 2.6rem);
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            position: relative; z-index: 1;
+        }
+        .logo .safe  { color: #fff; }
+        .logo .water { color: var(--safewater-blue); text-shadow: 0 0 15px rgba(74,144,226,0.5); }
+        .logo .pro   { color: #fff; }
+        .header .sub {
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(0.55rem, 2vw, 0.75rem);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--safewater-blue);
+            margin-bottom: 10px;
+            position: relative; z-index: 1;
+        }
+        .header p {
+            color: #B8B8B8;
+            font-size: 0.88rem;
+            position: relative; z-index: 1;
+        }
+
+        /* ── NAVIGATION ── */
+        .navigation {
+            display: flex; gap: 0;
+            margin-bottom: 22px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid var(--safewater-blue);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+        }
+        .nav-btn {
+            flex: 1;
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(145deg, #3a3a3a, #1a1a1a);
+            color: #B8B8B8;
+            border: none;
+            padding: 16px 10px;
+            cursor: pointer;
+            font-size: clamp(0.6rem, 1.5vw, 0.78rem);
+            font-weight: 600;
+            border-right: 1px solid var(--safewater-blue);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .nav-btn:last-child { border-right: none; }
+        .nav-btn:hover { background: linear-gradient(145deg, #3a3a3a, #2a2a2a); color: var(--white); }
+        .nav-btn.active {
+            background: linear-gradient(145deg, var(--safewater-blue), var(--sw-blue-dark));
+            color: var(--white);
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.4);
+        }
+
+        /* ── SECTION PANELS ── */
+        .section { display: none; }
+        .section.active { display: block; }
+
+        .card {
+            background: linear-gradient(145deg, var(--tile-bg), #1a1a1a);
+            border: 2px solid var(--primary-orange);
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 2px 6px rgba(255,255,255,0.04);
+            position: relative;
+        }
+        .card::before {
+            content: '';
+            position: absolute; top:0; left:0; right:0; height:1px;
+            background: linear-gradient(90deg, transparent, rgba(204,85,0,0.4), transparent);
+        }
+        .card h3 {
+            color: var(--primary-orange);
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+            text-shadow: 0 0 10px rgba(204,85,0,0.15);
+        }
+        .card-blue {
+            border-color: var(--safewater-blue);
+        }
+        .card-blue::before {
+            background: linear-gradient(90deg, transparent, rgba(74,144,226,0.4), transparent);
+        }
+        .card-blue h3 { color: var(--safewater-blue); }
+
+        /* ── FORM ELEMENTS ── */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #B8B8B8;
+        }
+        .form-group label .req { color: var(--danger); margin-left: 2px; }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            background: #2a2a2a;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
+            color: var(--white);
+            padding: 11px 13px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        .form-group select { background-color: #2a2a2a; }
+        .form-group select option { background: #2a2a2a; color: var(--white); }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--safewater-blue);
+            box-shadow: 0 0 0 3px rgba(74,144,226,0.15);
+        }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+
+        .form-divider {
+            border: none; border-top: 1px solid var(--border);
+            margin: 20px 0;
+        }
+        .form-section-label {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.72rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--safewater-blue);
+            margin-bottom: 12px;
+            margin-top: 4px;
+        }
+
+        /* ── BUTTONS ── */
+        .btn {
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(145deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+            padding: 12px 22px;
+            border: none; border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(204,85,0,0.3), inset 0 2px 4px rgba(255,255,255,0.15);
+            position: relative; overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .btn:hover {
+            background: linear-gradient(145deg, var(--light-orange), var(--primary-orange));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(204,85,0,0.4);
+        }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .btn-blue {
+            background: linear-gradient(145deg, var(--safewater-blue), var(--sw-blue-dark));
+            box-shadow: 0 4px 15px rgba(74,144,226,0.3), inset 0 2px 4px rgba(255,255,255,0.15);
+        }
+        .btn-blue:hover {
+            background: linear-gradient(145deg, var(--sw-blue-light), var(--safewater-blue));
+            box-shadow: 0 8px 25px rgba(74,144,226,0.4);
+        }
+        .btn-danger {
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            box-shadow: 0 4px 15px rgba(220,53,69,0.3), inset 0 2px 4px rgba(255,255,255,0.15);
+        }
+        .btn-danger:hover { background: linear-gradient(145deg, #ff5c4d, #e74c3c); }
+        .btn-secondary {
+            background: linear-gradient(145deg, #4a4a4a, #2a2a2a);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.08);
+        }
+        .btn-secondary:hover { background: linear-gradient(145deg, #5a5a5a, #3a3a3a); }
+        .btn-sm { padding: 7px 13px; font-size: 0.65rem; }
+
+        .btn-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+
+        /* ── RISK BADGES ── */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-low      { background: var(--success); color: #fff; }
+        .badge-medium   { background: var(--warning);  color: #000; }
+        .badge-high     { background: #FF6B35;         color: #fff; }
+        .badge-critical { background: var(--danger);   color: #fff; }
+        .badge-pass     { background: var(--success);  color: #fff; }
+        .badge-fail     { background: var(--danger);   color: #fff; }
+
+        /* ── TABLE ── */
+        .table-wrapper { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.83rem;
+        }
+        thead th {
+            background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange));
+            color: var(--white);
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        tbody td {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            color: #E8E8E8;
+            vertical-align: middle;
+        }
+        tbody tr:hover { background: rgba(74,144,226,0.06); }
+
+        /* ── STATS ROW ── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: linear-gradient(145deg, #2a2a2a, #1f1f1f);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-card .num  { font-size: 2rem; font-weight: 800; font-family: 'Orbitron', monospace; }
+        .stat-card .lbl  { font-size: 0.72rem; color: #B8B8B8; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-blue   .num { color: var(--safewater-blue); }
+        .stat-green  .num { color: var(--success); }
+        .stat-red    .num { color: var(--danger); }
+        .stat-orange .num { color: var(--primary-orange); }
+        .stat-yellow .num { color: var(--warning); }
+
+        /* ── CHART ── */
+        .chart-wrap {
+            background: #222;
+            border-radius: 10px;
+            padding: 16px;
+            border: 1px solid var(--border);
+            position: relative;
+            height: 320px;
+        }
+
+        /* ── UPLOAD ZONE ── */
+        .upload-zone {
+            border: 2px dashed rgba(74,144,226,0.4);
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(74,144,226,0.04);
+        }
+        .upload-zone:hover, .upload-zone.drag-over {
+            border-color: var(--safewater-blue);
+            background: rgba(74,144,226,0.10);
+        }
+        .upload-zone .icon { font-size: 2.5rem; margin-bottom: 10px; }
+        .upload-zone p { color: #B8B8B8; font-size: 0.88rem; }
+        .upload-zone strong { color: var(--safewater-blue); }
+
+        /* ── PREVIEW TABLE ── */
+        .preview-scroll {
+            max-height: 260px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-top: 14px;
+        }
+        .preview-scroll table thead th { position: sticky; top: 0; z-index: 2; }
+
+        /* ── CERT THUMB ── */
+        .cert-thumb img { max-width: 80px; max-height: 60px; border-radius: 4px; border: 1px solid var(--border); }
+
+        /* ── ALERT / INFO ── */
+        .alert {
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 0.88rem;
+            border-left: 4px solid var(--safewater-blue);
+            background: rgba(74,144,226,0.1);
+            color: var(--white);
+        }
+        .alert strong { color: var(--safewater-blue); }
+        .alert-warning {
+            border-color: var(--warning);
+            background: rgba(255,193,7,0.08);
+        }
+        .alert-warning strong { color: var(--warning); }
+        .alert-danger {
+            border-color: var(--danger);
+            background: rgba(220,53,69,0.08);
+        }
+        .alert-danger strong { color: var(--danger); }
+
+        /* ── TOAST ── */
+        #toast {
+            position: fixed;
+            bottom: 24px; left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: #333;
+            color: var(--white);
+            padding: 13px 22px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            border: 1px solid var(--border);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0; z-index: 999;
+            max-width: 90vw; text-align: center;
+        }
+        #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        /* ── FILE INPUT HIDE ── */
+        input[type="file"] { display: none; }
+
+        /* ── EMPTY STATE ── */
+        .empty-state {
+            text-align: center; padding: 40px 20px; color: #666;
+        }
+        .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
+
+        /* ── FILTER ROW ── */
+        .filter-row {
+            display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
+            margin-bottom: 18px;
+        }
+        .filter-row .form-group { min-width: 160px; margin-bottom: 0; }
+
+        /* ── FOOTER ── */
+        .footer {
+            text-align: center;
+            padding: 24px 0 10px;
+            border-top: 1px solid #333;
+            margin-top: 40px;
+            font-size: 0.78rem;
+            color: #666;
+        }
+        .footer strong { color: var(--safewater-blue); }
+
+        /* ── MOBILE ── */
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .stats-row { grid-template-columns: 1fr 1fr; }
+            .btn-group { flex-direction: column; }
+            .btn-group .btn { width: 100%; }
+        }
+
+        /* ── LOADING ── */
+        .loading-spinner {
+            width: 32px; height: 32px;
+            border: 3px solid rgba(74,144,226,0.2);
+            border-top-color: var(--safewater-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── CERT BADGE ── */
+        .cert-present {
+            display: inline-block;
+            background: rgba(40,167,69,0.2);
+            border: 1px solid var(--success);
+            color: var(--success);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+        /* ── RESOLVE MODAL ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: linear-gradient(145deg, #252525, #1a1a1a);
+            border: 2px solid var(--primary-orange);
+            border-radius: 14px;
+            padding: 28px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+        }
+        .modal-box h4 {
+            font-family: 'Orbitron', monospace;
+            color: var(--primary-orange);
+            margin-bottom: 18px;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+        }
+        .modal-box .meta {
+            font-size: 0.78rem;
+            color: #888;
+            margin-bottom: 18px;
+            line-height: 1.5;
+        }
+        .modal-btn-row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+
+        /* ── RESOLVED BADGE ── */
+        .badge-resolved {
+            display: inline-block;
+            padding: 3px 9px;
+            border-radius: 5px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: rgba(100,116,139,0.25);
+            color: #94a3b8;
+            border: 1px solid #334155;
+        }
+
+        /* ── CHEM DATA LINK ── */
+        .chem-link {
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--safewater-blue);
+            background: rgba(74,144,226,0.12);
+            border: 1px solid rgba(74,144,226,0.35);
+            border-radius: 4px;
+            padding: 3px 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .chem-link:hover { background: rgba(74,144,226,0.25); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo">
+            <span class="safe">Safe</span><span class="water">Water</span><span class="pro">.PRO</span>
+        </div>
+        <div class="sub">UKAS Microbiological Testing</div>
+        <p>Upload lab results, attach certificates, track trends and export compliance data</p>
+    </div>
+
+    <!-- NAVIGATION -->
+    <div class="navigation">
+        <button class="nav-btn active" onclick="showTab('entry')">Entry</button>
+        <button class="nav-btn" onclick="showTab('history')">History</button>
+        <button class="nav-btn" onclick="showTab('upload')">Upload</button>
+        <button class="nav-btn" onclick="showTab('trends')">Trends</button>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         TAB: ENTRY
+    ══════════════════════════════════════ -->
+    <div id="tab-entry" class="section active">
+
+        <div class="card">
+            <h3>Manual Result Entry</h3>
+
+            <p class="form-section-label">Location &amp; Asset</p>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Location / Site <span class="req">*</span></label>
+                    <input type="text" id="eLocation" placeholder="e.g. Ben Nevis Holiday Park">
+                </div>
+                <div class="form-group">
+                    <label>Asset / Unit ID <span class="req">*</span></label>
+                    <input type="text" id="eAsset" placeholder="e.g. HT-01">
+                </div>
+                <div class="form-group">
+                    <label>Sample Date <span class="req">*</span></label>
+                    <input type="date" id="eSampleDate">
+                </div>
+                <div class="form-group">
+                    <label>Collected By</label>
+                    <input type="text" id="eCollectedBy" placeholder="Name or initials">
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Sample Type</label>
+                    <select id="eSampleType">
+                        <option value="">Select…</option>
+                        <option value="water">Water Sample</option>
+                        <option value="surface_swab">Surface Swab</option>
+                        <option value="contact_plate">Contact Plate</option>
+                        <option value="air_plate">Air Plate</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Test Suite</label>
+                    <select id="eTestSuite">
+                        <option value="">Select…</option>
+                        <option value="bacterial_monthly">Bacterial Suite (Monthly)</option>
+                        <option value="legionella_quarterly">Legionella Suite (Quarterly)</option>
+                        <option value="full_suite">Full Microbiological Suite</option>
+                    </select>
+                </div>
+            </div>
+
+            <hr class="form-divider">
+            <p class="form-section-label">Laboratory Details</p>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Laboratory Name</label>
+                    <input type="text" id="eLabName" placeholder="e.g. Eurofins">
+                </div>
+                <div class="form-group">
+                    <label>UKAS Accreditation No.</label>
+                    <input type="text" id="eUKAS" placeholder="e.g. 2382">
+                </div>
+                <div class="form-group">
+                    <label>Lab Reference / Report No.</label>
+                    <input type="text" id="eLabRef" placeholder="e.g. EFS-2024-00123">
+                </div>
+            </div>
+
+            <hr class="form-divider">
+            <p class="form-section-label">Test Results</p>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Legionella (CFU / L)</label>
+                    <input type="number" id="eLegionella" min="0" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>E. coli (CFU / 100 ml)</label>
+                    <input type="number" id="eEcoli" min="0" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>P. aeruginosa (CFU / 100 ml)</label>
+                    <input type="number" id="ePseudomonas" min="0" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>TVC — Total Viable Count (CFU / ml)</label>
+                    <input type="number" id="eTVC" min="0" placeholder="0">
+                </div>
+            </div>
+
+            <hr class="form-divider">
+            <p class="form-section-label">Notes &amp; Certificate</p>
+            <div class="form-grid">
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label>Notes</label>
+                    <textarea id="eNotes" placeholder="Any observations, corrective actions taken, context…"></textarea>
+                </div>
+            </div>
+
+            <!-- Certificate upload -->
+            <div id="certDropZone" class="upload-zone" onclick="document.getElementById('certFileInput').click()" style="margin-top:6px; padding:20px;">
+                <p><strong>Attach Lab Certificate</strong></p>
+                <p>Click to attach a PDF or image (max 700 KB)<br><span id="certFileName" style="color:#B8B8B8;">No file selected</span></p>
+            </div>
+            <input type="file" id="certFileInput" accept="application/pdf,image/*" onchange="handleCertSelect(this)">
+
+            <div class="btn-group">
+                <button class="btn btn-blue" onclick="saveEntry()">Save Result</button>
+                <button class="btn btn-secondary" onclick="resetEntryForm()">Reset</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════════
+         TAB: HISTORY
+    ══════════════════════════════════════ -->
+    <div id="tab-history" class="section">
+
+        <div class="card card-blue">
+            <h3>Result History</h3>
+            <div class="filter-row">
+                <div class="form-group">
+                    <label>Filter: Location</label>
+                    <input type="text" id="fLocation" placeholder="All locations" oninput="renderHistory()">
+                </div>
+                <div class="form-group">
+                    <label>Filter: Asset / Unit</label>
+                    <input type="text" id="fAsset" placeholder="All assets" oninput="renderHistory()">
+                </div>
+                <div class="form-group">
+                    <label>Filter: From</label>
+                    <input type="date" id="fFrom" onchange="renderHistory()">
+                </div>
+                <div class="form-group">
+                    <label>Filter: To</label>
+                    <input type="date" id="fTo" onchange="renderHistory()">
+                </div>
+                <div class="form-group" style="justify-content:flex-end;">
+                    <label>&nbsp;</label>
+                    <button class="btn btn-secondary" onclick="clearHistoryFilters()">Clear Filters</button>
+                </div>
+            </div>
+
+            <div class="stats-row" id="historyStats">
+                <div class="stat-card stat-blue"><div class="num" id="statTotal">–</div><div class="lbl">Results</div></div>
+                <div class="stat-card stat-green"><div class="num" id="statPass">–</div><div class="lbl">Pass</div></div>
+                <div class="stat-card stat-red"><div class="num" id="statFail">–</div><div class="lbl">Fail</div></div>
+                <div class="stat-card stat-yellow"><div class="num" id="statCerts">–</div><div class="lbl">Certificates</div></div>
+            </div>
+
+            <div id="historyContent">
+                <div class="loading-spinner"></div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="exportCSV()">Export CSV</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════════
+         TAB: UPLOAD
+    ══════════════════════════════════════ -->
+    <div id="tab-upload" class="section">
+
+        <!-- CSV / XLSX Import -->
+        <div class="card card-blue">
+            <h3>Batch Import — Eurofins XLSX or Generic CSV</h3>
+
+            <div class="alert">
+                <strong>Eurofins XLSX</strong> — drop the file exported directly from the Eurofins portal. Columns are mapped automatically (Sample Description → Asset, Received → Date, etc.).<br>
+                <strong>Generic CSV</strong> — use the template below. Dates in <strong>YYYY-MM-DD</strong> format.
+            </div>
+
+            <!-- Location prompt — shown when XLSX loaded (Eurofins files have no location column) -->
+            <div id="xlsxLocationPrompt" style="display:none; margin-bottom:16px;">
+                <div class="alert alert-warning">
+                    <strong>Eurofins exports do not include a site location.</strong> Enter the site name to apply to all imported rows.
+                </div>
+                <div class="form-group" style="max-width:380px;">
+                    <label>Default Location / Site <span class="req">*</span></label>
+                    <input type="text" id="xlsxDefaultLocation" placeholder="e.g. Ben Nevis Holiday Park">
+                </div>
+            </div>
+
+            <div class="btn-group" style="margin-bottom:18px;">
+                <button class="btn btn-secondary" onclick="downloadCSVTemplate()">Download CSV Template</button>
+            </div>
+
+            <div id="csvDropZone" class="upload-zone"
+                 onclick="document.getElementById('csvFileInput').click()"
+                 ondragover="csvDragOver(event)"
+                 ondragleave="csvDragLeave(event)"
+                 ondrop="csvDrop(event)">
+                <div class="icon" style="font-size:1.8rem; margin-bottom:8px; color:var(--safewater-blue);">↑</div>
+                <p><strong>Click or drag &amp; drop here</strong></p>
+                <p style="margin-top:6px; font-size:0.82rem; color:#888;">Accepts: Eurofins <strong>.xlsx</strong> · Generic <strong>.csv</strong></p>
+                <p id="csvFileName" style="margin-top:8px; color:#B8B8B8;">No file selected</p>
+            </div>
+            <input type="file" id="csvFileInput" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onchange="handleCSVSelect(this)">
+
+            <div id="csvPreview" style="display:none; margin-top:14px;">
+                <p class="form-section-label" style="margin-bottom:10px;" id="csvPreviewLabel">Preview</p>
+                <div class="preview-scroll" id="csvPreviewTable"></div>
+                <div class="btn-group">
+                    <button class="btn btn-blue" id="csvSaveBtn" onclick="saveBatchCSV()">Save All to Firebase</button>
+                    <button class="btn btn-secondary" onclick="clearCSVPreview()">✕ Clear</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Certificate Upload (standalone, attach to existing result) -->
+        <div class="card">
+            <h3>Attach Certificate to Existing Result</h3>
+            <p style="color:#B8B8B8; font-size:0.88rem; margin-bottom:16px;">
+                Load results, select one, then attach the lab certificate file.
+            </p>
+
+            <div class="form-grid">
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label>Select Result <span class="req">*</span></label>
+                    <select id="certResultSelect">
+                        <option value="">Loading results…</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="certUploadZone" class="upload-zone" onclick="document.getElementById('certFileInput2').click()" style="margin-top:4px;">
+                <p><strong>Attach Lab Certificate / Report</strong></p>
+                <p>PDF or image — max 700 KB<br><span id="certFileName2" style="color:#B8B8B8;">No file selected</span></p>
+            </div>
+            <input type="file" id="certFileInput2" accept="application/pdf,image/*" onchange="handleCert2Select(this)">
+
+            <div class="btn-group">
+                <button class="btn btn-blue" onclick="saveStandaloneCert()">Attach Certificate</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════════
+         TAB: TRENDS
+    ══════════════════════════════════════ -->
+    <div id="tab-trends" class="section">
+
+        <div class="card card-blue">
+            <h3>Trend Analysis</h3>
+
+            <div class="filter-row" style="margin-bottom:16px;">
+                <div class="form-group">
+                    <label>Location</label>
+                    <input type="text" id="tLocation" placeholder="All" oninput="renderTrends()">
+                </div>
+                <div class="form-group">
+                    <label>Asset</label>
+                    <input type="text" id="tAsset" placeholder="All" oninput="renderTrends()">
+                </div>
+                <div class="form-group">
+                    <label>Metric</label>
+                    <select id="tMetric" onchange="renderTrends()">
+                        <option value="tvc">TVC (CFU/ml)</option>
+                        <option value="pseudomonas">P. aeruginosa</option>
+                        <option value="legionella">Legionella</option>
+                        <option value="ecoli">E. coli</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Last N results</label>
+                    <select id="tLimit" onchange="renderTrends()">
+                        <option value="20">20</option>
+                        <option value="50" selected>50</option>
+                        <option value="100">100</option>
+                        <option value="all">All</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="chart-wrap">
+                <canvas id="trendsChart"></canvas>
+                <div id="trendsEmpty" style="display:none; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#666; font-size:0.88rem;">
+                    No data to display — add results to see trends.
+                </div>
+            </div>
+
+            <div style="margin-top:20px;">
+                <p class="form-section-label">Reference Limits (PWTAG / HSG282)</p>
+                <div class="stats-row">
+                    <div class="stat-card"><div class="num" style="font-size:1.2rem; color:var(--success);">Not detected</div><div class="lbl">Legionella target</div></div>
+                    <div class="stat-card"><div class="num" style="font-size:1.2rem; color:var(--success);">Not detected</div><div class="lbl">E. coli target</div></div>
+                    <div class="stat-card"><div class="num" style="font-size:1.2rem; color:var(--success);">≤ 10 CFU/100ml</div><div class="lbl">P. aeruginosa action</div></div>
+                    <div class="stat-card"><div class="num" style="font-size:1.2rem; color:var(--success);">&lt; 100 CFU/ml</div><div class="lbl">TVC action level</div></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div><!-- /container -->
+
+<div class="footer">
+    <strong>SafeWater.PRO</strong> — part of <strong>SafeSystems.PRO</strong> by Omnibosh Safety Solutions Ltd
+</div>
+
+<!-- ── RESOLVE MODAL ── -->
+<div id="resolveModal" class="modal-overlay">
+    <div class="modal-box">
+        <h4>Mark Result as Resolved</h4>
+        <div class="meta" id="resolveResultMeta"></div>
+        <input type="hidden" id="resolveResultId">
+
+        <div class="form-group" style="margin-bottom:14px;">
+            <label>How was this addressed? <span class="req">*</span></label>
+            <textarea id="resolveNotes" rows="4"
+                placeholder="Describe the corrective action taken — drain and refill, resampling, chemical correction, contractor visit, etc."></textarea>
+        </div>
+
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap:12px;">
+            <div class="form-group">
+                <label>Resolved by (initials) <span class="req">*</span></label>
+                <input type="text" id="resolveInitials" placeholder="e.g. SG" maxlength="6"
+                    style="text-transform:uppercase;">
+            </div>
+            <div class="form-group">
+                <label>Date resolved</label>
+                <input type="date" id="resolveDate">
+            </div>
+        </div>
+
+        <div class="modal-btn-row">
+            <button class="btn btn-blue" onclick="saveResolve()">Save Resolution</button>
+            <button class="btn btn-secondary" onclick="closeResolveModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════════════ -->
+<script>
+
+// ─── History API back-button sentinel ───────────────────
+history.pushState({ page: 'ukas' }, '', '');
+window.addEventListener('popstate', function(e) {
+    if (!e.state || !e.state.page) {
+        window.location.href = 'index.html';
+    } else {
+        history.pushState({ page: 'ukas' }, '', '');
+    }
+});
+
+// ─── Auth check ─────────────────────────────────────────
+(function() {
+    const required = ['currentUser', 'currentPark', 'currentAccessCode', 'userAccessLevel'];
+    const missing  = required.some(k => !sessionStorage.getItem(k));
+    if (missing) {
+        alert('Access Denied — please log in via the SafeSystems.PRO dashboard.');
+        window.location.href = 'index.html';
+        throw new Error('Auth required');
+    }
+})();
+
+const _currentUser = {
+    name:        sessionStorage.getItem('currentUser'),
+    park:        sessionStorage.getItem('currentPark'),
+    accessCode:  sessionStorage.getItem('currentAccessCode'),
+    level:       sessionStorage.getItem('userAccessLevel')
+};
+
+// ─── Firebase init ───────────────────────────────────────
+const firebaseConfig = {
+    apiKey:            "AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+    authDomain:        "safepark-pro.firebaseapp.com",
+    projectId:         "safepark-pro",
+    storageBucket:     "safepark-pro.appspot.com",
+    messagingSenderId: "511221743341",
+    appId:             "1:511221743341:web:95bcc7e83d4861578016e4"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const COLLECTION = 'ukas_results';
+
+// ─── In-memory store ─────────────────────────────────────
+let allResults = [];
+let csvParsedRows = [];
+let certFileData  = null;  // {name, type, size, dataUrl} for entry form
+let certFile2Data = null;  // for standalone upload tab
+
+// ─── Utility ─────────────────────────────────────────────
+function showToast(msg, ms = 3500) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => t.classList.remove('show'), ms);
+}
+
+function fmtDate(d) {
+    if (!d) return '–';
+    if (typeof d === 'string') {
+        const parts = d.split('-');
+        if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        return d;
+    }
+    return new Date(d).toLocaleDateString('en-GB');
+}
+
+function getRisk(r) {
+    const leg = Number(r.legionella) || 0;
+    const eco = Number(r.ecoli)      || 0;
+    const pse = Number(r.pseudomonas)|| 0;
+    const tvc = Number(r.tvc)        || 0;
+    if (leg > 0 || eco > 0 || pse > 10) return 'critical';
+    if (tvc > 100 || pse > 0)           return 'high';
+    if (tvc > 50)                        return 'medium';
+    return 'low';
+}
+
+function getCompliance(r) {
+    const leg = Number(r.legionella) || 0;
+    const eco = Number(r.ecoli)      || 0;
+    const pse = Number(r.pseudomonas)|| 0;
+    const tvc = Number(r.tvc)        || 0;
+    return (leg === 0 && eco === 0 && pse <= 10 && tvc < 100);
+}
+
+function badgeRisk(risk) {
+    const label = { low:'LOW', medium:'MEDIUM', high:'HIGH', critical:'CRITICAL' };
+    return `<span class="badge badge-${risk}">${label[risk] || risk.toUpperCase()}</span>`;
+}
+
+// ─── TAB NAVIGATION ──────────────────────────────────────
+function showTab(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`tab-${id}`).classList.add('active');
+    const tabs = ['entry','history','upload','trends'];
+    const idx  = tabs.indexOf(id);
+    document.querySelectorAll('.nav-btn')[idx].classList.add('active');
+
+    if (id === 'history') loadAndRender();
+    if (id === 'trends')  loadAndRenderTrends();
+    if (id === 'upload')  populateCertResultSelect();
+}
+
+// ─── LOAD FROM FIREBASE ───────────────────────────────────
+async function loadFromFirebase() {
+    const isAdmin = _currentUser.accessCode === 'CQR365SPP25' || _currentUser.accessCode === 'HRALL2025';
+    try {
+        let query;
+        if (isAdmin) {
+            // Admin: load all results across all parks — no accessCode filter
+            query = db.collection(COLLECTION)
+                .orderBy('sampleDate', 'desc')
+                .limit(1000);
+        } else {
+            // Park user: scoped to their access code only
+            // Requires composite Firestore index: accessCode ASC + sampleDate DESC
+            // On first run Firebase logs a one-click creation link if the index is missing
+            query = db.collection(COLLECTION)
+                .where('accessCode', '==', _currentUser.accessCode)
+                .orderBy('sampleDate', 'desc')
+                .limit(500);
+        }
+        const snap = await query.get();
+        allResults = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        console.log(`[UKAS] Loaded ${allResults.length} results (admin=${isAdmin})`);
+    } catch(e) {
+        console.error('Firebase load error:', e);
+        showToast('⚠ Could not load data — check connection or create the Firestore composite index.');
+        allResults = [];
+    }
+}
+
+async function loadAndRender() {
+    document.getElementById('historyContent').innerHTML = '<div class="loading-spinner"></div>';
+    await loadFromFirebase();
+    renderHistory();
+}
+
+// ─── RENDER HISTORY ───────────────────────────────────────
+function renderHistory() {
+    const locF  = (document.getElementById('fLocation')?.value || '').toLowerCase();
+    const astF  = (document.getElementById('fAsset')?.value    || '').toLowerCase();
+    const fromF = document.getElementById('fFrom')?.value;
+    const toF   = document.getElementById('fTo')?.value;
+
+    let filtered = allResults.filter(r => {
+        if (locF && !(r.location||'').toLowerCase().includes(locF)) return false;
+        if (astF && !(r.assetId||'').toLowerCase().includes(astF)) return false;
+        if (fromF && r.sampleDate < fromF) return false;
+        if (toF   && r.sampleDate > toF)   return false;
+        return true;
+    });
+
+    // Update stats
+    const pass  = filtered.filter(r => getCompliance(r)).length;
+    const certs = filtered.filter(r => r.certificate).length;
+    document.getElementById('statTotal').textContent = filtered.length;
+    document.getElementById('statPass').textContent  = pass;
+    document.getElementById('statFail').textContent  = filtered.length - pass;
+    document.getElementById('statCerts').textContent = certs;
+
+    const el = document.getElementById('historyContent');
+    if (!filtered.length) {
+        el.innerHTML = `<div class="empty-state"><p>No results found — add results via the Entry tab or import a file.</p></div>`;
+        return;
+    }
+
+    const rows = filtered.map(r => {
+        const risk       = getRisk(r);
+        const compliance = getCompliance(r);
+        const isFail     = !compliance;
+        const isResolved = r.resolved === true;
+
+        const certBtn = r.certificate
+            ? `<span class="cert-present" onclick="viewCert('${r.id}')">View</span>`
+            : `<span style="color:#555; font-size:0.72rem;">–</span>`;
+
+        // Result/compliance cell
+        let resultCell;
+        if (isResolved) {
+            resultCell = `<span class="badge-resolved" title="Resolved by ${r.resolvedBy || '?'} on ${fmtDate(r.resolvedAt || '')} — ${r.resolvedNotes || ''}">Resolved</span>`;
+        } else {
+            resultCell = `<span class="badge ${compliance ? 'badge-pass' : 'badge-fail'}">${compliance ? 'PASS' : 'FAIL'}</span>`;
+        }
+
+        // Actions cell
+        let actionsCell = `<button class="btn btn-danger btn-sm" onclick="deleteResult('${r.id}')">Del</button>`;
+        if (isFail && !isResolved) {
+            const meta = `${fmtDate(r.sampleDate)} | ${r.location || ''} | ${r.assetId || ''}`;
+            actionsCell = `
+                <button class="btn btn-sm" style="background:linear-gradient(145deg,#b45309,#92400e); margin-bottom:3px;"
+                    onclick="openResolveModal('${r.id}', '${meta.replace(/'/g,"\\'")}')">Resolve</button>
+                <span class="chem-link" onclick="parent && parent.loadModule ? parent.loadModule('https://cqr365.github.io/SafePark.PRO/chemical-trends.html','Chemical Trends') : window.open('chemical-trends.html','_blank')"
+                    title="View chemical dosing history for context">Chem Data</span>
+                <button class="btn btn-danger btn-sm" onclick="deleteResult('${r.id}')">Del</button>`;
+        }
+
+        return `<tr style="${isResolved ? 'opacity:0.55;' : ''}">
+            <td>${fmtDate(r.sampleDate)}</td>
+            <td>${r.location || '–'}</td>
+            <td>${r.assetId || '–'}</td>
+            <td style="font-size:0.75rem;">${r.testSuite ? r.testSuite.replace(/_/g,' ') : '–'}</td>
+            <td>${r.legionella ?? '–'}</td>
+            <td>${r.ecoli     ?? '–'}</td>
+            <td>${r.pseudomonas ?? '–'}</td>
+            <td>${r.tvc       ?? '–'}</td>
+            <td>${badgeRisk(risk)}</td>
+            <td>${resultCell}</td>
+            <td>${certBtn}</td>
+            <td style="white-space:nowrap;">${actionsCell}</td>
+        </tr>`;
+    }).join('');
+
+    el.innerHTML = `
+        <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Location</th>
+                    <th>Asset</th>
+                    <th>Suite</th>
+                    <th>Legionella</th>
+                    <th>E. coli</th>
+                    <th>P. aerug.</th>
+                    <th>TVC</th>
+                    <th>Risk</th>
+                    <th>Result</th>
+                    <th>Cert</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+        </table>
+        </div>`;
+}
+
+// ─── VIEW CERTIFICATE ─────────────────────────────────────
+async function viewCert(resultId) {
+    const r = allResults.find(x => x.id === resultId);
+    if (!r || !r.certificate) { showToast('No certificate attached.'); return; }
+    const cert = r.certificate;
+    if (cert.type === 'application/pdf') {
+        // Open PDF in new tab
+        const byteStr = atob(cert.dataUrl.split(',')[1]);
+        const arr = new Uint8Array(byteStr.length);
+        for (let i = 0; i < byteStr.length; i++) arr[i] = byteStr.charCodeAt(i);
+        const blob = new Blob([arr], { type: 'application/pdf' });
+        window.open(URL.createObjectURL(blob), '_blank');
+    } else {
+        // Open image in new tab
+        const win = window.open('', '_blank');
+        win.document.write(`<img src="${cert.dataUrl}" style="max-width:100%;"><p style="font-family:sans-serif;color:#888;">${cert.name}</p>`);
+    }
+}
+
+// ─── DELETE RESULT ────────────────────────────────────────
+async function deleteResult(id) {
+    if (!confirm('Delete this result? This cannot be undone.')) return;
+    try {
+        await db.collection(COLLECTION).doc(id).delete();
+        allResults = allResults.filter(r => r.id !== id);
+        renderHistory();
+        showToast('Result deleted.');
+    } catch(e) {
+        showToast('⚠ Error deleting: ' + e.message);
+    }
+}
+
+// ─── RESOLVE MODAL ───────────────────────────────────────
+function openResolveModal(id, meta) {
+    document.getElementById('resolveResultId').value    = id;
+    document.getElementById('resolveResultMeta').textContent = meta;
+    document.getElementById('resolveNotes').value       = '';
+    document.getElementById('resolveInitials').value    = '';
+    document.getElementById('resolveDate').value        = new Date().toISOString().split('T')[0];
+    document.getElementById('resolveModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeResolveModal() {
+    document.getElementById('resolveModal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+async function saveResolve() {
+    const id       = document.getElementById('resolveResultId').value;
+    const notes    = document.getElementById('resolveNotes').value.trim();
+    const initials = document.getElementById('resolveInitials').value.trim().toUpperCase();
+    const date     = document.getElementById('resolveDate').value;
+
+    if (!notes)    { showToast('⚠ Please describe the corrective action taken.'); return; }
+    if (!initials) { showToast('⚠ Please enter your initials.'); return; }
+
+    const btn = document.querySelector('#resolveModal .btn-blue');
+    btn.textContent = 'Saving…'; btn.disabled = true;
+
+    try {
+        await db.collection(COLLECTION).doc(id).update({
+            resolved:      true,
+            resolvedBy:    initials,
+            resolvedNotes: notes,
+            resolvedAt:    date,
+            resolvedUser:  _currentUser.name
+        });
+        // Update local cache so UI reflects immediately without re-fetch
+        const r = allResults.find(x => x.id === id);
+        if (r) {
+            r.resolved      = true;
+            r.resolvedBy    = initials;
+            r.resolvedNotes = notes;
+            r.resolvedAt    = date;
+        }
+        closeResolveModal();
+        renderHistory();
+        showToast('✅ Resolution recorded.');
+    } catch(e) {
+        showToast('⚠ Error saving resolution: ' + e.message);
+    } finally {
+        btn.textContent = 'Save Resolution'; btn.disabled = false;
+    }
+}
+
+// Close resolve modal on overlay click
+document.addEventListener('DOMContentLoaded', () => {
+    const overlay = document.getElementById('resolveModal');
+    if (overlay) {
+        overlay.addEventListener('click', e => {
+            if (e.target === overlay) closeResolveModal();
+        });
+    }
+});
+
+// ─── SAVE MANUAL ENTRY ────────────────────────────────────
+async function saveEntry() {
+    const location   = document.getElementById('eLocation').value.trim();
+    const assetId    = document.getElementById('eAsset').value.trim();
+    const sampleDate = document.getElementById('eSampleDate').value;
+
+    if (!location || !assetId || !sampleDate) {
+        showToast('⚠ Location, Asset, and Sample Date are required.');
+        return;
+    }
+
+    const data = {
+        location,
+        assetId,
+        sampleDate,
+        sampleType:    document.getElementById('eSampleType').value,
+        testSuite:     document.getElementById('eTestSuite').value,
+        labName:       document.getElementById('eLabName').value.trim(),
+        ukasAccred:    document.getElementById('eUKAS').value.trim(),
+        labRef:        document.getElementById('eLabRef').value.trim(),
+        collectedBy:   document.getElementById('eCollectedBy').value.trim(),
+        legionella:    Number(document.getElementById('eLegionella').value)  || 0,
+        ecoli:         Number(document.getElementById('eEcoli').value)       || 0,
+        pseudomonas:   Number(document.getElementById('ePseudomonas').value) || 0,
+        tvc:           Number(document.getElementById('eTVC').value)         || 0,
+        notes:         document.getElementById('eNotes').value.trim(),
+        accessCode:    _currentUser.accessCode,
+        submittedBy:   _currentUser.name,
+        createdAt:     firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    if (certFileData) data.certificate = certFileData;
+
+    const btn = document.querySelector('#tab-entry .btn-blue');
+    btn.textContent = 'Saving…'; btn.disabled = true;
+
+    try {
+        await db.collection(COLLECTION).add(data);
+        showToast('✅ Result saved to Firebase.');
+        resetEntryForm();
+    } catch(e) {
+        showToast('⚠ Error saving: ' + e.message);
+    } finally {
+        btn.textContent = 'Save Result'; btn.disabled = false;
+    }
+}
+
+// ─── RESET ENTRY FORM ─────────────────────────────────────
+function resetEntryForm() {
+    ['eLocation','eAsset','eSampleDate','eCollectedBy','eSampleType','eTestSuite',
+     'eLabName','eUKAS','eLabRef','eLegionella','eEcoli','ePseudomonas','eTVC','eNotes']
+        .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    certFileData = null;
+    document.getElementById('certFileName').textContent = 'No file selected';
+    document.getElementById('eSampleDate').value = new Date().toISOString().split('T')[0];
+}
+
+// ─── CERTIFICATE HANDLING (ENTRY FORM) ───────────────────
+function handleCertSelect(input) {
+    const file = input.files[0];
+    if (!file) return;
+    processCertFile(file, (data) => {
+        if (!data) return;
+        certFileData = data;
+        document.getElementById('certFileName').textContent = `${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+    });
+    input.value = '';
+}
+
+// ─── CERTIFICATE HANDLING (STANDALONE UPLOAD) ────────────
+function handleCert2Select(input) {
+    const file = input.files[0];
+    if (!file) return;
+    processCertFile(file, (data) => {
+        if (!data) return;
+        certFile2Data = data;
+        document.getElementById('certFileName2').textContent = `${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+    });
+    input.value = '';
+}
+
+// Shared file processor — reads as base64, enforces 700KB limit
+function processCertFile(file, cb) {
+    const MAX_BYTES = 700 * 1024;
+    if (file.size > MAX_BYTES) {
+        showToast(`⚠ File too large (${(file.size/1024).toFixed(0)} KB). Max 700 KB. Try compressing or saving as JPEG.`);
+        cb(null); return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+        cb({ name: file.name, type: file.type, size: file.size, dataUrl: e.target.result });
+    };
+    reader.onerror = () => { showToast('⚠ Could not read file.'); cb(null); };
+    reader.readAsDataURL(file);
+}
+
+// ─── SAVE STANDALONE CERT ────────────────────────────────
+async function saveStandaloneCert() {
+    const selectEl = document.getElementById('certResultSelect');
+    const resultId = selectEl.value;
+    if (!resultId) { showToast('⚠ Please select a result.'); return; }
+    if (!certFile2Data) { showToast('⚠ Please attach a certificate file.'); return; }
+
+    try {
+        await db.collection(COLLECTION).doc(resultId).update({ certificate: certFile2Data });
+        // Update local cache
+        const r = allResults.find(x => x.id === resultId);
+        if (r) r.certificate = certFile2Data;
+        showToast('✅ Certificate attached successfully.');
+        certFile2Data = null;
+        document.getElementById('certFileName2').textContent = 'No file selected';
+    } catch(e) {
+        showToast('⚠ Error: ' + e.message);
+    }
+}
+
+// Populate the select dropdown in the Upload tab
+async function populateCertResultSelect() {
+    if (!allResults.length) await loadFromFirebase();
+    const sel = document.getElementById('certResultSelect');
+    if (!allResults.length) {
+        sel.innerHTML = '<option value="">No results found — add results first</option>';
+        return;
+    }
+    sel.innerHTML = '<option value="">Select a result…</option>' +
+        allResults.map(r =>
+            `<option value="${r.id}">${fmtDate(r.sampleDate)} | ${r.location} | ${r.assetId} | ${r.testSuite || ''}</option>`
+        ).join('');
+}
+
+// ─── IMPORT FILE TYPE TRACKING ───────────────────────────
+let _importIsXLSX = false;
+
+// ─── CSV DRAG / DROP ─────────────────────────────────────
+function csvDragOver(e) {
+    e.preventDefault();
+    document.getElementById('csvDropZone').classList.add('drag-over');
+}
+function csvDragLeave(e) {
+    document.getElementById('csvDropZone').classList.remove('drag-over');
+}
+function csvDrop(e) {
+    e.preventDefault();
+    csvDragLeave(e);
+    const file = e.dataTransfer.files[0];
+    if (file) processImportFile(file);
+}
+function handleCSVSelect(input) {
+    const file = input.files[0];
+    if (file) processImportFile(file);
+    input.value = '';
+}
+
+// ─── ROUTE BY FILE TYPE ───────────────────────────────────
+function processImportFile(file) {
+    document.getElementById('csvFileName').textContent = file.name;
+    const isXLSX = file.name.toLowerCase().endsWith('.xlsx') || file.name.toLowerCase().endsWith('.xls');
+    _importIsXLSX = isXLSX;
+    document.getElementById('xlsxLocationPrompt').style.display = isXLSX ? 'block' : 'none';
+    if (isXLSX) {
+        processXLSXFile(file);
+    } else {
+        processCSVFile(file);
+    }
+}
+
+// ─── XLSX PARSE (Eurofins export) ─────────────────────────
+function processXLSXFile(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            const wb   = XLSX.read(e.target.result, { type: 'array' });
+            const ws   = wb.Sheets[wb.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+            if (!rows.length) { showToast('⚠ No data found in file.'); return; }
+            csvParsedRows = rows;
+            renderXLSXPreview(rows);
+        } catch(err) {
+            showToast('⚠ Could not read XLSX: ' + err.message);
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+// ─── EUROFINS NUMBER PARSER ───────────────────────────────
+// Handles: "Not Detected", "None Detected", "~800", "> 15000", "4", ""
+function parseLabNumber(val) {
+    if (val === null || val === undefined || val === '') return 0;
+    const str = String(val).trim();
+    if (!str) return 0;
+    const lc = str.toLowerCase();
+    if (lc.includes('not detected') || lc.includes('none detected')) return 0;
+    // Strip prefix chars: ~, >, <, ≥, ≤, spaces
+    const clean = str.replace(/^[~><≥≤\s]+/, '').replace(/,/g, '');
+    const n = parseFloat(clean);
+    return isNaN(n) ? 0 : n;
+}
+
+// ─── EUROFINS DATE PARSER ─────────────────────────────────
+// Handles DD/MM/YYYY → YYYY-MM-DD; also YYYY-MM-DD pass-through
+function parseEurofinsDate(val) {
+    if (!val) return '';
+    // Excel serial date (number)
+    if (typeof val === 'number') {
+        const d = new Date(Math.round((val - 25569) * 86400 * 1000));
+        return d.toISOString().split('T')[0];
+    }
+    const str = String(val).trim();
+    // DD/MM/YYYY
+    const m1 = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (m1) return `${m1[3]}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`;
+    // YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.substring(0, 10);
+    return str;
+}
+
+// ─── EUROFINS COLUMN MAPPING ─────────────────────────────
+function isEurofinsFormat(row) {
+    return 'Sample No.' in row || 'Sample Description' in row || 'Legionella (cfu/500 ml)' in row;
+}
+
+function mapEurofinsRow(row, defaultLocation) {
+    const suiteRaw = String(row['Suite'] || '').toLowerCase();
+    let testSuite = 'full_suite';
+    if (suiteRaw.includes('legionella')) testSuite = 'legionella_quarterly';
+    if (suiteRaw.includes('bacti') || suiteRaw.includes('bacteria')) testSuite = 'bacterial_monthly';
+
+    const notes = [
+        row['PO Number']       ? `PO: ${row['PO Number']}`            : '',
+        row['Sample Code']     ? `Lab code: ${row['Sample Code']}`    : '',
+        row['Sample Comments'] ? `Comment: ${row['Sample Comments']}` : '',
+        row['Sample Severity'] && row['Sample Severity'] !== 'Green'
+            ? `Lab severity: ${row['Sample Severity']}` : ''
+    ].filter(Boolean).join(' | ');
+
+    return {
+        sampleDate:  parseEurofinsDate(row['Received'] || row['Reported On']),
+        location:    defaultLocation || String(row['Order Location'] || '').trim() || '',
+        assetId:     String(row['Sample Description'] || '').trim(),
+        sampleType:  'water',
+        testSuite,
+        labName:     'Eurofins',
+        ukasAccred:  '2382',
+        labRef:      String(row['Sample No.'] || '').trim(),
+        collectedBy: '',
+        legionella:  parseLabNumber(row['Legionella (cfu/500 ml)']),
+        ecoli:       parseLabNumber(row['Escherichia coli (cfu/100 ml)']),
+        pseudomonas: parseLabNumber(row['Pseudomonas aeruginosa (cfu/100 ml)']),
+        tvc:         parseLabNumber(row['Aerobic Plate Count 37°C [1 day] (cfu/ml)']),
+        totalColiforms: parseLabNumber(row['Total Coliforms (cfu/100 ml)']),
+        labSeverity: String(row['Sample Severity'] || '').trim(),
+        notes
+    };
+}
+
+// ─── XLSX PREVIEW RENDER ──────────────────────────────────
+function renderXLSXPreview(rows) {
+    // Show preview using mapped fields
+    const mapped = rows.map(r => mapEurofinsRow(r, ''));
+    const cols = ['sampleDate','location','assetId','testSuite','legionella','ecoli','pseudomonas','tvc','notes'];
+    const labels = ['Date','Location','Asset','Suite','Leg.','E.coli','P.aer.','TVC','Notes'];
+
+    const thead = `<thead><tr>${labels.map(l=>`<th>${l}</th>`).join('')}<th>Risk</th><th>Pass/Fail</th></tr></thead>`;
+    const tbody = `<tbody>${mapped.map(r => {
+        const risk = getRisk(r);
+        const pass = getCompliance(r);
+        return `<tr>
+            ${cols.map(c => `<td style="font-size:0.75rem;">${r[c] ?? ''}</td>`).join('')}
+            <td>${badgeRisk(risk)}</td>
+            <td><span class="badge ${pass?'badge-pass':'badge-fail'}">${pass?'PASS':'FAIL'}</span></td>
+        </tr>`;
+    }).join('')}</tbody>`;
+
+    document.getElementById('csvPreviewLabel').textContent =
+        `Eurofins Import Preview — ${rows.length} sample${rows.length>1?'s':''} · Please enter a location above before saving`;
+    document.getElementById('csvPreviewTable').innerHTML = `<table>${thead}${tbody}</table>`;
+    document.getElementById('csvPreview').style.display = 'block';
+}
+
+// ─── CSV PARSE ────────────────────────────────────────────
+function processCSVFile(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+        const rows = parseCSV(e.target.result);
+        if (!rows.length) { showToast('⚠ No data found in CSV.'); return; }
+        csvParsedRows = rows;
+        renderCSVPreview(rows);
+    };
+    reader.readAsText(file);
+}
+
+function parseCSV(text) {
+    const lines = text.trim().split(/\r?\n/);
+    if (lines.length < 2) return [];
+    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,'').toLowerCase());
+    const rows = [];
+    for (let i = 1; i < lines.length; i++) {
+        const vals = csvSplitLine(lines[i]);
+        if (!vals.length || vals.every(v => !v)) continue;
+        const obj = {};
+        headers.forEach((h, idx) => { obj[h] = (vals[idx] || '').trim(); });
+        rows.push(obj);
+    }
+    return rows;
+}
+
+function csvSplitLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') { inQuotes = !inQuotes; continue; }
+        if (ch === ',' && !inQuotes) { result.push(current); current = ''; continue; }
+        current += ch;
+    }
+    result.push(current);
+    return result;
+}
+
+function renderCSVPreview(rows) {
+    if (!rows.length) return;
+    const keys = Object.keys(rows[0]);
+    const thead = `<thead><tr>${keys.map(k=>`<th>${k}</th>`).join('')}<th>Risk</th><th>Pass/Fail</th></tr></thead>`;
+    const tbody = `<tbody>${rows.map(r => {
+        const mapped = mapCSVRow(r);
+        const risk   = getRisk(mapped);
+        const pass   = getCompliance(mapped);
+        return `<tr>${keys.map(k=>`<td style="font-size:0.75rem;">${r[k]||''}</td>`).join('')}
+            <td>${badgeRisk(risk)}</td>
+            <td><span class="badge ${pass?'badge-pass':'badge-fail'}">${pass?'PASS':'FAIL'}</span></td>
+        </tr>`;
+    }).join('')}</tbody>`;
+
+    document.getElementById('csvPreviewLabel').textContent = `CSV Preview — ${rows.length} row${rows.length>1?'s':''}`;
+    document.getElementById('csvPreviewTable').innerHTML = `<table>${thead}${tbody}</table>`;
+    document.getElementById('csvPreview').style.display = 'block';
+}
+
+function mapCSVRow(r) {
+    const get = (...keys) => {
+        for (const k of keys) {
+            const v = r[k] !== undefined ? r[k] : r[k.toLowerCase()];
+            if (v !== undefined && v !== '') return v;
+        }
+        return '';
+    };
+    return {
+        sampleDate:  parseEurofinsDate(get('date','sample date','sampledate')),
+        location:    get('location','site','park'),
+        assetId:     get('asset','unit','asset / unit','assetid','unit id'),
+        sampleType:  get('sample type','sampletype','type'),
+        testSuite:   get('test suite','testsuite','suite'),
+        labName:     get('lab name','lab','laboratory'),
+        ukasAccred:  get('ukas no','ukas accreditation','ukas'),
+        labRef:      get('lab ref','report no','labref','reference'),
+        collectedBy: get('collected by','collectedby','by'),
+        legionella:  parseLabNumber(get('legionella')),
+        ecoli:       parseLabNumber(get('e.coli','ecoli','e coli')),
+        pseudomonas: parseLabNumber(get('pseudomonas','p. aeruginosa','p.aeruginosa')),
+        tvc:         parseLabNumber(get('tvc','total viable count','apc')),
+        notes:       get('notes','note','comments')
+    };
+}
+
+// ─── BATCH SAVE (CSV or XLSX) ────────────────────────────
+async function saveBatchCSV() {
+    if (!csvParsedRows.length) { showToast('⚠ No rows to save.'); return; }
+
+    let defaultLocation = '';
+    if (_importIsXLSX) {
+        defaultLocation = (document.getElementById('xlsxDefaultLocation')?.value || '').trim();
+        if (!defaultLocation) {
+            showToast('⚠ Please enter a location before saving.');
+            document.getElementById('xlsxDefaultLocation').focus();
+            return;
+        }
+    }
+
+    const btn = document.getElementById('csvSaveBtn');
+    btn.textContent = `Saving 0 / ${csvParsedRows.length}…`;
+    btn.disabled = true;
+
+    let saved = 0, errors = 0;
+    for (let i = 0; i < csvParsedRows.length; i++) {
+        const mapped = _importIsXLSX
+            ? mapEurofinsRow(csvParsedRows[i], defaultLocation)
+            : mapCSVRow(csvParsedRows[i]);
+
+        if (!mapped.sampleDate || !mapped.location) { errors++; continue; }
+
+        try {
+            await db.collection(COLLECTION).add({
+                ...mapped,
+                accessCode:  _currentUser.accessCode,
+                submittedBy: _currentUser.name,
+                importSource: _importIsXLSX ? 'eurofins_xlsx' : 'csv',
+                createdAt:   firebase.firestore.FieldValue.serverTimestamp()
+            });
+            saved++;
+            btn.textContent = `Saving ${saved} / ${csvParsedRows.length}…`;
+        } catch(e) { errors++; }
+    }
+
+    btn.textContent = 'Save All to Firebase';
+    btn.disabled = false;
+    showToast(`✅ Saved ${saved} results.${errors ? ` ⚠ ${errors} rows skipped (missing date or location).` : ''}`);
+    clearCSVPreview();
+}
+
+function clearCSVPreview() {
+    csvParsedRows = [];
+    _importIsXLSX = false;
+    document.getElementById('csvPreview').style.display = 'none';
+    document.getElementById('csvFileName').textContent = 'No file selected';
+    document.getElementById('csvPreviewTable').innerHTML = '';
+    document.getElementById('xlsxLocationPrompt').style.display = 'none';
+    const locEl = document.getElementById('xlsxDefaultLocation');
+    if (locEl) locEl.value = '';
+}
+
+// ─── CSV TEMPLATE DOWNLOAD ───────────────────────────────
+function downloadCSVTemplate() {
+    const headers = ['Date','Location','Asset','Sample Type','Test Suite','Lab Name','UKAS No','Lab Ref','Collected By','Legionella','E.coli','Pseudomonas','TVC','Notes'];
+    const example = ['2025-06-01','My Site','HT-01','water','bacterial_monthly','Eurofins','2382','EFS-2025-001','J Smith','0','0','0','10','Routine quarterly sample'];
+    const csv = [headers.join(','), example.join(',')].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'ukas_import_template.csv';
+    a.click();
+}
+
+// ─── EXPORT CSV ──────────────────────────────────────────
+function exportCSV() {
+    const locF  = (document.getElementById('fLocation')?.value || '').toLowerCase();
+    const astF  = (document.getElementById('fAsset')?.value    || '').toLowerCase();
+    const fromF = document.getElementById('fFrom')?.value;
+    const toF   = document.getElementById('fTo')?.value;
+
+    let filtered = allResults.filter(r => {
+        if (locF && !(r.location||'').toLowerCase().includes(locF)) return false;
+        if (astF && !(r.assetId||'').toLowerCase().includes(astF)) return false;
+        if (fromF && r.sampleDate < fromF) return false;
+        if (toF   && r.sampleDate > toF)   return false;
+        return true;
+    });
+
+    if (!filtered.length) { showToast('No results to export.'); return; }
+
+    const headers = ['Date','Location','Asset','Sample Type','Test Suite','Lab Name','UKAS No','Lab Ref','Collected By','Legionella','E.coli','Pseudomonas','TVC','Risk','Pass/Fail','Notes'];
+    const rows = filtered.map(r => {
+        const risk = getRisk(r);
+        const pass = getCompliance(r) ? 'PASS' : 'FAIL';
+        return [
+            r.sampleDate || '', r.location || '', r.assetId || '',
+            r.sampleType || '', r.testSuite || '',
+            r.labName || '', r.ukasAccred || '', r.labRef || '',
+            r.collectedBy || '',
+            r.legionella ?? 0, r.ecoli ?? 0, r.pseudomonas ?? 0, r.tvc ?? 0,
+            risk.toUpperCase(), pass,
+            `"${(r.notes||'').replace(/"/g,'""')}"`
+        ].join(',');
+    });
+
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `ukas_results_export_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    showToast(`Exported ${filtered.length} results.`);
+}
+
+function clearHistoryFilters() {
+    ['fLocation','fAsset','fFrom','fTo'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+    renderHistory();
+}
+
+// ─── TRENDS CHART ────────────────────────────────────────
+let trendsChart = null;
+
+async function loadAndRenderTrends() {
+    if (!allResults.length) await loadFromFirebase();
+    renderTrends();
+}
+
+function renderTrends() {
+    const locF   = (document.getElementById('tLocation')?.value || '').toLowerCase();
+    const astF   = (document.getElementById('tAsset')?.value    || '').toLowerCase();
+    const metric = document.getElementById('tMetric')?.value   || 'tvc';
+    const limit  = document.getElementById('tLimit')?.value    || '50';
+
+    let filtered = [...allResults].filter(r => {
+        if (locF && !(r.location||'').toLowerCase().includes(locF)) return false;
+        if (astF && !(r.assetId||'').toLowerCase().includes(astF)) return false;
+        return true;
+    }).sort((a,b) => (a.sampleDate||'').localeCompare(b.sampleDate||''));
+
+    if (limit !== 'all') filtered = filtered.slice(-Number(limit));
+
+    const labels = filtered.map(r => fmtDate(r.sampleDate));
+    const values = filtered.map(r => Number(r[metric]) || 0);
+
+    const metricLabels = { tvc:'TVC (CFU/ml)', pseudomonas:'P. aeruginosa (CFU/100ml)', legionella:'Legionella (CFU/L)', ecoli:'E. coli (CFU/100ml)' };
+    const limits       = { tvc: 100, pseudomonas: 10, legionella: 0, ecoli: 0 };
+
+    const ctx = document.getElementById('trendsChart').getContext('2d');
+    if (trendsChart) { trendsChart.destroy(); trendsChart = null; }
+
+    if (!filtered.length) {
+        document.getElementById('trendsEmpty').style.display = 'flex';
+        return;
+    }
+    document.getElementById('trendsEmpty').style.display = 'none';
+
+    const limitLine = new Array(labels.length).fill(limits[metric]);
+
+    trendsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: metricLabels[metric],
+                    data: values,
+                    borderColor: '#4A90E2',
+                    backgroundColor: 'rgba(74,144,226,0.12)',
+                    tension: 0.35,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    borderWidth: 2,
+                    fill: true
+                },
+                {
+                    label: 'Action Level',
+                    data: limitLine,
+                    borderColor: 'rgba(220,53,69,0.7)',
+                    borderDash: [6,4],
+                    borderWidth: 1.5,
+                    pointRadius: 0,
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { labels: { color: '#E8E8E8', font: { family: 'Orbitron', size: 11 } } },
+                title:  { display: false }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#B8B8B8', maxRotation: 45 },
+                    grid:  { color: 'rgba(255,255,255,0.06)' }
+                },
+                y: {
+                    ticks:  { color: '#B8B8B8' },
+                    grid:   { color: 'rgba(255,255,255,0.06)' },
+                    beginAtZero: true,
+                    title:  { display: true, text: metricLabels[metric], color: '#B8B8B8', font: { size: 11 } }
+                }
+            }
+        }
+    });
+}
+
+// ─── INIT ─────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('eSampleDate').value = new Date().toISOString().split('T')[0];
+});
+
+</script>
+</body>
+</html>
