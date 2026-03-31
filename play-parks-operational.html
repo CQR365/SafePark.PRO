@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>SafePlay.PRO — Monthly Operational Inspection</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+<style>
+:root{
+    --primary:#CC5500;--primary-dark:#b34a00;--primary-light:#e06000;--primary-glow:rgba(204,85,0,0.25);
+    --dark-bg:#1a1a1a;--card-bg:#222;--border:#333;
+    --text:#e8e8e8;--muted:#999;--dim:#666;
+    --success:#28a745;--warning:#ffc107;--danger:#dc3545;--info:#17a2b8;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Fira Sans',sans-serif;background:var(--dark-bg);color:var(--text);min-height:100vh;overflow-y:auto}
+
+.header{background:linear-gradient(180deg,#1a1a0a,#1a1a1a);padding:12px 20px;border-bottom:3px solid var(--primary);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:200}
+.header-brand{font-family:'Orbitron',sans-serif;font-size:17px;letter-spacing:2px}
+.header-brand .s{color:#c0c0c0;font-weight:400}.header-brand .n{color:var(--primary);font-weight:700}.header-brand .p{color:#c0c0c0;font-weight:400}
+.header-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.header-right{display:flex;align-items:center;gap:10px}
+.park-badge{background:rgba(204,85,0,0.15);color:var(--primary);border:1px solid rgba(204,85,0,0.35);padding:4px 12px;border-radius:16px;font-size:12px;font-weight:600;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--warning);animation:pulse 2s infinite;display:inline-block;flex-shrink:0}
+.status-dot.ok{background:var(--success);animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.tab-nav{display:flex;background:#111;border-bottom:2px solid var(--border);position:sticky;top:57px;z-index:100}
+.tab-btn{flex:1;padding:13px 8px;background:transparent;border:none;color:var(--muted);font-family:'Fira Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;text-transform:uppercase;letter-spacing:.3px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary);background:rgba(204,85,0,.05)}
+.tab-panel{display:none;padding:16px}
+.tab-panel.active{display:block}
+
+.card{background:linear-gradient(160deg,#2a2a2a,#1e1e1e);border:1px solid var(--border);border-left:4px solid var(--primary);border-radius:10px;padding:18px;margin-bottom:14px}
+.card.info{border-left-color:var(--info)}
+.card-title{font-family:'Orbitron',sans-serif;font-size:13px;letter-spacing:.8px;color:var(--primary);margin-bottom:14px;font-weight:600}
+.card.info .card-title{color:var(--info)}
+
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+.req{color:var(--primary)}
+.form-control{width:100%;background:#111;border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-family:'Fira Sans',sans-serif;font-size:14px;transition:border-color .2s;touch-action:manipulation}
+.form-control:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-glow)}
+.form-control option{background:#1a1a1a}
+textarea.form-control{resize:vertical;min-height:65px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* Inspector bar */
+.inspector-bar{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;background:rgba(204,85,0,.06);border:1px solid rgba(204,85,0,.2);border-radius:8px;padding:12px;margin-bottom:14px}
+.info-cell{font-size:12px;color:var(--muted)}
+.info-cell strong{display:block;color:var(--primary);font-size:10px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+.info-cell .val{color:var(--text);font-weight:600;font-size:13px}
+
+/* Operational check items — 3 outcomes */
+.op-item{background:#1a1a1a;border:1px solid var(--border);border-left:4px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px;transition:border-left-color .2s}
+.op-item.satisfactory{border-left-color:var(--success)}
+.op-item.attention{border-left-color:var(--warning)}
+.op-item.deficient{border-left-color:var(--danger)}
+.op-item.na{border-left-color:var(--dim)}
+.op-item-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:4px;flex-wrap:wrap}
+.op-item h4{font-size:14px;color:var(--text);font-weight:600}
+.op-item .desc{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5}
+.radio-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:0}
+.radio-row label{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;padding:7px 12px;border-radius:6px;border:1px solid var(--border);transition:all .2s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;min-height:38px}
+.radio-row input[type=radio]{accent-color:var(--primary);width:14px;height:14px;flex-shrink:0}
+.radio-row label.sel-sat{background:rgba(40,167,69,.15);border-color:var(--success);color:var(--success)}
+.radio-row label.sel-att{background:rgba(255,193,7,.15);border-color:var(--warning);color:var(--warning)}
+.radio-row label.sel-def{background:rgba(220,53,69,.15);border-color:var(--danger);color:var(--danger)}
+.radio-row label.sel-na{background:rgba(255,255,255,.06);border-color:var(--dim);color:var(--dim)}
+
+/* Issue detail (shown when attention or deficient) */
+.issue-detail{display:none;margin-top:12px;padding:12px;border-radius:6px;border:1px solid}
+.issue-detail.att-style{background:rgba(255,193,7,.06);border-color:rgba(255,193,7,.25)}
+.issue-detail.def-style{background:rgba(220,53,69,.06);border-color:rgba(220,53,69,.25)}
+.issue-detail.visible{display:block}
+.issue-detail label{font-size:12px;font-weight:600;margin-bottom:5px;display:block;color:var(--muted)}
+.issue-detail.def-style label{color:#ef8888}
+.issue-detail.att-style label{color:#e6b84a}
+.issue-detail input,.issue-detail textarea,.issue-detail select{width:100%;background:#111;border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:5px;font-size:13px;font-family:'Fira Sans',sans-serif;margin-bottom:8px;touch-action:manipulation}
+
+/* Surface measurement */
+.measure-box{background:rgba(23,162,184,.06);border:1px solid rgba(23,162,184,.2);border-radius:8px;padding:12px;margin-top:10px}
+.measure-box .measure-title{font-size:12px;font-weight:600;color:var(--info);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
+.measure-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px}
+.measure-field{display:flex;flex-direction:column;gap:4px}
+.measure-field label{font-size:11px;color:var(--muted);font-weight:600}
+.measure-field input{width:100px;background:#111;border:1px solid rgba(23,162,184,.3);color:var(--text);padding:8px 10px;border-radius:5px;font-size:14px;font-family:'Fira Sans',sans-serif;touch-action:manipulation}
+.measure-unit{font-size:12px;color:var(--muted);padding-bottom:10px}
+.measure-ref{font-size:11px;color:var(--muted);font-style:italic;line-height:1.5;margin-top:6px;padding:8px;background:rgba(255,255,255,.03);border-radius:5px}
+.measure-status{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px;margin-top:6px}
+.measure-status.ok{background:rgba(40,167,69,.15);color:var(--success)}
+.measure-status.warn{background:rgba(255,193,7,.15);color:var(--warning)}
+.measure-status.fail{background:rgba(220,53,69,.15);color:var(--danger)}
+
+/* Photo upload */
+.photo-zone{border:2px dashed var(--border);border-radius:6px;padding:10px;text-align:center;margin-top:10px;touch-action:manipulation;cursor:pointer}
+.photo-zone:hover{border-color:var(--primary)}
+.photo-zone input[type=file]{display:none}
+.photo-zone .ph-label{font-size:12px;color:var(--muted)}
+.photo-zone .ph-btn{display:inline-block;margin-top:4px;padding:5px 12px;background:rgba(204,85,0,.12);color:var(--primary);border:1px solid rgba(204,85,0,.3);border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;touch-action:manipulation}
+.photo-previews{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.photo-thumb{position:relative;width:64px;height:64px;border-radius:5px;overflow:hidden;border:1px solid var(--border)}
+.photo-thumb img{width:100%;height:100%;object-fit:cover}
+.photo-thumb .ph-del{position:absolute;top:2px;right:2px;background:rgba(220,53,69,.85);color:#fff;border:none;border-radius:3px;width:16px;height:16px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
+
+/* Quick buttons */
+.quick-btns{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.btn-quick{background:transparent;border:1px solid;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Fira Sans',sans-serif;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.btn-quick.sat{color:var(--success);border-color:var(--success)}.btn-quick.sat:hover{background:rgba(40,167,69,.12)}
+.btn-quick.clear{color:var(--muted);border-color:var(--border)}.btn-quick.clear:hover{background:rgba(255,255,255,.05)}
+
+/* Action box */
+.action-box{background:rgba(220,53,69,.07);border:1px solid rgba(220,53,69,.2);border-radius:8px;padding:14px;margin-bottom:14px}
+.action-toggle{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:600;touch-action:manipulation}
+.action-toggle input[type=checkbox]{accent-color:var(--danger);width:18px;height:18px;flex-shrink:0}
+.action-expand{margin-top:10px;display:none}
+.action-expand.visible{display:block}
+
+/* Buttons */
+.btn{padding:11px 22px;border-radius:8px;font-family:'Fira Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s;text-transform:uppercase;letter-spacing:.5px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.btn-primary{background:linear-gradient(160deg,var(--primary-light),var(--primary));color:#fff;box-shadow:0 4px 12px rgba(204,85,0,.3)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(204,85,0,.4)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-secondary{background:rgba(255,255,255,.08);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{background:rgba(255,255,255,.12)}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+
+/* Alerts */
+.alert{padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none;line-height:1.5}
+.alert.visible{display:block}
+.alert-success{background:rgba(40,167,69,.12);border:1px solid rgba(40,167,69,.3);color:#6fcf97}
+.alert-danger{background:rgba(220,53,69,.12);border:1px solid rgba(220,53,69,.3);color:#f08080}
+.alert-info{background:rgba(23,162,184,.12);border:1px solid rgba(23,162,184,.3);color:#7ec8d4}
+
+/* History */
+.history-filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.history-filters select{background:#111;border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;font-family:'Fira Sans',sans-serif;font-size:13px;touch-action:manipulation}
+.hist-record{background:#1e1e1e;border:1px solid var(--border);border-left:3px solid var(--info);border-radius:8px;padding:14px;margin-bottom:10px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.hist-record:hover{border-color:var(--primary)}
+.hist-header{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.hist-title{font-weight:600;font-size:14px}
+.hist-meta{font-size:12px;color:var(--muted)}
+.hist-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.badge{font-size:11px;padding:3px 9px;border-radius:10px;font-weight:600}
+.badge-sat{background:rgba(40,167,69,.15);color:var(--success)}
+.badge-att{background:rgba(255,193,7,.15);color:var(--warning)}
+.badge-def{background:rgba(220,53,69,.15);color:var(--danger)}
+.badge-action{background:rgba(220,53,69,.25);color:#ff8888;border:1px solid rgba(220,53,69,.4)}
+.hist-detail{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.hist-detail.open{display:block}
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:10px}
+.detail-cell{font-size:12px;color:var(--muted)}
+.detail-cell strong{display:block;color:var(--primary);font-size:10px;text-transform:uppercase;letter-spacing:.3px;margin-bottom:1px}
+.result-list{display:flex;flex-direction:column;gap:4px}
+.result-row{font-size:12px;padding:5px 10px;border-radius:5px;display:flex;align-items:center;gap:8px}
+.result-row.satisfactory{background:rgba(40,167,69,.08);color:#6fcf97}
+.result-row.attention{background:rgba(255,193,7,.08);color:#e6b84a}
+.result-row.deficient{background:rgba(220,53,69,.08);color:#f08080}
+.result-row.na{background:rgba(255,255,255,.03);color:var(--dim)}
+
+/* Stats */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.stat-card{background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center}
+.stat-num{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:700;line-height:1}
+.stat-label{font-size:10px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.3px}
+
+/* Surface guidance banner */
+.surface-banner{background:rgba(23,162,184,.06);border:1px solid rgba(23,162,184,.2);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--info);line-height:1.6}
+.surface-banner strong{display:block;margin-bottom:4px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+
+/* Responsive */
+@media(max-width:768px){
+    .tab-panel{padding:12px}
+    .card{padding:14px}
+    .form-row{grid-template-columns:1fr 1fr}
+    .inspector-bar{grid-template-columns:1fr 1fr}
+    .stats-row{gap:8px}
+    .stat-num{font-size:17px}
+    .history-filters{flex-direction:column;align-items:stretch}
+    .history-filters select{width:100%}
+}
+@media(max-width:480px){
+    .header{padding:10px 14px}
+    .header-brand{font-size:14px}
+    .tab-nav{top:50px}
+    .tab-btn{font-size:11px;padding:11px 5px;letter-spacing:0}
+    .tab-panel{padding:10px}
+    .card{padding:12px;margin-bottom:10px}
+    .form-row{grid-template-columns:1fr}
+    .inspector-bar{grid-template-columns:1fr 1fr;padding:10px;gap:8px}
+    .radio-row label{padding:9px 10px;font-size:13px;min-height:40px}
+    .quick-btns .btn-quick{flex:1;text-align:center}
+    .btn{padding:12px 16px}
+    .btn-row{flex-direction:column}
+    .btn-row .btn{width:100%;text-align:center}
+    .stats-row{grid-template-columns:repeat(2,1fr)}
+    #opInitials{width:80px!important;font-size:16px!important}
+    .measure-field input{width:80px}
+}
+@media(max-width:360px){
+    .tab-btn{font-size:10px;padding:10px 3px}
+    .radio-row{flex-direction:column;gap:5px}
+}
+button,label,input,select,textarea{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <div class="header-brand"><span class="s">safe</span><span class="n">play</span><span class="p">.pro</span></div>
+        <div class="header-sub">Monthly Operational Inspection — BS EN 1176</div>
+    </div>
+    <div class="header-right">
+        <span class="park-badge" id="headerPark">Loading...</span>
+        <span class="status-dot" id="fbDot"></span>
+    </div>
+</div>
+
+<div class="tab-nav">
+    <button class="tab-btn active" id="tabInspect" onclick="showTab('inspect')">Inspection</button>
+    <button class="tab-btn" id="tabHistory" onclick="showTab('history')">History</button>
+</div>
+
+<!-- ══════════ INSPECTION TAB ══════════ -->
+<div class="tab-panel active" id="panelInspect">
+
+<div id="alertInspect" class="alert"></div>
+
+<!-- Surface guidance banner — populated by JS based on config -->
+<div class="surface-banner" id="surfaceBanner" style="display:none"></div>
+
+<!-- Inspector bar -->
+<div class="inspector-bar">
+    <div class="info-cell"><strong>Park</strong><span class="val" id="infoPark">—</span></div>
+    <div class="info-cell"><strong>Play Area</strong><span class="val" id="infoArea">—</span></div>
+    <div class="info-cell"><strong>Inspector</strong><span class="val" id="infoInspector">—</span></div>
+    <div class="info-cell"><strong>Date</strong><span class="val" id="infoDate">—</span></div>
+    <div class="info-cell">
+        <strong>Initials <span class="req">*</span></strong>
+        <input type="text" id="opInitials" maxlength="4" placeholder="SJG"
+               style="width:70px;background:#111;border:1px solid var(--primary);color:var(--text);padding:5px 8px;border-radius:5px;font-size:14px;font-family:'Fira Sans',sans-serif;text-transform:uppercase"
+               oninput="this.value=this.value.toUpperCase()">
+    </div>
+</div>
+
+<div class="quick-btns">
+    <button type="button" class="btn-quick sat" onclick="markAllSatisfactory()">Mark All Satisfactory</button>
+    <button type="button" class="btn-quick clear" onclick="clearAllChecks()">Clear All</button>
+</div>
+
+<!-- Checklist container — populated by JS -->
+<div id="opChecklist"></div>
+
+<!-- Notes and conditions -->
+<div class="card info" style="margin-top:4px">
+    <div class="card-title">Inspection Details</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Inspector Notes</label>
+            <textarea class="form-control" id="opNotes" placeholder="General observations, overall condition comments..."></textarea>
+        </div>
+        <div class="form-group">
+            <label>Weather Conditions</label>
+            <select class="form-control" id="opWeather">
+                <option value="">Select...</option>
+                <option value="clear">Clear / Dry</option>
+                <option value="overcast">Overcast</option>
+                <option value="rain">Rain</option>
+                <option value="wind">Windy</option>
+                <option value="frost">Frost / Ice</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Next Operational Inspection Due</label>
+            <input type="date" class="form-control" id="opNextDue">
+        </div>
+        <div class="form-group">
+            <label>Overall Assessment</label>
+            <div id="overallAssessment" style="font-size:14px;font-weight:600;color:var(--muted);padding:10px 0">Pending</div>
+        </div>
+    </div>
+</div>
+
+<div class="action-box">
+    <label class="action-toggle">
+        <input type="checkbox" id="opActionRequired" onchange="toggleActionExpand()">
+        Action Required — follow-up maintenance action needed
+    </label>
+    <div class="action-expand" id="opActionExpand">
+        <div class="form-group" style="margin-top:10px;margin-bottom:0">
+            <label>Action Details</label>
+            <textarea class="form-control" id="opActionNotes" placeholder="Describe actions required, priority, and who is responsible..."></textarea>
+        </div>
+    </div>
+</div>
+
+<div class="btn-row">
+    <button class="btn btn-primary" id="btnOpSubmit" onclick="submitOperational()">Submit Operational Inspection</button>
+    <button class="btn btn-secondary" onclick="clearAllChecks()">Reset Form</button>
+</div>
+
+</div><!-- end panelInspect -->
+
+<!-- ══════════ HISTORY TAB ══════════ -->
+<div class="tab-panel" id="panelHistory">
+
+<div class="stats-row">
+    <div class="stat-card"><div class="stat-num" style="color:var(--info)" id="statTotal">—</div><div class="stat-label">Total Records</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--success)" id="statAllSat">—</div><div class="stat-label">All Satisfactory</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--warning)" id="statAttention">—</div><div class="stat-label">Items Attention</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--danger)" id="statDeficient">—</div><div class="stat-label">Had Deficiencies</div></div>
+</div>
+
+<div class="history-filters">
+    <select id="histParkFilter" onchange="loadHistory()" class="form-control" style="max-width:210px">
+        <option value="">All Parks</option>
+        <option value="Ben Nevis Holiday Park">Ben Nevis</option>
+        <option value="Oban Holiday Park">Oban</option>
+        <option value="Tyndrum Holiday Park">Tyndrum</option>
+        <option value="Overburns Farm">Overburns</option>
+    </select>
+    <select id="histPeriod" onchange="loadHistory()" class="form-control" style="max-width:160px">
+        <option value="6m">Last 6 Months</option>
+        <option value="12m">Last 12 Months</option>
+        <option value="all">All Records</option>
+    </select>
+    <button class="btn btn-secondary" onclick="loadHistory()" style="padding:8px 14px;font-size:12px">Refresh</button>
+</div>
+
+<div id="historyList"><p style="color:var(--muted);font-size:13px">Loading...</p></div>
+
+</div><!-- end panelHistory -->
+
+<script>
+// ══════════════════════════════════════════════════════
+// FIREBASE
+// ══════════════════════════════════════════════════════
+const FBC = {
+    apiKey:"AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+    authDomain:"safepark-pro.firebaseapp.com",
+    projectId:"safepark-pro",
+    storageBucket:"safepark-pro.firebasestorage.app",
+    messagingSenderId:"511221743341",
+    appId:"1:511221743341:web:95bcc7e83d4861578016e4"
+};
+if (!firebase.apps.length) firebase.initializeApp(FBC);
+const db = firebase.firestore();
+const auth = firebase.auth();
+const storage = firebase.storage();
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let currentPark = '';
+let currentUser = '';
+let currentAreaName = '';
+let parkConfig = null;
+let isAdmin = false;
+let isSubmitting = false;
+let photoStore = {}; // checkId → [dataURL, ...]
+
+// ══════════════════════════════════════════════════════
+// OPERATIONAL CHECKS — BS EN 1176 OPERATIONAL LEVEL
+// ══════════════════════════════════════════════════════
+const OP_CHECKS = [
+    {
+        id: 'fasteners',
+        num: 1,
+        title: 'Fastener Inspection & Tightening',
+        desc: 'Physically check and tighten all bolts, nuts, screws, fixings, and connector plates. Look for corrosion, wear, shearing, or missing components.',
+        requiresMeasurement: false
+    },
+    {
+        id: 'moving-parts',
+        num: 2,
+        title: 'Moving Parts — Wear & Function',
+        desc: 'Test all bearings, swing hangers, chain links, pivot points, and rotating components. Check for excessive wear, stiffness, noise, or play beyond tolerances.',
+        requiresMeasurement: false
+    },
+    {
+        id: 'structural-stability',
+        num: 3,
+        title: 'Structural Stability Check',
+        desc: 'Apply lateral and vertical loading to all main structural elements — posts, frames, decks, and anchors. Check for movement, looseness, or ground heave at foundation points.',
+        requiresMeasurement: false
+    },
+    {
+        id: 'surface-depth',
+        num: 4,
+        title: 'Impact Attenuation Surface — Depth & Condition',
+        desc: 'Measure surface depth at critical fall zones below and around high-use equipment. Check for compaction, displacement, contamination, and drainage.',
+        requiresMeasurement: true  // shown conditionally based on surface type
+    },
+    {
+        id: 'timber-condition',
+        num: 5,
+        title: 'Timber Condition Assessment',
+        desc: 'Inspect all timber elements for splitting, cracking, splinters, exposed grain, weathering, and early signs of rot or decay. Probe suspect areas where appropriate.',
+        requiresMeasurement: false
+    },
+    {
+        id: 'wear-assessment',
+        num: 6,
+        title: 'High-Wear Component Assessment',
+        desc: 'Inspect rope nets, swing seats, chains, handrails, and climbing grips for wear beyond safe limits. Check for fraying, cracking, or thinning of materials.',
+        requiresMeasurement: false
+    },
+    {
+        id: 'entrapment',
+        num: 7,
+        title: 'Entrapment & Entanglement Hazard Check',
+        desc: 'Physically check all openings for head, neck, clothing, limb, and finger entrapment risks. Verify no new hazards have developed through wear or damage.',
+        requiresMeasurement: false
+    },
+    {
+        id: 'drainage',
+        num: 8,
+        title: 'Surface Drainage & Site Condition',
+        desc: 'Check all drainage channels, gulley points, and surface fall zones are clear and functioning. Look for standing water, soil erosion, or subsidence.',
+        requiresMeasurement: false
+    },
+    {
+        id: 'signage',
+        num: 9,
+        title: 'Signage, Information & Age Suitability',
+        desc: 'Verify all required signs are present, legible, securely fixed and undamaged. Check age suitability, emergency contact information, and prohibition notices.',
+        requiresMeasurement: false
+    },
+    {
+        id: 'perimeter-gates',
+        num: 10,
+        title: 'Perimeter Fencing, Gates & Access Control',
+        desc: 'Hands-on check of all fencing panels, posts, and connections. Test all gates for self-closing and self-latching function. Verify no unauthorised access points.',
+        requiresMeasurement: false
+    }
+];
+
+// Surface types that require depth measurement
+const DEPTH_SURFACES = ['bark-chip','wood-fibre','sand','pea-gravel','rubber-mulch'];
+const CONDITION_SURFACES = ['rubber-tiles','pour-in-place'];
+const DRAINAGE_SURFACES = ['artificial-turf','grass'];
+
+// Minimum depths (mm) by typical fall height — BS EN 1177 guidance
+const DEPTH_GUIDANCE = {
+    'bark-chip':   { min600:200, min1000:250, min1500:300, min2000:300, min3000:300 },
+    'wood-fibre':  { min600:150, min1000:200, min1500:250, min2000:250, min3000:300 },
+    'sand':        { min600:200, min1000:250, min1500:300, min2000:300, min3000:350 },
+    'pea-gravel':  { min600:200, min1000:250, min1500:300, min2000:300, min3000:350 },
+    'rubber-mulch':{ min600:150, min1000:200, min1500:250, min2000:250, min3000:300 }
+};
+
+// ══════════════════════════════════════════════════════
+// BUILD CHECKLIST
+// ══════════════════════════════════════════════════════
+function buildChecklist() {
+    const surface = parkConfig?.surfaceType || '';
+    const needsDepth = DEPTH_SURFACES.includes(surface);
+    const isCondition = CONDITION_SURFACES.includes(surface);
+    const isDrainage = DRAINAGE_SURFACES.includes(surface);
+
+    // Show surface banner
+    const banner = document.getElementById('surfaceBanner');
+    if (surface) {
+        let msg = '';
+        if (needsDepth) {
+            msg = `<strong>Surface: ${surface.replace(/-/g,' ')} — Depth Measurement Required</strong>Check 4 includes depth measurement fields. Record actual depth at each critical fall zone. Minimum depths per BS EN 1177 are shown as guidance.`;
+        } else if (isCondition) {
+            msg = `<strong>Surface: ${surface.replace(/-/g,' ')} — Condition Assessment</strong>No depth measurement required for this surface type. Check 4 focuses on integrity, fixing, cracking, and delamination.`;
+        } else if (isDrainage) {
+            msg = `<strong>Surface: ${surface.replace(/-/g,' ')} — Drainage & Compaction Assessment</strong>Check 4 focuses on firmness, compaction, drainage, and grass coverage.`;
+        } else if (surface === 'mixed') {
+            msg = `<strong>Surface: Mixed — Combined Assessment</strong>Check 4 includes depth fields for loose-fill zones and condition fields for bound surfaces. Record each zone separately.`;
+        }
+        if (msg) { banner.innerHTML = msg; banner.style.display = 'block'; }
+    }
+
+    const container = document.getElementById('opChecklist');
+    container.innerHTML = OP_CHECKS.map(c => {
+        const showMeasure = c.requiresMeasurement;
+        return `
+        <div class="op-item" id="opitem-${c.id}">
+            <div class="op-item-header">
+                <h4>${c.num}. ${c.title}</h4>
+            </div>
+            <div class="desc">${c.desc}</div>
+            <div class="radio-row">
+                <label id="lbl-${c.id}-sat"><input type="radio" name="op-${c.id}" value="satisfactory" onchange="onOpChange('${c.id}','satisfactory')"> <span style="color:var(--success)">Satisfactory</span></label>
+                <label id="lbl-${c.id}-att"><input type="radio" name="op-${c.id}" value="attention" onchange="onOpChange('${c.id}','attention')"> <span style="color:var(--warning)">Requires Attention</span></label>
+                <label id="lbl-${c.id}-def"><input type="radio" name="op-${c.id}" value="deficient" onchange="onOpChange('${c.id}','deficient')"> <span style="color:var(--danger)">Deficient</span></label>
+                <label id="lbl-${c.id}-na"><input type="radio" name="op-${c.id}" value="na" onchange="onOpChange('${c.id}','na')"> <span style="color:var(--dim)">N/A</span></label>
+            </div>
+
+            ${showMeasure ? buildMeasureFields(surface, c.id) : ''}
+
+            <div class="issue-detail" id="issue-${c.id}">
+                <label>Details / Findings <span class="req">*</span></label>
+                <textarea id="detail-${c.id}" rows="2" placeholder="Describe the finding, location, and recommended action..."></textarea>
+                <label style="margin-top:4px">Priority</label>
+                <select id="priority-${c.id}">
+                    <option value="low">Low — routine maintenance</option>
+                    <option value="medium">Medium — schedule within 4 weeks</option>
+                    <option value="high">High — schedule within 7 days</option>
+                    <option value="critical">Critical — immediate action required</option>
+                </select>
+                ${buildPhotoZone(c.id)}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function buildMeasureFields(surface, checkId) {
+    const needsDepth = DEPTH_SURFACES.includes(surface);
+    const isCondition = CONDITION_SURFACES.includes(surface);
+    const isDrainage = DRAINAGE_SURFACES.includes(surface);
+    const isMixed = surface === 'mixed';
+
+    if (needsDepth || isMixed) {
+        const guidance = DEPTH_GUIDANCE[surface] || {};
+        const refText = surface !== 'mixed' ? `
+            BS EN 1177 minimum depths (mm) for this surface:
+            Up to 600mm fall height: ${guidance.min600||'—'}mm &nbsp;|&nbsp;
+            Up to 1000mm: ${guidance.min1000||'—'}mm &nbsp;|&nbsp;
+            Up to 1500mm: ${guidance.min1500||'—'}mm &nbsp;|&nbsp;
+            Up to 2000mm: ${guidance.min2000||'—'}mm &nbsp;|&nbsp;
+            Up to 3000mm: ${guidance.min3000||'—'}mm
+        ` : 'Record depth for each loose-fill zone. See BS EN 1177 for minimum depths by fall height.';
+        return `
+        <div class="measure-box">
+            <div class="measure-title">Surface Depth Measurements — BS EN 1177</div>
+            <div class="measure-row">
+                <div class="measure-field">
+                    <label>Zone 1 (mm)</label>
+                    <input type="number" id="depth1-${checkId}" min="0" max="999" placeholder="—" oninput="checkDepth('${checkId}')">
+                </div>
+                <div class="measure-field">
+                    <label>Zone 2 (mm)</label>
+                    <input type="number" id="depth2-${checkId}" min="0" max="999" placeholder="—" oninput="checkDepth('${checkId}')">
+                </div>
+                <div class="measure-field">
+                    <label>Zone 3 (mm)</label>
+                    <input type="number" id="depth3-${checkId}" min="0" max="999" placeholder="—" oninput="checkDepth('${checkId}')">
+                </div>
+                <div class="measure-field">
+                    <label>Min. Required (mm)</label>
+                    <input type="number" id="depthMin-${checkId}" min="0" max="999" placeholder="Enter required" oninput="checkDepth('${checkId}')">
+                </div>
+            </div>
+            <div id="depthStatus-${checkId}"></div>
+            <div class="measure-ref">${refText}</div>
+        </div>`;
+    } else if (isCondition) {
+        return `
+        <div class="measure-box">
+            <div class="measure-title">Surface Condition Assessment</div>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text)"><input type="checkbox" id="cond-lifting-${checkId}" accent-color="var(--danger)"> Lifting edges or delamination present</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text)"><input type="checkbox" id="cond-cracks-${checkId}"> Surface cracking or splitting present</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text)"><input type="checkbox" id="cond-fixings-${checkId}"> Fixing points loose or exposed</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text)"><input type="checkbox" id="cond-drainage-${checkId}"> Drainage holes clear and unblocked</label>
+            </div>
+        </div>`;
+    } else if (isDrainage) {
+        return `
+        <div class="measure-box">
+            <div class="measure-title">Turf / Grass Condition Assessment</div>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text)"><input type="checkbox" id="turf-drainage-${checkId}"> Surface drainage clear — no standing water</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text)"><input type="checkbox" id="turf-coverage-${checkId}"> Adequate grass coverage throughout</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text)"><input type="checkbox" id="turf-compaction-${checkId}"> No significant compaction in fall zones</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text)"><input type="checkbox" id="turf-erosion-${checkId}"> No surface erosion or bare patches</label>
+            </div>
+        </div>`;
+    }
+    return '';
+}
+
+function buildPhotoZone(checkId) {
+    return `
+    <div class="photo-zone" onclick="document.getElementById('photo-input-${checkId}').click()">
+        <input type="file" id="photo-input-${checkId}" accept="image/*" onchange="handlePhoto('${checkId}',this)">
+        <div class="ph-label">Photo evidence (optional — 1 photo per item)</div>
+        <div class="ph-btn">Add Photo</div>
+        <div class="photo-previews" id="photo-previews-${checkId}"></div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════
+// DEPTH CHECK
+// ══════════════════════════════════════════════════════
+function checkDepth(checkId) {
+    const d1 = parseInt(document.getElementById(`depth1-${checkId}`)?.value) || 0;
+    const d2 = parseInt(document.getElementById(`depth2-${checkId}`)?.value) || 0;
+    const d3 = parseInt(document.getElementById(`depth3-${checkId}`)?.value) || 0;
+    const minReq = parseInt(document.getElementById(`depthMin-${checkId}`)?.value) || 0;
+    const statusEl = document.getElementById(`depthStatus-${checkId}`);
+    if (!statusEl || (!d1 && !d2 && !d3) || !minReq) return;
+
+    const depths = [d1,d2,d3].filter(d=>d>0);
+    const minActual = Math.min(...depths);
+    const allOk = depths.every(d => d >= minReq);
+    statusEl.innerHTML = allOk
+        ? `<span class="measure-status ok">PASS — minimum depth met (lowest: ${minActual}mm vs required ${minReq}mm)</span>`
+        : `<span class="measure-status fail">FAIL — depth insufficient (lowest: ${minActual}mm vs required ${minReq}mm)</span>`;
+}
+
+// ══════════════════════════════════════════════════════
+// RADIO CHANGE
+// ══════════════════════════════════════════════════════
+function onOpChange(id, val) {
+    const item = document.getElementById('opitem-'+id);
+    item.className = 'op-item ' + (val==='attention'?'attention':val==='deficient'?'deficient':val==='na'?'na':'satisfactory');
+
+    ['sat','att','def','na'].forEach(v => {
+        const el = document.getElementById(`lbl-${id}-${v}`);
+        if (el) el.className = val === ({sat:'satisfactory',att:'attention',def:'deficient',na:'na'}[v]) ? `sel-${v}` : '';
+    });
+
+    const issue = document.getElementById('issue-'+id);
+    if (issue) {
+        issue.className = 'issue-detail' + (val==='attention'||val==='deficient' ? ' visible' : '');
+        issue.className += val==='deficient' ? ' def-style' : ' att-style';
+    }
+    updateOverallAssessment();
+}
+
+function updateOverallAssessment() {
+    const results = OP_CHECKS.map(c => {
+        const r = document.querySelector(`input[name="op-${c.id}"]:checked`);
+        return r ? r.value : null;
+    }).filter(Boolean);
+
+    const el = document.getElementById('overallAssessment');
+    const defs = results.filter(r=>r==='deficient').length;
+    const atts = results.filter(r=>r==='attention').length;
+    if (!results.length) { el.textContent='Pending'; el.style.color='var(--muted)'; return; }
+    if (defs > 0) { el.textContent=`${defs} Deficien${defs>1?'cies':'cy'} Found`; el.style.color='var(--danger)'; }
+    else if (atts > 0) { el.textContent=`${atts} Item${atts>1?'s':''} Requiring Attention`; el.style.color='var(--warning)'; }
+    else { el.textContent='All Satisfactory'; el.style.color='var(--success)'; }
+}
+
+function markAllSatisfactory() {
+    OP_CHECKS.forEach(c => {
+        document.querySelector(`input[name="op-${c.id}"][value="satisfactory"]`).checked = true;
+        onOpChange(c.id, 'satisfactory');
+    });
+}
+
+function clearAllChecks() {
+    OP_CHECKS.forEach(c => {
+        document.querySelectorAll(`input[name="op-${c.id}"]`).forEach(r=>r.checked=false);
+        document.getElementById('opitem-'+c.id).className = 'op-item';
+        ['sat','att','def','na'].forEach(v=>{ const el=document.getElementById(`lbl-${c.id}-${v}`); if(el) el.className=''; });
+        const issue = document.getElementById('issue-'+c.id);
+        if (issue) issue.className = 'issue-detail';
+        const det = document.getElementById('detail-'+c.id);
+        if (det) det.value = '';
+        photoStore[c.id] = [];
+        const prev = document.getElementById('photo-previews-'+c.id);
+        if (prev) prev.innerHTML = '';
+    });
+    document.getElementById('opInitials').value = '';
+    document.getElementById('opNotes').value = '';
+    document.getElementById('opWeather').value = '';
+    document.getElementById('opActionRequired').checked = false;
+    document.getElementById('opActionNotes').value = '';
+    document.getElementById('opActionExpand').className = 'action-expand';
+    document.getElementById('overallAssessment').textContent = 'Pending';
+    document.getElementById('overallAssessment').style.color = 'var(--muted)';
+    hideAlert('alertInspect');
+    // Set next due to approx 1 month from today
+    const nd = new Date(); nd.setMonth(nd.getMonth()+1);
+    document.getElementById('opNextDue').value = nd.toISOString().split('T')[0];
+}
+
+function toggleActionExpand() {
+    const checked = document.getElementById('opActionRequired').checked;
+    document.getElementById('opActionExpand').className = 'action-expand' + (checked ? ' visible' : '');
+}
+
+// ══════════════════════════════════════════════════════
+// PHOTO HANDLING
+// ══════════════════════════════════════════════════════
+function handlePhoto(checkId, input) {
+    const file = input.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { showAlert('alertInspect','Please select an image file.','danger'); return; }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        photoStore[checkId] = [{ name: file.name, data: e.target.result }];
+        renderPhotoPreview(checkId);
+    };
+    reader.readAsDataURL(file);
+}
+
+function renderPhotoPreview(checkId) {
+    const container = document.getElementById('photo-previews-'+checkId);
+    if (!container) return;
+    const photos = photoStore[checkId] || [];
+    container.innerHTML = photos.map((p,i) => `
+        <div class="photo-thumb">
+            <img src="${p.data}" alt="Evidence">
+            <button class="ph-del" onclick="removePhoto('${checkId}',${i});event.stopPropagation()">✕</button>
+        </div>`).join('');
+}
+
+function removePhoto(checkId, idx) {
+    if (photoStore[checkId]) { photoStore[checkId].splice(idx,1); renderPhotoPreview(checkId); }
+}
+
+// ══════════════════════════════════════════════════════
+// UPLOAD PHOTO TO FIREBASE STORAGE
+// ══════════════════════════════════════════════════════
+async function uploadPhoto(checkId, docId) {
+    const photos = photoStore[checkId] || [];
+    if (!photos.length) return null;
+    try {
+        const p = photos[0];
+        const ext = p.name.split('.').pop();
+        const path = `playpark-operational/${currentPark.replace(/[^a-z0-9]/gi,'_')}/${docId}_${checkId}.${ext}`;
+        const ref = storage.ref(path);
+        const snap = await ref.putString(p.data, 'data_url');
+        return await snap.ref.getDownloadURL();
+    } catch(e) { console.warn('Photo upload error:', e.message); return null; }
+}
+
+// ══════════════════════════════════════════════════════
+// GATHER SURFACE MEASUREMENT DATA
+// ══════════════════════════════════════════════════════
+function gatherSurfaceData(checkId) {
+    const surface = parkConfig?.surfaceType || '';
+    const data = { surface };
+    if (DEPTH_SURFACES.includes(surface) || surface === 'mixed') {
+        data.depth1 = document.getElementById(`depth1-${checkId}`)?.value || '';
+        data.depth2 = document.getElementById(`depth2-${checkId}`)?.value || '';
+        data.depth3 = document.getElementById(`depth3-${checkId}`)?.value || '';
+        data.depthMin = document.getElementById(`depthMin-${checkId}`)?.value || '';
+    }
+    if (CONDITION_SURFACES.includes(surface)) {
+        data.lifting = document.getElementById(`cond-lifting-${checkId}`)?.checked || false;
+        data.cracks = document.getElementById(`cond-cracks-${checkId}`)?.checked || false;
+        data.fixings = document.getElementById(`cond-fixings-${checkId}`)?.checked || false;
+        data.drainage = document.getElementById(`cond-drainage-${checkId}`)?.checked || false;
+    }
+    if (DRAINAGE_SURFACES.includes(surface)) {
+        data.turfDrainage = document.getElementById(`turf-drainage-${checkId}`)?.checked || false;
+        data.turfCoverage = document.getElementById(`turf-coverage-${checkId}`)?.checked || false;
+        data.turfCompaction = document.getElementById(`turf-compaction-${checkId}`)?.checked || false;
+        data.turfErosion = document.getElementById(`turf-erosion-${checkId}`)?.checked || false;
+    }
+    return data;
+}
+
+// ══════════════════════════════════════════════════════
+// SUBMIT
+// ══════════════════════════════════════════════════════
+async function submitOperational() {
+    if (isSubmitting) return;
+    const initials = document.getElementById('opInitials').value.trim();
+    if (!initials) { showAlert('alertInspect','Please enter your initials.','danger'); return; }
+    if (!currentPark) { showAlert('alertInspect','No park assigned to this session.','danger'); return; }
+
+    // Collect results
+    const checkResults = {};
+    const checkDetails = {};
+    const checkPriorities = {};
+    let allAnswered = true;
+    let hasDetailError = false;
+
+    OP_CHECKS.forEach(c => {
+        const r = document.querySelector(`input[name="op-${c.id}"]:checked`);
+        if (r) {
+            checkResults[c.id] = r.value;
+            if (r.value === 'attention' || r.value === 'deficient') {
+                const detail = document.getElementById('detail-'+c.id)?.value.trim();
+                if (!detail) { hasDetailError = true; }
+                else {
+                    checkDetails[c.id] = detail;
+                    checkPriorities[c.id] = document.getElementById('priority-'+c.id)?.value || 'medium';
+                }
+            }
+        } else { allAnswered = false; }
+    });
+
+    if (!allAnswered) { showAlert('alertInspect',`Please answer all ${OP_CHECKS.length} inspection checks.`,'danger'); return; }
+    if (hasDetailError) { showAlert('alertInspect','Please provide details for all items marked Attention or Deficient.','danger'); return; }
+
+    isSubmitting = true;
+    const btn = document.getElementById('btnOpSubmit');
+    btn.disabled = true; btn.textContent = 'Saving...';
+
+    const now = new Date().toISOString();
+    const satCount = Object.values(checkResults).filter(v=>v==='satisfactory').length;
+    const attCount = Object.values(checkResults).filter(v=>v==='attention').length;
+    const defCount = Object.values(checkResults).filter(v=>v==='deficient').length;
+    const areaName = currentAreaName || parkConfig?.playAreaName || currentPark + ' Play Park';
+
+    const record = {
+        inspectionType: 'operational',
+        timestamp: now,
+        createdAt: now,
+        date: now.split('T')[0],
+        parkName: currentPark,
+        playAreaName: areaName,
+        inspector: currentUser,
+        inspectorInitials: initials,
+        safetyStandard: parkConfig?.safetyStandard || '',
+        surfaceType: parkConfig?.surfaceType || '',
+        checkResults,
+        checkDetails,
+        checkPriorities,
+        surfaceMeasurement: gatherSurfaceData('surface-depth'),
+        satisfactoryCount: satCount,
+        attentionCount: attCount,
+        deficientCount: defCount,
+        notes: document.getElementById('opNotes').value.trim(),
+        weather: document.getElementById('opWeather').value,
+        nextDue: document.getElementById('opNextDue').value,
+        actionRequired: document.getElementById('opActionRequired').checked,
+        actionNotes: document.getElementById('opActionNotes').value.trim(),
+        overallOutcome: defCount > 0 ? `${defCount} Deficien${defCount>1?'cies':'cy'}` : attCount > 0 ? `${attCount} Requiring Attention` : 'All Satisfactory',
+        photoUrls: {}
+    };
+
+    try {
+        // Save record first to get docId
+        const docRef = await db.collection('playParkOperational').add(record);
+        const docId = docRef.id;
+
+        // Upload photos and update record
+        const photoUrls = {};
+        for (const checkId of Object.keys(photoStore)) {
+            if ((photoStore[checkId]||[]).length > 0) {
+                const url = await uploadPhoto(checkId, docId);
+                if (url) photoUrls[checkId] = url;
+            }
+        }
+        if (Object.keys(photoUrls).length > 0) {
+            await db.collection('playParkOperational').doc(docId).update({ photoUrls });
+        }
+
+        // Create SafeMaint tasks for deficient and attention items
+        await createMaintenanceTasks(record, checkDetails, checkPriorities, areaName);
+
+        // Update config with last operational date
+        if (currentPark) {
+            await db.collection('playParkConfig').doc(parkKey(currentPark)).set({
+                lastOperationalDate: record.date,
+                nextOperationalDue: document.getElementById('opNextDue').value
+            }, { merge: true });
+        }
+
+        showAlert('alertInspect',
+            `Operational inspection submitted — ${satCount} satisfactory, ${attCount} attention, ${defCount} deficient. Saved to SafeSystems.PRO.`,
+            'success');
+        clearAllChecks();
+        setTimeout(() => hideAlert('alertInspect'), 6000);
+
+    } catch(e) {
+        showAlert('alertInspect','Save failed: ' + e.message + ' — please retry.','danger');
+    }
+
+    isSubmitting = false;
+    btn.disabled = false; btn.textContent = 'Submit Operational Inspection';
+}
+
+// ══════════════════════════════════════════════════════
+// SAFEMAINT TASKS
+// ══════════════════════════════════════════════════════
+async function createMaintenanceTasks(record, details, priorities, areaName) {
+    for (const [checkId, detail] of Object.entries(details)) {
+        const check = OP_CHECKS.find(c => c.id === checkId);
+        if (!check) continue;
+        const priority = priorities[checkId] || 'medium';
+        const outcome = record.checkResults[checkId];
+        try {
+            const existing = await db.collection('maintenanceRecords')
+                .where('sourceModule', '==', 'play_parks_operational')
+                .where('assetId', '==', checkId)
+                .where('parkLocation', '==', record.parkName)
+                .where('status', 'in', ['open','in-progress'])
+                .get();
+
+            if (!existing.empty) {
+                await db.collection('maintenanceRecords').doc(existing.docs[0].id).update({
+                    reportsCount: (existing.docs[0].data().reportsCount || 1) + 1,
+                    lastReportedAt: record.timestamp,
+                    priority: outcome === 'deficient' ? 'high' : priority
+                });
+            } else {
+                await db.collection('maintenanceRecords').add({
+                    title: `[Play Park Operational] ${check.title} — ${record.parkName}`,
+                    description: detail,
+                    category: 'play-park',
+                    priority: outcome === 'deficient' ? 'high' : priority,
+                    status: 'open',
+                    parkLocation: record.parkName,
+                    location: areaName,
+                    sourceModule: 'play_parks_operational',
+                    assetId: checkId,
+                    reportedBy: record.inspector,
+                    dateReported: record.timestamp,
+                    reportsCount: 1,
+                    outcome: outcome
+                });
+            }
+        } catch(e) { console.warn('Maintenance task:', e.message); }
+    }
+}
+
+// ══════════════════════════════════════════════════════
+// HISTORY
+// ══════════════════════════════════════════════════════
+async function loadHistory() {
+    const list = document.getElementById('historyList');
+    list.innerHTML = '<p style="color:var(--muted);font-size:13px">Loading...</p>';
+
+    const parkFilter = document.getElementById('histParkFilter').value;
+    const period = document.getElementById('histPeriod').value;
+
+    let cutoff = null;
+    const now = new Date();
+    if (period === '6m')  cutoff = new Date(now.getFullYear(), now.getMonth()-6, now.getDate());
+    if (period === '12m') cutoff = new Date(now.getFullYear()-1, now.getMonth(), now.getDate());
+
+    try {
+        const snap = await db.collection('playParkOperational').orderBy('timestamp','desc').get();
+        let records = [];
+        snap.forEach(doc => {
+            const d = { id: doc.id, ...doc.data() };
+            if (parkFilter && d.parkName !== parkFilter) return;
+            if (!isAdmin && currentPark && d.parkName !== currentPark) return;
+            if (cutoff && new Date(d.timestamp) < cutoff) return;
+            records.push(d);
+        });
+
+        // Stats
+        document.getElementById('statTotal').textContent = records.length;
+        document.getElementById('statAllSat').textContent = records.filter(r=>r.deficientCount===0&&r.attentionCount===0).length;
+        document.getElementById('statAttention').textContent = records.reduce((a,r)=>a+(r.attentionCount||0),0);
+        document.getElementById('statDeficient').textContent = records.filter(r=>r.deficientCount>0).length;
+
+        if (!records.length) {
+            list.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:20px 0">No operational inspections found for the selected period.</p>';
+            return;
+        }
+
+        list.innerHTML = records.map(r => renderHistRecord(r)).join('');
+
+    } catch(e) {
+        list.innerHTML = `<p style="color:var(--danger);font-size:13px">Error: ${e.message}</p>`;
+    }
+}
+
+function renderHistRecord(r) {
+    const dt = new Date(r.timestamp);
+    const dtStr = dt.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+    const badges = [
+        r.deficientCount > 0 ? `<span class="badge badge-def">${r.deficientCount} Deficient</span>` : '',
+        r.attentionCount > 0 ? `<span class="badge badge-att">${r.attentionCount} Attention</span>` : '',
+        r.deficientCount===0&&r.attentionCount===0 ? `<span class="badge badge-sat">All Satisfactory</span>` : '',
+        r.actionRequired ? `<span class="badge badge-action">Action Required</span>` : ''
+    ].filter(Boolean).join('');
+
+    const results = Object.entries(r.checkResults||{}).map(([id,val]) => {
+        const check = OP_CHECKS.find(c=>c.id===id);
+        const label = check ? check.title : id;
+        const detail = r.checkDetails?.[id] ? ` — ${r.checkDetails[id]}` : '';
+        return `<div class="result-row ${val}"><span style="font-size:10px;font-weight:700;min-width:80px">${val.toUpperCase()}</span><span>${label}${detail}</span></div>`;
+    }).join('');
+
+    const surfMeas = r.surfaceMeasurement;
+    const depthStr = surfMeas && surfMeas.depth1
+        ? `<div style="font-size:12px;color:var(--muted);margin-top:8px;padding:8px;background:rgba(23,162,184,.06);border-radius:5px"><strong style="color:var(--info);font-size:10px;text-transform:uppercase">Surface Depths: </strong>${[surfMeas.depth1,surfMeas.depth2,surfMeas.depth3].filter(Boolean).join('mm / ')}mm (min required: ${surfMeas.depthMin||'—'}mm)</div>` : '';
+
+    return `
+        <div class="hist-record" onclick="toggleHistDetail('${r.id}')">
+            <div class="hist-header">
+                <div>
+                    <div class="hist-title">${r.playAreaName||r.parkName} — Operational Inspection</div>
+                    <div class="hist-meta">${dtStr} &mdash; ${r.inspector||'—'} ${r.inspectorInitials?'('+r.inspectorInitials+')':''}</div>
+                </div>
+                <div style="font-size:12px;color:var(--muted);text-align:right">${r.parkName||''}</div>
+            </div>
+            <div class="hist-badges">${badges}</div>
+            <div class="hist-detail" id="hdet-${r.id}">
+                <div class="detail-grid">
+                    <div class="detail-cell"><strong>Surface</strong>${r.surfaceType||'—'}</div>
+                    <div class="detail-cell"><strong>Standard</strong>${r.safetyStandard||'—'}</div>
+                    <div class="detail-cell"><strong>Weather</strong>${r.weather||'—'}</div>
+                    <div class="detail-cell"><strong>Next Due</strong>${r.nextDue||'—'}</div>
+                </div>
+                ${depthStr}
+                <div class="result-list" style="margin-top:10px">${results}</div>
+                ${r.notes ? `<p style="font-size:13px;color:var(--muted);margin-top:10px;padding:10px;background:rgba(255,255,255,.03);border-radius:5px">${r.notes}</p>` : ''}
+                ${r.actionRequired && r.actionNotes ? `<div style="margin-top:10px;padding:10px;background:rgba(220,53,69,.07);border:1px solid rgba(220,53,69,.2);border-radius:5px;font-size:13px;color:#f08080"><strong style="display:block;margin-bottom:3px">Action Required</strong>${r.actionNotes}</div>` : ''}
+            </div>
+        </div>`;
+}
+
+function toggleHistDetail(id) {
+    const el = document.getElementById('hdet-'+id);
+    if (el) el.classList.toggle('open');
+}
+
+// ══════════════════════════════════════════════════════
+// TAB NAV + BACK BUTTON
+// ══════════════════════════════════════════════════════
+function showTab(tab, fromPopState) {
+    ['inspect','history'].forEach(t => {
+        document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle('active', t===tab);
+        document.getElementById('panel'+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle('active', t===tab);
+    });
+    if (!fromPopState) history.pushState({ tab }, '', '#'+tab);
+    if (tab === 'history') loadHistory();
+}
+
+history.replaceState({ __sentinel: true }, '', location.href);
+history.pushState({ tab: 'inspect' }, '', '#inspect');
+
+window.addEventListener('popstate', function(e) {
+    if (e.state && e.state.tab) {
+        showTab(e.state.tab, true);
+    } else {
+        history.pushState({ __sentinel: true }, '', location.href);
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'CLOSE_MODULE' }, '*');
+        }
+    }
+});
+
+// ══════════════════════════════════════════════════════
+// SESSION + FIREBASE INIT
+// ══════════════════════════════════════════════════════
+function parkKey(parkName) {
+    return (parkName || '').replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+}
+
+function initSession() {
+    const params = new URLSearchParams(window.location.search);
+    const urlCode = params.get('access_code') || '';
+    const urlUser = params.get('user') || '';
+    if (urlCode) {
+        sessionStorage.setItem('currentAccessCode', urlCode);
+        if (urlUser) sessionStorage.setItem('currentUser', urlUser);
+    }
+    const code = (sessionStorage.getItem('currentAccessCode') || urlCode || '').toUpperCase();
+    currentUser = sessionStorage.getItem('currentUser') || urlUser || 'Inspector';
+    const PARK_MAP = {
+        'BN2025HH':'Ben Nevis Holiday Park','OB2025HH':'Oban Holiday Park',
+        'TY2025HH':'Tyndrum Holiday Park','OF2025HH':'Overburns Farm','CQR365SPP25':'All Parks'
+    };
+    const AREA_MAP = {
+        'Ben Nevis Holiday Park':'Ben Nevis Play Park','Oban Holiday Park':'Oban Play Park',
+        'Tyndrum Holiday Park':'Tyndrum Play Park','Overburns Farm':'Overburns Play Park'
+    };
+    isAdmin = code === 'CQR365SPP25';
+    currentPark = PARK_MAP[code] || sessionStorage.getItem('currentPark') || '';
+    currentAreaName = AREA_MAP[currentPark] || '';
+
+    document.getElementById('headerPark').textContent = currentPark || 'No Park';
+    document.getElementById('infoPark').textContent = currentPark || '—';
+    document.getElementById('infoArea').textContent = currentAreaName || '—';
+    document.getElementById('infoInspector').textContent = currentUser;
+    document.getElementById('infoDate').textContent = new Date().toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+    if (!isAdmin && currentPark) document.getElementById('histParkFilter').value = currentPark;
+}
+
+async function initFirebase() {
+    try {
+        await auth.signInAnonymously();
+        document.getElementById('fbDot').classList.add('ok');
+        if (currentPark) await loadParkConfig();
+        buildChecklist();
+        // Set default next due date (1 month from today)
+        const nd = new Date(); nd.setMonth(nd.getMonth()+1);
+        document.getElementById('opNextDue').value = nd.toISOString().split('T')[0];
+    } catch(e) { console.warn('Firebase:', e.message); buildChecklist(); }
+}
+
+async function loadParkConfig() {
+    try {
+        const doc = await db.collection('playParkConfig').doc(parkKey(currentPark)).get();
+        if (doc.exists) {
+            parkConfig = doc.data();
+            if (parkConfig.playAreaName) {
+                currentAreaName = parkConfig.playAreaName;
+                document.getElementById('infoArea').textContent = currentAreaName;
+            }
+        }
+    } catch(e) { console.warn('loadParkConfig:', e.message); }
+}
+
+function showAlert(id, msg, type) {
+    const el = document.getElementById(id);
+    el.textContent = msg; el.className = `alert alert-${type} visible`;
+    el.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+function hideAlert(id) { document.getElementById(id).className = 'alert'; }
+
+document.addEventListener('DOMContentLoaded', async function() {
+    OP_CHECKS.forEach(c => { photoStore[c.id] = []; });
+    initSession();
+    await initFirebase();
+    await loadHistory();
+});
+</script>
+</body>
+</html>
