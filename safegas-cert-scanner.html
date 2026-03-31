@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeGas — Certificate Scanner</title>
+
+    <!-- PDF.js for PDF text extraction -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+
+    <style>
+        :root {
+            --bg:#0e0e0e; --surface:#1a1a1a; --card:#222; --border:#333;
+            --orange:#FF9800; --green:#28A745; --red:#DC3545;
+            --blue:#17a2b8; --yellow:#FFD700; --text:#E8E8E8; --muted:#888;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; font-size:0.95rem; padding:20px; line-height:1.5; }
+        h1 { font-family:'Courier New',monospace; font-size:1.4rem; color:var(--orange); margin-bottom:4px; }
+        .subtitle { color:var(--muted); font-size:0.85rem; margin-bottom:24px; }
+
+        #statusBar { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:12px 16px; margin-bottom:20px; font-size:0.85rem; color:var(--muted); display:flex; align-items:center; gap:10px; }
+        .dot { width:10px; height:10px; border-radius:50%; background:var(--muted); flex-shrink:0; }
+        .dot.green  { background:var(--green);  box-shadow:0 0 6px rgba(40,167,69,0.6); }
+        .dot.orange { background:var(--orange); box-shadow:0 0 6px rgba(255,152,0,0.6); }
+        .dot.red    { background:var(--red);    box-shadow:0 0 6px rgba(220,53,69,0.6); }
+
+        .upload-zone {
+            border:2px dashed var(--border); border-radius:12px; padding:40px 20px;
+            text-align:center; cursor:pointer; transition:all 0.2s; margin-bottom:20px;
+            background:var(--surface);
+        }
+        .upload-zone:hover, .upload-zone.drag-over { border-color:var(--orange); background:rgba(255,152,0,0.05); }
+        .upload-zone .icon { font-size:2.5rem; margin-bottom:12px; }
+        .upload-zone p { color:var(--muted); font-size:0.88rem; }
+        .upload-zone strong { color:var(--orange); }
+        #fileInput { display:none; }
+
+        .section { background:var(--surface); border:1px solid var(--border); border-radius:10px; margin-bottom:16px; overflow:hidden; }
+        .section-header { padding:12px 16px; background:rgba(255,255,255,0.03); border-bottom:1px solid var(--border); font-weight:600; font-size:0.9rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+        .section-header .badge { font-size:0.75rem; padding:2px 8px; border-radius:10px; font-weight:600; }
+        .badge-green  { background:rgba(40,167,69,0.15);  color:#4cda74;  border:1px solid rgba(40,167,69,0.4); }
+        .badge-orange { background:rgba(255,152,0,0.15);  color:#FFB74D;  border:1px solid rgba(255,152,0,0.4); }
+        .badge-red    { background:rgba(220,53,69,0.15);  color:#f08090;  border:1px solid rgba(220,53,69,0.4); }
+        .badge-blue   { background:rgba(23,162,184,0.15); color:#4dd0e1;  border:1px solid rgba(23,162,184,0.4); }
+        .section-body { padding:16px; }
+
+        .extracted-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin-bottom:0; }
+        .field { background:var(--card); border-radius:6px; padding:10px 12px; border:1px solid var(--border); }
+        .field .lbl { font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
+        .field .val { font-size:0.88rem; font-weight:600; color:var(--text); }
+        .field .val.good { color:var(--green); }
+        .field .val.warn { color:var(--yellow); }
+
+        .appliance-row { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:14px; margin-bottom:10px; }
+        .appliance-row:last-child { margin-bottom:0; }
+        .appliance-header { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+        .appliance-name { font-weight:600; font-size:0.92rem; }
+        .appliance-meta { color:var(--muted); font-size:0.8rem; margin-top:2px; }
+
+        .match-box { background:rgba(255,255,255,0.04); border-radius:6px; padding:10px 12px; border:1px solid var(--border); }
+        .match-box .match-label { font-size:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
+        .match-item { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+        .match-item .match-name { font-size:0.85rem; font-weight:600; }
+        .match-item .match-detail { font-size:0.78rem; color:var(--muted); }
+        .match-item .match-confidence { font-size:0.72rem; padding:2px 6px; border-radius:8px; font-weight:600; }
+        .conf-high   { background:rgba(40,167,69,0.2);  color:#4cda74; }
+        .conf-medium { background:rgba(255,193,7,0.2);  color:#FFD700; }
+        .conf-low    { background:rgba(220,53,69,0.2);  color:#f08090; }
+
+        select.match-select { background:var(--card); color:var(--text); border:1px solid var(--border); padding:6px 10px; border-radius:6px; font-size:0.83rem; width:100%; margin-top:8px; }
+        select.match-select:focus { outline:none; border-color:var(--orange); }
+
+        .btn { border:none; padding:8px 18px; border-radius:6px; font-weight:700; font-size:0.85rem; cursor:pointer; transition:all 0.2s; }
+        .btn-confirm { background:var(--green); color:#fff; }
+        .btn-confirm:hover { background:#34ce57; }
+        .btn-confirm:disabled { background:#555; cursor:not-allowed; }
+        .btn-scan { background:var(--orange); color:#000; padding:10px 24px; font-size:0.9rem; }
+        .btn-scan:hover { background:#FFB74D; }
+        .btn-reset { background:var(--surface); color:var(--muted); border:1px solid var(--border); }
+        .btn-reset:hover { color:var(--text); border-color:var(--text); }
+
+        .actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:16px; }
+        .progress-bar { background:rgba(255,255,255,0.06); border-radius:4px; height:8px; margin-top:8px; overflow:hidden; }
+        .progress-fill { height:100%; background:var(--orange); border-radius:4px; transition:width 0.3s; }
+
+        .result-item { background:var(--card); border-radius:6px; padding:10px 12px; margin-bottom:8px; font-size:0.83rem; display:flex; align-items:center; gap:10px; }
+        .result-item .r-icon { font-size:1.1rem; flex-shrink:0; }
+        .result-item .r-text { flex:1; }
+        .result-item .r-title { font-weight:600; margin-bottom:2px; }
+        .result-item .r-sub { color:var(--muted); font-size:0.78rem; }
+
+        @keyframes spin { to { transform:rotate(360deg); } }
+        .spinner { display:inline-block; width:12px; height:12px; border:2px solid rgba(255,152,0,0.3); border-top-color:var(--orange); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:6px; }
+        .hidden { display:none; }
+        .good { color:var(--green); } .bad { color:var(--red); } .warn { color:var(--yellow); }
+    </style>
+</head>
+<body>
+
+<h1>safegas.pro — Certificate Scanner</h1>
+<p class="subtitle">Upload Tralee Heating Services PDFs · auto-extracts and matches to existing appliance records</p>
+
+<div id="statusBar"><div class="dot orange" id="dot"></div><span id="statusText"><span class="spinner"></span>Connecting to Firebase…</span></div>
+
+<div id="uploadArea">
+    <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+        <div class="icon">📄</div>
+        <p><strong>Click to upload</strong> or drag and drop</p>
+        <p style="margin-top:6px;">Gas Safety Certificate PDFs (Tralee Heating Services format)</p>
+        <p style="margin-top:4px;font-size:0.78rem;color:#555;">You can drop multiple files at once</p>
+    </div>
+    <input type="file" id="fileInput" accept=".pdf" multiple onchange="handleFiles(this.files)">
+</div>
+
+<div id="output"></div>
+
+<script>
+// ── Firebase ─────────────────────────────────────────────────────────────────
+var db, storage, auth;
+var allAppliances = [];
+
+firebase.initializeApp({
+    apiKey:            'AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4',
+    authDomain:        'safepark-pro.firebaseapp.com',
+    projectId:         'safepark-pro',
+    storageBucket:     'safepark-pro.firebasestorage.app',
+    messagingSenderId: '511221743341',
+    appId:             '1:511221743341:web:95bcc7e83d4861578016e4'
+});
+db      = firebase.firestore();
+storage = firebase.storage();
+auth    = firebase.auth();
+
+auth.signInAnonymously().then(function() {
+    setStatus('orange', '<span class="spinner"></span>Loading appliance register…');
+    return db.collection('gasAppliances').get();
+}).then(function(snap) {
+    allAppliances = snap.docs.map(function(d){ return Object.assign({ id: d.id }, d.data()); });
+    setStatus('green', 'Connected — ' + allAppliances.length + ' appliances loaded. Ready to scan.');
+}).catch(function(e) {
+    setStatus('red', 'Firebase error: ' + e.message);
+});
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+function setStatus(c, m) {
+    document.getElementById('dot').className = 'dot ' + c;
+    document.getElementById('statusText').innerHTML = m;
+}
+
+// ── Drag and drop ─────────────────────────────────────────────────────────────
+function dragOver(e)  { e.preventDefault(); document.getElementById('dropZone').classList.add('drag-over'); }
+function dragLeave(e) { document.getElementById('dropZone').classList.remove('drag-over'); }
+function dropFile(e)  { e.preventDefault(); document.getElementById('dropZone').classList.remove('drag-over'); handleFiles(e.dataTransfer.files); }
+
+// ── Handle multiple files ─────────────────────────────────────────────────────
+async function handleFiles(files) {
+    if (!files || files.length === 0) return;
+    document.getElementById('output').innerHTML = '';
+    for (var i = 0; i < files.length; i++) {
+        if (files[i].type === 'application/pdf' || files[i].name.endsWith('.pdf')) {
+            await processFile(files[i]);
+        }
+    }
+}
+
+// ── Extract text from PDF ─────────────────────────────────────────────────────
+async function extractText(file) {
+    var arrayBuffer = await file.arrayBuffer();
+    var pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    var text = '';
+    for (var i = 1; i <= pdf.numPages; i++) {
+        var page = await pdf.getPage(i);
+        var content = await page.getTextContent();
+        text += content.items.map(function(s){ return s.str; }).join(' ') + '\n';
+    }
+    return text;
+}
+
+// ── Parse Tralee certificate text ─────────────────────────────────────────────
+function parseCertificate(text, fileName) {
+    var result = {
+        raw: text,
+        fileName: fileName,
+        certNumber:   null,
+        issueDate:    null,
+        expiryDate:   null,
+        jobAddress:   null,
+        park:         null,
+        gasSafeId:    null,
+        engineerName: null,
+        company:      null,
+        appliances:   []
+    };
+
+    // Certificate number
+    var m = text.match(/Domestic Gas Safety \((\d+)\)/);
+    if (m) result.certNumber = m[1];
+
+    // Dates
+    m = text.match(/Date\s+(\d{2}\/\d{2}\/\d{4})/);
+    if (m) result.issueDate = m[1];
+    m = text.match(/Next inspection due\s+(\d{2}\/\d{2}\/\d{4})/);
+    if (m) result.expiryDate = m[1];
+
+    // Gas Safe ID
+    m = text.match(/Gas safe ID\s+(\d+)/i);
+    if (m) result.gasSafeId = m[1];
+
+    // Engineer name
+    m = text.match(/Engineer name:\s*([A-Za-z\s]+?)(?:Gas safe card|Signature|$)/i);
+    if (m) result.engineerName = m[1].trim();
+
+    // Company (registered business)
+    m = text.match(/Registered business\s*:?\s*([A-Za-z\s]+?)(?:New Selma|Ltd|Limited|\n)/i);
+    if (m) result.company = m[1].trim();
+    if (!result.company) result.company = 'Tralee Heating Services';
+
+    // Job address — first meaningful line after "Job address"
+    m = text.match(/Job address\s+([\w\s]+?(?:Pod|Caravan|Staff|Lodge|Chalet|Unit|Flat|House|Bungalow)[^H]*?)Highland Holidays/i);
+    if (m) result.jobAddress = m[1].trim().replace(/\s+/g, ' ');
+
+    // Park — map known Highland Holidays parks
+    var parkMappings = [
+        { keywords: ['tyndrum','tyndrum caravan park','pine trees'], park: 'Tyndrum Holiday Park' },
+        { keywords: ['ben nevis','bennevis'],                        park: 'Ben Nevis Holiday Park' },
+        { keywords: ['oban'],                                        park: 'Oban Holiday Park' },
+        { keywords: ['overburns'],                                   park: 'Overburns Farm' }
+    ];
+    var textLower = text.toLowerCase();
+    for (var p = 0; p < parkMappings.length; p++) {
+        for (var k = 0; k < parkMappings[p].keywords.length; k++) {
+            if (textLower.indexOf(parkMappings[p].keywords[k]) !== -1) {
+                result.park = parkMappings[p].park;
+                break;
+            }
+        }
+        if (result.park) break;
+    }
+
+    // Appliances — parse the table rows
+    // Pattern: row number, location, appliance type, make/model
+    var appliancePatterns = [
+        { regex: /\b(Combination boiler|Combi boiler)\b/gi,  type: 'Gas Boiler',        category: 'accommodation' },
+        { regex: /\b(Boiler)\b/gi,                            type: 'Gas Boiler',        category: 'accommodation' },
+        { regex: /\bCooker\b/gi,                              type: 'Gas Cooker',        category: 'accommodation' },
+        { regex: /\bHob\b/gi,                                 type: 'Gas Hob',           category: 'accommodation' },
+        { regex: /\b(Water heater|Water Heater)\b/gi,         type: 'Gas Water Heater',  category: 'infrastructure' },
+        { regex: /\bFire\b/gi,                                type: 'Gas Fire',          category: 'accommodation' }
+    ];
+
+    // Extract appliance rows from table section
+    // Look for numbered rows with location + type + make
+    var appRows = text.match(/\b([1-9])\s+(Kitchen|Cupboard|Living|Hallway|Bedroom|Utility|Bathroom|Boiler room)\s+(Combination boiler|Cooker|Hob|Water heater|Fire|Boiler)\s+([\w\/\s\-]+?)(?:FL|RS|CF|OF|BF|N\/A)/gi);
+    
+    if (appRows) {
+        appRows.forEach(function(row) {
+            var parts = row.match(/\b([1-9])\s+([\w\s]+?)\s+(Combination boiler|Cooker|Hob|Water heater|Fire|Boiler)\s+([\w\/\s\-]+?)(?:\s+(?:FL|RS|CF|OF|BF|N\/A))/i);
+            if (parts) {
+                var typeRaw = parts[3].trim();
+                var mappedType = 'Gas Boiler';
+                if (/cooker/i.test(typeRaw))         mappedType = 'Gas Cooker';
+                else if (/hob/i.test(typeRaw))       mappedType = 'Gas Hob';
+                else if (/water heater/i.test(typeRaw)) mappedType = 'Gas Water Heater';
+                else if (/fire/i.test(typeRaw))      mappedType = 'Gas Fire';
+
+                result.appliances.push({
+                    rowNum:    parts[1],
+                    location:  parts[2].trim(),
+                    type:      mappedType,
+                    makeModel: parts[4].trim().replace(/\s+/g, ' ')
+                });
+            }
+        });
+    }
+
+    // Fallback: if no rows parsed, try simpler extraction
+    if (result.appliances.length === 0) {
+        var types = [
+            { re:/Combination boiler[^\n]*?(Morco|Ariston|Worcester|Baxi|Vaillant|Potterton|Ideal|Glowworm|Glow-worm)[\w\/\s\-]*/gi, type:'Gas Boiler' },
+            { re:/Cooker[^\n]*?(Thetford|Belling|Rangemaster|Hotpoint|Indesit|Flavel)[\w\/\s\-]*/gi,                                  type:'Gas Cooker' },
+            { re:/Hob[^\n]*?([\w]+\/[\w\s]+)/gi,                                                                                      type:'Gas Hob' },
+            { re:/Water [Hh]eater[^\n]*?(Lochinvar|Morco|Andrews|Rinnai)[\w\/\s\-]*/gi,                                               type:'Gas Water Heater' }
+        ];
+        types.forEach(function(t) {
+            var matches = text.match(t.re);
+            if (matches) {
+                matches.forEach(function(match) {
+                    var makeModel = match.replace(/^(Combination boiler|Cooker|Hob|Water [Hh]eater)\s*/i, '').trim();
+                    result.appliances.push({ type: t.type, makeModel: makeModel.substring(0, 40), location: '', rowNum: '' });
+                });
+            }
+        });
+    }
+
+    return result;
+}
+
+// ── Match appliance to Firebase records ──────────────────────────────────────
+function findMatches(certApp, certPark) {
+    var candidates = allAppliances.filter(function(a) {
+        return a.park === certPark;
+    });
+
+    var scored = candidates.map(function(a) {
+        var score = 0;
+        var reasons = [];
+
+        // Type match
+        if (a.type && certApp.type &&
+            a.type.toLowerCase().indexOf(certApp.type.toLowerCase().replace('gas ','')) !== -1 ||
+            certApp.type.toLowerCase().indexOf((a.type || '').toLowerCase().replace('gas ','')) !== -1) {
+            score += 40; reasons.push('type matches');
+        }
+
+        // Make/model match
+        if (a.makeModel && certApp.makeModel) {
+            var aMake = a.makeModel.toLowerCase().split('/')[0].trim();
+            var cMake = certApp.makeModel.toLowerCase().split('/')[0].trim();
+            if (aMake === cMake || aMake.indexOf(cMake) !== -1 || cMake.indexOf(aMake) !== -1) {
+                score += 40; reasons.push('make/model matches');
+            }
+        }
+
+        // Location/unit match (partial)
+        if (a.locationDescription && certApp.location) {
+            var aLoc = a.locationDescription.toLowerCase();
+            var cLoc = certApp.location.toLowerCase();
+            if (aLoc.indexOf(cLoc) !== -1 || cLoc.indexOf(aLoc) !== -1) {
+                score += 20; reasons.push('location matches');
+            }
+        }
+
+        return { appliance: a, score: score, reasons: reasons };
+    });
+
+    scored.sort(function(a, b) { return b.score - a.score; });
+    return scored.filter(function(s) { return s.score > 0; }).slice(0, 3);
+}
+
+// ── Convert DD/MM/YYYY to YYYY-MM-DD ─────────────────────────────────────────
+function toISO(dateStr) {
+    if (!dateStr) return null;
+    var parts = dateStr.split('/');
+    if (parts.length === 3) return parts[2] + '-' + parts[1] + '-' + parts[0];
+    return dateStr;
+}
+
+// ── Process a single PDF ──────────────────────────────────────────────────────
+async function processFile(file) {
+    var containerId = 'cert_' + Date.now() + '_' + Math.random().toString(36).substr(2,5);
+    var placeholder = document.createElement('div');
+    placeholder.id = containerId;
+    placeholder.innerHTML = '<div class="section"><div class="section-header"><span class="spinner"></span> Reading ' + file.name + '…</div></div>';
+    document.getElementById('output').appendChild(placeholder);
+
+    try {
+        var text = await extractText(file);
+        var cert = parseCertificate(text, file.name);
+        renderCert(containerId, cert, file);
+    } catch(e) {
+        document.getElementById(containerId).innerHTML =
+            '<div class="section"><div class="section-header"><span class="bad">✗ Failed to read ' + file.name + '</span></div><div class="section-body"><p class="bad">' + e.message + '</p></div></div>';
+    }
+}
+
+// ── Render extracted certificate with match UI ────────────────────────────────
+function renderCert(containerId, cert, file) {
+    var matches = {};
+    cert.appliances.forEach(function(app, i) {
+        matches[i] = findMatches(app, cert.park);
+    });
+
+    var confLabel = function(score) {
+        if (score >= 80) return '<span class="match-confidence conf-high">High confidence</span>';
+        if (score >= 40) return '<span class="match-confidence conf-medium">Review suggested</span>';
+        return '<span class="match-confidence conf-low">Manual match needed</span>';
+    };
+
+    var overallBadge = cert.certNumber
+        ? '<span class="badge badge-blue">Cert #' + cert.certNumber + '</span>'
+        : '<span class="badge badge-orange">No cert number found</span>';
+
+    var html = '<div class="section">';
+    html += '<div class="section-header">' + (cert.fileName) + ' ' + overallBadge + '</div>';
+    html += '<div class="section-body">';
+
+    // Extracted data grid
+    html += '<div class="extracted-grid" style="margin-bottom:16px;">';
+    html += '<div class="field"><div class="lbl">Certificate No.</div><div class="val good">' + (cert.certNumber || '—') + '</div></div>';
+    html += '<div class="field"><div class="lbl">Issue Date</div><div class="val">' + (cert.issueDate || '—') + '</div></div>';
+    html += '<div class="field"><div class="lbl">Next Due</div><div class="val' + (cert.expiryDate ? ' good' : '') + '">' + (cert.expiryDate || '—') + '</div></div>';
+    html += '<div class="field"><div class="lbl">Park</div><div class="val' + (cert.park ? ' good' : ' warn') + '">' + (cert.park || 'Not recognised') + '</div></div>';
+    html += '<div class="field"><div class="lbl">Job Address</div><div class="val">' + (cert.jobAddress || '—') + '</div></div>';
+    html += '<div class="field"><div class="lbl">Engineer</div><div class="val">' + (cert.engineerName || '—') + '</div></div>';
+    html += '<div class="field"><div class="lbl">Gas Safe ID</div><div class="val">' + (cert.gasSafeId || '—') + '</div></div>';
+    html += '<div class="field"><div class="lbl">Company</div><div class="val">' + (cert.company || '—') + '</div></div>';
+    html += '</div>';
+
+    // Appliances
+    if (cert.appliances.length === 0) {
+        html += '<p class="warn" style="font-size:0.85rem;">⚠ No appliances could be extracted — check PDF text is selectable.</p>';
+    } else {
+        html += '<p style="color:var(--muted);font-size:0.8rem;margin-bottom:10px;">Found ' + cert.appliances.length + ' appliance' + (cert.appliances.length>1?'s':'') + ' — match each to an existing record:</p>';
+
+        cert.appliances.forEach(function(app, i) {
+            var appMatches = matches[i];
+            html += '<div class="appliance-row">';
+            html += '<div class="appliance-header">';
+            html += '<div><div class="appliance-name">' + app.type + (app.location ? ' — ' + app.location : '') + '</div>';
+            html += '<div class="appliance-meta">' + (app.makeModel || 'Make/model unknown') + '</div></div>';
+            html += (appMatches.length > 0 ? confLabel(appMatches[0].score) : '<span class="match-confidence conf-low">No matches found</span>');
+            html += '</div>';
+
+            html += '<div class="match-box">';
+            html += '<div class="match-label">Match to existing appliance record</div>';
+
+            // Dropdown of all park appliances
+            var parkAppliances = allAppliances.filter(function(a){ return a.park === cert.park; });
+            html += '<select class="match-select" id="match_' + containerId + '_' + i + '">';
+            html += '<option value="">— Select appliance to update —</option>';
+
+            // Top matches first (pre-selected)
+            if (appMatches.length > 0) {
+                html += '<optgroup label="Suggested matches">';
+                appMatches.forEach(function(m) {
+                    var a = m.appliance;
+                    var selected = (appMatches.indexOf(m) === 0) ? ' selected' : '';
+                    html += '<option value="' + a.id + '"' + selected + '>' + a.type + ' — ' + (a.accommodationUnit || a.locationDescription || 'No unit') + ' (' + (a.makeModel || 'no model') + ')</option>';
+                });
+                html += '</optgroup>';
+                // Then rest
+                var suggestedIds = appMatches.map(function(m){ return m.appliance.id; });
+                var rest = parkAppliances.filter(function(a){ return suggestedIds.indexOf(a.id) === -1; });
+                if (rest.length > 0) {
+                    html += '<optgroup label="Other appliances at this park">';
+                    rest.forEach(function(a) {
+                        html += '<option value="' + a.id + '">' + a.type + ' — ' + (a.accommodationUnit || a.locationDescription || 'No unit') + ' (' + (a.makeModel || 'no model') + ')</option>';
+                    });
+                    html += '</optgroup>';
+                }
+            } else {
+                parkAppliances.forEach(function(a) {
+                    html += '<option value="' + a.id + '">' + a.type + ' — ' + (a.accommodationUnit || a.locationDescription || 'No unit') + ' (' + (a.makeModel || 'no model') + ')</option>';
+                });
+            }
+            html += '</select>';
+            html += '</div>'; // match-box
+            html += '</div>'; // appliance-row
+        });
+    }
+
+    // Action buttons
+    html += '<div class="actions">';
+    html += '<button class="btn btn-confirm" id="confirmBtn_' + containerId + '" onclick="confirmCert(\'' + containerId + '\', ' + JSON.stringify(cert).replace(/'/g,"&#39;") + ')">✓ Confirm & Save All</button>';
+    html += '<button class="btn btn-reset" onclick="this.closest(\'.section\').remove()">✗ Discard</button>';
+    html += '</div>';
+
+    html += '<div id="result_' + containerId + '"></div>';
+    html += '</div></div>'; // section-body, section
+
+    document.getElementById(containerId).innerHTML = html;
+}
+
+// ── Confirm and save to Firebase ─────────────────────────────────────────────
+async function confirmCert(containerId, cert) {
+    var btn = document.getElementById('confirmBtn_' + containerId);
+    btn.disabled = true; btn.textContent = 'Saving…';
+
+    var resultEl = document.getElementById('result_' + containerId);
+    resultEl.innerHTML = '<div class="progress-bar"><div class="progress-fill" id="prog_' + containerId + '" style="width:0%"></div></div>';
+
+    var appliances = cert.appliances;
+    var total = appliances.length, done = 0, failed = 0, skipped = 0;
+    var resultsHtml = '';
+
+    // Upload PDF to Storage once
+    var fileInput = document.getElementById('fileInput');
+    var pdfUrl = null;
+    // Note: file object not re-available after async — we store url if we can re-access
+    // For prototype we skip re-upload and just log the filename
+
+    for (var i = 0; i < appliances.length; i++) {
+        var app = appliances[i];
+        var selectEl = document.getElementById('match_' + containerId + '_' + i);
+        var applianceId = selectEl ? selectEl.value : '';
+
+        if (!applianceId) {
+            skipped++;
+            resultsHtml += '<div class="result-item"><span class="r-icon">⏭</span><div class="r-text"><div class="r-title warn">Skipped — ' + app.type + '</div><div class="r-sub">No appliance selected</div></div></div>';
+            done++;
+            document.getElementById('prog_' + containerId).style.width = Math.round((done/total)*100) + '%';
+            continue;
+        }
+
+        try {
+            var issueDateISO  = toISO(cert.issueDate);
+            var expiryDateISO = toISO(cert.expiryDate);
+
+            // 1. Update appliance dates
+            await db.collection('gasAppliances').doc(applianceId).update({
+                lastInspectionDate: issueDateISO,
+                nextInspectionDue:  expiryDateISO,
+                updatedAt:          new Date().toISOString()
+            });
+
+            // 2. Create certificate record
+            var certData = {
+                applianceId:  applianceId,
+                reference:    cert.certNumber ? 'GS-' + cert.certNumber : 'GS-' + Date.now(),
+                certNumber:   cert.certNumber || null,
+                gasSafeReg:   cert.gasSafeId  || '658157',
+                engineerName: cert.engineerName || 'Matthew Shellcock',
+                company:      cert.company || 'Tralee Heating Services',
+                issueDate:    issueDateISO,
+                expiryDate:   expiryDateISO,
+                result:       'pass',
+                jobAddress:   cert.jobAddress || null,
+                applianceType: app.type,
+                makeModel:    app.makeModel || null,
+                sourceFile:   cert.fileName,
+                notes:        'Imported from PDF — cert #' + (cert.certNumber || 'unknown'),
+                createdAt:    new Date().toISOString()
+            };
+
+            await db.collection('gasCertificates').add(certData);
+
+            resultsHtml += '<div class="result-item"><span class="r-icon">✅</span><div class="r-text"><div class="r-title good">' + app.type + ' updated</div><div class="r-sub">Dates set · Certificate record created</div></div></div>';
+
+        } catch(e) {
+            failed++;
+            resultsHtml += '<div class="result-item"><span class="r-icon">❌</span><div class="r-text"><div class="r-title bad">' + app.type + ' failed</div><div class="r-sub">' + e.message + '</div></div></div>';
+        }
+
+        done++;
+        document.getElementById('prog_' + containerId).style.width = Math.round((done/total)*100) + '%';
+    }
+
+    btn.textContent = failed === 0 ? '✓ Saved' : (failed + ' failed');
+    btn.style.background = failed === 0 ? 'var(--green)' : 'var(--red)';
+
+    resultEl.innerHTML = '<div style="margin-top:12px">' + resultsHtml + '</div>';
+}
+</script>
+</body>
+</html>
