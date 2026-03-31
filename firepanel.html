@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>SafePanel.PRO - Fire Alarm Panel Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <style>
+        :root {
+            --primary-red: #DC3545; --dark-red: #B71C1C;
+            --dark-bg: #1a1a1a; --card-bg: #2d2d2d; --border-color: #444;
+            --text-primary: #ffffff; --text-muted: #999;
+            --success: #28a745; --warning: #ffc107; --danger: #dc3545; --info: #17a2b8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--dark-bg); color: var(--text-primary); min-height: 100vh; line-height: 1.5; }
+        .header { background: linear-gradient(135deg, #1a1a1a, #2d2d2d); padding: 15px 20px; border-bottom: 3px solid var(--primary-red); position: sticky; top: 0; z-index: 100; }
+        .header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .brand-title { font-size: 1.5rem; font-weight: 700; letter-spacing: 1px; }
+        .brand-title .safe { color: #C0C0C0; } .brand-title .panel { color: var(--primary-red); } .brand-title .pro { color: #C0C0C0; font-weight: 400; }
+        .brand-subtitle { font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.5px; margin-top: 2px; }
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        .firebase-status { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warning); animation: pulse 2s infinite; }
+        .status-dot.connected { background: var(--success); animation: none; }
+        .status-dot.error { background: var(--danger); animation: none; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .user-badge { font-size: 12px; color: var(--text-muted); }
+        .company-badge { background: var(--primary-red); color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; display: none; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .park-selector { background: var(--card-bg); border-radius: 10px; padding: 15px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; border: 1px solid var(--border-color); }
+        .park-selector label { font-weight: 600; color: var(--primary-red); }
+        .park-selector select { flex: 1; min-width: 200px; padding: 10px 15px; background: #1a1a1a; border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 14px; }
+        .park-selector select:focus { outline: none; border-color: var(--primary-red); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 25px; }
+        .stat-card { background: var(--card-bg); border-radius: 10px; padding: 18px; text-align: center; border: 1px solid var(--border-color); cursor: pointer; transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .stat-card.total { border-left: 4px solid var(--primary-red); } .stat-card.compliant { border-left: 4px solid var(--success); }
+        .stat-card.due-soon { border-left: 4px solid var(--warning); } .stat-card.overdue { border-left: 4px solid var(--danger); }
+        .stat-card.checks { border-left: 4px solid var(--info); }
+        .stat-value { font-size: 2.2rem; font-weight: 700; line-height: 1; margin-bottom: 5px; }
+        .stat-card.total .stat-value { color: var(--primary-red); } .stat-card.compliant .stat-value { color: var(--success); }
+        .stat-card.due-soon .stat-value { color: var(--warning); } .stat-card.overdue .stat-value { color: var(--danger); }
+        .stat-card.checks .stat-value { color: var(--info); }
+        .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 20px; flex-wrap: wrap; background: var(--card-bg); padding: 8px; border-radius: 10px; border: 1px solid var(--border-color); }
+        .tab-btn { padding: 12px 18px; background: transparent; border: none; color: var(--text-muted); font-size: 13px; font-weight: 500; cursor: pointer; border-radius: 6px; transition: all 0.2s; white-space: nowrap; }
+        .tab-btn:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); }
+        .tab-btn.active { background: var(--primary-red); color: white; }
+        .content-section { display: none; } .content-section.active { display: block; }
+        .card { background: var(--card-bg); border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 20px; overflow: hidden; }
+        .card-header { background: linear-gradient(135deg, #333, #2d2d2d); padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .card-header h2 { font-size: 1.1rem; color: var(--primary-red); }
+        .card-body { padding: 20px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: var(--primary-red); color: white; } .btn-primary:hover { background: var(--dark-red); }
+        .btn-success { background: var(--success); color: white; } .btn-success:hover { background: #218838; }
+        .btn-secondary { background: #444; color: white; } .btn-secondary:hover { background: #555; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .data-table th { background: #333; color: var(--primary-red); padding: 12px 15px; text-align: left; font-weight: 600; white-space: nowrap; border-bottom: 2px solid var(--primary-red); }
+        .data-table td { padding: 12px 15px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        .data-table tr:hover { background: rgba(220,53,69,0.06); }
+        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+        .status-compliant { background: var(--success); color: white; } .status-due-soon { background: var(--warning); color: #000; }
+        .status-overdue { background: var(--danger); color: white; } .status-no-record { background: #666; color: white; }
+        .bs-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .bs-l1 { background: #dc3545; color: white; } .bs-l2 { background: #e53935; color: white; }
+        .bs-l3 { background: #ef6c00; color: white; } .bs-l4 { background: #f57c00; color: white; }
+        .bs-l5 { background: #ffa000; color: #000; } .bs-m  { background: #1565c0; color: white; }
+        .bs-p  { background: #2e7d32; color: white; }
+        .panel-type-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; text-transform: uppercase; }
+        .type-conventional { background: #455a64; color: white; } .type-addressable { background: #0077be; color: white; }
+        .type-wireless { background: #6f42c1; color: white; } .type-analogue { background: #17a2b8; color: white; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary); }
+        .form-group label .required { color: var(--danger); }
+        .form-control { width: 100%; padding: 12px 15px; background: #1a1a1a; border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 14px; }
+        .form-control:focus { outline: none; border-color: var(--primary-red); }
+        .form-control::placeholder { color: #777; }
+        select.form-control { appearance: auto; -webkit-appearance: menulist; }
+        select.form-control option { background: #2d2d2d; color: #ffffff; }
+        input[type="date"].form-control, input[type="number"].form-control { color-scheme: dark; }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .form-hint { color: var(--text-muted); font-size: 11px; margin-top: 4px; display: block; }
+        .check-grid { display: grid; gap: 10px; }
+        .check-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .check-item .check-label { font-size: 0.9rem; flex: 1; }
+        .check-item .check-hint { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+        .check-options { display: flex; gap: 8px; }
+        .check-radio { display: none; }
+        .check-radio + label { padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid var(--border-color); color: var(--text-muted); transition: all 0.2s; }
+        .check-radio.pass + label { } .check-radio.pass:checked + label { background: var(--success); color: white; border-color: var(--success); }
+        .check-radio.fail + label { } .check-radio.fail:checked + label { background: var(--danger); color: white; border-color: var(--danger); }
+        .check-radio.na + label { } .check-radio.na:checked + label { background: #555; color: white; border-color: #555; }
+        .panel-card { background: var(--card-bg); border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 15px; overflow: hidden; border-left: 4px solid var(--primary-red); }
+        .panel-card-header { padding: 14px 18px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid var(--border-color); }
+        .panel-card-body { padding: 14px 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+        .panel-stat { }
+        .panel-stat .ps-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+        .panel-stat .ps-val { font-size: 0.88rem; font-weight: 600; }
+        .panel-card-actions { padding: 10px 18px; border-top: 1px solid var(--border-color); display: flex; gap: 8px; flex-wrap: wrap; }
+        .upload-zone { border: 2px dashed var(--border-color); border-radius: 8px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .upload-zone:hover { border-color: var(--primary-red); background: rgba(220,53,69,0.04); }
+        .upload-zone p { color: var(--text-muted); font-size: 0.85rem; margin-top: 6px; }
+        .upload-zone strong { color: var(--primary-red); }
+        .cert-preview { background: rgba(40,167,69,0.1); border: 1px solid rgba(40,167,69,0.3); border-radius: 6px; padding: 10px 14px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+        .cert-preview a { color: var(--success); text-decoration: none; font-weight: 600; }
+        .cert-preview a:hover { text-decoration: underline; }
+        .alert-bar { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 0.88rem; font-weight: 500; }
+        .alert-bar.warning { background: rgba(255,193,7,0.15); border: 1px solid rgba(255,193,7,0.4); color: var(--warning); }
+        .alert-bar.danger  { background: rgba(220,53,69,0.15);  border: 1px solid rgba(220,53,69,0.4);  color: #f08090; }
+        .alert-bar.success { background: rgba(40,167,69,0.12);  border: 1px solid rgba(40,167,69,0.4);  color: #4cda74; }
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+        .empty-state .es-title { font-size: 1.1rem; margin-bottom: 8px; color: var(--text-primary); }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); max-width: 700px; width: 100%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { font-size: 1rem; color: var(--primary-red); }
+        .modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.3rem; cursor: pointer; padding: 4px 8px; }
+        .modal-body { padding: 20px; }
+        .modal-actions { padding: 14px 20px; border-top: 1px solid var(--border-color); display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+        @media (max-width: 600px) {
+            .container { padding: 12px; }
+            .tabs { gap: 4px; padding: 6px; }
+            .tab-btn { padding: 10px 12px; font-size: 12px; }
+            .form-row { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .panel-card-body { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-content">
+        <div>
+            <div class="brand-title"><span class="safe">safe</span><span class="panel">panel</span><span class="pro">.pro</span></div>
+            <div class="brand-subtitle">Fire Alarm Panel Management — BS 5839</div>
+        </div>
+        <div class="header-right">
+            <span class="company-badge" id="headerCompanyBadge"></span>
+            <span class="user-badge" id="headerUserName"></span>
+            <div class="firebase-status">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Connecting</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="park-selector">
+        <label>Location</label>
+        <select id="parkSelect" onchange="filterByPark()">
+            <option value="all">All Locations</option>
+        </select>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card total"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Panels</div></div>
+        <div class="stat-card compliant"><div class="stat-value" id="statCompliant">0</div><div class="stat-label">Compliant</div></div>
+        <div class="stat-card due-soon"><div class="stat-value" id="statDueSoon">0</div><div class="stat-label">Due Soon</div></div>
+        <div class="stat-card overdue"><div class="stat-value" id="statOverdue">0</div><div class="stat-label">Overdue</div></div>
+        <div class="stat-card checks"><div class="stat-value" id="statChecks">0</div><div class="stat-label">Checks This Month</div></div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('register')">Panel Register</button>
+        <button class="tab-btn" onclick="switchTab('weekly')">Weekly Checks</button>
+        <button class="tab-btn" onclick="switchTab('monthly')">Monthly Checks</button>
+        <button class="tab-btn" onclick="switchTab('services')">Service Records</button>
+        <button class="tab-btn" onclick="switchTab('add')">Add Panel</button>
+        <button class="tab-btn" onclick="switchTab('reports')">Reports</button>
+    </div>
+
+    <!-- ── PANEL REGISTER ── -->
+    <div id="tab-register" class="content-section active">
+        <div class="card">
+            <div class="card-header">
+                <h2>Panel Register</h2>
+                <button class="btn btn-primary btn-sm" onclick="switchTab('add')">+ Add Panel</button>
+            </div>
+            <div class="card-body">
+                <div id="alertsContainer"></div>
+                <div id="registerOutput"><p style="color:var(--text-muted);font-size:0.88rem;">Loading panels...</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── WEEKLY CHECKS ── -->
+    <div id="tab-weekly" class="content-section">
+        <div class="card">
+            <div class="card-header">
+                <h2>Weekly Panel Check</h2>
+            </div>
+            <div class="card-body">
+                <div class="form-row" style="margin-bottom:20px;">
+                    <div class="form-group">
+                        <label>Panel <span class="required">*</span></label>
+                        <select class="form-control" id="wkPanel"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Check Date <span class="required">*</span></label>
+                        <input type="date" class="form-control" id="wkDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Checked By <span class="required">*</span></label>
+                        <input type="text" class="form-control" id="wkTester" placeholder="Name or initials">
+                    </div>
+                </div>
+                <div class="check-grid" id="weeklyChecks">
+                    <!-- generated by JS -->
+                </div>
+                <div class="form-group" style="margin-top:20px;">
+                    <label>Notes / Faults Found</label>
+                    <textarea class="form-control" id="wkNotes" rows="3" placeholder="Record any faults, warnings or observations"></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="saveWeeklyCheck()">Save Weekly Check</button>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header"><h2>Recent Weekly Check History</h2></div>
+            <div class="card-body">
+                <div id="weeklyHistory"><p style="color:var(--text-muted);font-size:0.88rem;">Select a panel above to load history.</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── MONTHLY CHECKS ── -->
+    <div id="tab-monthly" class="content-section">
+        <div class="card">
+            <div class="card-header">
+                <h2>Monthly Panel Check</h2>
+            </div>
+            <div class="card-body">
+                <div class="form-row" style="margin-bottom:20px;">
+                    <div class="form-group">
+                        <label>Panel <span class="required">*</span></label>
+                        <select class="form-control" id="moPanel"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Check Date <span class="required">*</span></label>
+                        <input type="date" class="form-control" id="moDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Checked By <span class="required">*</span></label>
+                        <input type="text" class="form-control" id="moTester" placeholder="Name or initials">
+                    </div>
+                </div>
+                <div class="check-grid" id="monthlyChecks"></div>
+                <div class="form-row" style="margin-top:20px;">
+                    <div class="form-group">
+                        <label>Battery Voltage Reading</label>
+                        <input type="text" class="form-control" id="moBattVoltage" placeholder="e.g. 27.2V">
+                    </div>
+                    <div class="form-group">
+                        <label>Battery Condition</label>
+                        <select class="form-control" id="moBattCondition">
+                            <option value="">Select...</option>
+                            <option value="good">Good</option>
+                            <option value="monitor">Monitor — check next month</option>
+                            <option value="replace">Requires replacement</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Notes / Faults Found</label>
+                    <textarea class="form-control" id="moNotes" rows="3" placeholder="Record any faults, warnings or observations"></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="saveMonthlyCheck()">Save Monthly Check</button>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header"><h2>Recent Monthly Check History</h2></div>
+            <div class="card-body"><div id="monthlyHistory"><p style="color:var(--text-muted);font-size:0.88rem;">Select a panel above to load history.</p></div></div>
+        </div>
+    </div>
+
+    <!-- ── SERVICE RECORDS ── -->
+    <div id="tab-services" class="content-section">
+        <div class="card">
+            <div class="card-header"><h2>Log Engineer Service</h2></div>
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Panel <span class="required">*</span></label>
+                        <select class="form-control" id="svcPanel"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Service Date <span class="required">*</span></label>
+                        <input type="date" class="form-control" id="svcDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Next Service Due <span class="required">*</span></label>
+                        <input type="date" class="form-control" id="svcNext">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Engineer Name <span class="required">*</span></label>
+                        <input type="text" class="form-control" id="svcEngineer" placeholder="Full name">
+                    </div>
+                    <div class="form-group">
+                        <label>Company</label>
+                        <input type="text" class="form-control" id="svcCompany" placeholder="Contractor company">
+                    </div>
+                    <div class="form-group">
+                        <label>Certificate / Reference No.</label>
+                        <input type="text" class="form-control" id="svcCertRef" placeholder="e.g. FS-2026-0123">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Outcome</label>
+                        <select class="form-control" id="svcOutcome">
+                            <option value="pass">Pass — no defects</option>
+                            <option value="pass-advisory">Pass with advisories</option>
+                            <option value="fail">Fail — remedial action required</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Battery Replaced</label>
+                        <select class="form-control" id="svcBattReplaced">
+                            <option value="no">No</option>
+                            <option value="yes">Yes</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Service Notes / Defects / Advisories</label>
+                    <textarea class="form-control" id="svcNotes" rows="4" placeholder="Record work carried out, defects found, advisories issued"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Upload Engineer Certificate (PDF or image)</label>
+                    <div class="upload-zone" id="svcUploadZone" onclick="document.getElementById('svcCertFile').click()">
+                        <p><strong>Click to upload</strong> or drag and drop</p>
+                        <p>PDF, JPG or PNG — max 10MB</p>
+                    </div>
+                    <input type="file" id="svcCertFile" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="handleCertFileSelect(this)">
+                    <div id="svcCertPreview"></div>
+                </div>
+                <button class="btn btn-primary" onclick="saveServiceRecord()">Save Service Record</button>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header"><h2>Service History</h2></div>
+            <div class="card-body">
+                <div class="form-group" style="max-width:300px;">
+                    <label>Filter by panel</label>
+                    <select class="form-control" id="svcHistFilter" onchange="loadServiceHistory()">
+                        <option value="all">All panels</option>
+                    </select>
+                </div>
+                <div id="serviceHistory"><p style="color:var(--text-muted);font-size:0.88rem;">Loading...</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── ADD PANEL ── -->
+    <div id="tab-add" class="content-section">
+        <div class="card">
+            <div class="card-header"><h2>Add Fire Alarm Panel</h2></div>
+            <div class="card-body">
+                <form id="addPanelForm" onsubmit="savePanel(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Location / Park <span class="required">*</span></label>
+                            <select class="form-control" id="panelPark" required>
+                                <option value="">Select location...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Panel Reference / Name <span class="required">*</span></label>
+                            <input type="text" class="form-control" id="panelRef" required placeholder="e.g. Main Building Panel, Reception FIP">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Panel Type <span class="required">*</span></label>
+                            <select class="form-control" id="panelType" required>
+                                <option value="">Select type...</option>
+                                <option value="Conventional">Conventional</option>
+                                <option value="Addressable">Addressable</option>
+                                <option value="Analogue Addressable">Analogue Addressable</option>
+                                <option value="Wireless">Wireless</option>
+                                <option value="Hybrid">Hybrid</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>BS 5839 System Category <span class="required">*</span></label>
+                            <select class="form-control" id="panelCategory" required>
+                                <option value="">Select category...</option>
+                                <optgroup label="Life Protection">
+                                    <option value="L1">L1 — Protection throughout the building</option>
+                                    <option value="L2">L2 — Protection of defined escape routes + high-risk areas</option>
+                                    <option value="L3">L3 — Protection of defined escape routes only</option>
+                                    <option value="L4">L4 — Protection of rooms opening onto escape routes</option>
+                                    <option value="L5">L5 — Protection of specific areas only</option>
+                                </optgroup>
+                                <optgroup label="Property Protection">
+                                    <option value="P1">P1 — Protection throughout all areas</option>
+                                    <option value="P2">P2 — Protection of defined areas only</option>
+                                </optgroup>
+                                <optgroup label="Manual">
+                                    <option value="M">M — Manual call points only</option>
+                                </optgroup>
+                            </select>
+                            <span class="form-hint">As defined in BS 5839-1:2017</span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Manufacturer</label>
+                            <input type="text" class="form-control" id="panelMake" placeholder="e.g. Hochiki, Kentec, Advanced, Notifier">
+                        </div>
+                        <div class="form-group">
+                            <label>Model</label>
+                            <input type="text" class="form-control" id="panelModel" placeholder="e.g. FX2020, Syncro, MxPro">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Number of Zones</label>
+                            <input type="number" class="form-control" id="panelZones" min="1" placeholder="e.g. 4">
+                        </div>
+                        <div class="form-group">
+                            <label>Number of Devices / Points</label>
+                            <input type="number" class="form-control" id="panelDevices" min="1" placeholder="e.g. 24">
+                        </div>
+                        <div class="form-group">
+                            <label>Location Description</label>
+                            <input type="text" class="form-control" id="panelLocation" placeholder="e.g. Main reception, Plant room">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Battery Type</label>
+                            <input type="text" class="form-control" id="panelBattType" placeholder="e.g. 12V 7Ah sealed lead acid">
+                        </div>
+                        <div class="form-group">
+                            <label>Battery Last Replaced</label>
+                            <input type="date" class="form-control" id="panelBattDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Battery Replacement Interval</label>
+                            <select class="form-control" id="panelBattInterval">
+                                <option value="4">Every 4 years</option>
+                                <option value="3">Every 3 years</option>
+                                <option value="2">Every 2 years</option>
+                                <option value="1">Every year</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Install Date</label>
+                            <input type="date" class="form-control" id="panelInstallDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Last Engineer Service</label>
+                            <input type="date" class="form-control" id="panelLastService">
+                        </div>
+                        <div class="form-group">
+                            <label>Next Service Due</label>
+                            <input type="date" class="form-control" id="panelNextService">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea class="form-control" id="panelNotes" rows="3" placeholder="Any additional information about the panel or system"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Panel</button>
+                    <button type="button" class="btn btn-secondary" style="margin-left:10px;" onclick="clearPanelForm()">Clear</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── REPORTS ── -->
+    <div id="tab-reports" class="content-section">
+        <div class="card">
+            <div class="card-header"><h2>Compliance Report</h2></div>
+            <div class="card-body">
+                <div class="form-row" style="margin-bottom:20px;">
+                    <div class="form-group">
+                        <label>Location</label>
+                        <select class="form-control" id="reportPark">
+                            <option value="all">All Locations</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="display:flex;align-items:flex-end;">
+                        <button class="btn btn-primary" onclick="generateReport()">Generate Report</button>
+                    </div>
+                </div>
+                <div id="reportOutput"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Panel Modal -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>Edit Panel</h3>
+            <button class="modal-close" onclick="closeModal('editModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="editPanelId">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Panel Reference</label>
+                    <input type="text" class="form-control" id="editPanelRef">
+                </div>
+                <div class="form-group">
+                    <label>Location</label>
+                    <select class="form-control" id="editPanelPark"></select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Panel Type</label>
+                    <select class="form-control" id="editPanelType">
+                        <option value="Conventional">Conventional</option>
+                        <option value="Addressable">Addressable</option>
+                        <option value="Analogue Addressable">Analogue Addressable</option>
+                        <option value="Wireless">Wireless</option>
+                        <option value="Hybrid">Hybrid</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>BS 5839 Category</label>
+                    <select class="form-control" id="editPanelCategory">
+                        <option value="L1">L1</option><option value="L2">L2</option><option value="L3">L3</option>
+                        <option value="L4">L4</option><option value="L5">L5</option>
+                        <option value="P1">P1</option><option value="P2">P2</option><option value="M">M</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Last Service</label>
+                    <input type="date" class="form-control" id="editLastService">
+                </div>
+                <div class="form-group">
+                    <label>Next Service Due</label>
+                    <input type="date" class="form-control" id="editNextService">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Notes</label>
+                <textarea class="form-control" id="editNotes" rows="3"></textarea>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-danger" onclick="deletePanel()">Delete Panel</button>
+            <button class="btn btn-secondary" onclick="closeModal('editModal')">Cancel</button>
+            <button class="btn btn-primary" onclick="updatePanel()">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============ CONFIG & STATE ============
+const firebaseConfig = {
+    apiKey: 'AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4',
+    authDomain: 'safepark-pro.firebaseapp.com',
+    projectId: 'safepark-pro',
+    storageBucket: 'safepark-pro.firebasestorage.app',
+    messagingSenderId: '511221743341',
+    appId: '1:511221743341:web:95bcc7e83d4861578016e4'
+};
+
+let db, storage, fbReady = false;
+let panels = [], checkRecords = [], serviceRecords = [];
+let companyLocations = [], companyName = '', companyId = null, userLevel = 'location_user', userLocations = [];
+let selectedCertFile = null, currentParkFilter = 'all';
+
+const _urlParams = new URLSearchParams(window.location.search);
+let currentUser = {
+    name: _urlParams.get('user') || sessionStorage.getItem('currentUser') || 'User',
+    accessCode: (_urlParams.get('code') || _urlParams.get('access_code') || sessionStorage.getItem('currentAccessCode') || '').toUpperCase(),
+    park: _urlParams.get('park') || sessionStorage.getItem('currentPark') || '',
+    level: sessionStorage.getItem('userAccessLevel') || 'admin'
+};
+
+const WEEKLY_CHECKS = [
+    { id: 'panel_status',     label: 'Panel status — no fault or warning indicators active', hint: 'Check all status LEDs on the panel face' },
+    { id: 'power_indicator',  label: 'Mains power indicator showing normal', hint: '' },
+    { id: 'fault_log',        label: 'Fault log reviewed — no outstanding faults', hint: 'Check and log any new fault entries' },
+    { id: 'silence_reset',    label: 'Silence / reset button test satisfactory', hint: 'Test function only — do not activate sounders without warning' },
+    { id: 'zone_leds',        label: 'Zone indicator LEDs all normal', hint: '' },
+    { id: 'log_entry',        label: 'Log book entry completed', hint: 'Sign and date the physical log book' }
+];
+const MONTHLY_CHECKS = [
+    { id: 'battery_voltage',  label: 'Battery voltage within manufacturer specification', hint: 'Record voltage reading below' },
+    { id: 'battery_condition',label: 'Battery terminals — no corrosion or damage', hint: '' },
+    { id: 'zone_walk',        label: 'Zone walk test completed — all zones responding', hint: 'Notify occupants before testing' },
+    { id: 'detector_test',    label: 'Representative detector test satisfactory', hint: 'Test at least one detector per zone' },
+    { id: 'sounder_test',     label: 'Sounder / alarm test satisfactory', hint: '' },
+    { id: 'visual_inspection',label: 'Visual inspection of panel — no damage or tampering', hint: '' },
+    { id: 'log_entry',        label: 'Log book entry completed', hint: '' }
+];
+
+// ============ FIREBASE INIT ============
+async function initFB() {
+    try {
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+        storage = firebase.storage();
+        await firebase.auth().signInAnonymously();
+        fbReady = true;
+        setStatus('connected', 'Connected');
+        await loadCompanyData();
+        await loadAll();
+    } catch(e) {
+        setStatus('error', 'Error');
+        console.error('[SafePanel] Init error:', e);
+    }
+}
+
+function setStatus(state, text) {
+    const dot = document.getElementById('statusDot'), txt = document.getElementById('statusText');
+    if (dot) { dot.className = 'status-dot' + (state !== 'connecting' ? ' ' + state : ''); }
+    if (txt) txt.textContent = text;
+}
+
+// ============ COMPANY / ACCESS ============
+async function loadCompanyData() {
+    if (!db) return;
+    const code = currentUser.accessCode;
+    const isMaster = code === 'CQR365SPP25';
+    if (code && !isMaster) {
+        try {
+            const snap = await db.collection('companyAccessCodes').where('code', '==', code).where('active', '==', true).get();
+            if (!snap.empty) {
+                const ac = snap.docs[0].data();
+                companyId = ac.companyId; userLevel = ac.level || 'location_user'; userLocations = ac.locations || [];
+                if (ac.userName) currentUser.name = ac.userName;
+            } else {
+                const hhCodes = { 'BN2025HH': 'Ben Nevis Holiday Park', 'OB2025HH': 'Oban Holiday Park', 'TY2025HH': 'Tyndrum Holiday Park', 'OF2025HH': 'Overburns Farm', '1010': 'Ben Nevis Holiday Park', '1020': 'Tyndrum Holiday Park', '1030': 'Oban Holiday Park', '365': 'Overburns Farm' };
+                if (hhCodes[code]) { companyId = 'highland-holidays'; userLevel = 'location_user'; userLocations = [hhCodes[code]]; }
+            }
+        } catch(e) { console.warn('[SafePanel] Access code lookup:', e); }
+    }
+    if (isMaster) { userLevel = 'master_admin'; companyId = null; }
+    if (companyId) {
+        try { const c = await db.collection('companies').doc(companyId).get(); if (c.exists) companyName = c.data().name || ''; } catch(e) {}
+        try { const l = await db.collection('companyLocations').where('companyId', '==', companyId).where('active', '==', true).get(); companyLocations = []; l.forEach(d => companyLocations.push(d.data().name)); companyLocations.sort(); } catch(e) {}
+    }
+    if (isMaster) {
+        try { const l = await db.collection('companyLocations').where('active', '==', true).get(); companyLocations = []; l.forEach(d => companyLocations.push(d.data().name)); companyLocations = [...new Set(companyLocations)].sort(); } catch(e) {}
+        companyName = 'All Companies';
+    }
+    if (userLevel === 'location_user' && userLocations.length === 1) currentUser.park = userLocations[0];
+    populateParkDropdowns();
+    updateHeaderUser();
+}
+
+function populateParkDropdowns() {
+    const locs = (userLevel === 'location_user' && userLocations.length > 0) ? userLocations : companyLocations;
+    const allLabel = companyName ? 'All ' + companyName + ' Locations' : 'All Locations';
+    const showAll = userLevel !== 'location_user' || userLocations.length > 1;
+    ['parkSelect', 'reportPark'].forEach(id => {
+        const sel = document.getElementById(id); if (!sel) return;
+        sel.innerHTML = '';
+        if (showAll) { const o = document.createElement('option'); o.value = 'all'; o.textContent = allLabel; sel.appendChild(o); }
+        locs.forEach(loc => { const o = document.createElement('option'); o.value = loc; o.textContent = loc; sel.appendChild(o); });
+        if (locs.length === 1) sel.value = locs[0];
+    });
+    ['panelPark', 'editPanelPark'].forEach(id => {
+        const sel = document.getElementById(id); if (!sel) return;
+        sel.innerHTML = '<option value="">Select location...</option>';
+        locs.forEach(loc => { const o = document.createElement('option'); o.value = loc; o.textContent = loc; sel.appendChild(o); });
+        if (locs.length === 1) sel.value = locs[0];
+    });
+}
+
+function updateHeaderUser() {
+    const n = document.getElementById('headerUserName'), b = document.getElementById('headerCompanyBadge');
+    if (n) n.textContent = currentUser.name || '';
+    if (b && companyName && companyName !== 'All Companies') { b.textContent = companyName; b.style.display = 'inline-block'; }
+}
+
+// ============ DATA LOADING ============
+async function loadAll() {
+    if (!db) return;
+    try {
+        const snap = await db.collection('firePanels').orderBy('createdAt', 'desc').get();
+        panels = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch(e) { console.warn('[SafePanel] Panels load:', e); panels = []; }
+    try {
+        const snap = await db.collection('firePanelChecks').orderBy('checkDate', 'desc').get();
+        checkRecords = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch(e) { checkRecords = []; }
+    try {
+        const snap = await db.collection('firePanelServices').orderBy('serviceDate', 'desc').get();
+        serviceRecords = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch(e) { serviceRecords = []; }
+    buildCheckForms();
+    populatePanelDropdowns();
+    renderRegister();
+    updateStats();
+    loadServiceHistory();
+}
+
+// ============ PANEL DROPDOWNS ============
+function populatePanelDropdowns() {
+    const park = currentParkFilter;
+    const filtered = park === 'all' ? panels : panels.filter(p => p.park === park);
+    ['wkPanel', 'moPanel', 'svcPanel', 'svcHistFilter'].forEach(id => {
+        const sel = document.getElementById(id); if (!sel) return;
+        const isHist = id === 'svcHistFilter';
+        sel.innerHTML = isHist ? '<option value="all">All panels</option>' : '<option value="">Select panel...</option>';
+        filtered.forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = p.panelRef + (p.park ? ' — ' + p.park : ''); sel.appendChild(o); });
+    });
+}
+
+// ============ CHECK FORMS ============
+function buildCheckForms() {
+    buildCheckGrid('weeklyChecks', WEEKLY_CHECKS, 'wk');
+    buildCheckGrid('monthlyChecks', MONTHLY_CHECKS, 'mo');
+    // Set today's date
+    const today = new Date().toISOString().split('T')[0];
+    ['wkDate', 'moDate', 'svcDate'].forEach(id => { const el = document.getElementById(id); if (el && !el.value) el.value = today; });
+    document.getElementById('wkTester').value = currentUser.name || '';
+    document.getElementById('moTester').value = currentUser.name || '';
+}
+
+function buildCheckGrid(containerId, items, prefix) {
+    const container = document.getElementById(containerId); if (!container) return;
+    container.innerHTML = items.map((item, i) => `
+        <div class="check-item">
+            <div>
+                <div class="check-label">${item.label}</div>
+                ${item.hint ? '<div class="check-hint">' + item.hint + '</div>' : ''}
+            </div>
+            <div class="check-options">
+                <input type="radio" class="check-radio pass" name="${prefix}_${item.id}" id="${prefix}_${item.id}_pass" value="pass">
+                <label for="${prefix}_${item.id}_pass">Pass</label>
+                <input type="radio" class="check-radio fail" name="${prefix}_${item.id}" id="${prefix}_${item.id}_fail" value="fail">
+                <label for="${prefix}_${item.id}_fail">Fail</label>
+                <input type="radio" class="check-radio na" name="${prefix}_${item.id}" id="${prefix}_${item.id}_na" value="n/a">
+                <label for="${prefix}_${item.id}_na">N/A</label>
+            </div>
+        </div>
+    `).join('');
+}
+
+function gatherCheckResults(items, prefix) {
+    const results = {};
+    items.forEach(item => {
+        const selected = document.querySelector(`input[name="${prefix}_${item.id}"]:checked`);
+        results[item.id] = selected ? selected.value : 'not-checked';
+    });
+    return results;
+}
+
+// ============ REGISTER ============
+function filterByPark() {
+    currentParkFilter = document.getElementById('parkSelect').value;
+    populatePanelDropdowns();
+    renderRegister();
+    updateStats();
+}
+
+function renderRegister() {
+    const container = document.getElementById('registerOutput'); if (!container) return;
+    const park = currentParkFilter;
+    const filtered = park === 'all' ? panels : panels.filter(p => p.park === park);
+    if (filtered.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="es-title">No panels registered</div><p>Use the Add Panel tab to register your first fire alarm panel.</p></div>';
+        return;
+    }
+    const today = new Date();
+    container.innerHTML = filtered.map(panel => {
+        const nextSvc = panel.nextServiceDate ? new Date(panel.nextServiceDate) : null;
+        const daysDiff = nextSvc ? Math.floor((nextSvc - today) / 86400000) : null;
+        let svcStatus = 'status-no-record', svcLabel = 'No service record';
+        if (daysDiff !== null) {
+            if (daysDiff < 0)       { svcStatus = 'status-overdue';  svcLabel = Math.abs(daysDiff) + ' days overdue'; }
+            else if (daysDiff <= 60){ svcStatus = 'status-due-soon'; svcLabel = 'Due in ' + daysDiff + ' days'; }
+            else                    { svcStatus = 'status-compliant';svcLabel = 'Due ' + fmtDate(panel.nextServiceDate); }
+        }
+        const battClass = 'bs-' + (panel.category || 'l1').toLowerCase().replace(/\s/g,'');
+        const typeClass = 'type-' + (panel.panelType || 'conventional').toLowerCase().replace(/[^a-z]/g,'-');
+        return `<div class="panel-card">
+            <div class="panel-card-header">
+                <div>
+                    <div style="font-size:1rem;font-weight:700;margin-bottom:6px;">${panel.panelRef}</div>
+                    <div style="color:var(--text-muted);font-size:0.83rem;">${panel.park || ''}</div>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                    <span class="bs-badge ${battClass}">${panel.category || ''}</span>
+                    <span class="panel-type-badge ${typeClass}">${panel.panelType || ''}</span>
+                    <span class="status-badge ${svcStatus}">${svcLabel}</span>
+                </div>
+            </div>
+            <div class="panel-card-body">
+                <div class="panel-stat"><div class="ps-label">Manufacturer / Model</div><div class="ps-val">${(panel.manufacturer || '—') + (panel.model ? ' / ' + panel.model : '')}</div></div>
+                <div class="panel-stat"><div class="ps-label">Zones / Devices</div><div class="ps-val">${(panel.zones || '—') + ' zones / ' + (panel.devices || '—') + ' devices'}</div></div>
+                <div class="panel-stat"><div class="ps-label">Location</div><div class="ps-val">${panel.locationDescription || '—'}</div></div>
+                <div class="panel-stat"><div class="ps-label">Last Service</div><div class="ps-val">${panel.lastServiceDate ? fmtDate(panel.lastServiceDate) : '—'}</div></div>
+                <div class="panel-stat"><div class="ps-label">Battery Type</div><div class="ps-val">${panel.batteryType || '—'}</div></div>
+                <div class="panel-stat"><div class="ps-label">Battery Last Replaced</div><div class="ps-val">${panel.batteryLastReplaced ? fmtDate(panel.batteryLastReplaced) : '—'}</div></div>
+            </div>
+            <div class="panel-card-actions">
+                <button class="btn btn-secondary btn-sm" onclick="editPanel('${panel.id}')">Edit</button>
+                <button class="btn btn-primary btn-sm" onclick="document.getElementById('svcPanel').value='${panel.id}';switchTab('services')">+ Service Record</button>
+                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('wkPanel').value='${panel.id}';switchTab('weekly')">Weekly Check</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ============ STATS ============
+function updateStats() {
+    const park = currentParkFilter;
+    const filtered = park === 'all' ? panels : panels.filter(p => p.park === park);
+    const today = new Date();
+    let compliant = 0, dueSoon = 0, overdue = 0;
+    filtered.forEach(p => {
+        const next = p.nextServiceDate ? new Date(p.nextServiceDate) : null;
+        if (!next) return;
+        const diff = Math.floor((next - today) / 86400000);
+        if (diff < 0) overdue++;
+        else if (diff <= 60) dueSoon++;
+        else compliant++;
+    });
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+    const checksThisMonth = checkRecords.filter(c => c.checkDate && c.checkDate >= monthStart && (park === 'all' || c.park === park)).length;
+    document.getElementById('statTotal').textContent = filtered.length;
+    document.getElementById('statCompliant').textContent = compliant;
+    document.getElementById('statDueSoon').textContent = dueSoon;
+    document.getElementById('statOverdue').textContent = overdue;
+    document.getElementById('statChecks').textContent = checksThisMonth;
+}
+
+// ============ SAVE PANEL ============
+async function savePanel(e) {
+    e.preventDefault();
+    if (!fbReady) { alert('Firebase not ready. Please wait.'); return; }
+    const data = {
+        park: document.getElementById('panelPark').value,
+        panelRef: document.getElementById('panelRef').value.trim(),
+        panelType: document.getElementById('panelType').value,
+        category: document.getElementById('panelCategory').value,
+        manufacturer: document.getElementById('panelMake').value.trim() || null,
+        model: document.getElementById('panelModel').value.trim() || null,
+        zones: document.getElementById('panelZones').value || null,
+        devices: document.getElementById('panelDevices').value || null,
+        locationDescription: document.getElementById('panelLocation').value.trim() || null,
+        batteryType: document.getElementById('panelBattType').value.trim() || null,
+        batteryLastReplaced: document.getElementById('panelBattDate').value || null,
+        batteryReplaceIntervalYears: parseInt(document.getElementById('panelBattInterval').value) || 4,
+        installDate: document.getElementById('panelInstallDate').value || null,
+        lastServiceDate: document.getElementById('panelLastService').value || null,
+        nextServiceDate: document.getElementById('panelNextService').value || null,
+        notes: document.getElementById('panelNotes').value.trim() || null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    };
+    if (!data.park || !data.panelRef || !data.panelType || !data.category) { alert('Please complete all required fields.'); return; }
+    try {
+        const ref = await db.collection('firePanels').add(data);
+        data.id = ref.id;
+        panels.unshift(data);
+        populatePanelDropdowns();
+        renderRegister();
+        updateStats();
+        clearPanelForm();
+        switchTab('register');
+        alert('Panel saved successfully.');
+    } catch(err) { console.error(err); alert('Error saving panel: ' + err.message); }
+}
+
+function clearPanelForm() { document.getElementById('addPanelForm').reset(); }
+
+// ============ EDIT / UPDATE / DELETE ============
+function editPanel(id) {
+    const panel = panels.find(p => p.id === id); if (!panel) return;
+    document.getElementById('editPanelId').value = id;
+    document.getElementById('editPanelRef').value = panel.panelRef || '';
+    document.getElementById('editPanelType').value = panel.panelType || '';
+    document.getElementById('editPanelCategory').value = panel.category || '';
+    document.getElementById('editLastService').value = panel.lastServiceDate || '';
+    document.getElementById('editNextService').value = panel.nextServiceDate || '';
+    document.getElementById('editNotes').value = panel.notes || '';
+    // Populate edit park dropdown
+    const sel = document.getElementById('editPanelPark');
+    if (sel) { [...sel.options].forEach(o => { if (o.value === panel.park) o.selected = true; }); }
+    openModal('editModal');
+}
+
+async function updatePanel() {
+    const id = document.getElementById('editPanelId').value;
+    const updates = {
+        park: document.getElementById('editPanelPark').value,
+        panelRef: document.getElementById('editPanelRef').value.trim(),
+        panelType: document.getElementById('editPanelType').value,
+        category: document.getElementById('editPanelCategory').value,
+        lastServiceDate: document.getElementById('editLastService').value || null,
+        nextServiceDate: document.getElementById('editNextService').value || null,
+        notes: document.getElementById('editNotes').value.trim() || null,
+        updatedAt: new Date().toISOString()
+    };
+    try {
+        await db.collection('firePanels').doc(id).update(updates);
+        const idx = panels.findIndex(p => p.id === id);
+        if (idx !== -1) panels[idx] = { ...panels[idx], ...updates };
+        renderRegister(); updateStats(); populatePanelDropdowns();
+        closeModal('editModal');
+    } catch(e) { alert('Error updating panel: ' + e.message); }
+}
+
+async function deletePanel() {
+    const id = document.getElementById('editPanelId').value;
+    if (!confirm('Delete this panel and all associated records? This cannot be undone.')) return;
+    try {
+        await db.collection('firePanels').doc(id).delete();
+        panels = panels.filter(p => p.id !== id);
+        renderRegister(); updateStats(); populatePanelDropdowns();
+        closeModal('editModal');
+    } catch(e) { alert('Error deleting panel: ' + e.message); }
+}
+
+// ============ WEEKLY CHECK ============
+async function saveWeeklyCheck() {
+    const panelId = document.getElementById('wkPanel').value;
+    const checkDate = document.getElementById('wkDate').value;
+    const tester = document.getElementById('wkTester').value.trim();
+    if (!panelId || !checkDate || !tester) { alert('Please select a panel, date and tester.'); return; }
+    const results = gatherCheckResults(WEEKLY_CHECKS, 'wk');
+    const hasFailures = Object.values(results).some(v => v === 'fail');
+    const panel = panels.find(p => p.id === panelId);
+    const data = {
+        panelId, checkType: 'weekly', checkDate,
+        tester, park: panel ? panel.park : '',
+        results, notes: document.getElementById('wkNotes').value.trim() || null,
+        hasFailures, createdAt: new Date().toISOString()
+    };
+    try {
+        await db.collection('firePanelChecks').add(data);
+        checkRecords.unshift(data);
+        updateStats();
+        if (hasFailures) {
+            alert('Weekly check saved. WARNING: one or more checks failed. Arrange remedial action and log in maintenance.');
+        } else {
+            alert('Weekly check saved. All checks passed.');
+        }
+        document.getElementById('wkNotes').value = '';
+        loadWeeklyHistory();
+    } catch(e) { alert('Error saving check: ' + e.message); }
+}
+
+function loadWeeklyHistory() {
+    const panelId = document.getElementById('wkPanel').value;
+    const container = document.getElementById('weeklyHistory');
+    const records = checkRecords.filter(c => c.panelId === panelId && c.checkType === 'weekly').slice(0, 10);
+    if (records.length === 0) { container.innerHTML = '<p style="color:var(--text-muted);font-size:0.88rem;">No weekly checks recorded for this panel.</p>'; return; }
+    container.innerHTML = '<div class="table-responsive"><table class="data-table"><thead><tr><th>Date</th><th>Tester</th><th>Result</th><th>Notes</th></tr></thead><tbody>' +
+        records.map(r => `<tr>
+            <td>${fmtDate(r.checkDate)}</td>
+            <td>${r.tester || '—'}</td>
+            <td>${r.hasFailures ? '<span class="status-badge status-overdue">FAIL</span>' : '<span class="status-badge status-compliant">PASS</span>'}</td>
+            <td style="color:var(--text-muted);font-size:0.82rem;">${r.notes || '—'}</td>
+        </tr>`).join('') + '</tbody></table></div>';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('wkPanel').addEventListener('change', loadWeeklyHistory);
+});
+
+// ============ MONTHLY CHECK ============
+async function saveMonthlyCheck() {
+    const panelId = document.getElementById('moPanel').value;
+    const checkDate = document.getElementById('moDate').value;
+    const tester = document.getElementById('moTester').value.trim();
+    if (!panelId || !checkDate || !tester) { alert('Please select a panel, date and tester.'); return; }
+    const results = gatherCheckResults(MONTHLY_CHECKS, 'mo');
+    const hasFailures = Object.values(results).some(v => v === 'fail');
+    const panel = panels.find(p => p.id === panelId);
+    const data = {
+        panelId, checkType: 'monthly', checkDate,
+        tester, park: panel ? panel.park : '',
+        results, batteryVoltage: document.getElementById('moBattVoltage').value.trim() || null,
+        batteryCondition: document.getElementById('moBattCondition').value || null,
+        notes: document.getElementById('moNotes').value.trim() || null,
+        hasFailures, createdAt: new Date().toISOString()
+    };
+    try {
+        await db.collection('firePanelChecks').add(data);
+        checkRecords.unshift(data);
+        updateStats();
+        if (hasFailures) {
+            alert('Monthly check saved. WARNING: one or more checks failed. Arrange remedial action.');
+        } else {
+            alert('Monthly check saved. All checks passed.');
+        }
+        document.getElementById('moNotes').value = '';
+        document.getElementById('moBattVoltage').value = '';
+        loadMonthlyHistory();
+    } catch(e) { alert('Error saving check: ' + e.message); }
+}
+
+function loadMonthlyHistory() {
+    const panelId = document.getElementById('moPanel').value;
+    const container = document.getElementById('monthlyHistory');
+    const records = checkRecords.filter(c => c.panelId === panelId && c.checkType === 'monthly').slice(0, 6);
+    if (records.length === 0) { container.innerHTML = '<p style="color:var(--text-muted);font-size:0.88rem;">No monthly checks recorded for this panel.</p>'; return; }
+    container.innerHTML = '<div class="table-responsive"><table class="data-table"><thead><tr><th>Date</th><th>Tester</th><th>Battery V</th><th>Battery Condition</th><th>Result</th><th>Notes</th></tr></thead><tbody>' +
+        records.map(r => `<tr>
+            <td>${fmtDate(r.checkDate)}</td>
+            <td>${r.tester || '—'}</td>
+            <td>${r.batteryVoltage || '—'}</td>
+            <td>${r.batteryCondition || '—'}</td>
+            <td>${r.hasFailures ? '<span class="status-badge status-overdue">FAIL</span>' : '<span class="status-badge status-compliant">PASS</span>'}</td>
+            <td style="color:var(--text-muted);font-size:0.82rem;">${r.notes || '—'}</td>
+        </tr>`).join('') + '</tbody></table></div>';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('moPanel').addEventListener('change', loadMonthlyHistory);
+});
+
+// ============ SERVICE RECORDS ============
+function handleCertFileSelect(input) {
+    selectedCertFile = input.files[0] || null;
+    const preview = document.getElementById('svcCertPreview');
+    if (selectedCertFile) {
+        preview.innerHTML = '<div class="cert-preview"><span>' + selectedCertFile.name + ' (' + (selectedCertFile.size / 1024).toFixed(0) + ' KB)</span><button onclick="clearCertFile()" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:1.1rem;">&times;</button></div>';
+    } else {
+        preview.innerHTML = '';
+    }
+}
+
+function clearCertFile() {
+    selectedCertFile = null;
+    document.getElementById('svcCertFile').value = '';
+    document.getElementById('svcCertPreview').innerHTML = '';
+}
+
+async function saveServiceRecord() {
+    const panelId = document.getElementById('svcPanel').value;
+    const serviceDate = document.getElementById('svcDate').value;
+    const nextDate = document.getElementById('svcNext').value;
+    const engineer = document.getElementById('svcEngineer').value.trim();
+    if (!panelId || !serviceDate || !nextDate || !engineer) { alert('Please complete all required fields.'); return; }
+    const panel = panels.find(p => p.id === panelId);
+    const data = {
+        panelId, park: panel ? panel.park : '',
+        serviceDate, nextServiceDate: nextDate,
+        engineerName: engineer,
+        company: document.getElementById('svcCompany').value.trim() || null,
+        certRef: document.getElementById('svcCertRef').value.trim() || null,
+        outcome: document.getElementById('svcOutcome').value,
+        batteryReplaced: document.getElementById('svcBattReplaced').value === 'yes',
+        notes: document.getElementById('svcNotes').value.trim() || null,
+        certUrl: null, certFileName: null,
+        createdAt: new Date().toISOString()
+    };
+    try {
+        // Upload certificate file if selected
+        if (selectedCertFile && storage) {
+            const path = 'fire-panel-certs/' + panelId + '/' + Date.now() + '_' + selectedCertFile.name;
+            const ref = storage.ref(path);
+            const snapshot = await ref.put(selectedCertFile);
+            data.certUrl = await snapshot.ref.getDownloadURL();
+            data.certFileName = selectedCertFile.name;
+        }
+        const docRef = await db.collection('firePanelServices').add(data);
+        data.id = docRef.id;
+        serviceRecords.unshift(data);
+        // Update panel's service dates
+        await db.collection('firePanels').doc(panelId).update({
+            lastServiceDate: serviceDate,
+            nextServiceDate: nextDate,
+            ...(data.batteryReplaced ? { batteryLastReplaced: serviceDate } : {}),
+            updatedAt: new Date().toISOString()
+        });
+        const idx = panels.findIndex(p => p.id === panelId);
+        if (idx !== -1) {
+            panels[idx].lastServiceDate = serviceDate;
+            panels[idx].nextServiceDate = nextDate;
+            if (data.batteryReplaced) panels[idx].batteryLastReplaced = serviceDate;
+        }
+        renderRegister(); updateStats(); loadServiceHistory(); clearCertFile();
+        document.getElementById('svcNotes').value = '';
+        document.getElementById('svcCertRef').value = '';
+        document.getElementById('svcCompany').value = '';
+        alert('Service record saved successfully.');
+    } catch(e) { console.error(e); alert('Error saving service record: ' + e.message); }
+}
+
+function loadServiceHistory() {
+    const filter = document.getElementById('svcHistFilter') ? document.getElementById('svcHistFilter').value : 'all';
+    const container = document.getElementById('serviceHistory');
+    const records = filter === 'all' ? serviceRecords : serviceRecords.filter(r => r.panelId === filter);
+    if (records.length === 0) { container.innerHTML = '<p style="color:var(--text-muted);font-size:0.88rem;">No service records found.</p>'; return; }
+    container.innerHTML = '<div class="table-responsive"><table class="data-table"><thead><tr><th>Date</th><th>Panel</th><th>Engineer</th><th>Company</th><th>Outcome</th><th>Battery</th><th>Certificate</th><th>Notes</th></tr></thead><tbody>' +
+        records.map(r => {
+            const panel = panels.find(p => p.id === r.panelId);
+            const outcomeBadge = r.outcome === 'pass' ? '<span class="status-badge status-compliant">Pass</span>' : r.outcome === 'pass-advisory' ? '<span class="status-badge status-due-soon">Pass (Advisory)</span>' : '<span class="status-badge status-overdue">Fail</span>';
+            const certLink = r.certUrl ? '<a href="' + r.certUrl + '" target="_blank" style="color:var(--success);font-weight:600;">View</a>' : (r.certRef || '—');
+            return `<tr>
+                <td>${fmtDate(r.serviceDate)}</td>
+                <td>${panel ? panel.panelRef : '—'}</td>
+                <td>${r.engineerName || '—'}</td>
+                <td>${r.company || '—'}</td>
+                <td>${outcomeBadge}</td>
+                <td>${r.batteryReplaced ? 'Replaced' : 'No'}</td>
+                <td>${certLink}</td>
+                <td style="color:var(--text-muted);font-size:0.82rem;">${r.notes || '—'}</td>
+            </tr>`;
+        }).join('') + '</tbody></table></div>';
+}
+
+// ============ REPORTS ============
+function generateReport() {
+    const park = document.getElementById('reportPark').value;
+    const filtered = park === 'all' ? panels : panels.filter(p => p.park === park);
+    const container = document.getElementById('reportOutput');
+    const today = new Date();
+    if (filtered.length === 0) { container.innerHTML = '<p style="color:var(--text-muted);">No panels found for selected location.</p>'; return; }
+    let html = '<div class="table-responsive"><table class="data-table"><thead><tr><th>Panel</th><th>Location</th><th>Category</th><th>Type</th><th>Last Service</th><th>Next Service</th><th>Service Status</th><th>Last Weekly Check</th><th>Last Monthly Check</th></tr></thead><tbody>';
+    filtered.forEach(p => {
+        const next = p.nextServiceDate ? new Date(p.nextServiceDate) : null;
+        const diff = next ? Math.floor((next - today) / 86400000) : null;
+        let svcStatus = 'status-no-record', svcLabel = 'No record';
+        if (diff !== null) {
+            if (diff < 0)       { svcStatus = 'status-overdue';  svcLabel = Math.abs(diff) + 'd overdue'; }
+            else if (diff <= 60){ svcStatus = 'status-due-soon'; svcLabel = 'Due in ' + diff + 'd'; }
+            else                { svcStatus = 'status-compliant';svcLabel = 'Compliant'; }
+        }
+        const lastWk = checkRecords.filter(c => c.panelId === p.id && c.checkType === 'weekly').sort((a,b) => b.checkDate.localeCompare(a.checkDate))[0];
+        const lastMo = checkRecords.filter(c => c.panelId === p.id && c.checkType === 'monthly').sort((a,b) => b.checkDate.localeCompare(a.checkDate))[0];
+        html += `<tr>
+            <td style="font-weight:600;">${p.panelRef}</td>
+            <td>${p.park || '—'}</td>
+            <td><span class="bs-badge bs-${(p.category||'').toLowerCase()}">${p.category || '—'}</span></td>
+            <td>${p.panelType || '—'}</td>
+            <td>${p.lastServiceDate ? fmtDate(p.lastServiceDate) : '—'}</td>
+            <td>${p.nextServiceDate ? fmtDate(p.nextServiceDate) : '—'}</td>
+            <td><span class="status-badge ${svcStatus}">${svcLabel}</span></td>
+            <td>${lastWk ? fmtDate(lastWk.checkDate) + (lastWk.hasFailures ? ' — <span style="color:var(--danger);font-weight:600;">FAIL</span>' : ' — PASS') : '—'}</td>
+            <td>${lastMo ? fmtDate(lastMo.checkDate) + (lastMo.hasFailures ? ' — <span style="color:var(--danger);font-weight:600;">FAIL</span>' : ' — PASS') : '—'}</td>
+        </tr>`;
+    });
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
+}
+
+// ============ HELPERS ============
+function fmtDate(d) {
+    if (!d) return '—';
+    try { return new Date(d + (d.length === 10 ? 'T12:00:00' : '')).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
+    catch(e) { return d; }
+}
+function openModal(id) { document.getElementById(id).classList.add('active'); document.body.style.overflow = 'hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); document.body.style.overflow = ''; }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { document.querySelectorAll('.modal-overlay.active').forEach(m => { m.classList.remove('active'); document.body.style.overflow = ''; }); }});
+document.querySelectorAll('.modal-overlay').forEach(o => { o.addEventListener('click', function(e) { if (e.target === this) { this.classList.remove('active'); document.body.style.overflow = ''; }}); });
+
+// ============ TAB SWITCHING + BACK BUTTON ============
+function switchTab(n, fromPopState) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.tab-btn[onclick="switchTab(\'' + n + '\')"]').classList.add('active');
+    document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('tab-' + n).classList.add('active');
+    if (n === 'services') loadServiceHistory();
+    if (!fromPopState) history.pushState({ tab: n }, '', '#' + n);
+}
+
+window.addEventListener('popstate', function(e) {
+    if (e.state && e.state.tab) {
+        switchTab(e.state.tab, true);
+    } else {
+        history.pushState({ __sentinel: true }, '', location.href);
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'CLOSE_MODULE' }, '*');
+        } else {
+            window.location.href = 'index.html';
+        }
+    }
+});
+
+history.replaceState({ __sentinel: true }, '', location.href);
+history.pushState({ tab: 'register' }, '', '#register');
+
+// ============ BOOT ============
+document.addEventListener('DOMContentLoaded', initFB);
+</script>
+</body>
+</html>
