@@ -1,0 +1,2367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>SafeGas.PRO - Gas Safety Compliance Tracker</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+    
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    
+    <style>
+        :root {
+            --primary-orange: #FF9800;
+            --dark-orange: #F57C00;
+            --light-orange: #FFB74D;
+            --gas-blue: #0077be;
+            --gas-safe-yellow: #FFD700;
+            --black: #000000;
+            --white: #FFFFFF;
+            --dark-bg: #1a1a1a;
+            --card-bg: #2d2d2d;
+            --border-color: #444;
+            --text-primary: #ffffff;
+            --text-muted: #999;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --info: #17a2b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            padding: 15px 20px;
+            border-bottom: 3px solid var(--gas-blue);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .brand-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .brand-title .safe { color: #C0C0C0; }
+        .brand-title .gas { color: var(--gas-blue); }
+        .brand-title .pro { color: #C0C0C0; font-weight: 400; }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .firebase-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--warning);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected { background: var(--success); animation: none; }
+        .status-dot.error { background: var(--danger); animation: none; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Park Selector */
+        .park-selector {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            border: 1px solid var(--border-color);
+        }
+
+        .park-selector label {
+            font-weight: 600;
+            color: var(--gas-blue);
+        }
+
+        .park-selector select {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 15px;
+            background: #1a1a1a;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .park-selector select:focus {
+            outline: none;
+            border-color: var(--gas-blue);
+        }
+
+        /* Stats Dashboard */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .stat-card.compliant { border-left: 4px solid var(--success); }
+        .stat-card.due-soon { border-left: 4px solid var(--warning); }
+        .stat-card.overdue { border-left: 4px solid var(--danger); }
+        .stat-card.total { border-left: 4px solid var(--gas-blue); }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        .stat-card.compliant .stat-value { color: var(--success); }
+        .stat-card.due-soon .stat-value { color: var(--warning); }
+        .stat-card.overdue .stat-value { color: var(--danger); }
+        .stat-card.total .stat-value { color: var(--gas-blue); }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            background: var(--card-bg);
+            padding: 8px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            background: var(--gas-blue);
+            color: white;
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #333 0%, #2d2d2d 100%);
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .card-header h2 {
+            font-size: 1.1rem;
+            color: var(--gas-blue);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--gas-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #005a8e;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: #000;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #444;
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Tables */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .data-table th {
+            background: #333;
+            color: var(--gas-blue);
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            white-space: nowrap;
+            border-bottom: 2px solid var(--gas-blue);
+        }
+
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        .data-table tr:hover {
+            background: rgba(0,119,190,0.1);
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-compliant { background: var(--success); color: white; }
+        .status-due-soon { background: var(--warning); color: #000; }
+        .status-overdue { background: var(--danger); color: white; }
+        .status-no-record { background: #666; color: white; }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-group label span.required {
+            color: var(--danger);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background: #1a1a1a;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--gas-blue);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: var(--card-bg);
+        }
+
+        .modal-header h3 {
+            color: var(--gas-blue);
+            font-size: 1.2rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: var(--danger);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 20px;
+        }
+
+        /* Alerts Section */
+        .alerts-container {
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-danger {
+            background: rgba(220,53,69,0.15);
+            border: 1px solid var(--danger);
+            color: #ff6b7a;
+        }
+
+        .alert-warning {
+            background: rgba(255,193,7,0.15);
+            border: 1px solid var(--warning);
+            color: #ffda6a;
+        }
+
+        .alert-icon {
+            font-size: 20px;
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .alert-text {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        /* Category Badges */
+        .category-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .category-accommodation { background: #6f42c1; color: white; }
+        .category-infrastructure { background: #fd7e14; color: white; }
+
+        /* Expiry Indicator */
+        .expiry-date {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .expiry-date .date {
+            font-weight: 500;
+        }
+
+        .expiry-date .days {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .expiry-date.overdue .days { color: var(--danger); }
+        .expiry-date.due-soon .days { color: var(--warning); }
+
+        /* Search/Filter Bar */
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-bar .search-input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-bar select {
+            min-width: 150px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .stat-value {
+                font-size: 2rem;
+            }
+
+            .tabs {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .tab-btn {
+                flex-shrink: 0;
+            }
+
+            .data-table {
+                font-size: 13px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 10px 12px;
+            }
+
+            .btn {
+                padding: 8px 16px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .modal {
+                max-height: 95vh;
+                margin: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .stat-value {
+                font-size: 1.8rem;
+            }
+
+            .park-selector {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .park-selector select {
+                width: 100%;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            body { background: white; color: black; }
+            .header, .tabs, .btn, .modal-overlay { display: none; }
+            .card { border: 1px solid #ccc; }
+            .data-table th { background: #f0f0f0; }
+        }
+        /* ── Certificate Scanner Tab ── */
+        .scan-upload-zone { border:2px dashed var(--border-color); border-radius:12px; padding:36px 20px; text-align:center; cursor:pointer; transition:all 0.2s; margin-bottom:20px; background:rgba(255,255,255,0.02); }
+        .scan-upload-zone:hover, .scan-upload-zone.drag-over { border-color:var(--primary-orange); background:rgba(255,152,0,0.05); }
+        .scan-upload-zone .scan-icon { font-size:2.2rem; margin-bottom:10px; }
+        .scan-upload-zone p { color:var(--text-muted); font-size:0.88rem; }
+        .scan-upload-zone strong { color:var(--primary-orange); }
+        #scanFileInput { display:none; }
+        .scan-extracted-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; margin-bottom:14px; }
+        .scan-field { background:rgba(255,255,255,0.04); border-radius:6px; padding:9px 12px; border:1px solid var(--border-color); }
+        .scan-field .sf-lbl { font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:3px; }
+        .scan-field .sf-val { font-size:0.87rem; font-weight:600; color:#fff; }
+        .scan-field .sf-val.sf-good { color:#28a745; }
+        .scan-field .sf-val.sf-warn { color:#ffc107; }
+        .scan-cert-block { background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:10px; margin-bottom:14px; overflow:hidden; }
+        .scan-cert-header { padding:10px 14px; background:rgba(255,255,255,0.04); border-bottom:1px solid var(--border-color); font-weight:600; font-size:0.88rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; }
+        .scan-cert-body { padding:14px; }
+        .scan-app-row { background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:8px; padding:12px; margin-bottom:10px; }
+        .scan-app-row:last-of-type { margin-bottom:0; }
+        .scan-app-header { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+        .scan-app-name { font-weight:600; font-size:0.9rem; }
+        .scan-app-make { color:var(--text-muted); font-size:0.78rem; margin-top:2px; }
+        .scan-match-box { background:rgba(0,0,0,0.2); border-radius:6px; padding:10px 12px; border:1px solid var(--border-color); }
+        .scan-match-lbl { font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
+        select.scan-select { background:var(--card-bg); color:#fff; border:1px solid var(--border-color); padding:6px 10px; border-radius:6px; font-size:0.83rem; width:100%; margin-top:6px; }
+        select.scan-select:focus { outline:none; border-color:var(--primary-orange); }
+        .scan-conf-high   { background:rgba(40,167,69,0.2);  color:#4cda74; font-size:0.72rem; padding:2px 8px; border-radius:8px; font-weight:600; }
+        .scan-conf-medium { background:rgba(255,193,7,0.2);  color:#ffd700; font-size:0.72rem; padding:2px 8px; border-radius:8px; font-weight:600; }
+        .scan-conf-low    { background:rgba(220,53,69,0.2);  color:#f08090; font-size:0.72rem; padding:2px 8px; border-radius:8px; font-weight:600; }
+        .scan-actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
+        .scan-progress { background:rgba(255,255,255,0.06); border-radius:4px; height:8px; margin-top:8px; overflow:hidden; }
+        .scan-progress-fill { height:100%; background:#28a745; border-radius:4px; transition:width 0.3s; }
+        .scan-result-item { background:rgba(255,255,255,0.03); border-radius:6px; padding:9px 12px; margin-bottom:8px; font-size:0.82rem; display:flex; align-items:center; gap:10px; }
+        .scan-result-item .sri-icon { font-size:1rem; flex-shrink:0; }
+        .scan-result-item .sri-title { font-weight:600; margin-bottom:2px; }
+        .scan-result-item .sri-sub { color:var(--text-muted); font-size:0.77rem; }
+        .btn-scan-confirm { background:#28a745; color:#fff; border:none; padding:8px 18px; border-radius:6px; font-weight:700; font-size:0.85rem; cursor:pointer; }
+        .btn-scan-confirm:hover { background:#34ce57; }
+        .btn-scan-confirm:disabled { background:#555; cursor:not-allowed; }
+        .btn-scan-discard { background:transparent; color:var(--text-muted); border:1px solid var(--border-color); padding:8px 18px; border-radius:6px; font-weight:600; font-size:0.85rem; cursor:pointer; }
+        .btn-scan-discard:hover { color:#fff; border-color:#fff; }
+        .scan-badge-blue { background:rgba(23,162,184,0.15); color:#4dd0e1; border:1px solid rgba(23,162,184,0.4); font-size:0.75rem; padding:2px 8px; border-radius:10px; font-weight:600; }
+        .scan-badge-warn { background:rgba(255,152,0,0.15); color:#FFB74D; border:1px solid rgba(255,152,0,0.4); font-size:0.75rem; padding:2px 8px; border-radius:10px; font-weight:600; }
+
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1 class="brand-title">
+                <span class="safe">safe</span><span class="gas">gas</span><span class="pro">.pro</span>
+            </h1>
+            <div class="header-right">
+                <div class="firebase-status">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="statusText">Connecting...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Park Selector -->
+        <div class="park-selector">
+            <label for="parkSelect">Holiday Park:</label>
+            <select id="parkSelect" onchange="filterByPark()">
+                <option value="all">All Highland Holidays Parks</option>
+                <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                <option value="Oban Holiday Park">Oban Holiday Park</option>
+                <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                <option value="Overburns Farm">Overburns Farm</option>
+            </select>
+        </div>
+
+        <!-- Alerts Section -->
+        <div class="alerts-container" id="alertsContainer">
+            <!-- Dynamic alerts will appear here -->
+        </div>
+
+        <!-- Stats Dashboard -->
+        <div class="stats-grid">
+            <div class="stat-card total" onclick="filterTable('all')">
+                <div class="stat-value" id="statTotal">0</div>
+                <div class="stat-label">Total Appliances</div>
+            </div>
+            <div class="stat-card compliant" onclick="filterTable('compliant')">
+                <div class="stat-value" id="statCompliant">0</div>
+                <div class="stat-label">Compliant</div>
+            </div>
+            <div class="stat-card due-soon" onclick="filterTable('due-soon')">
+                <div class="stat-value" id="statDueSoon">0</div>
+                <div class="stat-label">Due Soon (60 days)</div>
+            </div>
+            <div class="stat-card overdue" onclick="filterTable('overdue')">
+                <div class="stat-value" id="statOverdue">0</div>
+                <div class="stat-label">Overdue</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('register')">Appliance Register</button>
+            <button class="tab-btn" onclick="switchTab('certificates')">Certificates</button>
+            <button class="tab-btn" onclick="switchTab('scan')">Scan Certificate</button>
+            <button class="tab-btn" onclick="switchTab('add')">Add Appliance</button>
+            <button class="tab-btn" onclick="switchTab('reports')">Reports</button>
+        </div>
+
+        <!-- Appliance Register Tab -->
+        <div id="tab-register" class="content-section active">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Gas Appliance Register</h2>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-primary btn-sm" onclick="switchTab('add')">+ Add Appliance</button>
+                        <button class="btn btn-secondary btn-sm" onclick="exportRegister()">Export</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="filter-bar">
+                        <input type="text" class="form-control search-input" id="searchInput" placeholder="Search appliances..." oninput="filterApplianceTable()">
+                        <select class="form-control" id="categoryFilter" onchange="filterApplianceTable()">
+                            <option value="all">All Categories</option>
+                            <option value="accommodation">Accommodation</option>
+                            <option value="infrastructure">Site Infrastructure</option>
+                        </select>
+                        <select class="form-control" id="statusFilter" onchange="filterApplianceTable()">
+                            <option value="all">All Status</option>
+                            <option value="compliant">Compliant</option>
+                            <option value="due-soon">Due Soon</option>
+                            <option value="overdue">Overdue</option>
+                        </select>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table" id="applianceTable">
+                            <thead>
+                                <tr>
+                                    <th>Appliance</th>
+                                    <th>Location</th>
+                                    <th>Category</th>
+                                    <th>Last Inspection</th>
+                                    <th>Next Due</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="applianceTableBody">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="empty-state" id="emptyRegister" style="display: none;">
+                        <div class="empty-state-icon">🔥</div>
+                        <div>No gas appliances registered yet</div>
+                        <div style="margin-top: 10px;">
+                            <button class="btn btn-primary" onclick="switchTab('add')">Add First Appliance</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Certificates Tab -->
+        <div id="tab-certificates" class="content-section">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Gas Safety Certificates</h2>
+                    <button class="btn btn-primary btn-sm" onclick="openUploadModal()">+ Upload Certificate</button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="data-table" id="certificatesTable">
+                            <thead>
+                                <tr>
+                                    <th>Certificate Ref</th>
+                                    <th>Appliance</th>
+                                    <th>Engineer</th>
+                                    <th>Gas Safe Reg</th>
+                                    <th>Issue Date</th>
+                                    <th>Expiry Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="certificatesTableBody">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="empty-state" id="emptyCertificates" style="display: none;">
+                        <div class="empty-state-icon">📄</div>
+                        <div>No certificates uploaded yet</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scan Certificate Tab -->
+        <div id="tab-scan" class="content-section">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Scan Certificate</h2>
+                    <p style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">Upload a Gas Safety Certificate PDF — dates and records update automatically</p>
+                </div>
+                <div class="card-body">
+                    <div class="scan-upload-zone" id="scanDropZone" onclick="document.getElementById('scanFileInput').click()" ondragover="scanDragOver(event)" ondragleave="scanDragLeave(event)" ondrop="scanDropFile(event)">
+                        <div class="scan-icon">📄</div>
+                        <p><strong>Click to upload</strong> or drag and drop</p>
+                        <p style="margin-top:6px;">Gas Safety Certificate PDFs — multiple files supported</p>
+                    </div>
+                    <input type="file" id="scanFileInput" accept=".pdf" multiple onchange="handleScanFiles(this.files)">
+                    <div id="scanOutput"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Appliance Tab -->
+        <div id="tab-add" class="content-section">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Add Gas Appliance</h2>
+                </div>
+                <div class="card-body">
+                    <form id="addApplianceForm" onsubmit="saveAppliance(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Holiday Park <span class="required">*</span></label>
+                                <select class="form-control" id="appliancePark" required onchange="populateAccomDropdown()">
+                                    <option value="">Select park...</option>
+                                    <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                                    <option value="Oban Holiday Park">Oban Holiday Park</option>
+                                    <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                                    <option value="Overburns Farm">Overburns Farm</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Category <span class="required">*</span></label>
+                                <select class="form-control" id="applianceCategory" required onchange="toggleAccommodationField()">
+                                    <option value="">Select category...</option>
+                                    <option value="accommodation">Accommodation Unit</option>
+                                    <option value="infrastructure">Site Infrastructure</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="accommodationUnitGroup" style="display: none;">
+                            <label>Accommodation Unit <span class="required">*</span></label>
+                            <select class="form-control" id="accommodationUnitSelect" onchange="toggleCustomUnit()">
+                                <option value="">Select unit...</option>
+                                <option value="__custom__">✏️ Enter custom location...</option>
+                            </select>
+                            <input type="text" class="form-control" id="accommodationUnit" placeholder="e.g., Lodge 12, Caravan 45, Pod 3" style="display:none;margin-top:8px;">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Appliance Type <span class="required">*</span></label>
+                                <select class="form-control" id="applianceType" required>
+                                    <option value="">Select type...</option>
+                                    <option value="Gas Boiler">Gas Boiler</option>
+                                    <option value="Gas Fire">Gas Fire</option>
+                                    <option value="Gas Cooker">Gas Cooker</option>
+                                    <option value="Gas Hob">Gas Hob</option>
+                                    <option value="Gas Water Heater">Gas Water Heater</option>
+                                    <option value="LPG Bulk Tank">LPG Bulk Tank</option>
+                                    <option value="LPG Cylinder Storage">LPG Cylinder Storage</option>
+                                    <option value="Commercial Kitchen Range">Commercial Kitchen Range</option>
+                                    <option value="Commercial Fryer">Commercial Fryer</option>
+                                    <option value="Patio Heater">Patio Heater</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Make/Model</label>
+                                <input type="text" class="form-control" id="applianceMakeModel" placeholder="e.g., Worcester Bosch Greenstar">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Serial Number</label>
+                                <input type="text" class="form-control" id="applianceSerial" placeholder="Appliance serial number">
+                            </div>
+                            <div class="form-group">
+                                <label>Installation Date</label>
+                                <input type="date" class="form-control" id="applianceInstallDate">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Location Description</label>
+                            <input type="text" class="form-control" id="applianceLocation" placeholder="e.g., Utility room, Kitchen, External compound">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Last Inspection Date</label>
+                                <input type="date" class="form-control" id="lastInspectionDate">
+                            </div>
+                            <div class="form-group">
+                                <label>Next Inspection Due</label>
+                                <input type="date" class="form-control" id="nextInspectionDue">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Notes</label>
+                            <textarea class="form-control" id="applianceNotes" rows="3" placeholder="Any additional notes about this appliance..."></textarea>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button type="button" class="btn btn-secondary" onclick="clearApplianceForm()">Clear</button>
+                            <button type="submit" class="btn btn-primary">Save Appliance</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div id="tab-reports" class="content-section">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Compliance Reports</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-row" style="margin-bottom: 20px;">
+                        <div class="form-group">
+                            <label>Report Type</label>
+                            <select class="form-control" id="reportType">
+                                <option value="compliance">Compliance Summary</option>
+                                <option value="expiring">Expiring Certificates (Next 60 Days)</option>
+                                <option value="overdue">Overdue Inspections</option>
+                                <option value="full">Full Register Export</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Park Filter</label>
+                            <select class="form-control" id="reportPark">
+                                <option value="all">All Parks</option>
+                                <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                                <option value="Oban Holiday Park">Oban Holiday Park</option>
+                                <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                                <option value="Overburns Farm">Overburns Farm</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-primary" onclick="generateReport()">Generate Report</button>
+                        <button class="btn btn-secondary" onclick="printReport()">Print</button>
+                    </div>
+
+                    <div id="reportOutput" style="margin-top: 30px;">
+                        <!-- Report content will appear here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Upload Certificate Modal -->
+    <div class="modal-overlay" id="uploadModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Upload Gas Safety Certificate</h3>
+                <button class="modal-close" onclick="closeModal('uploadModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Select Appliance <span class="required">*</span></label>
+                    <select class="form-control" id="certAppliance" required>
+                        <option value="">Select appliance...</option>
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Certificate Reference</label>
+                        <input type="text" class="form-control" id="certRef" placeholder="e.g., CP12-2025-001">
+                    </div>
+                    <div class="form-group">
+                        <label>Gas Safe Registration <span class="required">*</span></label>
+                        <input type="text" class="form-control" id="certGasSafe" placeholder="e.g., 123456" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Engineer Name <span class="required">*</span></label>
+                        <input type="text" class="form-control" id="certEngineer" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Company</label>
+                        <input type="text" class="form-control" id="certCompany">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Issue Date <span class="required">*</span></label>
+                        <input type="date" class="form-control" id="certIssueDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Expiry Date <span class="required">*</span></label>
+                        <input type="date" class="form-control" id="certExpiryDate" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Inspection Result <span class="required">*</span></label>
+                    <select class="form-control" id="certResult" required>
+                        <option value="">Select result...</option>
+                        <option value="pass">Pass - Safe to Use</option>
+                        <option value="at-risk">At Risk - Requires Attention</option>
+                        <option value="immediately-dangerous">Immediately Dangerous</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Certificate Document (PDF/Image)</label>
+                    <input type="file" class="form-control" id="certFile" accept=".pdf,.jpg,.jpeg,.png">
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea class="form-control" id="certNotes" rows="2" placeholder="Any defects noted, recommendations, etc."></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeModal('uploadModal')">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveCertificate()">Save Certificate</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Appliance Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Edit Appliance</h3>
+                <button class="modal-close" onclick="closeModal('editModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editApplianceId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Holiday Park</label>
+                        <select class="form-control" id="editPark">
+                            <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                            <option value="Oban Holiday Park">Oban Holiday Park</option>
+                            <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                            <option value="Overburns Farm">Overburns Farm</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Appliance Type</label>
+                        <input type="text" class="form-control" id="editType">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Location/Unit</label>
+                    <select class="form-control" id="editLocationSelect" onchange="toggleEditCustomUnit()">
+                        <option value="">Select unit...</option>
+                        <option value="__custom__">✏️ Enter custom location...</option>
+                    </select>
+                    <input type="text" class="form-control" id="editLocation" style="display:none;margin-top:8px;">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Last Inspection</label>
+                        <input type="date" class="form-control" id="editLastInspection">
+                    </div>
+                    <div class="form-group">
+                        <label>Next Due</label>
+                        <input type="date" class="form-control" id="editNextDue">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea class="form-control" id="editNotes" rows="2"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-danger" onclick="deleteAppliance()">Delete</button>
+                    <button class="btn btn-secondary" onclick="closeModal('editModal')">Cancel</button>
+                    <button class="btn btn-primary" onclick="updateAppliance()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+            authDomain: "safepark-pro.firebaseapp.com",
+            projectId: "safepark-pro",
+            storageBucket: "safepark-pro.firebasestorage.app",
+            messagingSenderId: "511221743341",
+            appId: "1:511221743341:web:95bcc7e83d4861578016e4"
+        };
+
+        // State
+        let db, storage;
+        let firebaseInitialized = false;
+        let gasAppliances = [];
+        let gasCertificates = [];
+        let accomUnits = {};
+        let currentFilter = 'all';
+
+        // ============================================
+        // FIREBASE INITIALIZATION
+        // ============================================
+
+        // STL mode state
+        let stlCode = '';
+        let stlPropertyName = '';
+
+        function injectStlParkOptions(propName) {
+            // Add STL property to every park dropdown in the module
+            ['parkSelect', 'appliancePark'].forEach(id => {
+                const sel = document.getElementById(id);
+                if (!sel) return;
+                // Remove existing STL options first
+                Array.from(sel.options).forEach(o => { if (o.dataset.stl) o.remove(); });
+                const opt = document.createElement('option');
+                opt.value = propName;
+                opt.textContent = propName + ' (STL)';
+                opt.dataset.stl = '1';
+                opt.selected = true;
+                sel.insertBefore(opt, sel.options[1] || null);
+            });
+            // Also inject into the certificate appliance dropdown after data loads
+            window._stlParkReady = true;
+        }
+
+        async function initializeFirebase() {
+            try {
+                updateStatus('Connecting...', 'connecting');
+                
+                // Wait for Firebase
+                let attempts = 0;
+                while (typeof firebase === 'undefined' && attempts < 50) {
+                    await new Promise(r => setTimeout(r, 100));
+                    attempts++;
+                }
+
+                if (typeof firebase === 'undefined') {
+                    throw new Error('Firebase scripts not loaded');
+                }
+
+                // Initialize
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+
+                db = firebase.firestore();
+                storage = firebase.storage();
+
+                // Anonymous auth
+                try {
+                    await firebase.auth().signInAnonymously();
+                } catch (e) {
+                    console.warn('Anonymous auth failed:', e);
+                }
+
+                firebaseInitialized = true;
+                updateStatus('Connected', 'connected');
+                console.log('[SafeGas] Firebase connected');
+
+                // ── STL detection ──────────────────────────────────────────
+                const _ac = (sessionStorage.getItem('currentAccessCode') || new URLSearchParams(window.location.search).get('access_code') || '').toUpperCase();
+                if (_ac.startsWith('STL-')) {
+                    try {
+                        const stlSnap = await db.collection('stl_properties').doc(_ac).get();
+                        if (stlSnap.exists && stlSnap.data().status !== 'inactive') {
+                            stlCode = _ac;
+                            const d = stlSnap.data();
+                            stlPropertyName = d.propertyDetails && d.propertyDetails['pd-propName']
+                                ? d.propertyDetails['pd-propName']
+                                : (d.clientName || d.propertyName || _ac);
+                            injectStlParkOptions(stlPropertyName);
+                            console.log('[SafeGas] STL mode:', stlCode, stlPropertyName);
+                        }
+                    } catch(e) { console.warn('[SafeGas] STL lookup failed:', e); }
+                }
+                // ── End STL detection ──────────────────────────────────────
+
+                // Load data
+                await loadAllData();
+
+            } catch (error) {
+                console.error('[SafeGas] Firebase error:', error);
+                updateStatus('Offline', 'error');
+            }
+        }
+
+        function updateStatus(message, state) {
+            document.getElementById('statusText').textContent = message;
+            const dot = document.getElementById('statusDot');
+            dot.className = 'status-dot';
+            if (state === 'connected') dot.classList.add('connected');
+            if (state === 'error') dot.classList.add('error');
+        }
+
+        // ============================================
+        // DATA LOADING
+        // ============================================
+
+        async function loadAllData() {
+            await loadAppliances();
+            await loadCertificates();
+            await loadAccomUnits();
+            updateDashboard();
+            renderApplianceTable();
+            renderCertificatesTable();
+            checkAlerts();
+        }
+
+        async function loadAccomUnits() {
+            if (!db) return;
+            try {
+                const snapshot = await db.collection('accommodation_config').get();
+                accomUnits = {};
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.parkName && data.units) accomUnits[data.parkName] = data.units;
+                });
+                console.log('[SafeGas] Loaded accommodation units:', Object.keys(accomUnits).map(k => k + ': ' + accomUnits[k].length));
+            } catch (e) {
+                console.warn('[SafeGas] Could not load accommodation units:', e);
+            }
+        }
+
+        async function loadAppliances() {
+            if (!db) return;
+            
+            try {
+                const snapshot = await db.collection('gasAppliances').orderBy('createdAt', 'desc').get();
+                gasAppliances = [];
+                snapshot.forEach(doc => {
+                    gasAppliances.push({ id: doc.id, ...doc.data() });
+                });
+                console.log('[SafeGas] Loaded', gasAppliances.length, 'appliances');
+            } catch (error) {
+                console.error('[SafeGas] Error loading appliances:', error);
+            }
+        }
+
+        async function loadCertificates() {
+            if (!db) return;
+            
+            try {
+                const snapshot = await db.collection('gasCertificates').orderBy('issueDate', 'desc').get();
+                gasCertificates = [];
+                snapshot.forEach(doc => {
+                    gasCertificates.push({ id: doc.id, ...doc.data() });
+                });
+                console.log('[SafeGas] Loaded', gasCertificates.length, 'certificates');
+            } catch (error) {
+                console.error('[SafeGas] Error loading certificates:', error);
+            }
+        }
+
+        // ============================================
+        // DASHBOARD & STATS
+        // ============================================
+
+        function updateDashboard() {
+            const park = document.getElementById('parkSelect').value;
+            let filtered = gasAppliances;
+            
+            if (park !== 'all') {
+                filtered = gasAppliances.filter(a => a.park === park);
+            }
+
+            const today = new Date();
+            const sixtyDays = new Date(today.getTime() + 60 * 24 * 60 * 60 * 1000);
+
+            let compliant = 0, dueSoon = 0, overdue = 0;
+
+            filtered.forEach(appliance => {
+                const status = getApplianceStatus(appliance);
+                if (status === 'compliant') compliant++;
+                else if (status === 'due-soon') { dueSoon++; compliant++; }
+                else if (status === 'overdue') overdue++;
+            });
+
+            document.getElementById('statTotal').textContent = filtered.length;
+            document.getElementById('statCompliant').textContent = compliant;
+            document.getElementById('statDueSoon').textContent = dueSoon;
+            document.getElementById('statOverdue').textContent = overdue;
+        }
+
+        function getApplianceStatus(appliance) {
+            if (!appliance.nextInspectionDue) return 'no-record';
+            
+            const today = new Date();
+            const nextDue = new Date(appliance.nextInspectionDue);
+            const daysUntilDue = Math.ceil((nextDue - today) / (1000 * 60 * 60 * 24));
+
+            if (daysUntilDue < 0) return 'overdue';
+            if (daysUntilDue <= 60) return 'due-soon';
+            return 'compliant';
+        }
+
+        function getDaysUntilDue(dateStr) {
+            if (!dateStr) return null;
+            const today = new Date();
+            const dueDate = new Date(dateStr);
+            return Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+        }
+
+        // ============================================
+        // ALERTS
+        // ============================================
+
+        function checkAlerts() {
+            const container = document.getElementById('alertsContainer');
+            const park = document.getElementById('parkSelect').value;
+            let filtered = gasAppliances;
+            
+            if (park !== 'all') {
+                filtered = gasAppliances.filter(a => a.park === park);
+            }
+
+            const overdue = filtered.filter(a => getApplianceStatus(a) === 'overdue');
+            const dueSoon = filtered.filter(a => {
+                const days = getDaysUntilDue(a.nextInspectionDue);
+                return days !== null && days >= 0 && days <= 14;
+            });
+
+            let html = '';
+
+            if (overdue.length > 0) {
+                html += `
+                    <div class="alert alert-danger">
+                        <span class="alert-icon">⚠️</span>
+                        <div class="alert-content">
+                            <div class="alert-title">${overdue.length} Overdue Inspection${overdue.length > 1 ? 's' : ''}</div>
+                            <div class="alert-text">${overdue.map(a => a.type + ' - ' + (a.accommodationUnit || a.locationDescription || a.park)).join(', ')}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (dueSoon.length > 0) {
+                html += `
+                    <div class="alert alert-warning">
+                        <span class="alert-icon">🔔</span>
+                        <div class="alert-content">
+                            <div class="alert-title">${dueSoon.length} Inspection${dueSoon.length > 1 ? 's' : ''} Due Within 14 Days</div>
+                            <div class="alert-text">${dueSoon.map(a => a.type + ' - ' + (a.accommodationUnit || a.locationDescription || a.park)).join(', ')}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // ============================================
+        // TABLE RENDERING
+        // ============================================
+
+        function renderApplianceTable() {
+            const tbody = document.getElementById('applianceTableBody');
+            const park = document.getElementById('parkSelect').value;
+            const search = document.getElementById('searchInput')?.value?.toLowerCase() || '';
+            const categoryFilter = document.getElementById('categoryFilter')?.value || 'all';
+            const statusFilter = document.getElementById('statusFilter')?.value || 'all';
+
+            let filtered = gasAppliances;
+
+            // Park filter
+            if (park !== 'all') {
+                filtered = filtered.filter(a => a.park === park);
+            }
+
+            // Search filter
+            if (search) {
+                filtered = filtered.filter(a => 
+                    (a.type?.toLowerCase().includes(search)) ||
+                    (a.accommodationUnit?.toLowerCase().includes(search)) ||
+                    (a.locationDescription?.toLowerCase().includes(search)) ||
+                    (a.makeModel?.toLowerCase().includes(search)) ||
+                    (a.park?.toLowerCase().includes(search))
+                );
+            }
+
+            // Category filter
+            if (categoryFilter !== 'all') {
+                filtered = filtered.filter(a => a.category === categoryFilter);
+            }
+
+            // Status filter
+            if (statusFilter !== 'all') {
+                if (statusFilter === 'compliant') {
+                    filtered = filtered.filter(a => { const s = getApplianceStatus(a); return s === 'compliant' || s === 'due-soon'; });
+                } else {
+                    filtered = filtered.filter(a => getApplianceStatus(a) === statusFilter);
+                }
+            }
+
+            // Sort by status (overdue first, then due-soon, then compliant)
+            filtered.sort((a, b) => {
+                const statusOrder = { 'overdue': 0, 'due-soon': 1, 'no-record': 2, 'compliant': 3 };
+                return (statusOrder[getApplianceStatus(a)] || 4) - (statusOrder[getApplianceStatus(b)] || 4);
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '';
+                document.getElementById('emptyRegister').style.display = 'block';
+                return;
+            }
+
+            document.getElementById('emptyRegister').style.display = 'none';
+
+            tbody.innerHTML = filtered.map(appliance => {
+                const status = getApplianceStatus(appliance);
+                const days = getDaysUntilDue(appliance.nextInspectionDue);
+                const location = appliance.accommodationUnit || appliance.locationDescription || '-';
+                const categoryBadge = appliance.category === 'accommodation' 
+                    ? '<span class="category-badge category-accommodation">Accommodation</span>'
+                    : '<span class="category-badge category-infrastructure">Infrastructure</span>';
+
+                let daysText = '';
+                let expiryClass = '';
+                if (days !== null) {
+                    if (days < 0) {
+                        daysText = `${Math.abs(days)} days overdue`;
+                        expiryClass = 'overdue';
+                    } else if (days === 0) {
+                        daysText = 'Due today';
+                        expiryClass = 'overdue';
+                    } else {
+                        daysText = `${days} days`;
+                        expiryClass = days <= 60 ? 'due-soon' : '';
+                    }
+                }
+
+                return `
+                    <tr>
+                        <td>
+                            <strong>${appliance.type}</strong>
+                            ${appliance.makeModel ? `<br><small style="color: var(--text-muted);">${appliance.makeModel}</small>` : ''}
+                        </td>
+                        <td>
+                            <div>${appliance.park}</div>
+                            <small style="color: var(--text-muted);">${location}</small>
+                        </td>
+                        <td>${categoryBadge}</td>
+                        <td>${appliance.lastInspectionDate ? formatDate(appliance.lastInspectionDate) : '<span style="color: var(--text-muted);">No record</span>'}</td>
+                        <td>
+                            <div class="expiry-date ${expiryClass}">
+                                <span class="date">${appliance.nextInspectionDue ? formatDate(appliance.nextInspectionDue) : '-'}</span>
+                                <span class="days">${daysText}</span>
+                            </div>
+                        </td>
+                        <td><span class="status-badge status-${status}">${status.replace('-', ' ')}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary" onclick="editAppliance('${appliance.id}')">Edit</button>
+                            <button class="btn btn-sm btn-primary" onclick="recordInspection('${appliance.id}')">+ Cert</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderCertificatesTable() {
+            const tbody = document.getElementById('certificatesTableBody');
+            const park = document.getElementById('parkSelect').value;
+
+            let filtered = gasCertificates;
+
+            if (park !== 'all') {
+                filtered = filtered.filter(c => {
+                    const appliance = gasAppliances.find(a => a.id === c.applianceId);
+                    return appliance && appliance.park === park;
+                });
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '';
+                document.getElementById('emptyCertificates').style.display = 'block';
+                return;
+            }
+
+            document.getElementById('emptyCertificates').style.display = 'none';
+
+            tbody.innerHTML = filtered.map(cert => {
+                const appliance = gasAppliances.find(a => a.id === cert.applianceId);
+                const applianceName = appliance ? `${appliance.type} - ${appliance.accommodationUnit || appliance.locationDescription || appliance.park}` : 'Unknown';
+
+                return `
+                    <tr>
+                        <td><strong>${cert.reference || 'N/A'}</strong></td>
+                        <td>${applianceName}</td>
+                        <td>${cert.engineerName}</td>
+                        <td>${cert.gasSafeReg}</td>
+                        <td>${formatDate(cert.issueDate)}</td>
+                        <td>${formatDate(cert.expiryDate)}</td>
+                        <td>
+                            ${cert.fileUrl ? `<a href="${cert.fileUrl}" target="_blank" class="btn btn-sm btn-secondary">View</a>` : ''}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterApplianceTable() {
+            renderApplianceTable();
+        }
+
+        function filterByPark() {
+            updateDashboard();
+            renderApplianceTable();
+            renderCertificatesTable();
+            checkAlerts();
+        }
+
+        function filterTable(status) {
+            document.getElementById('statusFilter').value = status === 'all' ? 'all' : status;
+            renderApplianceTable();
+        }
+
+        // ============================================
+        // APPLIANCE MANAGEMENT
+        // ============================================
+
+        function toggleAccommodationField() {
+            const category = document.getElementById('applianceCategory').value;
+            const group = document.getElementById('accommodationUnitGroup');
+            
+            if (category === 'accommodation') {
+                group.style.display = 'block';
+                populateAccomDropdown();
+            } else {
+                group.style.display = 'none';
+            }
+        }
+
+        function populateAccomDropdown() {
+            const park = document.getElementById('appliancePark').value;
+            const sel = document.getElementById('accommodationUnitSelect');
+            const units = accomUnits[park] || [];
+            sel.innerHTML = '<option value="">Select unit...</option>' +
+                units.map(u => '<option value="' + u + '">' + u + '</option>').join('') +
+                '<option value="__custom__">✏️ Enter custom location...</option>';
+            document.getElementById('accommodationUnit').style.display = 'none';
+            document.getElementById('accommodationUnit').value = '';
+        }
+
+        function populateEditAccomDropdown(park, current) {
+            const sel = document.getElementById('editLocationSelect');
+            const units = accomUnits[park] || [];
+            const inList = units.includes(current);
+            sel.innerHTML = '<option value="">Select unit...</option>' +
+                units.map(u => '<option value="' + u + '"' + (u === current ? ' selected' : '') + '>' + u + '</option>').join('') +
+                '<option value="__custom__"' + (current && !inList ? ' selected' : '') + '>✏️ Enter custom location...</option>';
+            const customInput = document.getElementById('editLocation');
+            if (current && !inList) { customInput.style.display = 'block'; customInput.value = current; }
+            else { customInput.style.display = 'none'; customInput.value = ''; }
+        }
+
+        function toggleCustomUnit() {
+            const v = document.getElementById('accommodationUnitSelect').value;
+            document.getElementById('accommodationUnit').style.display = v === '__custom__' ? 'block' : 'none';
+            if (v !== '__custom__') document.getElementById('accommodationUnit').value = '';
+        }
+
+        function toggleEditCustomUnit() {
+            const v = document.getElementById('editLocationSelect').value;
+            document.getElementById('editLocation').style.display = v === '__custom__' ? 'block' : 'none';
+            if (v !== '__custom__') document.getElementById('editLocation').value = '';
+        }
+
+        function getAccomUnitValue() {
+            const sel = document.getElementById('accommodationUnitSelect').value;
+            if (sel === '__custom__') return document.getElementById('accommodationUnit').value.trim() || null;
+            return sel || null;
+        }
+
+        function getEditLocationValue() {
+            const sel = document.getElementById('editLocationSelect').value;
+            if (sel === '__custom__') return document.getElementById('editLocation').value.trim() || null;
+            return sel || null;
+        }
+
+        async function saveAppliance(e) {
+            e.preventDefault();
+
+            if (!firebaseInitialized) {
+                alert('Firebase not connected. Please refresh and try again.');
+                return;
+            }
+
+            const applianceData = {
+                park: document.getElementById('appliancePark').value,
+                stlCode: stlCode || null,
+                category: document.getElementById('applianceCategory').value,
+                accommodationUnit: getAccomUnitValue(),
+                type: document.getElementById('applianceType').value,
+                makeModel: document.getElementById('applianceMakeModel').value || null,
+                serialNumber: document.getElementById('applianceSerial').value || null,
+                installDate: document.getElementById('applianceInstallDate').value || null,
+                locationDescription: document.getElementById('applianceLocation').value || null,
+                lastInspectionDate: document.getElementById('lastInspectionDate').value || null,
+                nextInspectionDue: document.getElementById('nextInspectionDue').value || null,
+                notes: document.getElementById('applianceNotes').value || null,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                status: 'active'
+            };
+
+            try {
+                const docRef = await db.collection('gasAppliances').add(applianceData);
+                applianceData.id = docRef.id;
+                gasAppliances.unshift(applianceData);
+
+                updateDashboard();
+                renderApplianceTable();
+                populateApplianceDropdown();
+                checkAlerts();
+                clearApplianceForm();
+                switchTab('register');
+
+                alert('Appliance saved successfully!');
+
+            } catch (error) {
+                console.error('[SafeGas] Error saving appliance:', error);
+                alert('Error saving appliance. Please try again.');
+            }
+        }
+
+        function clearApplianceForm() {
+            document.getElementById('addApplianceForm').reset();
+            document.getElementById('accommodationUnitGroup').style.display = 'none';
+            document.getElementById('accommodationUnit').style.display = 'none';
+            document.getElementById('accommodationUnit').value = '';
+        }
+
+        function editAppliance(id) {
+            const appliance = gasAppliances.find(a => a.id === id);
+            if (!appliance) return;
+
+            document.getElementById('editApplianceId').value = id;
+            document.getElementById('editPark').value = appliance.park;
+            document.getElementById('editType').value = appliance.type;
+            populateEditAccomDropdown(appliance.park, appliance.accommodationUnit || appliance.locationDescription || '');
+            document.getElementById('editLastInspection').value = appliance.lastInspectionDate || '';
+            document.getElementById('editNextDue').value = appliance.nextInspectionDue || '';
+            document.getElementById('editNotes').value = appliance.notes || '';
+
+            openModal('editModal');
+        }
+
+        async function updateAppliance() {
+            const id = document.getElementById('editApplianceId').value;
+            
+            const updates = {
+                park: document.getElementById('editPark').value,
+                type: document.getElementById('editType').value,
+                locationDescription: getEditLocationValue(),
+                accommodationUnit: getEditLocationValue(),
+                lastInspectionDate: document.getElementById('editLastInspection').value || null,
+                nextInspectionDue: document.getElementById('editNextDue').value || null,
+                notes: document.getElementById('editNotes').value || null,
+                updatedAt: new Date().toISOString()
+            };
+
+            try {
+                await db.collection('gasAppliances').doc(id).update(updates);
+
+                const index = gasAppliances.findIndex(a => a.id === id);
+                if (index !== -1) {
+                    gasAppliances[index] = { ...gasAppliances[index], ...updates };
+                }
+
+                closeModal('editModal');
+                updateDashboard();
+                renderApplianceTable();
+                checkAlerts();
+
+            } catch (error) {
+                console.error('[SafeGas] Error updating appliance:', error);
+                alert('Error updating appliance.');
+            }
+        }
+
+        async function deleteAppliance() {
+            if (!confirm('Are you sure you want to delete this appliance? This cannot be undone.')) return;
+
+            const id = document.getElementById('editApplianceId').value;
+
+            try {
+                await db.collection('gasAppliances').doc(id).delete();
+                gasAppliances = gasAppliances.filter(a => a.id !== id);
+
+                closeModal('editModal');
+                updateDashboard();
+                renderApplianceTable();
+                populateApplianceDropdown();
+                checkAlerts();
+
+            } catch (error) {
+                console.error('[SafeGas] Error deleting appliance:', error);
+                alert('Error deleting appliance.');
+            }
+        }
+
+        // ============================================
+        // CERTIFICATE MANAGEMENT
+        // ============================================
+
+        function openUploadModal() {
+            populateApplianceDropdown();
+            document.getElementById('certIssueDate').value = new Date().toISOString().split('T')[0];
+            
+            // Default expiry to 1 year from now
+            const nextYear = new Date();
+            nextYear.setFullYear(nextYear.getFullYear() + 1);
+            document.getElementById('certExpiryDate').value = nextYear.toISOString().split('T')[0];
+            
+            openModal('uploadModal');
+        }
+
+        function recordInspection(applianceId) {
+            populateApplianceDropdown();
+            document.getElementById('certAppliance').value = applianceId;
+            document.getElementById('certIssueDate').value = new Date().toISOString().split('T')[0];
+            
+            const nextYear = new Date();
+            nextYear.setFullYear(nextYear.getFullYear() + 1);
+            document.getElementById('certExpiryDate').value = nextYear.toISOString().split('T')[0];
+            
+            openModal('uploadModal');
+        }
+
+        function populateApplianceDropdown() {
+            const select = document.getElementById('certAppliance');
+            const park = document.getElementById('parkSelect').value;
+            
+            let filtered = gasAppliances;
+            if (park !== 'all') {
+                filtered = filtered.filter(a => a.park === park);
+            }
+
+            select.innerHTML = '<option value="">Select appliance...</option>' + 
+                filtered.map(a => {
+                    const location = a.accommodationUnit || a.locationDescription || '';
+                    return `<option value="${a.id}">${a.type} - ${location} (${a.park})</option>`;
+                }).join('');
+        }
+
+        async function saveCertificate() {
+            const applianceId = document.getElementById('certAppliance').value;
+            const gasSafeReg = document.getElementById('certGasSafe').value;
+            const engineerName = document.getElementById('certEngineer').value;
+            const issueDate = document.getElementById('certIssueDate').value;
+            const expiryDate = document.getElementById('certExpiryDate').value;
+            const result = document.getElementById('certResult').value;
+
+            if (!applianceId || !gasSafeReg || !engineerName || !issueDate || !expiryDate || !result) {
+                alert('Please complete all required fields.');
+                return;
+            }
+
+            const certData = {
+                applianceId: applianceId,
+                stlCode: stlCode || null,
+                reference: document.getElementById('certRef').value || `GC-${Date.now()}`,
+                gasSafeReg: gasSafeReg,
+                engineerName: engineerName,
+                company: document.getElementById('certCompany').value || null,
+                issueDate: issueDate,
+                expiryDate: expiryDate,
+                result: result,
+                notes: document.getElementById('certNotes').value || null,
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                // Handle file upload if present
+                const fileInput = document.getElementById('certFile');
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const storageRef = storage.ref(`gas-certificates/${applianceId}/${Date.now()}_${file.name}`);
+                    const uploadTask = await storageRef.put(file);
+                    certData.fileUrl = await uploadTask.ref.getDownloadURL();
+                    certData.fileName = file.name;
+                }
+
+                // Save certificate
+                const docRef = await db.collection('gasCertificates').add(certData);
+                certData.id = docRef.id;
+                gasCertificates.unshift(certData);
+
+                // Update appliance dates
+                await db.collection('gasAppliances').doc(applianceId).update({
+                    lastInspectionDate: issueDate,
+                    nextInspectionDue: expiryDate,
+                    updatedAt: new Date().toISOString()
+                });
+
+                // Update local data
+                const appIndex = gasAppliances.findIndex(a => a.id === applianceId);
+                if (appIndex !== -1) {
+                    gasAppliances[appIndex].lastInspectionDate = issueDate;
+                    gasAppliances[appIndex].nextInspectionDue = expiryDate;
+                }
+
+                closeModal('uploadModal');
+                updateDashboard();
+                renderApplianceTable();
+                renderCertificatesTable();
+                checkAlerts();
+
+                // Clear form
+                document.getElementById('certRef').value = '';
+                document.getElementById('certGasSafe').value = '';
+                document.getElementById('certEngineer').value = '';
+                document.getElementById('certCompany').value = '';
+                document.getElementById('certResult').value = '';
+                document.getElementById('certNotes').value = '';
+                document.getElementById('certFile').value = '';
+
+                alert('Certificate saved successfully!');
+
+            } catch (error) {
+                console.error('[SafeGas] Error saving certificate:', error);
+                alert('Error saving certificate. Please try again.');
+            }
+        }
+
+        // ============================================
+        // REPORTS
+        // ============================================
+
+        function generateReport() {
+            const reportType = document.getElementById('reportType').value;
+            const park = document.getElementById('reportPark').value;
+            const output = document.getElementById('reportOutput');
+
+            let filtered = gasAppliances;
+            if (park !== 'all') {
+                filtered = filtered.filter(a => a.park === park);
+            }
+
+            let html = '';
+
+            if (reportType === 'compliance') {
+                const compliant = filtered.filter(a => { const s = getApplianceStatus(a); return s === 'compliant' || s === 'due-soon'; }).length;
+                const dueSoon = filtered.filter(a => getApplianceStatus(a) === 'due-soon').length;
+                const overdue = filtered.filter(a => getApplianceStatus(a) === 'overdue').length;
+                const total = filtered.length;
+                const complianceRate = total > 0 ? Math.round((compliant / total) * 100) : 0;
+
+                html = `
+                    <h3 style="color: var(--gas-blue); margin-bottom: 20px;">Gas Safety Compliance Summary</h3>
+                    <p><strong>Park:</strong> ${park === 'all' ? 'All Highland Holidays Parks' : park}</p>
+                    <p><strong>Report Date:</strong> ${new Date().toLocaleDateString('en-GB')}</p>
+                    <hr style="border-color: var(--border-color); margin: 20px 0;">
+                    <div class="stats-grid" style="margin-bottom: 20px;">
+                        <div class="stat-card total"><div class="stat-value">${total}</div><div class="stat-label">Total Appliances</div></div>
+                        <div class="stat-card compliant"><div class="stat-value">${compliant}</div><div class="stat-label">Compliant</div></div>
+                        <div class="stat-card due-soon"><div class="stat-value">${dueSoon}</div><div class="stat-label">Due Soon</div></div>
+                        <div class="stat-card overdue"><div class="stat-value">${overdue}</div><div class="stat-label">Overdue</div></div>
+                    </div>
+                    <p><strong>Overall Compliance Rate: ${complianceRate}%</strong></p>
+                `;
+            } else if (reportType === 'expiring') {
+                const expiring = filtered.filter(a => {
+                    const days = getDaysUntilDue(a.nextInspectionDue);
+                    return days !== null && days >= 0 && days <= 60;
+                }).sort((a, b) => getDaysUntilDue(a.nextInspectionDue) - getDaysUntilDue(b.nextInspectionDue));
+
+                html = `
+                    <h3 style="color: var(--warning); margin-bottom: 20px;">Certificates Expiring Within 60 Days</h3>
+                    <p><strong>Park:</strong> ${park === 'all' ? 'All Parks' : park}</p>
+                    <p><strong>Report Date:</strong> ${new Date().toLocaleDateString('en-GB')}</p>
+                    <hr style="border-color: var(--border-color); margin: 20px 0;">
+                    ${expiring.length === 0 ? '<p>No certificates expiring within 60 days.</p>' : `
+                        <table class="data-table">
+                            <thead><tr><th>Appliance</th><th>Location</th><th>Expiry Date</th><th>Days Remaining</th></tr></thead>
+                            <tbody>
+                                ${expiring.map(a => `
+                                    <tr>
+                                        <td>${a.type}</td>
+                                        <td>${a.accommodationUnit || a.locationDescription || a.park}</td>
+                                        <td>${formatDate(a.nextInspectionDue)}</td>
+                                        <td>${getDaysUntilDue(a.nextInspectionDue)} days</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `}
+                `;
+            } else if (reportType === 'overdue') {
+                const overdue = filtered.filter(a => getApplianceStatus(a) === 'overdue');
+
+                html = `
+                    <h3 style="color: var(--danger); margin-bottom: 20px;">Overdue Inspections</h3>
+                    <p><strong>Park:</strong> ${park === 'all' ? 'All Parks' : park}</p>
+                    <p><strong>Report Date:</strong> ${new Date().toLocaleDateString('en-GB')}</p>
+                    <hr style="border-color: var(--border-color); margin: 20px 0;">
+                    ${overdue.length === 0 ? '<p style="color: var(--success);">No overdue inspections. All appliances are compliant!</p>' : `
+                        <table class="data-table">
+                            <thead><tr><th>Appliance</th><th>Location</th><th>Was Due</th><th>Days Overdue</th></tr></thead>
+                            <tbody>
+                                ${overdue.map(a => `
+                                    <tr>
+                                        <td>${a.type}</td>
+                                        <td>${a.accommodationUnit || a.locationDescription || a.park}</td>
+                                        <td>${formatDate(a.nextInspectionDue)}</td>
+                                        <td style="color: var(--danger);">${Math.abs(getDaysUntilDue(a.nextInspectionDue))} days</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `}
+                `;
+            } else if (reportType === 'full') {
+                html = `
+                    <h3 style="color: var(--gas-blue); margin-bottom: 20px;">Full Gas Appliance Register</h3>
+                    <p><strong>Park:</strong> ${park === 'all' ? 'All Parks' : park}</p>
+                    <p><strong>Report Date:</strong> ${new Date().toLocaleDateString('en-GB')}</p>
+                    <p><strong>Total Appliances:</strong> ${filtered.length}</p>
+                    <hr style="border-color: var(--border-color); margin: 20px 0;">
+                    <table class="data-table">
+                        <thead><tr><th>Appliance</th><th>Park</th><th>Location</th><th>Category</th><th>Last Inspection</th><th>Next Due</th><th>Status</th></tr></thead>
+                        <tbody>
+                            ${filtered.map(a => `
+                                <tr>
+                                    <td>${a.type}</td>
+                                    <td>${a.park}</td>
+                                    <td>${a.accommodationUnit || a.locationDescription || '-'}</td>
+                                    <td>${a.category}</td>
+                                    <td>${a.lastInspectionDate ? formatDate(a.lastInspectionDate) : '-'}</td>
+                                    <td>${a.nextInspectionDue ? formatDate(a.nextInspectionDue) : '-'}</td>
+                                    <td><span class="status-badge status-${getApplianceStatus(a)}">${getApplianceStatus(a).replace('-', ' ')}</span></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            output.innerHTML = html;
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        function exportRegister() {
+            // Simple CSV export
+            const park = document.getElementById('parkSelect').value;
+            let filtered = gasAppliances;
+            if (park !== 'all') {
+                filtered = filtered.filter(a => a.park === park);
+            }
+
+            const headers = ['Type', 'Park', 'Location', 'Category', 'Make/Model', 'Serial', 'Last Inspection', 'Next Due', 'Status'];
+            const rows = filtered.map(a => [
+                a.type,
+                a.park,
+                a.accommodationUnit || a.locationDescription || '',
+                a.category,
+                a.makeModel || '',
+                a.serialNumber || '',
+                a.lastInspectionDate || '',
+                a.nextInspectionDue || '',
+                getApplianceStatus(a)
+            ]);
+
+            const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `gas-register-${park === 'all' ? 'all-parks' : park.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+
+        // ============================================
+        // UI HELPERS
+        // ============================================
+
+        function switchTab(tabName) {
+            // Update buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.tab-btn[onclick="switchTab('${tabName}')"]`).classList.add('active');
+
+            // Update content
+            document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+
+        // Close modals on escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+                document.body.style.overflow = '';
+            }
+        });
+
+        // Close modal on backdrop click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+        });
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeFirebase();
+        });
+
+        // ============================================
+        // CERTIFICATE SCANNER
+        // ============================================
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        var scanCertStore = {};
+
+        function scanDragOver(e)  { e.preventDefault(); document.getElementById('scanDropZone').classList.add('drag-over'); }
+        function scanDragLeave(e) { document.getElementById('scanDropZone').classList.remove('drag-over'); }
+        function scanDropFile(e)  { e.preventDefault(); document.getElementById('scanDropZone').classList.remove('drag-over'); handleScanFiles(e.dataTransfer.files); }
+
+        async function handleScanFiles(files) {
+            if (!files || files.length === 0) return;
+            document.getElementById('scanOutput').innerHTML = '';
+            for (var i = 0; i < files.length; i++) {
+                if (files[i].type === 'application/pdf' || files[i].name.endsWith('.pdf')) {
+                    await scanProcessFile(files[i]);
+                }
+            }
+        }
+
+        async function scanExtractText(file) {
+            var buf = await file.arrayBuffer();
+            var pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+            var text = '';
+            for (var i = 1; i <= pdf.numPages; i++) {
+                var page = await pdf.getPage(i);
+                var content = await page.getTextContent();
+                text += content.items.map(function(s){ return s.str; }).join(' ') + '\n';
+            }
+            return text;
+        }
+
+        function scanParseCert(text, fileName) {
+            var r = { raw:text, fileName:fileName, certNumber:null, issueDate:null, expiryDate:null,
+                      jobAddress:null, unitIdentifier:null, park:null, gasSafeId:null,
+                      engineerName:null, company:null, appliances:[] };
+            var m;
+            m = text.match(/Domestic Gas Safety \((\d+)\)/); if (m) r.certNumber = m[1];
+            m = text.match(/Date\s+(\d{2}\/\d{2}\/\d{4})/); if (m) r.issueDate = m[1];
+            m = text.match(/Next inspection due\s+(\d{2}\/\d{2}\/\d{4})/); if (m) r.expiryDate = m[1];
+            m = text.match(/Gas safe ID\s+(\d+)/i); if (m) r.gasSafeId = m[1];
+            m = text.match(/Engineer name:\s*([A-Za-z\s]+?)(?:Gas safe card|Signature|$)/i); if (m) r.engineerName = m[1].trim();
+            m = text.match(/Registered business\s*:?\s*([A-Za-z\s]+?)(?:New Selma|Ltd|Limited|\n)/i);
+            r.company = (m ? m[1].trim() : null);
+
+            var jobPatterns = [
+                /Job address\s+((?:Riverview|Staff|Lodge|Chalet|Unit|Flat|Bungalow|HPC|Pod|Caravan|Cabin|Glamping)[^\n]*?)(?:Highland Holidays|Landlord|Date\s+\d)/i,
+                /Job address\s+([\w\s\-\/]+?(?:\d+)[^\n]*?)(?:Highland Holidays|Landlord|Date\s+\d)/i,
+                /Job address\s+([\w\s]+?)(?:Tyndrum|Ben Nevis|Oban|Overburns|Highland Holidays)/i
+            ];
+            for (var ji = 0; ji < jobPatterns.length; ji++) {
+                m = text.match(jobPatterns[ji]);
+                if (m && m[1] && m[1].trim().length > 2) { r.jobAddress = m[1].trim().replace(/\s+/g,' '); break; }
+            }
+            if (r.jobAddress) {
+                var uMatch = r.jobAddress.match(/(?:Pod|Caravan|Lodge|Chalet|Unit|Cabin|Flat|HPC|BNL)\s*(\d+)/i);
+                if (uMatch) r.unitIdentifier = uMatch[0].trim();
+            }
+
+            var parkMaps = [
+                { kw:['tyndrum','pine trees','tyndrum caravan'], park:'Tyndrum Holiday Park' },
+                { kw:['ben nevis','bennevis'],                   park:'Ben Nevis Holiday Park' },
+                { kw:['oban'],                                   park:'Oban Holiday Park' },
+                { kw:['overburns'],                              park:'Overburns Farm' }
+            ];
+            var tl = text.toLowerCase();
+            for (var pi = 0; pi < parkMaps.length; pi++) {
+                for (var ki = 0; ki < parkMaps[pi].kw.length; ki++) {
+                    if (tl.indexOf(parkMaps[pi].kw[ki]) !== -1) { r.park = parkMaps[pi].park; break; }
+                }
+                if (r.park) break;
+            }
+
+            var appRows = text.match(/\b([1-9])\s+(Kitchen|Cupboard|Living|Hallway|Bedroom|Utility|Bathroom|Boiler room)\s+(Combination boiler|Cooker|Hob|Water heater|Fire|Boiler)\s+([\w\/\s\-]+?)(?:FL|RS|CF|OF|BF|N\/A)/gi);
+            if (appRows) {
+                appRows.forEach(function(row) {
+                    var p = row.match(/\b([1-9])\s+([\w\s]+?)\s+(Combination boiler|Cooker|Hob|Water heater|Fire|Boiler)\s+([\w\/\s\-]+?)(?:\s+(?:FL|RS|CF|OF|BF|N\/A))/i);
+                    if (p) {
+                        var tr = p[3].trim(), mt = 'Gas Boiler';
+                        if (/cooker/i.test(tr)) mt = 'Gas Cooker';
+                        else if (/hob/i.test(tr)) mt = 'Gas Hob';
+                        else if (/water heater/i.test(tr)) mt = 'Gas Water Heater';
+                        else if (/fire/i.test(tr)) mt = 'Gas Fire';
+                        r.appliances.push({ rowNum:p[1], location:p[2].trim(), type:mt, makeModel:p[4].trim().replace(/\s+/g,' ') });
+                    }
+                });
+            }
+            if (r.appliances.length === 0) {
+                var fb = [
+                    { re:/Combination boiler[^\n]*?(Morco|Ariston|Worcester|Baxi|Vaillant|Potterton|Ideal|Glow)/gi, type:'Gas Boiler' },
+                    { re:/Cooker[^\n]*?(Thetford|Belling|Rangemaster|Hotpoint|Flavel)/gi,                           type:'Gas Cooker' },
+                    { re:/Water [Hh]eater[^\n]*?(Lochinvar|Morco|Andrews|Rinnai)/gi,                                type:'Gas Water Heater' }
+                ];
+                fb.forEach(function(f) {
+                    var ms = text.match(f.re);
+                    if (ms) ms.forEach(function(match) {
+                        r.appliances.push({ type:f.type, makeModel:match.replace(/^(Combination boiler|Cooker|Water [Hh]eater)\s*/i,'').trim().substring(0,40), location:'', rowNum:'' });
+                    });
+                });
+            }
+            return r;
+        }
+
+        function scanFindMatches(certApp, certPark, jobAddress, unitIdentifier) {
+            var candidates = gasAppliances.filter(function(a){ return a.park === certPark; });
+            var scored = candidates.map(function(a) {
+                var score = 0;
+                if (unitIdentifier) {
+                    var aUnit = (a.accommodationUnit || a.locationDescription || '').toLowerCase();
+                    var uLow  = unitIdentifier.toLowerCase();
+                    var uNum  = unitIdentifier.match(/\d+/);
+                    if (aUnit.indexOf(uLow) !== -1)           { score += 60; }
+                    else if (uNum && aUnit.indexOf(uNum[0]) !== -1) { score += 30; }
+                }
+                if (a.type && certApp.type) {
+                    var at = (a.type||'').toLowerCase().replace('gas ',''), ct = certApp.type.toLowerCase().replace('gas ','');
+                    if (at===ct||at.indexOf(ct)!==-1||ct.indexOf(at)!==-1) score += 35;
+                }
+                if (a.makeModel && certApp.makeModel) {
+                    var am = a.makeModel.toLowerCase().split('/')[0].trim(), cm = certApp.makeModel.toLowerCase().split('/')[0].trim();
+                    if (am&&cm&&(am===cm||am.indexOf(cm)!==-1||cm.indexOf(am)!==-1)) score += 35;
+                }
+                return { appliance:a, score:score };
+            });
+            scored.sort(function(a,b){ return b.score-a.score; });
+            return scored.filter(function(s){ return s.score>0; }).slice(0,3);
+        }
+
+        function scanToISO(d) {
+            if (!d) return null;
+            var p = d.split('/');
+            return p.length===3 ? p[2]+'-'+p[1]+'-'+p[0] : d;
+        }
+
+        async function scanProcessFile(file) {
+            var cid = 'sc_'+Date.now()+'_'+Math.random().toString(36).substr(2,5);
+            var ph = document.createElement('div');
+            ph.id = cid;
+            ph.innerHTML = '<div style="padding:12px;color:#888;font-size:0.85rem;"><span class="spinner"></span> Reading '+file.name+'…</div>';
+            document.getElementById('scanOutput').appendChild(ph);
+            try {
+                var text = await scanExtractText(file);
+                var cert = scanParseCert(text, file.name);
+                scanRenderCert(cid, cert);
+            } catch(e) {
+                document.getElementById(cid).innerHTML = '<div style="padding:12px;color:#dc3545;font-size:0.85rem;">✗ Failed: '+e.message+'</div>';
+            }
+        }
+
+        function scanRenderCert(cid, cert) {
+            scanCertStore[cid] = cert;
+            var matches = {};
+            cert.appliances.forEach(function(app,i){ matches[i] = scanFindMatches(app,cert.park,cert.jobAddress,cert.unitIdentifier); });
+
+            var conf = function(s){ return s>=80?'<span class="scan-conf-high">High confidence</span>':s>=40?'<span class="scan-conf-medium">Review suggested</span>':'<span class="scan-conf-low">Manual match needed</span>'; };
+            var badge = cert.certNumber?'<span class="scan-badge-blue">Cert #'+cert.certNumber+'</span>':'<span class="scan-badge-warn">No cert number</span>';
+
+            var h = '<div class="scan-cert-block">';
+            h += '<div class="scan-cert-header">'+cert.fileName+' '+badge+'</div>';
+            h += '<div class="scan-cert-body">';
+            h += '<div class="scan-extracted-grid">';
+            h += '<div class="scan-field"><div class="sf-lbl">Certificate No.</div><div class="sf-val sf-good">'+(cert.certNumber||'—')+'</div></div>';
+            h += '<div class="scan-field"><div class="sf-lbl">Issue Date</div><div class="sf-val">'+(cert.issueDate||'—')+'</div></div>';
+            h += '<div class="scan-field"><div class="sf-lbl">Next Due</div><div class="sf-val sf-good">'+(cert.expiryDate||'—')+'</div></div>';
+            h += '<div class="scan-field"><div class="sf-lbl">Park</div><div class="sf-val'+(cert.park?' sf-good':' sf-warn')+'">'+(cert.park||'Not recognised')+'</div></div>';
+            h += '<div class="scan-field"><div class="sf-lbl">Job Address</div><div class="sf-val'+(cert.jobAddress?' sf-good':'')+'">'+(cert.jobAddress||'—')+'</div></div>';
+            h += '<div class="scan-field"><div class="sf-lbl">Unit</div><div class="sf-val'+(cert.unitIdentifier?' sf-good':' sf-warn')+'">'+(cert.unitIdentifier||'Not found')+'</div></div>';
+            h += '<div class="scan-field"><div class="sf-lbl">Engineer</div><div class="sf-val">'+(cert.engineerName||'—')+'</div></div>';
+            h += '<div class="scan-field"><div class="sf-lbl">Company</div><div class="sf-val">'+(cert.company||'—')+'</div></div>';
+            h += '</div>';
+
+            if (cert.appliances.length===0) {
+                h += '<p style="color:#ffc107;font-size:0.85rem;">⚠ No appliances extracted — check PDF is text-selectable.</p>';
+            } else {
+                h += '<p style="color:#888;font-size:0.8rem;margin-bottom:10px;">Found '+cert.appliances.length+' appliance'+(cert.appliances.length>1?'s':'')+' — confirm match for each:</p>';
+                cert.appliances.forEach(function(app,i) {
+                    var ms = matches[i];
+                    h += '<div class="scan-app-row">';
+                    h += '<div class="scan-app-header"><div><div class="scan-app-name">'+app.type+(app.location?' — '+app.location:'')+'</div><div class="scan-app-make">'+(app.makeModel||'Make/model unknown')+'</div></div>';
+                    h += (ms.length>0?conf(ms[0].score):'<span class="scan-conf-low">No matches</span>')+'</div>';
+                    h += '<div class="scan-match-box"><div class="scan-match-lbl">Match to existing appliance</div>';
+                    var parkApps = gasAppliances.filter(function(a){ return a.park===cert.park; });
+                    h += '<select class="scan-select" id="sm_'+cid+'_'+i+'">';
+                    h += '<option value="">— Select appliance to update —</option>';
+                    if (ms.length>0) {
+                        h += '<optgroup label="Suggested matches">';
+                        ms.forEach(function(x,xi){ h += '<option value="'+x.appliance.id+'"'+(xi===0?' selected':'')+'>'+x.appliance.type+' — '+(x.appliance.accommodationUnit||x.appliance.locationDescription||'No unit')+' ('+(x.appliance.makeModel||'no model')+')</option>'; });
+                        h += '</optgroup>';
+                        var sids = ms.map(function(x){return x.appliance.id;});
+                        var rest = parkApps.filter(function(a){return sids.indexOf(a.id)===-1;});
+                        if (rest.length>0) {
+                            h += '<optgroup label="Other appliances at this park">';
+                            rest.forEach(function(a){ h += '<option value="'+a.id+'">'+a.type+' — '+(a.accommodationUnit||a.locationDescription||'No unit')+' ('+(a.makeModel||'no model')+')</option>'; });
+                            h += '</optgroup>';
+                        }
+                    } else {
+                        parkApps.forEach(function(a){ h += '<option value="'+a.id+'">'+a.type+' — '+(a.accommodationUnit||a.locationDescription||'No unit')+' ('+(a.makeModel||'no model')+')</option>'; });
+                    }
+                    h += '</select></div></div>';
+                });
+            }
+            h += '<div class="scan-actions">';
+            h += '<button class="btn-scan-confirm" id="scbtn_'+cid+'" onclick="scanConfirm(\''+cid+'\')">✓ Confirm & Save All</button>';
+            h += '<button class="btn-scan-discard" onclick="this.closest(\'.scan-cert-block\').remove()">✗ Discard</button>';
+            h += '</div>';
+            h += '<div id="scres_'+cid+'"></div>';
+            h += '</div></div>';
+            document.getElementById(cid).innerHTML = h;
+        }
+
+        async function scanConfirm(cid) {
+            var cert = scanCertStore[cid];
+            if (!cert) { alert('Certificate data not found — please re-scan.'); return; }
+            var btn = document.getElementById('scbtn_'+cid);
+            btn.disabled = true; btn.textContent = 'Saving…';
+            var res = document.getElementById('scres_'+cid);
+            res.innerHTML = '<div class="scan-progress"><div class="scan-progress-fill" id="scprog_'+cid+'" style="width:0%"></div></div>';
+
+            // Re-auth guard
+            try {
+                const authMod = firebase.auth();
+                if (!authMod.currentUser) await authMod.signInAnonymously();
+            } catch(ae) { console.warn('Re-auth failed:', ae.message); }
+
+            var total = cert.appliances.length, done = 0, failed = 0, rh = '';
+            for (var i = 0; i < total; i++) {
+                var sel = document.getElementById('sm_'+cid+'_'+i);
+                var aid = sel ? sel.value : '';
+                if (!aid) {
+                    rh += '<div class="scan-result-item"><span class="sri-icon">⏭</span><div><div class="sri-title" style="color:#ffc107">Skipped — '+cert.appliances[i].type+'</div><div class="sri-sub">No appliance selected</div></div></div>';
+                    done++; document.getElementById('scprog_'+cid).style.width=Math.round((done/total)*100)+'%'; continue;
+                }
+                try {
+                    var iso = scanToISO(cert.issueDate), exp = scanToISO(cert.expiryDate);
+                    await db.collection('gasAppliances').doc(aid).update({ lastInspectionDate:iso, nextInspectionDue:exp, updatedAt:new Date().toISOString() });
+                    await db.collection('gasCertificates').add({
+                        applianceId:aid, reference:'GS-'+(cert.certNumber||Date.now()),
+                        certNumber:cert.certNumber||null, gasSafeReg:cert.gasSafeId||'',
+                        engineerName:cert.engineerName||'', company:cert.company||'',
+                        issueDate:iso, expiryDate:exp, result:'pass',
+                        jobAddress:cert.jobAddress||null, applianceType:cert.appliances[i].type,
+                        makeModel:cert.appliances[i].makeModel||null, sourceFile:cert.fileName,
+                        notes:'Imported from PDF — cert #'+(cert.certNumber||'unknown'),
+                        createdAt:new Date().toISOString()
+                    });
+                    // Update local cache
+                    var idx = gasAppliances.findIndex(function(a){return a.id===aid;});
+                    if (idx!==-1){ gasAppliances[idx].lastInspectionDate=iso; gasAppliances[idx].nextInspectionDue=exp; }
+                    rh += '<div class="scan-result-item"><span class="sri-icon">✅</span><div><div class="sri-title" style="color:#28a745">'+cert.appliances[i].type+' updated</div><div class="sri-sub">Dates set · Certificate created</div></div></div>';
+                } catch(e) {
+                    failed++;
+                    rh += '<div class="scan-result-item"><span class="sri-icon">❌</span><div><div class="sri-title" style="color:#dc3545">'+cert.appliances[i].type+' failed</div><div class="sri-sub">'+((e.code?e.code+': ':'')+e.message)+'</div></div></div>';
+                }
+                done++; document.getElementById('scprog_'+cid).style.width=Math.round((done/total)*100)+'%';
+            }
+            btn.textContent = failed===0?'✓ Saved':failed+' failed';
+            btn.style.background = failed===0?'#28a745':'#dc3545';
+            if (failed===0) { updateDashboard(); renderApplianceTable(); renderCertificatesTable(); checkAlerts(); }
+            res.innerHTML = '<div style="margin-top:10px">'+rh+'</div>';
+        }
+    </script>
+</body>
+</html>
