@@ -1029,7 +1029,9 @@
     }
 
     // ============ MODALS & TABS ============
-    function switchTab(n) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.querySelector('.tab-btn[onclick="switchTab(\'' + n + '\')"]').classList.add('active'); document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active')); document.getElementById('tab-' + n).classList.add('active'); if (n === 'services') popSvcDD(); }
+    function switchTab(n,fromPopState) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.querySelector('.tab-btn[onclick="switchTab(\'' + n + '\')"]').classList.add('active'); document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active')); document.getElementById('tab-' + n).classList.add('active'); if (n === 'services') popSvcDD(); if(!fromPopState)history.pushState({tab:n},'','#'+n); }
+    window.addEventListener('popstate',function(e){if(e.state&&e.state.tab){switchTab(e.state.tab,true);}else{history.pushState({__sentinel:true},'',location.href);if(window.parent&&window.parent!==window){window.parent.postMessage({type:'CLOSE_MODULE'},'*');}else{window.location.href='index.html';}}});
+    history.replaceState({__sentinel:true},'',location.href);history.pushState({tab:'zones'},'','#zones');
     function openModal(id) { document.getElementById(id).classList.add('active'); document.body.style.overflow = 'hidden'; }
     function closeModal(id) { document.getElementById(id).classList.remove('active'); document.body.style.overflow = ''; }
 
