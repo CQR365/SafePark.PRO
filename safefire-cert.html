@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeFire.PRO — Visit Certificate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<style>
+:root{--theme:#CC0000;--body-bg:#f4f4f4}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Fira Sans',sans-serif;background:var(--body-bg);color:#1a1a1a;font-size:13px}
+.toolbar{background:#1a1a1a;padding:11px 20px;display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:0;z-index:100;flex-wrap:wrap}
+.tb-brand{font-family:'Orbitron',sans-serif;font-size:14px;letter-spacing:1px}
+.tb-brand .s{color:#c0c0c0}.tb-brand .n{color:#DC3545}.tb-brand .p{color:#c0c0c0}
+.tb-sub{font-size:10px;color:#666;margin-top:2px}
+.tb-btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn-print{padding:8px 18px;background:linear-gradient(160deg,#e03000,#CC0000);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Fira Sans',sans-serif;touch-action:manipulation}
+.btn-print:hover{transform:translateY(-1px)}
+.btn-close{padding:8px 14px;background:rgba(255,255,255,.1);color:#ccc;border:1px solid #444;border-radius:6px;font-size:12px;cursor:pointer;font-family:'Fira Sans',sans-serif;touch-action:manipulation}
+.cert-wrap{max-width:820px;margin:20px auto;padding:0 14px 40px}
+.loading{text-align:center;padding:60px 20px;color:#888}
+.spin{display:inline-block;width:28px;height:28px;border:3px solid #ddd;border-top-color:#CC0000;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cert{background:#fff;border:1px solid #ccc;box-shadow:0 4px 20px rgba(0,0,0,.12);position:relative;overflow:hidden}
+.wm{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-35deg);font-size:70px;font-weight:900;color:rgba(200,0,0,.04);letter-spacing:5px;text-transform:uppercase;pointer-events:none;white-space:nowrap;z-index:0;font-family:'Fira Sans',sans-serif}
+.cert>*:not(.wm){position:relative;z-index:1}
+.c-header{padding:18px 22px 14px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:3px solid var(--theme);flex-wrap:wrap}
+.c-logo-block{display:flex;align-items:flex-start;gap:12px}
+.c-logo{max-height:68px;max-width:190px;object-fit:contain}
+.logo-ph{width:130px;height:55px;background:#f5f5f5;border:1px dashed #ccc;display:flex;align-items:center;justify-content:center;font-size:10px;color:#aaa;border-radius:3px;text-align:center;padding:4px}
+.c-company-name{font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:2px}
+.c-company-line{font-size:11px;color:#555;line-height:1.7}
+.c-accred{font-size:10px;color:var(--theme);font-weight:600;margin-top:4px}
+.c-title-block{text-align:right}
+.c-title{font-size:12px;font-weight:700;color:var(--theme);text-transform:uppercase;letter-spacing:.5px;line-height:1.5;margin-bottom:6px}
+.c-ref-box{display:inline-block;border:2px solid var(--theme);padding:4px 10px;border-radius:3px;margin-bottom:5px}
+.c-ref-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--theme)}
+.c-ref-num{font-size:14px;font-weight:700;color:#1a1a1a;letter-spacing:1px}
+.c-std{font-size:10px;color:#777;font-style:italic}
+.s-bar{padding:5px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#fff}
+.s-bar.default{background:var(--theme)}
+.s-bar.panels{background:#CC0000}
+.s-bar.ext{background:#7a5200}
+.s-bar.det{background:#005577}
+.s-bar.outcome-bar{background:#2a2a2a}
+.s-bar.decl-bar{background:#333}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid #ccc}
+.tc-item{padding:11px 13px;border-right:1px solid #ccc;font-size:11px;line-height:1.7}
+.tc-item:last-child{border-right:none}
+.tc-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--theme);margin-bottom:5px;display:block}
+.tc-val{font-weight:600;color:#1a1a1a}
+.tc-dim{color:#555}
+.disc-block{border-bottom:1px solid #ccc}
+.disc-table{width:100%;border-collapse:collapse;font-size:11px}
+.disc-table th{background:#f0f0f0;padding:5px 10px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#444;border-bottom:1px solid #ccc}
+.disc-table td{padding:6px 10px;border-bottom:1px solid #eee;vertical-align:top}
+.disc-table tr:last-child td{border-bottom:none}
+.td-name{font-weight:500;color:#1a1a1a}
+.td-dim{font-size:10px;color:#777;margin-top:1px}
+.bsat{display:inline-block;background:#e6f4e9;color:#1a7a1a;border:1px solid #b8e0bd;padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700}
+.batt{display:inline-block;background:#fff8e0;color:#7a5200;border:1px solid #ffe080;padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700}
+.bdef{display:inline-block;background:#fdeaea;color:#CC0000;border:1px solid #f5b8b8;padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700}
+.bgrey{display:inline-block;background:#f0f0f0;color:#555;border:1px solid #ddd;padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700}
+.notes-block{padding:10px 13px;border-bottom:1px solid #ccc;font-size:11px}
+.notes-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#888;margin-bottom:4px}
+.notes-text{color:#333;line-height:1.7;white-space:pre-wrap}
+.all-clear-banner{padding:10px 13px;background:#e8f5e9;border-bottom:1px solid #c8e6c9;font-size:12px;font-weight:600;color:#1a7a1a;display:flex;align-items:center;gap:8px}
+.outcome-row{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid #ccc}
+.or-cell{padding:10px 13px;border-right:1px solid #ccc;font-size:11px}
+.or-cell:last-child{border-right:none}
+.or-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#888;margin-bottom:3px}
+.or-val{font-weight:700;font-size:13px;color:#1a1a1a}
+.out-sat{color:#1a7a1a}.out-att{color:#7a5200}.out-def{color:#CC0000}
+.decl-text{padding:10px 13px;font-size:11px;color:#444;line-height:1.7;border-bottom:1px solid #ccc;background:#fafafa}
+.decl-text strong{color:#1a1a1a}
+.sig-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border-bottom:1px solid #ccc}
+.sig-cell{padding:9px 13px;border-right:1px solid #ccc}
+.sig-cell:last-child{border-right:none}
+.sig-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#888;margin-bottom:3px}
+.sig-val{font-weight:600;font-size:12px;color:#1a1a1a;min-height:22px}
+.sig-img{max-height:40px;max-width:130px}
+.sig-line{border-bottom:1px solid #999;min-height:22px}
+.c-footer{padding:9px 13px;display:flex;justify-content:space-between;align-items:center;background:#f8f8f8;border-top:1px solid #ddd;flex-wrap:wrap;gap:5px}
+.f-std{font-size:9px;color:#888;font-style:italic}
+.f-custom{font-size:9px;color:#888;text-align:center;flex:1}
+.f-brand{display:flex;flex-direction:column;align-items:flex-end}
+.f-safefire{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:1px}
+.f-safefire .fs{color:#999}.f-safefire .fn{color:var(--theme)}.f-safefire .fp{color:#999}
+.f-powered{font-size:8px;color:#aaa;margin-top:1px}
+@media print{
+    body{background:#fff;font-size:10pt}
+    .toolbar{display:none!important}
+    .cert-wrap{margin:0;padding:0;max-width:none}
+    .cert{box-shadow:none;border:none}
+    .disc-block,.outcome-row,.sig-row,.three-col{page-break-inside:avoid}
+    @page{size:A4 portrait;margin:10mm}
+}
+@media(max-width:600px){
+    .c-header{flex-direction:column}
+    .c-title-block{text-align:left}
+    .three-col{grid-template-columns:1fr}
+    .tc-item{border-right:none;border-bottom:1px solid #ccc}
+    .outcome-row{grid-template-columns:1fr 1fr}
+    .sig-row{grid-template-columns:1fr 1fr}
+    .tb-btns{width:100%;justify-content:flex-end}
+    .disc-table{font-size:10px}
+    .disc-table th,.disc-table td{padding:5px 7px}
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+    <div>
+        <div class="tb-brand"><span class="s">safe</span><span class="n">fire</span><span class="p">.pro</span></div>
+        <div class="tb-sub">Fire Safety Visit Certificate</div>
+    </div>
+    <div class="tb-btns">
+        <button class="btn-print" onclick="window.print()">⬇ Download / Print PDF</button>
+        <button class="btn-close" onclick="closeOrBack()">✕ Close</button>
+    </div>
+</div>
+
+<div class="cert-wrap" id="loadingBlock">
+    <div class="loading"><div class="spin"></div><div>Loading certificate...</div></div>
+</div>
+
+<div class="cert-wrap" id="certWrap" style="display:none">
+<div class="cert">
+    <div class="wm">SafeFire</div>
+    <div class="c-header">
+        <div class="c-logo-block">
+            <div id="logoContainer"><div class="logo-ph">No logo<br>uploaded</div></div>
+            <div>
+                <div class="c-company-name" id="cComp">—</div>
+                <div class="c-company-line" id="cAddr">—</div>
+                <div class="c-company-line" id="cContact">—</div>
+                <div class="c-accred" id="cAccred"></div>
+            </div>
+        </div>
+        <div class="c-title-block">
+            <div class="c-title">Fire Safety<br>Visit Certificate</div>
+            <div class="c-ref-box">
+                <div class="c-ref-lbl">Certificate Number</div>
+                <div class="c-ref-num" id="cRef">—</div>
+            </div>
+            <div class="c-std" id="cStd">BS 5839-1:2017 / BS 5306-3:2017</div>
+        </div>
+    </div>
+    <div class="s-bar default">Details of the Engineer, Client and Visit</div>
+    <div class="three-col">
+        <div class="tc-item">
+            <span class="tc-lbl">Details of the Engineer</span>
+            <div class="tc-val" id="tcEng">—</div>
+            <div class="tc-dim" id="tcEngAddr">—</div>
+            <div class="tc-dim" id="tcEngContact">—</div>
+            <div style="margin-top:5px;font-size:10px;color:#888" id="tcBAFE"></div>
+            <div style="font-size:10px;color:#888" id="tcFIA"></div>
+        </div>
+        <div class="tc-item">
+            <span class="tc-lbl">Details of the Client / Site</span>
+            <div class="tc-val" id="tcSite">—</div>
+            <div class="tc-dim" id="tcSiteAddr">—</div>
+            <div class="tc-dim" id="tcClientContact">—</div>
+            <div style="font-size:10px;color:#888;margin-top:4px" id="tcJobRef"></div>
+        </div>
+        <div class="tc-item">
+            <span class="tc-lbl">Visit Summary</span>
+            <div class="tc-val" id="tcDate">—</div>
+            <div class="tc-dim" id="tcQP">—</div>
+            <div id="tcDiscs" style="margin-top:6px"></div>
+        </div>
+    </div>
+    <div id="disciplineContainer"></div>
+    <div class="s-bar outcome-bar">Overall Outcome &amp; Visit Notes</div>
+    <div class="outcome-row">
+        <div class="or-cell"><div class="or-lbl">Overall Outcome</div><div class="or-val" id="orOutcome">—</div></div>
+        <div class="or-cell"><div class="or-lbl">Visit Date</div><div class="or-val" id="orDate">—</div></div>
+        <div class="or-cell"><div class="or-lbl">Next Visit Recommended</div><div class="or-val" id="orNext">—</div></div>
+    </div>
+    <div class="notes-block" id="overallBlock" style="display:none">
+        <div class="notes-lbl">Overall Visit Notes</div>
+        <div class="notes-text" id="overallText"></div>
+    </div>
+    <div class="s-bar decl-bar">Declaration</div>
+    <div class="decl-text">I/We, being the competent person(s) responsible for the fire safety inspection and servicing work described in this certificate, <strong>CERTIFY</strong> that the equipment and systems listed above have been inspected and/or serviced in accordance with the relevant British Standards noted, and were left in the condition stated above. The extent of my/our liability is limited to the work described herein.</div>
+    <div class="sig-row">
+        <div class="sig-cell"><div class="sig-lbl">Name</div><div class="sig-val" id="sigName">—</div></div>
+        <div class="sig-cell"><div class="sig-lbl">Position / Qualification</div><div class="sig-val" id="sigPos">—</div></div>
+        <div class="sig-cell"><div class="sig-lbl">Signature</div><div id="sigContainer"><div class="sig-line"></div></div></div>
+        <div class="sig-cell"><div class="sig-lbl">Date</div><div class="sig-val" id="sigDate">—</div></div>
+    </div>
+    <div class="c-footer">
+        <div class="f-std">This certificate is issued in accordance with BS 5839-1:2017 and BS 5306-3:2017.</div>
+        <div class="f-custom" id="fCustom"></div>
+        <div class="f-brand">
+            <div class="f-safefire"><span class="fs">safe</span><span class="fn">fire</span><span class="fp">.pro</span></div>
+            <div class="f-powered">SafeSystems.PRO — Omnibosh Safety Solutions Ltd</div>
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+const FBC={apiKey:"AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",authDomain:"safepark-pro.firebaseapp.com",projectId:"safepark-pro",storageBucket:"safepark-pro.firebasestorage.app",messagingSenderId:"511221743341",appId:"1:511221743341:web:95bcc7e83d4861578016e4"};
+if(!firebase.apps.length)firebase.initializeApp(FBC);
+const db=firebase.firestore(),auth=firebase.auth();
+
+const THEMES={red:'#CC0000',dark:'#2d2d2d',blue:'#1a3a6b',green:'#1a5c2a'};
+function applyTheme(k){document.documentElement.style.setProperty('--theme',THEMES[k]||THEMES.red)}
+function t(v,f){return(v&&v.toString().trim())?v.toString().trim():(f||'—')}
+function setText(id,v,f){const el=document.getElementById(id);if(el)el.textContent=t(v,f)}
+function setHTML(id,h){const el=document.getElementById(id);if(el)el.innerHTML=h}
+function fmtDate(iso){if(!iso)return'—';try{return new Date(iso+'T12:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});}catch(e){return iso}}
+
+function outBadge(val){
+    if(!val)return'<span class="bgrey">—</span>';
+    if(val==='satisfactory'||val==='pass'||val===false)return'<span class="bsat">✓ Pass</span>';
+    if(val==='requires-attention')return'<span class="batt">⚠ Attention</span>';
+    if(val==='deficient'||val===true||val==='fail')return'<span class="bdef">✗ Issues</span>';
+    return`<span class="bgrey">${val}</span>`;
+}
+
+function buildPanels(records,notes){
+    if(!records.length)return'';
+    const rows=records.map(r=>`<tr>
+        <td><div class="td-name">${t(r.panelRef,'Unknown')}</div><div class="td-dim">${t(r.panelLocation,'')}</div></td>
+        <td>${t(r.panelType,'—')}</td>
+        <td>${r.bsCategory?`<span class="bgrey" style="font-size:9px">${r.bsCategory}</span>`:'—'}</td>
+        <td>${t(r.serviceType,'—')}</td>
+        <td>${r.batteryReplaced?'<span class="batt">Replaced</span>':'No'}</td>
+        <td>${outBadge(r.outcome)}</td>
+    </tr>`).join('');
+    return`<div class="disc-block">
+        <div class="s-bar panels">&#128308; Fire Alarm Panels &mdash; BS 5839-1:2017 &nbsp;<span style="font-weight:400;font-size:9px;opacity:.8">Section 6 &mdash; Inspection &amp; Servicing</span></div>
+        <table class="disc-table"><thead><tr><th>Panel Reference</th><th>Type</th><th>BS Category</th><th>Service Type</th><th>Battery</th><th>Outcome</th></tr></thead><tbody>${rows}</tbody></table>
+        ${notes?`<div class="notes-block"><div class="notes-lbl">&#128308; Panel Observations &amp; Findings</div><div class="notes-text">${notes}</div></div>`:''}
+    </div>`;
+}
+
+function buildExt(records,notes){
+    if(!records.length)return'';
+    const rows=records.map(r=>`<tr>
+        <td><div class="td-name">${t(r.code||r.extRef,'Unknown')}</div></td>
+        <td>${t(r.type,'—')}</td>
+        <td>${t(r.weight||r.capacity,'—')}</td>
+        <td>${t(r.locationDescription||r.location,'—')}</td>
+        <td>${r.nextServiceDate?fmtDate(r.nextServiceDate):'—'}</td>
+        <td>${outBadge(r.hasFailures?'deficient':'satisfactory')}</td>
+    </tr>`).join('');
+    return`<div class="disc-block">
+        <div class="s-bar ext">&#129519; Fire Extinguishers &mdash; BS 5306-3:2017 &nbsp;<span style="font-weight:400;font-size:9px;opacity:.8">Inspection &amp; Maintenance of Portable Fire Extinguishers</span></div>
+        <table class="disc-table"><thead><tr><th>Code</th><th>Type</th><th>Capacity</th><th>Location</th><th>Next Service</th><th>Outcome</th></tr></thead><tbody>${rows}</tbody></table>
+        ${notes?`<div class="notes-block"><div class="notes-lbl">&#129519; Extinguisher Observations &amp; Findings</div><div class="notes-text">${notes}</div></div>`:''}
+    </div>`;
+}
+
+function buildDet(records,notes){
+    if(!records.length)return'';
+    const rows=records.map(r=>`<tr>
+        <td><div class="td-name">${t(r.deviceCode||r.zoneCode,'Unknown')}</div></td>
+        <td>${t(r.type||r.deviceType,'—')}</td>
+        <td>${t(r.zone||r.zoneCode,'—')}</td>
+        <td>${t(r.location||r.locationDescription,'—')}</td>
+        <td>${outBadge(r.outcome||r.testOutcome)}</td>
+    </tr>`).join('');
+    return`<div class="disc-block">
+        <div class="s-bar det">&#128680; Fire Detection &amp; Warning &mdash; BS 5839-1:2017 &nbsp;<span style="font-weight:400;font-size:9px;opacity:.8">Part 1 &mdash; Code of Practice for Design, Installation, Commissioning &amp; Maintenance</span></div>
+        <table class="disc-table"><thead><tr><th>Device / Zone</th><th>Type</th><th>Zone</th><th>Location</th><th>Outcome</th></tr></thead><tbody>${rows}</tbody></table>
+        ${notes?`<div class="notes-block"><div class="notes-lbl">&#128680; Detection Observations &amp; Findings</div><div class="notes-text">${notes}</div></div>`:''}
+    </div>`;
+}
+
+async function render(){
+    try{await auth.signInAnonymously();}catch(e){console.warn('Auth:',e.message);}
+    const raw=sessionStorage.getItem('safefireCert');
+    if(!raw){
+        document.getElementById('loadingBlock').innerHTML=`<div class="loading"><div style="font-size:22px;margin-bottom:8px">&#9888;</div><div style="font-weight:600">No certificate data found</div><div style="font-size:12px;color:#aaa;margin-top:4px">Please generate this certificate from the SafeFire Engineer Workspace.</div><button onclick="closeOrBack()" style="margin-top:16px;padding:8px 18px;background:#CC0000;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px">Close</button></div>`;
+        return;
+    }
+    const d=JSON.parse(raw);
+    const eng=d.engineer||{};
+
+    applyTheme(eng.certTheme||'red');
+    if(eng.logoData) document.getElementById('logoContainer').innerHTML=`<img class="c-logo" src="${eng.logoData}" alt="Company logo">`;
+
+    setText('cRef',d.certRef);
+    document.title=`Certificate ${d.certRef||''}`;
+
+    setText('cComp',eng.name);
+    setText('tcEng',eng.name);
+    const addr=(eng.address||'').replace(/\n/g,', ');
+    setText('cAddr',addr||'—');
+    setText('tcEngAddr',addr||'—');
+    const contact=[eng.phone,eng.email,eng.website].filter(Boolean).join(' | ');
+    setText('cContact',contact||'—');
+    setText('tcEngContact',contact||'—');
+    const accred=[];
+    if(eng.bafe)accred.push('BAFE: '+eng.bafe);
+    if(eng.fia)accred.push(eng.fia);
+    if(accred.length)setText('cAccred',accred.join(' | '));
+    setText('tcBAFE',eng.bafe?'BAFE Reg: '+eng.bafe:'');
+    setText('tcFIA',eng.fia?'FIA/Membership: '+eng.fia:'');
+
+    setText('tcSite',d.parkName);
+    setText('tcSiteAddr',d.siteAddress||'See site records');
+    setText('tcClientContact',d.clientContact||'—');
+    setText('tcJobRef',d.jobRef?'PO/Job Ref: '+d.jobRef:'');
+
+    setText('tcDate',fmtDate(d.visitDate));
+    setText('tcQP',eng.qualifiedPerson?(eng.qualifiedPerson+(eng.qualifiedRef?' ('+eng.qualifiedRef+')':'')):'—');
+
+    const discs=d.disciplines||{};
+    const discBadges=[];
+    if(discs.panels?.included&&discs.panels?.records?.length) discBadges.push(`<span style="display:inline-block;background:#fdeaea;color:#CC0000;border:1px solid #f5b8b8;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700;margin:2px">&#128308; ${discs.panels.records.length} Panel${discs.panels.records.length!==1?'s':''}</span>`);
+    if(discs.extinguishers?.included&&discs.extinguishers?.records?.length) discBadges.push(`<span style="display:inline-block;background:#fff8e0;color:#7a5200;border:1px solid #ffe080;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700;margin:2px">&#129519; ${discs.extinguishers.records.length} Extinguisher${discs.extinguishers.records.length!==1?'s':''}</span>`);
+    if(discs.detection?.included&&discs.detection?.records?.length) discBadges.push(`<span style="display:inline-block;background:#e0f4f8;color:#005577;border:1px solid #9dd4e8;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700;margin:2px">&#128680; ${discs.detection.records.length} Device${discs.detection.records.length!==1?'s':''}</span>`);
+    setHTML('tcDiscs',discBadges.join('')||'—');
+
+    const notes=d.notes||{};
+    let discHtml='';
+    if(d.allClear) discHtml+=`<div class="all-clear-banner">&#10003; All inspection categories satisfactory &mdash; no defects, observations, or actions required on this visit.</div>`;
+    if(discs.panels?.included) discHtml+=buildPanels(discs.panels.records||[],notes.panels||'');
+    if(discs.extinguishers?.included) discHtml+=buildExt(discs.extinguishers.records||[],notes.ext||'');
+    if(discs.detection?.included) discHtml+=buildDet(discs.detection.records||[],notes.det||'');
+    setHTML('disciplineContainer',discHtml);
+
+    const outLabels={'satisfactory':'&#10003; Satisfactory &mdash; all systems left in serviceable working order','requires-attention':'&#9888; Requires Attention &mdash; remedial work required','deficient':'&#10007; Deficient &mdash; immediate action required or equipment removed from service'};
+    const outClass={'satisfactory':'or-val out-sat','requires-attention':'or-val out-att','deficient':'or-val out-def'};
+    const orEl=document.getElementById('orOutcome');
+    if(orEl){orEl.innerHTML=outLabels[d.outcome]||t(d.outcome);orEl.className=outClass[d.outcome]||'or-val';}
+    setText('orDate',fmtDate(d.visitDate));
+    setText('orNext',d.nextVisitDate?fmtDate(d.nextVisitDate):'Not specified');
+
+    if(notes.overall&&notes.overall.trim()){
+        document.getElementById('overallBlock').style.display='block';
+        setText('overallText',notes.overall);
+    }
+
+    const qp=eng.qualifiedPerson||eng.name||'—';
+    const qpRef=eng.qualifiedRef?` (${eng.qualifiedRef})`:'';
+    setText('sigName',qp);
+    setText('sigPos',`Qualified Fire Engineer${qpRef}`);
+    setText('sigDate',fmtDate(d.visitDate));
+    if(eng.signatureData) document.getElementById('sigContainer').innerHTML=`<img class="sig-img" src="${eng.signatureData}" alt="Signature">`;
+    if(eng.certFooter) setText('fCustom',eng.certFooter);
+
+    document.getElementById('loadingBlock').style.display='none';
+    document.getElementById('certWrap').style.display='block';
+}
+
+function closeOrBack(){if(window.opener)window.close();else window.history.back();}
+document.addEventListener('DOMContentLoaded',render);
+</script>
+</body>
+</html>

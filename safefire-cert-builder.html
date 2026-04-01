@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SafeFire.PRO — Certificate Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<style>
+:root{
+    --fire:#DC3545;--dark:#1a1a1a;--card:#242424;--border:#3a3a3a;
+    --text:#f0f0f0;--muted:#999;--dim:#555;
+    --success:#28a745;--warning:#ffc107;--info:#17a2b8;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Fira Sans',sans-serif;background:var(--dark);color:var(--text);min-height:100vh}
+.header{background:linear-gradient(180deg,#200005,#1a1a1a);border-bottom:3px solid var(--fire);padding:12px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:8px}
+.header-brand{font-family:'Orbitron',sans-serif;font-size:16px;letter-spacing:2px}
+.header-brand .s{color:#c0c0c0}.header-brand .f{color:var(--fire);font-weight:700}.header-brand .p{color:#c0c0c0}
+.header-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.header-right{display:flex;gap:10px;align-items:center}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--warning);animation:pulse 2s infinite;flex-shrink:0}
+.status-dot.ok{background:var(--success);animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.container{max-width:860px;margin:0 auto;padding:20px}
+
+/* STEPS */
+.steps-bar{display:flex;gap:0;margin-bottom:24px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.step{flex:1;padding:10px 8px;text-align:center;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--dim);background:var(--card);border-right:1px solid var(--border);transition:all .2s;cursor:default}
+.step:last-child{border-right:none}
+.step.active{background:rgba(220,53,69,.12);color:var(--fire);border-bottom:2px solid var(--fire)}
+.step.done{background:rgba(40,167,69,.08);color:var(--success)}
+.step-num{display:block;font-family:'Orbitron',sans-serif;font-size:13px;margin-bottom:2px}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:16px;overflow:hidden}
+.card-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.02)}
+.card-header h3{font-family:'Orbitron',sans-serif;font-size:13px;color:var(--fire);letter-spacing:.5px}
+.card-header .legislation{font-size:10px;color:var(--muted);font-style:italic}
+.card-body{padding:16px 18px}
+
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+.form-control{width:100%;background:#111;border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-family:'Fira Sans',sans-serif;font-size:14px;transition:border-color .2s;touch-action:manipulation}
+.form-control:focus{outline:none;border-color:var(--fire)}
+.form-control option{background:#1a1a1a}
+textarea.form-control{resize:vertical;min-height:80px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* DISCIPLINE SECTIONS */
+.disc-section{margin-bottom:14px;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.disc-header{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:12px 14px;cursor:pointer;
+    transition:background .2s;touch-action:manipulation
+}
+.disc-header:hover{background:rgba(255,255,255,.03)}
+.disc-header.panels-hdr{border-left:4px solid var(--fire);background:rgba(220,53,69,.05)}
+.disc-header.ext-hdr{border-left:4px solid var(--warning);background:rgba(255,193,7,.05)}
+.disc-header.det-hdr{border-left:4px solid var(--info);background:rgba(23,162,184,.05)}
+.disc-title{font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px}
+.disc-count{font-size:11px;color:var(--muted)}
+.disc-legislation{font-size:10px;color:var(--muted);font-style:italic}
+.disc-body{display:none;padding:14px;border-top:1px solid var(--border);background:rgba(255,255,255,.01)}
+.disc-body.open{display:block}
+
+/* ITEM TABLE */
+.item-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px}
+.item-table th{text-align:left;padding:6px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);border-bottom:1px solid var(--border);background:rgba(255,255,255,.02)}
+.item-table td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+.item-table tr:last-child td{border-bottom:none}
+.item-table .item-name{font-weight:500;color:var(--text)}
+.item-table .item-detail{font-size:11px;color:var(--muted)}
+.outcome-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px}
+.out-sat{background:rgba(40,167,69,.15);color:var(--success)}
+.out-att{background:rgba(255,193,7,.15);color:var(--warning)}
+.out-def{background:rgba(220,53,69,.15);color:var(--fire)}
+.include-toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer;touch-action:manipulation}
+.include-toggle input{accent-color:var(--fire);width:14px;height:14px}
+
+.no-records{padding:16px;text-align:center;color:var(--dim);font-size:13px;font-style:italic}
+
+/* OVERALL OUTCOME */
+.outcome-all-clear{
+    background:rgba(40,167,69,.08);border:1px solid rgba(40,167,69,.25);
+    border-radius:8px;padding:12px 16px;margin-bottom:14px;
+    display:flex;align-items:center;gap:10px;font-size:13px;color:#6fcf97
+}
+.outcome-all-clear input{accent-color:var(--success);width:16px;height:16px;flex-shrink:0}
+
+/* BUTTONS */
+.btn{padding:11px 22px;border-radius:8px;font-family:'Fira Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s;text-transform:uppercase;letter-spacing:.5px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.btn-fire{background:linear-gradient(160deg,#e03000,var(--fire));color:#fff;box-shadow:0 4px 12px rgba(220,53,69,.3)}
+.btn-fire:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(220,53,69,.4)}
+.btn-fire:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-secondary{background:rgba(255,255,255,.08);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{background:rgba(255,255,255,.12)}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+
+.alert{padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none;line-height:1.5}
+.alert.visible{display:block}
+.alert-success{background:rgba(40,167,69,.12);border:1px solid rgba(40,167,69,.3);color:#6fcf97}
+.alert-danger{background:rgba(220,53,69,.12);border:1px solid rgba(220,53,69,.3);color:#f08080}
+.alert-info{background:rgba(23,162,184,.12);border:1px solid rgba(23,162,184,.3);color:#7ec8d4}
+
+.visit-summary-bar{
+    display:flex;gap:16px;flex-wrap:wrap;padding:12px 16px;
+    background:rgba(220,53,69,.06);border-bottom:1px solid rgba(220,53,69,.2)
+}
+.vsb-item{font-size:12px;color:var(--muted)}
+.vsb-item strong{color:var(--text)}
+
+.loading-block{text-align:center;padding:30px;color:var(--muted);font-size:13px}
+
+@media(max-width:600px){
+    .container{padding:12px}
+    .form-row{grid-template-columns:1fr}
+    .steps-bar{display:none}
+    .btn-row{flex-direction:column}
+    .btn-row .btn{width:100%;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <div class="header-brand"><span class="s">safe</span><span class="f">fire</span><span class="p">.pro</span></div>
+        <div class="header-sub">Visit Certificate Builder</div>
+    </div>
+    <div class="header-right">
+        <span class="status-dot" id="fbDot"></span>
+        <button class="btn btn-secondary" style="padding:7px 14px;font-size:12px" onclick="window.close()">✕ Close</button>
+    </div>
+</div>
+
+<div class="container">
+
+    <div class="steps-bar">
+        <div class="step active" id="step1"><span class="step-num">1</span>Visit Details</div>
+        <div class="step" id="step2"><span class="step-num">2</span>Review Items</div>
+        <div class="step" id="step3"><span class="step-num">3</span>Notes & Outcome</div>
+        <div class="step" id="step4"><span class="step-num">4</span>Generate</div>
+    </div>
+
+    <div id="alertMain" class="alert"></div>
+
+    <!-- ── STEP 1: VISIT DETAILS ──────────────────────────────── -->
+    <div id="panelStep1">
+        <div class="card">
+            <div class="card-header"><h3>Visit Details</h3></div>
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Site / Park <span style="color:var(--fire)">*</span></label>
+                        <select class="form-control" id="selPark">
+                            <option value="">Select park...</option>
+                            <option value="Ben Nevis Holiday Park">Ben Nevis Holiday Park</option>
+                            <option value="Oban Holiday Park">Oban Holiday Park</option>
+                            <option value="Tyndrum Holiday Park">Tyndrum Holiday Park</option>
+                            <option value="Overburns Farm">Overburns Farm</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Date of Visit <span style="color:var(--fire)">*</span></label>
+                        <input type="date" class="form-control" id="selDate" style="color-scheme:dark">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Client Contact Name</label>
+                        <input type="text" class="form-control" id="clientContact" placeholder="Site manager or contact person">
+                    </div>
+                    <div class="form-group">
+                        <label>Purchase Order / Job Ref</label>
+                        <input type="text" class="form-control" id="jobRef" placeholder="Optional PO or job reference">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Site Address</label>
+                    <input type="text" class="form-control" id="siteAddress" placeholder="Full site address for the certificate">
+                </div>
+                <div class="form-group">
+                    <label>Disciplines Covered on This Visit</label>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
+                        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;touch-action:manipulation">
+                            <input type="checkbox" id="incPanels" checked style="accent-color:var(--fire);width:15px;height:15px"> 🔴 Fire Alarm Panels
+                        </label>
+                        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;touch-action:manipulation">
+                            <input type="checkbox" id="incExt" checked style="accent-color:var(--warning);width:15px;height:15px"> 🧯 Fire Extinguishers
+                        </label>
+                        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;touch-action:manipulation">
+                            <input type="checkbox" id="incDet" checked style="accent-color:var(--info);width:15px;height:15px"> 🚨 Fire Detection
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-fire" onclick="goStep2()">Next — Review Items →</button>
+        </div>
+    </div>
+
+    <!-- ── STEP 2: REVIEW ITEMS ────────────────────────────────── -->
+    <div id="panelStep2" style="display:none">
+        <div class="visit-summary-bar" id="visitSummaryBar"></div>
+
+        <div id="loadingRecords" class="loading-block">Loading records from SafeSystems.PRO...</div>
+        <div id="disciplineSections" style="display:none">
+
+            <!-- PANELS SECTION -->
+            <div class="disc-section" id="discPanels">
+                <div class="disc-header panels-hdr" onclick="toggleDisc('panels')">
+                    <div>
+                        <div class="disc-title">🔴 Fire Alarm Panels <span id="panelsBadge" class="outcome-badge out-sat" style="font-size:11px">0 records</span></div>
+                        <div class="disc-legislation">BS 5839-1:2017 — Fire Detection and Fire Alarm Systems</div>
+                    </div>
+                    <span id="panelsToggle" style="color:var(--muted);font-size:18px">▼</span>
+                </div>
+                <div class="disc-body" id="bodyPanels"></div>
+            </div>
+
+            <!-- EXTINGUISHERS SECTION -->
+            <div class="disc-section" id="discExt">
+                <div class="disc-header ext-hdr" onclick="toggleDisc('ext')">
+                    <div>
+                        <div class="disc-title">🧯 Fire Extinguishers <span id="extBadge" class="outcome-badge out-sat" style="font-size:11px">0 records</span></div>
+                        <div class="disc-legislation">BS 5306-3:2017 — Inspection and Maintenance of Portable Fire Extinguishers</div>
+                    </div>
+                    <span id="extToggle" style="color:var(--muted);font-size:18px">▼</span>
+                </div>
+                <div class="disc-body" id="bodyExt"></div>
+            </div>
+
+            <!-- DETECTION SECTION -->
+            <div class="disc-section" id="discDet">
+                <div class="disc-header det-hdr" onclick="toggleDisc('det')">
+                    <div>
+                        <div class="disc-title">🚨 Fire Detection & Warning <span id="detBadge" class="outcome-badge out-sat" style="font-size:11px">0 records</span></div>
+                        <div class="disc-legislation">BS 5839-1:2017, Section 6 — Inspection and Servicing</div>
+                    </div>
+                    <span id="detToggle" style="color:var(--muted);font-size:18px">▼</span>
+                </div>
+                <div class="disc-body" id="bodyDet"></div>
+            </div>
+
+        </div>
+
+        <div class="btn-row">
+            <button class="btn btn-secondary" onclick="goStep1()">← Back</button>
+            <button class="btn btn-fire" onclick="goStep3()">Next — Notes & Outcome →</button>
+        </div>
+    </div>
+
+    <!-- ── STEP 3: NOTES & OUTCOME ─────────────────────────────── -->
+    <div id="panelStep3" style="display:none">
+
+        <!-- All Clear option -->
+        <div class="outcome-all-clear">
+            <input type="checkbox" id="allClearCheck" onchange="toggleAllClear(this.checked)">
+            <span>All inspection categories are satisfactory — no defects, observations, or actions required on this visit</span>
+        </div>
+
+        <!-- Per-discipline notes -->
+        <div class="card" id="notesCard">
+            <div class="card-header"><h3>Observations & Notes</h3></div>
+            <div class="card-body" id="notesBody">
+                <!-- Populated dynamically based on included disciplines -->
+            </div>
+        </div>
+
+        <!-- Overall summary -->
+        <div class="card">
+            <div class="card-header"><h3>Overall Visit Outcome</h3></div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>Overall Outcome <span style="color:var(--fire)">*</span></label>
+                    <select class="form-control" id="overallOutcome">
+                        <option value="">Select overall outcome...</option>
+                        <option value="satisfactory">Satisfactory — all systems left in serviceable working order</option>
+                        <option value="requires-attention">Requires Attention — remedial work required within timescales noted</option>
+                        <option value="deficient">Deficient — equipment removed from service or immediate action required</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Overall Visit Notes</label>
+                    <textarea class="form-control" id="overallNotes" style="min-height:90px" placeholder="Any general observations about the site, access, housekeeping, or recommendations not covered above..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Next Visit Recommended</label>
+                    <input type="date" class="form-control" id="nextVisitDate" style="color-scheme:dark">
+                    <span style="font-size:11px;color:var(--muted);margin-top:4px;display:block">Leave blank if not applicable</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-row">
+            <button class="btn btn-secondary" onclick="goStep2()">← Back</button>
+            <button class="btn btn-fire" onclick="goStep4()">Next — Generate Certificate →</button>
+        </div>
+    </div>
+
+    <!-- ── STEP 4: GENERATE ────────────────────────────────────── -->
+    <div id="panelStep4" style="display:none">
+
+        <div class="card">
+            <div class="card-header"><h3>Certificate Preview</h3></div>
+            <div class="card-body" id="certPreviewBody">
+                <!-- Populated on step 4 -->
+            </div>
+        </div>
+
+        <div class="btn-row">
+            <button class="btn btn-secondary" onclick="goStep3()">← Back</button>
+            <button class="btn btn-fire" id="btnGenerateFinal" onclick="generateCertificate()">Generate & Open Certificate</button>
+        </div>
+    </div>
+
+</div><!-- end .container -->
+
+<script>
+const FBC = {
+    apiKey:"AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+    authDomain:"safepark-pro.firebaseapp.com",
+    projectId:"safepark-pro",
+    storageBucket:"safepark-pro.firebasestorage.app",
+    messagingSenderId:"511221743341",
+    appId:"1:511221743341:web:95bcc7e83d4861578016e4"
+};
+if (!firebase.apps.length) firebase.initializeApp(FBC);
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+let currentPark = '', visitDate = '', engineerData = {};
+let panelRecords = [], extRecords = [], detRecords = [];
+let currentStep = 1;
+
+document.addEventListener('DOMContentLoaded', async function() {
+    try { await auth.signInAnonymously(); document.getElementById('fbDot').classList.add('ok'); } catch(e){}
+
+    // Pre-fill from sessionStorage (set by engineer workspace)
+    currentPark = sessionStorage.getItem('certBuilderPark') || '';
+    visitDate = sessionStorage.getItem('certBuilderDate') || new Date().toISOString().split('T')[0];
+    const engStr = sessionStorage.getItem('certBuilderEngineer');
+    if (engStr) { try { engineerData = JSON.parse(engStr); } catch(e){} }
+
+    if (currentPark) document.getElementById('selPark').value = currentPark;
+    document.getElementById('selDate').value = visitDate;
+
+    // Set next visit date default (12 months)
+    const nv = new Date(); nv.setFullYear(nv.getFullYear()+1);
+    document.getElementById('nextVisitDate').value = nv.toISOString().split('T')[0];
+});
+
+// ── STEP NAVIGATION ────────────────────────────────────────────────────
+function setStep(n) {
+    currentStep = n;
+    [1,2,3,4].forEach(i => {
+        const p = document.getElementById('panelStep'+i);
+        if (p) p.style.display = i===n ? 'block' : 'none';
+        const s = document.getElementById('step'+i);
+        if (s) {
+            s.classList.remove('active','done');
+            if (i === n) s.classList.add('active');
+            else if (i < n) s.classList.add('done');
+        }
+    });
+}
+
+function goStep1() { setStep(1); }
+
+async function goStep2() {
+    currentPark = document.getElementById('selPark').value;
+    visitDate = document.getElementById('selDate').value;
+    if (!currentPark) { showAlert('alertMain','Please select a park.','danger'); return; }
+    if (!visitDate) { showAlert('alertMain','Please select a visit date.','danger'); return; }
+    hideAlert('alertMain');
+    setStep(2);
+    await loadRecords();
+}
+
+function goStep3() {
+    setStep(3);
+    buildNotesFields();
+}
+
+function goStep4() {
+    if (!document.getElementById('overallOutcome').value) {
+        showAlert('alertMain','Please select an overall outcome.','danger');
+        setStep(3);
+        return;
+    }
+    hideAlert('alertMain');
+    setStep(4);
+    buildCertPreview();
+}
+
+// ── LOAD RECORDS FROM FIREBASE ─────────────────────────────────────────
+async function loadRecords() {
+    document.getElementById('loadingRecords').style.display = 'block';
+    document.getElementById('disciplineSections').style.display = 'none';
+
+    const incPanels = document.getElementById('incPanels').checked;
+    const incExt = document.getElementById('incExt').checked;
+    const incDet = document.getElementById('incDet').checked;
+
+    try {
+        // Load panel service records
+        if (incPanels) {
+            const snap = await db.collection('firePanelServices').where('park','==',currentPark).get();
+            panelRecords = snap.docs
+                .map(d => ({id:d.id,...d.data()}))
+                .filter(d => (d.serviceDate||'').startsWith(visitDate));
+        } else { panelRecords = []; }
+
+        // Load extinguisher inspection records
+        if (incExt) {
+            const snap = await db.collection('fireExtinguishers').where('park','==',currentPark).get();
+            extRecords = snap.docs
+                .map(d => ({id:d.id,...d.data()}))
+                .filter(d => (d.lastInspection||'').startsWith(visitDate));
+        } else { extRecords = []; }
+
+        // Load detection test records
+        if (incDet) {
+            const snap = await db.collection('fireDetectionTests').where('park','==',currentPark).get();
+            detRecords = snap.docs
+                .map(d => ({id:d.id,...d.data()}))
+                .filter(d => (d.testDate||'').startsWith(visitDate));
+        } else { detRecords = []; }
+
+        // Update summary bar
+        document.getElementById('visitSummaryBar').innerHTML = `
+            <div class="vsb-item"><strong>Park:</strong> ${currentPark}</div>
+            <div class="vsb-item"><strong>Visit Date:</strong> ${formatDate(visitDate)}</div>
+            <div class="vsb-item"><strong>Panels:</strong> ${panelRecords.length} service${panelRecords.length!==1?'s':''}</div>
+            <div class="vsb-item"><strong>Extinguishers:</strong> ${extRecords.length} inspected</div>
+            <div class="vsb-item"><strong>Detection:</strong> ${detRecords.length} tested</div>
+        `;
+
+        renderPanelRecords();
+        renderExtRecords();
+        renderDetRecords();
+
+        document.getElementById('disciplineSections').style.display = 'block';
+        document.getElementById('discPanels').style.display = incPanels ? 'block' : 'none';
+        document.getElementById('discExt').style.display = incExt ? 'block' : 'none';
+        document.getElementById('discDet').style.display = incDet ? 'block' : 'none';
+
+        // Auto-open sections with records
+        if (incPanels && panelRecords.length) toggleDisc('panels');
+        if (incExt && extRecords.length) toggleDisc('ext');
+        if (incDet && detRecords.length) toggleDisc('det');
+
+    } catch(e) {
+        showAlert('alertMain','Error loading records: ' + e.message, 'danger');
+    }
+    document.getElementById('loadingRecords').style.display = 'none';
+}
+
+// ── RENDER DISCIPLINE RECORDS ──────────────────────────────────────────
+function renderPanelRecords() {
+    const body = document.getElementById('bodyPanels');
+    const badge = document.getElementById('panelsBadge');
+    badge.textContent = panelRecords.length + ' service' + (panelRecords.length!==1?'s':'');
+
+    if (!panelRecords.length) {
+        body.innerHTML = '<div class="no-records">No panel service records found for this park and date.</div>';
+        return;
+    }
+    body.innerHTML = `
+        <table class="item-table">
+            <thead><tr>
+                <th style="width:8%">Include</th>
+                <th>Panel Reference</th>
+                <th>Type</th>
+                <th>BS Category</th>
+                <th>Service Type</th>
+                <th>Outcome</th>
+            </tr></thead>
+            <tbody>
+                ${panelRecords.map((r,i) => `
+                <tr>
+                    <td><label class="include-toggle"><input type="checkbox" class="panel-inc" data-idx="${i}" checked></label></td>
+                    <td><div class="item-name">${r.panelRef||'Unknown'}</div><div class="item-detail">${r.panelLocation||''}</div></td>
+                    <td>${r.panelType||'—'}</td>
+                    <td><span class="outcome-badge out-sat" style="font-size:10px">${r.bsCategory||'—'}</span></td>
+                    <td>${r.serviceType||'—'}</td>
+                    <td><span class="outcome-badge ${r.outcome==='satisfactory'?'out-sat':r.outcome==='requires-attention'?'out-att':'out-def'}">${r.outcome||'—'}</span></td>
+                </tr>`).join('')}
+            </tbody>
+        </table>`;
+}
+
+function renderExtRecords() {
+    const body = document.getElementById('bodyExt');
+    const badge = document.getElementById('extBadge');
+    badge.textContent = extRecords.length + ' inspected';
+
+    if (!extRecords.length) {
+        body.innerHTML = '<div class="no-records">No extinguisher inspection records found for this park and date.</div>';
+        return;
+    }
+    body.innerHTML = `
+        <table class="item-table">
+            <thead><tr>
+                <th style="width:8%">Include</th>
+                <th>Extinguisher</th>
+                <th>Type</th>
+                <th>Location</th>
+                <th>Outcome</th>
+                <th>Next Service</th>
+            </tr></thead>
+            <tbody>
+                ${extRecords.map((r,i) => `
+                <tr>
+                    <td><label class="include-toggle"><input type="checkbox" class="ext-inc" data-idx="${i}" checked></label></td>
+                    <td><div class="item-name">${r.code||r.extRef||'Unknown'}</div></td>
+                    <td>${r.type||'—'}</td>
+                    <td>${r.locationDescription||r.location||'—'}</td>
+                    <td><span class="outcome-badge ${r.hasFailures?'out-def':'out-sat'}">${r.hasFailures?'Issues Found':'Pass'}</span></td>
+                    <td style="font-size:11px">${r.nextServiceDate||'—'}</td>
+                </tr>`).join('')}
+            </tbody>
+        </table>`;
+}
+
+function renderDetRecords() {
+    const body = document.getElementById('bodyDet');
+    const badge = document.getElementById('detBadge');
+    badge.textContent = detRecords.length + ' tested';
+
+    if (!detRecords.length) {
+        body.innerHTML = '<div class="no-records">No detection test records found for this park and date.</div>';
+        return;
+    }
+    body.innerHTML = `
+        <table class="item-table">
+            <thead><tr>
+                <th style="width:8%">Include</th>
+                <th>Device / Zone</th>
+                <th>Type</th>
+                <th>Location</th>
+                <th>Outcome</th>
+            </tr></thead>
+            <tbody>
+                ${detRecords.map((r,i) => `
+                <tr>
+                    <td><label class="include-toggle"><input type="checkbox" class="det-inc" data-idx="${i}" checked></label></td>
+                    <td><div class="item-name">${r.deviceCode||r.zoneCode||'Unknown'}</div></td>
+                    <td>${r.type||r.deviceType||'—'}</td>
+                    <td>${r.locationDescription||r.location||'—'}</td>
+                    <td><span class="outcome-badge ${r.outcome==='pass'||r.outcome==='satisfactory'?'out-sat':r.outcome==='fail'?'out-def':'out-att'}">${r.outcome||'—'}</span></td>
+                </tr>`).join('')}
+            </tbody>
+        </table>`;
+}
+
+// ── DISC TOGGLE ────────────────────────────────────────────────────────
+function toggleDisc(key) {
+    const body = document.getElementById('body' + key.charAt(0).toUpperCase() + key.slice(1));
+    const tog = document.getElementById(key + 'Toggle');
+    if (!body) return;
+    const open = body.classList.toggle('open');
+    if (tog) tog.textContent = open ? '▲' : '▼';
+}
+
+// ── NOTES FIELDS ───────────────────────────────────────────────────────
+function buildNotesFields() {
+    const incPanels = document.getElementById('incPanels').checked;
+    const incExt = document.getElementById('incExt').checked;
+    const incDet = document.getElementById('incDet').checked;
+    const allClear = document.getElementById('allClearCheck').checked;
+
+    const nb = document.getElementById('notesBody');
+    let html = '';
+    if (incPanels && panelRecords.length) {
+        html += `<div class="form-group">
+            <label>🔴 Fire Alarm Panels — Observations & Findings</label>
+            <textarea class="form-control" id="notesPanels" ${allClear?'disabled':''} placeholder="Panel-specific findings, fault codes, battery readings, recommendations..."></textarea>
+        </div>`;
+    }
+    if (incExt && extRecords.length) {
+        html += `<div class="form-group">
+            <label>🧯 Fire Extinguishers — Observations & Findings</label>
+            <textarea class="form-control" id="notesExt" ${allClear?'disabled':''} placeholder="Extinguisher-specific findings, weights, pressure readings, any condemned items..."></textarea>
+        </div>`;
+    }
+    if (incDet && detRecords.length) {
+        html += `<div class="form-group">
+            <label>🚨 Fire Detection — Observations & Findings</label>
+            <textarea class="form-control" id="notesDet" ${allClear?'disabled':''} placeholder="Detection-specific findings, device faults, zone issues, sensitivity concerns..."></textarea>
+        </div>`;
+    }
+    if (!html) {
+        html = '<p style="color:var(--muted);font-size:13px">No records found to add notes to. You can add overall visit notes below.</p>';
+    }
+    nb.innerHTML = html;
+}
+
+function toggleAllClear(checked) {
+    ['notesPanels','notesExt','notesDet'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.disabled = checked;
+            if (checked) el.value = '';
+        }
+    });
+    const outcome = document.getElementById('overallOutcome');
+    if (checked) outcome.value = 'satisfactory';
+    outcome.disabled = checked;
+}
+
+// ── CERT PREVIEW ───────────────────────────────────────────────────────
+function buildCertPreview() {
+    const incPanels = document.getElementById('incPanels').checked;
+    const incExt = document.getElementById('incExt').checked;
+    const incDet = document.getElementById('incDet').checked;
+    const allClear = document.getElementById('allClearCheck').checked;
+    const outcome = document.getElementById('overallOutcome').value;
+
+    const includePanel = incPanels ? Array.from(document.querySelectorAll('.panel-inc:checked')).map(cb => panelRecords[parseInt(cb.dataset.idx)]).filter(Boolean) : [];
+    const includeExt = incExt ? Array.from(document.querySelectorAll('.ext-inc:checked')).map(cb => extRecords[parseInt(cb.dataset.idx)]).filter(Boolean) : [];
+    const includeDet = incDet ? Array.from(document.querySelectorAll('.det-inc:checked')).map(cb => detRecords[parseInt(cb.dataset.idx)]).filter(Boolean) : [];
+
+    document.getElementById('certPreviewBody').innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;font-size:13px">
+            <div><strong style="color:var(--muted);font-size:10px;text-transform:uppercase;display:block;margin-bottom:2px">Site</strong>${currentPark}</div>
+            <div><strong style="color:var(--muted);font-size:10px;text-transform:uppercase;display:block;margin-bottom:2px">Visit Date</strong>${formatDate(visitDate)}</div>
+            <div><strong style="color:var(--muted);font-size:10px;text-transform:uppercase;display:block;margin-bottom:2px">Engineer</strong>${engineerData.name||'—'}</div>
+            <div><strong style="color:var(--muted);font-size:10px;text-transform:uppercase;display:block;margin-bottom:2px">Outcome</strong><span style="color:${outcome==='satisfactory'?'var(--success)':outcome==='requires-attention'?'var(--warning)':'var(--fire)'};font-weight:700">${outcome||'—'}</span></div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+            ${incPanels ? `<div style="padding:6px 14px;background:rgba(220,53,69,.12);border-radius:20px;font-size:12px;border:1px solid rgba(220,53,69,.3)">🔴 <strong>${includePanel.length}</strong> Panel Service${includePanel.length!==1?'s':''}</div>` : ''}
+            ${incExt ? `<div style="padding:6px 14px;background:rgba(255,193,7,.1);border-radius:20px;font-size:12px;border:1px solid rgba(255,193,7,.3)">🧯 <strong>${includeExt.length}</strong> Extinguisher${includeExt.length!==1?'s':''}</div>` : ''}
+            ${incDet ? `<div style="padding:6px 14px;background:rgba(23,162,184,.1);border-radius:20px;font-size:12px;border:1px solid rgba(23,162,184,.3)">🚨 <strong>${includeDet.length}</strong> Detector${includeDet.length!==1?'s':''}</div>` : ''}
+        </div>
+        ${allClear ? '<div style="padding:10px 14px;background:rgba(40,167,69,.1);border-radius:6px;font-size:13px;color:#6fcf97;border:1px solid rgba(40,167,69,.25)">✓ All inspection categories satisfactory — no defects or observations</div>' : ''}
+        <p style="font-size:12px;color:var(--muted);margin-top:12px">Certificate will open in a new tab. You can download/print as PDF or share the link.</p>
+    `;
+}
+
+// ── GENERATE CERTIFICATE ───────────────────────────────────────────────
+async function generateCertificate() {
+    const btn = document.getElementById('btnGenerateFinal');
+    btn.disabled = true; btn.textContent = 'Generating...';
+
+    const incPanels = document.getElementById('incPanels').checked;
+    const incExt = document.getElementById('incExt').checked;
+    const incDet = document.getElementById('incDet').checked;
+
+    const includePanel = incPanels ? Array.from(document.querySelectorAll('.panel-inc:checked')).map(cb => panelRecords[parseInt(cb.dataset.idx)]).filter(Boolean) : [];
+    const includeExt = incExt ? Array.from(document.querySelectorAll('.ext-inc:checked')).map(cb => extRecords[parseInt(cb.dataset.idx)]).filter(Boolean) : [];
+    const includeDet = incDet ? Array.from(document.querySelectorAll('.det-inc:checked')).map(cb => detRecords[parseInt(cb.dataset.idx)]).filter(Boolean) : [];
+
+    const allClear = document.getElementById('allClearCheck').checked;
+    const outcome = document.getElementById('overallOutcome').value;
+
+    // Build cert ref
+    const parkCode = currentPark.replace(/[^A-Z]/gi,'').substring(0,3).toUpperCase();
+    const dateCode = visitDate.replace(/-/g,'');
+    const rand = Math.floor(1000 + Math.random() * 9000);
+    const certRef = `SFP-${parkCode}-${dateCode}-${rand}`;
+
+    const certData = {
+        certRef,
+        issueDate: new Date().toISOString(),
+        visitDate,
+        parkName: currentPark,
+        siteAddress: document.getElementById('siteAddress').value,
+        clientContact: document.getElementById('clientContact').value,
+        jobRef: document.getElementById('jobRef').value,
+        engineer: engineerData,
+        disciplines: {
+            panels: { included: incPanels, records: includePanel },
+            extinguishers: { included: incExt, records: includeExt },
+            detection: { included: incDet, records: includeDet }
+        },
+        notes: {
+            panels: document.getElementById('notesPanels')?.value || '',
+            ext: document.getElementById('notesExt')?.value || '',
+            det: document.getElementById('notesDet')?.value || '',
+            overall: document.getElementById('overallNotes').value
+        },
+        allClear,
+        outcome,
+        nextVisitDate: document.getElementById('nextVisitDate').value,
+        generatedAt: new Date().toISOString()
+    };
+
+    try {
+        // Save to Firebase
+        await db.collection('fireCertificates').doc(certRef).set(certData);
+
+        // Store in sessionStorage for the cert display page
+        sessionStorage.setItem('safefireCert', JSON.stringify(certData));
+
+        // Open the certificate
+        window.open('https://cqr365.github.io/SafePark.PRO/safefire-cert.html', '_blank');
+
+        showAlert('alertMain', `Certificate ${certRef} generated and saved to SafeSystems.PRO.`, 'success');
+    } catch(e) {
+        showAlert('alertMain', 'Error saving certificate: ' + e.message, 'danger');
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Generate & Open Certificate';
+}
+
+// ── HELPERS ────────────────────────────────────────────────────────────
+function showAlert(id, msg, type) {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = msg; el.className = `alert alert-${type} visible`; el.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+}
+function hideAlert(id) { const el=document.getElementById(id); if(el) el.className='alert'; }
+function formatDate(iso) {
+    if (!iso) return '—';
+    return new Date(iso+'T12:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+}
+</script>
+</body>
+</html>
