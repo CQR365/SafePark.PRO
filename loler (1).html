@@ -1,0 +1,2623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>LOLERSafe.PRO | SafeSystems.PRO</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script type="module" src="safepark-core.js"></script>
+    <script src="auth-handler.js"></script>
+
+    <style>
+        :root {
+            --accent:        #0dcaf0;
+            --accent-dark:   #0aa8cc;
+            --accent-glow:   rgba(13, 202, 240, 0.22);
+            --orange:        #FE7F2D;
+            --orange-dark:   #E5682A;
+            --bg:            #1a1a1a;
+            --bg-card:       #232323;
+            --bg-input:      #2c2c2c;
+            --border:        rgba(255,255,255,0.09);
+            --text:          #e8e8e8;
+            --muted:         #7a7a7a;
+            --success:       #2ECC71;
+            --warning:       #F1C40F;
+            --danger:        #E74C3C;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #2e2e2e;
+            background-image:
+                repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.10) 2px, rgba(0,0,0,0.10) 4px),
+                repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(255,255,255,0.03) 3px, rgba(255,255,255,0.03) 6px),
+                radial-gradient(circle at 20% 80%, rgba(13,202,240,0.04) 0%, transparent 45%),
+                radial-gradient(circle at 80% 20%, rgba(13,202,240,0.03) 0%, transparent 45%),
+                linear-gradient(145deg, #333 0%, #2e2e2e 50%, #282828 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 60px;
+            font-size: 15px;
+        }
+
+        /* ── Nav Strip ── */
+        .nav-strip {
+            position: fixed; top: 0; left: 0; right: 0; height: 54px;
+            background: linear-gradient(90deg, #141414 0%, #1c1c1c 100%);
+            border-bottom: 2px solid rgba(13,202,240,0.35);
+            display: flex; align-items: center; padding: 0 16px; gap: 12px;
+            z-index: 1000; box-shadow: 0 2px 20px rgba(0,0,0,0.7), 0 0 40px rgba(13,202,240,0.06);
+        }
+        .nav-back {
+            background: rgba(13,202,240,0.08); border: 1px solid rgba(13,202,240,0.2);
+            color: var(--accent); padding: 7px 14px; border-radius: 6px; cursor: pointer;
+            font-family: 'DM Sans', sans-serif; font-size: 0.84rem; font-weight: 600;
+            transition: all 0.2s; white-space: nowrap;
+        }
+        .nav-back:hover { background: rgba(13,202,240,0.16); border-color: rgba(13,202,240,0.4); }
+        .nav-title {
+            font-family: 'Outfit', sans-serif; font-size: 1.05rem; font-weight: 800;
+            color: var(--accent); flex: 1; letter-spacing: -0.02em;
+            text-shadow: 0 0 20px rgba(13,202,240,0.3);
+        }
+        .nav-title span { color: var(--muted); font-weight: 400; font-size: 0.85rem; }
+        .nav-conn { font-size: 0.75rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+        .conn-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); transition: background 0.3s; }
+        .conn-dot.live { background: var(--success); box-shadow: 0 0 8px rgba(46,204,113,0.6); }
+
+        /* ── Main ── */
+        .main { max-width: 1320px; margin: 0 auto; padding: 70px 18px 40px; }
+
+        /* ── Module Header ── */
+        .module-header {
+            background: linear-gradient(135deg, #1e2a2e 0%, #1a1a1a 60%, #1e1e1e 100%);
+            border: 1px solid rgba(13,202,240,0.35);
+            border-left: 4px solid var(--accent);
+            border-radius: 12px; padding: 22px 28px; margin-bottom: 20px;
+            display: flex; align-items: center; gap: 18px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 60px rgba(13,202,240,0.05),
+                        inset 0 1px 0 rgba(255,255,255,0.05);
+            position: relative; overflow: hidden;
+        }
+        .module-header::after {
+            content: ''; position: absolute; top: 0; right: 0;
+            width: 200px; height: 100%;
+            background: radial-gradient(ellipse at right, rgba(13,202,240,0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .module-icon {
+            width: 52px; height: 52px; border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; box-shadow: 0 4px 20px rgba(13,202,240,0.4);
+            font-family: 'Outfit', sans-serif; font-size: 0.75rem; font-weight: 900;
+            color: #000; letter-spacing: -0.05em;
+        }
+        .module-header h1 {
+            font-family: 'Outfit', sans-serif; font-size: 1.9rem; font-weight: 800;
+            color: var(--accent); letter-spacing: -0.03em;
+            text-shadow: 0 0 30px rgba(13,202,240,0.2);
+        }
+        .module-header h1 em { color: rgba(255,255,255,0.55); font-style: normal; font-weight: 400; }
+        .module-header p { color: var(--muted); font-size: 0.86rem; margin-top: 4px; }
+
+        /* ── Tabs ── */
+        .tab-strip {
+            display: flex; gap: 3px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 10px; padding: 5px; margin-bottom: 20px;
+            overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.4);
+        }
+        .tab-strip::-webkit-scrollbar { display: none; }
+        .tab-btn {
+            flex: 1; min-width: 90px; padding: 10px 14px;
+            background: transparent; border: none; border-radius: 7px;
+            color: var(--muted); cursor: pointer;
+            font-family: 'DM Sans', sans-serif; font-size: 0.83rem; font-weight: 500;
+            transition: all 0.2s; white-space: nowrap; text-align: center;
+            letter-spacing: 0.01em;
+        }
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            color: #000; font-weight: 700;
+            box-shadow: 0 2px 12px rgba(13,202,240,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        .tab-btn:hover:not(.active) { background: rgba(255,255,255,0.07); color: var(--text); }
+
+        /* ── Panels ── */
+        .panel { display: none; }
+        .panel.active { display: block; }
+
+        /* ── Cards ── */
+        .card {
+            background: linear-gradient(145deg, #252525, #202020);
+            border: 1px solid rgba(13,202,240,0.14);
+            border-radius: 12px; padding: 22px; margin-bottom: 18px;
+            box-shadow: 0 6px 28px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+        .card-title {
+            font-family: 'Outfit', sans-serif; font-size: 1rem; font-weight: 600;
+            color: var(--accent); margin-bottom: 14px;
+            display: flex; align-items: center; gap: 7px;
+            padding-bottom: 10px; border-bottom: 1px solid rgba(13,202,240,0.1);
+        }
+        .card-title.danger { color: var(--danger); border-bottom-color: rgba(231,76,60,0.12); }
+
+        /* ── Stats Grid ── */
+        .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 20px; }
+        .stat-tile {
+            background: linear-gradient(145deg, #252525, #1e1e1e);
+            border: 1px solid rgba(13,202,240,0.15);
+            border-top: 3px solid var(--accent);
+            border-radius: 10px; padding: 18px 14px; text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-tile:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.4); }
+        .stat-tile .num { font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 800; color: var(--accent); line-height: 1; }
+        .stat-tile .lbl { font-size: 0.74rem; color: var(--muted); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.6px; }
+        .stat-tile.s-danger { border-top-color: var(--danger); }
+        .stat-tile.s-danger .num { color: var(--danger); }
+        .stat-tile.s-warning { border-top-color: var(--warning); }
+        .stat-tile.s-warning .num { color: var(--warning); }
+        .stat-tile.s-success { border-top-color: var(--success); }
+        .stat-tile.s-success .num { color: var(--success); }
+
+        /* ── Forms ── */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px,1fr)); gap: 14px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-size: 0.76rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .req { color: var(--accent); }
+
+        input[type="text"], input[type="email"], input[type="date"], select, textarea {
+            width: 100%; padding: 9px 13px;
+            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px; color: var(--text);
+            font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none; border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(13,202,240,0.1);
+            background: rgba(13,202,240,0.04);
+        }
+        input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.25); }
+        select option { background: #1e1e1e; }
+        textarea { resize: vertical; min-height: 78px; }
+
+        /* ── Buttons ── */
+        .btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 9px 18px; border: none; border-radius: 6px; cursor: pointer;
+            font-family: 'DM Sans', sans-serif; font-size: 0.86rem; font-weight: 600;
+            transition: all 0.2s; white-space: nowrap;
+        }
+        .btn-primary { background: linear-gradient(135deg, var(--orange), var(--orange-dark)); color: #fff; box-shadow: 0 3px 12px rgba(254,127,45,0.25); }
+        .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 5px 18px rgba(254,127,45,0.35); }
+        .btn-accent { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #000; box-shadow: 0 3px 12px rgba(13,202,240,0.25); }
+        .btn-accent:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 5px 18px rgba(13,202,240,0.35); }
+        .btn-ghost { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text); }
+        .btn-ghost:hover { background: rgba(255,255,255,0.11); border-color: rgba(255,255,255,0.2); }
+        .btn-danger { background: rgba(231,76,60,0.12); border: 1px solid rgba(231,76,60,0.25); color: var(--danger); }
+        .btn-danger:hover { background: rgba(231,76,60,0.22); }
+        .btn-sm { padding: 5px 11px; font-size: 0.78rem; }
+        .btn-lg { padding: 13px 28px; font-size: 0.97rem; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; filter: none !important; }
+
+        /* ── Tables ── */
+        .table-wrap { overflow-x: auto; border-radius: 9px; border: 1px solid rgba(255,255,255,0.07); }
+        table { width: 100%; border-collapse: collapse; background: rgba(0,0,0,0.15); }
+        th {
+            background: linear-gradient(135deg, rgba(13,202,240,0.1), rgba(13,202,240,0.05));
+            padding: 10px 13px; text-align: left; font-size: 0.72rem;
+            font-weight: 700; color: var(--accent); text-transform: uppercase;
+            letter-spacing: 0.6px; border-bottom: 1px solid rgba(13,202,240,0.2); white-space: nowrap;
+        }
+        td { padding: 10px 13px; font-size: 0.86rem; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(13,202,240,0.03); }
+
+        /* ── Forms ── */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px,1fr)); gap: 14px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group label {
+            font-size: 0.78rem; font-weight: 600; color: var(--muted);
+            text-transform: uppercase; letter-spacing: 0.4px;
+        }
+        .req { color: var(--accent); }
+
+        input[type="text"], input[type="email"], input[type="date"], select, textarea {
+            width: 100%; padding: 9px 13px;
+            background: var(--bg-input); border: 1px solid rgba(255,255,255,0.11);
+            border-radius: 6px; color: var(--text);
+            font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none; border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(13,202,240,0.12);
+        }
+        input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.28); }
+        select option { background: #2c2c2c; }
+        textarea { resize: vertical; min-height: 78px; }
+
+        /* ── Buttons ── */
+        .btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 9px 18px; border: none; border-radius: 6px; cursor: pointer;
+            font-family: 'DM Sans', sans-serif; font-size: 0.86rem; font-weight: 600;
+            transition: all 0.2s; white-space: nowrap;
+        }
+        .btn-primary { background: linear-gradient(135deg, var(--orange), var(--orange-dark)); color: #fff; }
+        .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-accent { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #000; }
+        .btn-accent:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-ghost { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14); color: var(--text); }
+        .btn-ghost:hover { background: rgba(255,255,255,0.12); }
+        .btn-danger { background: rgba(231,76,60,0.14); border: 1px solid rgba(231,76,60,0.3); color: var(--danger); }
+        .btn-danger:hover { background: rgba(231,76,60,0.24); }
+        .btn-sm { padding: 5px 11px; font-size: 0.78rem; }
+        .btn-lg { padding: 12px 26px; font-size: 0.97rem; }
+        .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; filter: none !important; }
+
+        /* ── Tables ── */
+        .table-wrap { overflow-x: auto; border-radius: 9px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; background: var(--bg-card); }
+        th {
+            background: linear-gradient(135deg, #2b2b2b, #222);
+            padding: 10px 13px; text-align: left; font-size: 0.75rem;
+            font-weight: 600; color: var(--accent); text-transform: uppercase;
+            letter-spacing: 0.5px; border-bottom: 1px solid rgba(13,202,240,0.18);
+            white-space: nowrap;
+        }
+        td { padding: 10px 13px; font-size: 0.86rem; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(13,202,240,0.04); }
+
+        /* Inspection table specifics */
+        .insp-tbl td input, .insp-tbl td select { padding: 5px 9px; font-size: 0.82rem; border-radius: 4px; }
+        .insp-tbl td input[type="file"] { font-size: 0.74rem; width: 90px; background: transparent; border: none; padding: 0; }
+
+        /* Row colouring by status */
+        tr.row-pass td   { background: rgba(46,204,113,0.05); }
+        tr.row-fail td   { background: rgba(231,76,60,0.09); }
+        tr.row-fix td    { background: rgba(241,196,15,0.06); }
+        tr.row-replace td { background: rgba(254,127,45,0.07); }
+        tr.row-oou td     { background: rgba(160,160,160,0.08); }
+
+        /* ── Badges ── */
+        .badge {
+            display: inline-flex; align-items: center; padding: 4px 10px;
+            border-radius: 20px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.3px;
+        }
+        .b-pass    { background: rgba(46,204,113,0.15); color: var(--success); border: 1px solid rgba(46,204,113,0.3); }
+        .b-fail    { background: rgba(231,76,60,0.15);  color: var(--danger);  border: 1px solid rgba(231,76,60,0.3); }
+        .b-fix     { background: rgba(241,196,15,0.14); color: var(--warning); border: 1px solid rgba(241,196,15,0.3); }
+        .b-replace { background: rgba(254,127,45,0.14); color: var(--orange);  border: 1px solid rgba(254,127,45,0.3); }
+        .b-oou     { background: rgba(160,160,160,0.15); color: #aaa;          border: 1px solid rgba(160,160,160,0.3); }
+        .b-none    { background: rgba(255,255,255,0.07); color: var(--muted);  border: 1px solid rgba(255,255,255,0.12); }
+
+        /* OOU notice section on report */
+        .oou-notice {
+            background: rgba(160,160,160,0.07); border: 1px solid rgba(160,160,160,0.25);
+            border-radius: 12px; padding: 22px; margin-bottom: 18px;
+        }
+        .oou-notice .card-title { color: #aaa; }
+        .oou-notice-item {
+            border-left: 3px solid #888; padding: 10px 14px; margin-bottom: 10px;
+            background: rgba(255,255,255,0.03); border-radius: 0 6px 6px 0;
+        }
+        .oou-notice-item:last-child { margin-bottom: 0; }
+        .oou-item-hdr { font-weight: 600; font-size: 0.92rem; color: #ccc; margin-bottom: 3px; }
+        .oou-item-reason { font-size: 0.84rem; color: #999; }
+
+        /* Inspect filter bar */
+        .insp-filter {
+            display: flex; align-items: center; gap: 10px;
+            background: var(--bg-input); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px; padding: 7px 12px; margin-bottom: 12px;
+        }
+        .insp-filter input {
+            background: transparent; border: none; color: var(--text);
+            font-family: 'DM Sans', sans-serif; font-size: 0.88rem;
+            flex: 1; outline: none;
+        }
+        .insp-filter input::placeholder { color: var(--muted); }
+        .insp-filter .filter-lbl { font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
+        .insp-filter .filter-clear { font-size: 0.78rem; color: var(--accent); cursor: pointer; white-space: nowrap; }
+        .insp-filter .filter-clear:hover { text-decoration: underline; }
+        #inspFilterCount { font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
+
+        /* OOU reason field */
+        .oou-reason-wrap { display: none; margin-top: 5px; }
+        .oou-reason-wrap select { font-size: 0.8rem; padding: 4px 8px; border-color: rgba(160,160,160,0.4); }
+
+        /* ── Business Cards ── */
+        .biz-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px,1fr)); gap: 14px; }
+        .biz-card {
+            background: var(--bg-card); border: 1px solid rgba(13,202,240,0.16);
+            border-radius: 10px; padding: 17px 20px; transition: border-color 0.2s;
+        }
+        .biz-card:hover { border-color: rgba(13,202,240,0.4); }
+        .biz-name { font-family: 'Outfit', sans-serif; font-size: 0.97rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+        .biz-meta { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+        .biz-actions { margin-top: 12px; display: flex; gap: 7px; flex-wrap: wrap; }
+
+        /* ── Section Header ── */
+        .sec-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 9px; }
+        .sec-hdr h2 { font-family: 'Outfit', sans-serif; font-size: 1.05rem; font-weight: 600; color: var(--text); }
+
+        /* ── Empty State ── */
+        .empty { text-align: center; padding: 44px 20px; color: var(--muted); }
+        .empty .ico { font-size: 2.3rem; margin-bottom: 10px; }
+        .empty p { font-size: 0.88rem; }
+
+        /* ── Toast ── */
+        .toast-area { position: fixed; bottom: 22px; right: 22px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        .toast {
+            background: #2a2a2a; border-left: 4px solid var(--accent);
+            border-radius: 8px; padding: 11px 17px; font-size: 0.86rem;
+            box-shadow: 0 4px 22px rgba(0,0,0,0.55); animation: tIn 0.3s ease;
+            max-width: 310px; pointer-events: auto;
+        }
+        .toast.err  { border-left-color: var(--danger); }
+        .toast.warn { border-left-color: var(--warning); }
+        .toast.ok   { border-left-color: var(--success); }
+        @keyframes tIn { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* ── Modal ── */
+        .overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.78);
+            display: none; align-items: center; justify-content: center;
+            z-index: 5000; padding: 18px;
+        }
+        .overlay.open { display: flex; }
+        .modal-box {
+            background: #242424; border: 1px solid rgba(13,202,240,0.28);
+            border-radius: 14px; padding: 26px; width: 100%; max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.75);
+        }
+        .modal-box h3 { font-family: 'Outfit', sans-serif; font-size: 1.15rem; font-weight: 600; color: var(--accent); margin-bottom: 18px; }
+        .modal-btns { display: flex; gap: 9px; justify-content: flex-end; margin-top: 18px; flex-wrap: wrap; }
+
+        /* ── Report View ── */
+        .report-view { display: none; }
+        .report-view.active { display: block; }
+        .rpt-hdr { background: linear-gradient(145deg, #252525, #1e1e1e); border: 1px solid rgba(13,202,240,0.28); border-radius: 12px; padding: 26px; margin-bottom: 18px; text-align: center; }
+        .rpt-hdr .biz-sub { font-size: 0.83rem; color: var(--muted); margin-bottom: 5px; }
+        .rpt-hdr h2 { font-family: 'Outfit', sans-serif; font-size: 1.7rem; color: var(--accent); font-weight: 700; }
+        .rpt-hdr .rpt-ref { font-size: 0.88rem; color: var(--muted); margin-top: 5px; }
+
+        .rpt-meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 13px; margin-bottom: 18px; }
+        .meta-tile { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 13px 15px; text-align: center; }
+        .meta-tile .lbl { font-size: 0.72rem; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
+        .meta-tile .val { font-weight: 600; color: var(--text); font-size: 0.9rem; }
+
+        .rpt-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 11px; margin-bottom: 18px; }
+        .rpt-stat { border-radius: 8px; padding: 14px; text-align: center; font-weight: 700; }
+        .rpt-stat .num { font-family: 'Outfit', sans-serif; font-size: 1.9rem; }
+        .rpt-stat .lbl { font-size: 0.72rem; text-transform: uppercase; margin-top: 3px; }
+        .rpt-stat.s-pass { background: rgba(46,204,113,0.13); border: 1px solid rgba(46,204,113,0.28); color: var(--success); }
+        .rpt-stat.s-fail { background: rgba(231,76,60,0.13);  border: 1px solid rgba(231,76,60,0.28);  color: var(--danger); }
+        .rpt-stat.s-fix  { background: rgba(241,196,15,0.11); border: 1px solid rgba(241,196,15,0.28); color: var(--warning); }
+        .rpt-stat.s-rep  { background: rgba(254,127,45,0.11); border: 1px solid rgba(254,127,45,0.28); color: var(--orange); }
+        .rpt-stat.s-oou  { background: rgba(160,160,160,0.11); border: 1px solid rgba(160,160,160,0.28); color: #aaa; }
+
+        /* ── Divider ── */
+        .divider { height: 1px; background: var(--border); margin: 18px 0; }
+
+        /* ════════════════════════════════
+           RESPONSIVE — Tablet & Mobile
+           ════════════════════════════════ */
+
+        /* Tablet: 841px – 1024px */
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2,1fr); }
+        }
+
+        /* Tablet: ≤ 840px */
+        @media (max-width: 840px) {
+            .stats-grid { grid-template-columns: repeat(2,1fr); }
+            .rpt-stats  { grid-template-columns: repeat(3,1fr); } /* 3+2 wrap */
+            .biz-grid   { grid-template-columns: 1fr; }
+            .module-header { padding: 18px 20px; gap: 14px; }
+            .module-header h1 { font-size: 1.5rem; }
+
+            /* Inspection table: hide make/model, SWL, photo on tablet */
+            .insp-tbl th:nth-child(2), .insp-tbl td:nth-child(2),
+            .insp-tbl th:nth-child(4), .insp-tbl td:nth-child(4),
+            .insp-tbl th:nth-child(8), .insp-tbl td:nth-child(8) { display: none; }
+
+            /* Report table: hide make/model, SWL on tablet */
+            #rptTbl th:nth-child(2), #rptTbl td:nth-child(2),
+            #rptTbl th:nth-child(4), #rptTbl td:nth-child(4) { display: none; }
+        }
+
+        /* Mobile: ≤ 600px */
+        @media (max-width: 600px) {
+            .main { padding: 62px 10px 30px; }
+            .module-header { padding: 14px 16px; gap: 12px; border-left-width: 3px; }
+            .module-header h1 { font-size: 1.25rem; }
+            .module-header p { display: none; } /* hide subtitle to save space */
+            .module-icon { width: 40px; height: 40px; font-size: 0.68rem; border-radius: 8px; }
+
+            .tab-strip { padding: 4px; }
+            .tab-btn { min-width: 72px; font-size: 0.77rem; padding: 8px 9px; }
+
+            .card { padding: 14px; }
+            .card-title { font-size: 0.92rem; }
+            .form-grid { grid-template-columns: 1fr; }
+
+            .stats-grid { grid-template-columns: repeat(2,1fr); gap: 10px; }
+            .stat-tile .num { font-size: 1.8rem; }
+            .rpt-stats { grid-template-columns: repeat(2,1fr); gap: 9px; }
+            .rpt-meta-grid { grid-template-columns: repeat(2,1fr); }
+
+            /* Inspection table mobile: keep Type, Ref, Status, Notes, Remove */
+            .insp-tbl th:nth-child(2), .insp-tbl td:nth-child(2),
+            .insp-tbl th:nth-child(4), .insp-tbl td:nth-child(4),
+            .insp-tbl th:nth-child(5), .insp-tbl td:nth-child(5),
+            .insp-tbl th:nth-child(8), .insp-tbl td:nth-child(8) { display: none; }
+
+            /* Reduce type select and status select size */
+            .insp-tbl td select, .insp-tbl td input { font-size: 0.8rem; padding: 5px 7px; }
+
+            /* Report table mobile: keep Equipment, Ref, Status, Notes/Defects */
+            #rptTbl th:nth-child(2), #rptTbl td:nth-child(2),
+            #rptTbl th:nth-child(4), #rptTbl td:nth-child(4),
+            #rptTbl th:nth-child(5), #rptTbl td:nth-child(5) { display: none; }
+
+            /* Asset register table: hide make, installed on mobile */
+            #assetPanel table th:nth-child(2), #assetPanel table td:nth-child(2),
+            #assetPanel table th:nth-child(6), #assetPanel table td:nth-child(6) { display: none; }
+
+            /* Filter bar */
+            .insp-filter { padding: 6px 10px; }
+            .insp-filter input { font-size: 0.84rem; }
+
+            /* Report action buttons: stack on mobile */
+            .report-view > div:first-child { gap: 7px; }
+            .report-view > div:first-child .btn { flex: 1 1 calc(50% - 4px); justify-content: center; }
+
+            /* Business cards */
+            .biz-grid { grid-template-columns: 1fr; }
+
+            /* OOU notice */
+            .oou-notice { padding: 14px; }
+            .oou-notice-item { padding: 8px 11px; }
+        }
+
+        /* Very small: ≤ 380px */
+        @media (max-width: 380px) {
+            .tab-btn { min-width: 62px; font-size: 0.72rem; padding: 7px 7px; }
+            .module-header h1 { font-size: 1.1rem; }
+            .stat-tile .num { font-size: 1.6rem; }
+        }
+        @media print {
+            .nav-strip, .tab-strip, .btn, .biz-actions { display: none !important; }
+            body { background: #fff !important; color: #000 !important; padding: 0; }
+            .card { box-shadow: none !important; border: 1px solid #ccc !important; }
+            .rpt-hdr { background: #fff !important; border: 2px solid #0aa8cc !important; }
+            .main { padding: 10px !important; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── Nav Strip ── -->
+<div class="nav-strip">
+    <button class="nav-back" onclick="returnToSafeSystems()">← Back</button>
+    <div class="nav-title">loler<em>safe.pro</em></div>
+    <div class="nav-conn">
+        <div class="conn-dot" id="connDot"></div>
+        <span id="connLabel">Connecting…</span>
+    </div>
+</div>
+
+<!-- ── Toast Area ── -->
+<div class="toast-area" id="toastArea"></div>
+
+<!-- ── Send Report Modal ── -->
+<div class="overlay" id="modalSend">
+    <div class="modal-box">
+        <h3>Send Inspection Report</h3>
+        <div class="form-group" style="margin-bottom:13px;">
+            <label>Recipient Email <span class="req">*</span></label>
+            <input type="email" id="sendEmail" placeholder="recipient@example.com">
+        </div>
+        <div class="form-group" style="margin-bottom:13px;">
+            <label>Additional Note (optional)</label>
+            <textarea id="sendNote" placeholder="Add a note to accompany the report…" style="min-height:68px;"></textarea>
+        </div>
+        <p style="font-size:0.78rem; color:var(--muted);">Opens your email client with the report summary pre-filled. For automated HTML delivery, connect SafeNotify.PRO.</p>
+        <div class="modal-btns">
+            <button class="btn btn-ghost" onclick="closeModal('modalSend')">Cancel</button>
+            <button class="btn btn-accent" onclick="doSendReport()">Open Email Client</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Delete Business Confirm ── -->
+<div class="overlay" id="modalDelBiz">
+    <div class="modal-box">
+        <h3>⚠ Delete Business</h3>
+        <p style="color:var(--muted); margin-bottom:14px; font-size:0.9rem;">Delete this business record? Associated assets and inspections will remain in the database but will become unlinked.</p>
+        <div class="modal-btns">
+            <button class="btn btn-ghost" onclick="closeModal('modalDelBiz')">Cancel</button>
+            <button class="btn btn-danger" onclick="confirmDelBiz()">Delete Business</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Delete Asset Confirm ── -->
+<div class="overlay" id="modalDelAsset">
+    <div class="modal-box">
+        <h3>⚠ Remove Equipment</h3>
+        <p style="color:var(--muted); margin-bottom:14px; font-size:0.9rem;">Remove this item from the asset register? Historical inspection records referencing it will be unaffected.</p>
+        <div class="modal-btns">
+            <button class="btn btn-ghost" onclick="closeModal('modalDelAsset')">Cancel</button>
+            <button class="btn btn-danger" onclick="confirmDelAsset()">Remove Asset</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Mark Asset OOU ── -->
+<div class="overlay" id="modalOou">
+    <div class="modal-box">
+        <h3>Mark as Out of Use</h3>
+        <p style="color:var(--muted); margin-bottom:16px; font-size:0.88rem;">This item will be flagged OOU in the asset register and will appear on future inspection reports as withdrawn from service.</p>
+        <input type="hidden" id="oouAssetId">
+        <div class="form-group" style="margin-bottom:13px;">
+            <label>Reason for Withdrawal <span class="req">*</span></label>
+            <select id="oouReason">
+                <option value="">Select reason…</option>
+                <option value="Withdrawn for repair">Withdrawn for repair</option>
+                <option value="Awaiting parts">Awaiting parts</option>
+                <option value="Condemned — awaiting disposal">Condemned — awaiting disposal</option>
+                <option value="Seasonal withdrawal">Seasonal withdrawal</option>
+                <option value="Damaged — under assessment">Damaged — under assessment</option>
+                <option value="Failed inspection">Failed inspection — removed from service</option>
+                <option value="Other">Other (see notes)</option>
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom:13px;">
+            <label>Additional Notes</label>
+            <input type="text" id="oouNotes" placeholder="Any further detail…">
+        </div>
+        <div class="modal-btns">
+            <button class="btn btn-ghost" onclick="closeModal('modalOou')">Cancel</button>
+            <button class="btn btn-danger" onclick="confirmMarkOou()">Mark Out of Use</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Main ── -->
+<div class="main">
+
+    <!-- Module Header -->
+    <div class="module-header">
+        <div class="module-icon" style="font-family:'Outfit',sans-serif; font-size:0.8rem; font-weight:800; letter-spacing:-0.03em; color:#000;">LOLER</div>
+        <div>
+            <h1>loler<em>safe.pro</em></h1>
+            <p>Lifting Operations &amp; Equipment Regulations — Inspection &amp; Compliance Management</p>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-strip">
+        <button class="tab-btn active" onclick="switchTab('dashboard')" id="tab-dashboard">Dashboard</button>
+        <button class="tab-btn" onclick="switchTab('businesses')" id="tab-businesses">Businesses</button>
+        <button class="tab-btn" onclick="switchTab('assets')" id="tab-assets">Assets</button>
+        <button class="tab-btn" onclick="switchTab('inspect')" id="tab-inspect">Inspect</button>
+        <button class="tab-btn" onclick="switchTab('history')" id="tab-history">History</button>
+    </div>
+
+    <!-- ═══════════ DASHBOARD ═══════════ -->
+    <div class="panel active" id="panel-dashboard">
+
+        <div class="stats-grid">
+            <div class="stat-tile">
+                <div class="num" id="sDashBiz">—</div>
+                <div class="lbl">Businesses</div>
+            </div>
+            <div class="stat-tile">
+                <div class="num" id="sDashAssets">—</div>
+                <div class="lbl">Registered Assets</div>
+            </div>
+            <div class="stat-tile">
+                <div class="num" id="sDashInsp">—</div>
+                <div class="lbl">Inspections (30d)</div>
+            </div>
+            <div class="stat-tile s-danger">
+                <div class="num" id="sDashAttn">—</div>
+                <div class="lbl">Require Attention</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Recent Inspections</div>
+            <div id="dashRecent"><div class="empty"><p>No inspections recorded yet</p></div></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title danger">⚠ Assets Requiring Attention</div>
+            <div id="dashAttn"><div class="empty"><p>✓ All clear — no outstanding issues</p></div></div>
+        </div>
+
+    </div><!-- /dashboard -->
+
+    <!-- ═══════════ BUSINESSES ═══════════ -->
+    <div class="panel" id="panel-businesses">
+
+        <div class="card">
+            <div class="card-title">Register a Business</div>
+            <input type="hidden" id="editBizId">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Business / Client Name <span class="req">*</span></label>
+                    <input type="text" id="bizName" placeholder="e.g. Acme Facilities Ltd">
+                </div>
+                <div class="form-group">
+                    <label>Site Address</label>
+                    <input type="text" id="bizAddress" placeholder="Postal / site address">
+                </div>
+                <div class="form-group">
+                    <label>Primary Contact Name</label>
+                    <input type="text" id="bizContact" placeholder="Contact name">
+                </div>
+                <div class="form-group">
+                    <label>Contact Email</label>
+                    <input type="email" id="bizEmail" placeholder="contact@company.com">
+                </div>
+                <div class="form-group">
+                    <label>Telephone</label>
+                    <input type="text" id="bizPhone" placeholder="Contact number">
+                </div>
+                <div class="form-group">
+                    <label>Industry / Sector</label>
+                    <input type="text" id="bizSector" placeholder="e.g. Holiday Parks, Logistics">
+                </div>
+            </div>
+            <div style="margin-top:15px; display:flex; gap:9px; flex-wrap:wrap;">
+                <button class="btn btn-primary" onclick="saveBusiness()" id="saveBizBtn">Save Business</button>
+                <button class="btn btn-ghost" onclick="cancelBizEdit()">Clear / Cancel</button>
+            </div>
+        </div>
+
+        <div class="sec-hdr">
+            <h2>Registered Businesses</h2>
+            <span id="bizCountLbl" style="color:var(--muted); font-size:0.83rem;"></span>
+        </div>
+        <div id="bizList"><div class="empty"><p>No businesses registered yet</p></div></div>
+
+    </div><!-- /businesses -->
+
+    <!-- ═══════════ ASSETS ═══════════ -->
+    <div class="panel" id="panel-assets">
+
+        <div class="card">
+            <div class="form-group" style="max-width:340px; margin-bottom:0;">
+                <label>Select Business</label>
+                <select id="assetBizSel" onchange="loadAssets(this.value)">
+                    <option value="">— Choose a business —</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="assetFormWrap" style="display:none;">
+            <div class="card">
+                <div class="card-title" id="assetFormTitle">Add Equipment to Register</div>
+                <input type="hidden" id="editAssetId">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Equipment Type <span class="req">*</span></label>
+                        <select id="assetType">
+                            <option value="">Select type…</option>
+                            <option>Mobile Crane</option>
+                            <option>Tower Crane</option>
+                            <option>Overhead / Gantry Crane</option>
+                            <option>Chain Hoist</option>
+                            <option>Wire Rope Hoist</option>
+                            <option>Electric Hoist</option>
+                            <option>Forklift / Lift Truck</option>
+                            <option>MEWP / Cherry Picker</option>
+                            <option>Scissor Lift</option>
+                            <option>Passenger Lift</option>
+                            <option>Goods Lift</option>
+                            <option>Dumbwaiter</option>
+                            <option>Lifting Slings</option>
+                            <option>Lifting Chains</option>
+                            <option>Shackles</option>
+                            <option>Eyebolts</option>
+                            <option>Spreader Beam</option>
+                            <option>Lifting Beam</option>
+                            <option>Crane Attachments</option>
+                            <option>Vehicle Tail Lift</option>
+                            <option>Pallet Truck (powered)</option>
+                            <option>Stacker / Reach Truck</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Manufacturer / Model <span class="req">*</span></label>
+                        <input type="text" id="assetMake" placeholder="e.g. Yale CM Series">
+                    </div>
+                    <div class="form-group">
+                        <label>Serial Number</label>
+                        <input type="text" id="assetSerial" placeholder="Manufacturer serial no.">
+                    </div>
+                    <div class="form-group">
+                        <label>SWL / WLL</label>
+                        <input type="text" id="assetSwl" placeholder="e.g. 2000 kg / 2t">
+                    </div>
+                    <div class="form-group">
+                        <label>Location / Area</label>
+                        <input type="text" id="assetLoc" placeholder="Where is this equipment kept?">
+                    </div>
+                    <div class="form-group">
+                        <label>Date of Manufacture / Install</label>
+                        <input type="date" id="assetInstalled">
+                    </div>
+                    <div class="form-group">
+                        <label>Next Inspection Due</label>
+                        <input type="date" id="assetDue">
+                    </div>
+                    <div class="form-group">
+                        <label>Asset Identifier / Colour Tag</label>
+                        <input type="text" id="assetTag" placeholder="e.g. Red sling A3, Bay 3 Hoist">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top:12px;">
+                    <label>Notes</label>
+                    <textarea id="assetNotes" placeholder="Any additional information about this equipment…"></textarea>
+                </div>
+                <div style="margin-top:14px; display:flex; gap:9px; flex-wrap:wrap;">
+                    <button class="btn btn-primary" onclick="saveAsset()">Save Equipment</button>
+                    <button class="btn btn-ghost" onclick="cancelAssetEdit()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="assetPanel">
+            <div class="empty"><p>Select a business above to view and manage its equipment register</p></div>
+        </div>
+
+    </div><!-- /assets -->
+
+    <!-- ═══════════ INSPECT ═══════════ -->
+    <div class="panel" id="panel-inspect">
+
+        <!-- Step 1: Setup -->
+        <div id="inspSetup">
+            <div class="card">
+                <div class="card-title">New LOLER Inspection</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Business <span class="req">*</span></label>
+                        <select id="inspBizSel" onchange="loadInspAssets(this.value)">
+                            <option value="">— Select business —</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Inspector Name <span class="req">*</span></label>
+                        <input type="text" id="inspName" placeholder="Full name of competent person">
+                    </div>
+                    <div class="form-group">
+                        <label>Qualification / Role</label>
+                        <input type="text" id="inspRole" placeholder="e.g. Appointed Person, LEEA Qualified">
+                    </div>
+                    <div class="form-group">
+                        <label>Inspection Date <span class="req">*</span></label>
+                        <input type="date" id="inspDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Inspection Type</label>
+                        <select id="inspType">
+                            <option value="Thorough Examination">Thorough Examination (LOLER Reg 9)</option>
+                            <option value="Pre-Use Check">Pre-Use Check</option>
+                            <option value="Interim Inspection">Interim Inspection</option>
+                            <option value="Post-Incident Inspection">Post-Incident Inspection</option>
+                            <option value="Installation Inspection">Installation / Commissioning</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Report Number</label>
+                        <input type="text" id="inspRptNum" placeholder="Auto-generated if blank">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="sec-hdr">
+                    <div class="card-title" style="margin-bottom:0;">Equipment Being Inspected</div>
+                    <div style="display:flex; gap:7px; flex-wrap:wrap;">
+                        <button class="btn btn-ghost btn-sm" onclick="markAll('passed')" title="Mark every visible item as Passed">✓ Mark All Passed</button>
+                        <button class="btn btn-ghost btn-sm" onclick="markAll('oou')" title="Mark every visible item as Out of Use">Mark All OOU</button>
+                        <button class="btn btn-ghost btn-sm" onclick="addInspRow()">+ Add Item</button>
+                    </div>
+                </div>
+                <div class="insp-filter">
+                    <span class="filter-lbl">Filter:</span>
+                    <input type="text" id="inspFilter" placeholder="Type serial no. or description…" oninput="filterInspRows(this.value)">
+                    <span id="inspFilterCount"></span>
+                    <span class="filter-clear" onclick="clearInspFilter()" title="Show all items">Clear</span>
+                </div>
+                <p id="inspLoadNote" style="color:var(--muted); font-size:0.83rem; margin-bottom:13px;">
+                    Select a business above to auto-load its registered assets, or add items manually.
+                </p>
+                <div class="table-wrap">
+                    <table class="insp-tbl">
+                        <thead>
+                            <tr>
+                                <th style="width:16%">Type</th>
+                                <th style="width:13%">Make / Model</th>
+                                <th style="width:10%">Item Ref / Serial</th>
+                                <th style="width:9%">SWL / WLL</th>
+                                <th style="width:10%">Location</th>
+                                <th style="width:10%">Status <span class="req">*</span></th>
+                                <th style="width:21%">Notes / Defects</th>
+                                <th style="width:8%">Photo</th>
+                                <th style="width:3%"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="inspTbody"></tbody>
+                    </table>
+                </div>
+                <div style="margin-top:20px; text-align:center; padding-top:6px;">
+                    <button class="btn btn-primary btn-lg" onclick="generateReport()">Generate Inspection Report</button>
+                </div>
+            </div>
+        </div><!-- /inspSetup -->
+
+        <!-- Step 2: Report View -->
+        <div class="report-view" id="inspReport">
+            <div style="display:flex; gap:9px; margin-bottom:18px; flex-wrap:wrap;">
+                <button class="btn btn-ghost" onclick="backToInspection()">← Edit Inspection</button>
+                <button class="btn btn-ghost" onclick="window.print()">Print Report</button>
+                <button class="btn btn-accent" onclick="openSendModal()">Send Report</button>
+                <button class="btn btn-ghost" onclick="genCombinedCert()" style="border-color:rgba(13,202,240,0.4); color:var(--accent);">Combined Location Certificate</button>
+                <button class="btn btn-primary" onclick="startNew()">New Inspection</button>
+            </div>
+
+            <div class="rpt-hdr">
+                <div class="biz-sub" id="rptBizName"></div>
+                <h2>LOLER Inspection Report</h2>
+                <div class="rpt-ref" id="rptRef"></div>
+            </div>
+
+            <div class="rpt-meta-grid" id="rptMeta"></div>
+            <div class="rpt-stats" id="rptStats" style="grid-template-columns:repeat(5,1fr);"></div>
+
+            <div class="card">
+                <div class="table-wrap">
+                    <table id="rptTbl">
+                        <thead>
+                            <tr>
+                                <th>Equipment</th>
+                                <th>Make / Model</th>
+                                <th>Item Ref / Serial</th>
+                                <th>SWL / WLL</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                                <th>Notes / Defects / Reason</th>
+                                <th>Certificate</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rptTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- OOU Notice — only shown when items are placed OOU -->
+            <div class="oou-notice" id="rptOouSection" style="display:none;">
+                <div class="card-title">Notice of Withdrawal from Service</div>
+                <p style="font-size:0.84rem; color:var(--muted); margin-bottom:14px;">
+                    The following items have been placed Out of Use during this inspection and must not be used until
+                    the stated condition has been resolved or the item has been formally disposed of.
+                </p>
+                <div id="rptOouItems"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Certification &amp; Signature</div>
+                <p style="font-size:0.86rem; color:var(--muted); margin-bottom:16px;">
+                    I confirm that this examination has been carried out in accordance with the Lifting Operations and
+                    Lifting Equipment Regulations 1998 (LOLER) and that the information recorded is accurate to the
+                    best of my knowledge and belief.
+                </p>
+                <div class="form-grid" style="margin-bottom:18px;">
+                    <div>
+                        <div style="font-size:0.74rem; color:var(--muted); margin-bottom:3px; text-transform:uppercase; letter-spacing:0.4px;">Inspector</div>
+                        <div id="rptSigName" style="font-weight:600;"></div>
+                    </div>
+                    <div>
+                        <div style="font-size:0.74rem; color:var(--muted); margin-bottom:3px; text-transform:uppercase; letter-spacing:0.4px;">Date</div>
+                        <div id="rptSigDate" style="font-weight:600;"></div>
+                    </div>
+                    <div>
+                        <div style="font-size:0.74rem; color:var(--muted); margin-bottom:3px; text-transform:uppercase; letter-spacing:0.4px;">Qualification</div>
+                        <div id="rptSigRole" style="font-weight:600; color:var(--muted);"></div>
+                    </div>
+                </div>
+                <div style="font-size:0.74rem; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Signature — draw below (mouse or finger)</div>
+                <canvas id="rptSigCanvas" width="900" height="110"
+                    style="border:1px solid rgba(255,255,255,0.15); border-radius:6px; background:rgba(255,255,255,0.04);
+                           cursor:crosshair; width:100%; height:110px; display:block; touch-action:none;"></canvas>
+                <div style="display:flex; gap:9px; margin-top:9px;">
+                    <button class="btn btn-ghost btn-sm" onclick="clearRptSig()">Clear Signature</button>
+                    <span style="font-size:0.78rem; color:var(--muted); align-self:center;">Signature is embedded in each certificate when you click View Cert</span>
+                </div>
+            </div>
+        </div><!-- /inspReport -->
+
+    </div><!-- /inspect -->
+
+    <!-- ═══════════ HISTORY ═══════════ -->
+    <div class="panel" id="panel-history">
+
+        <div class="card">
+            <div style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+                <div class="form-group" style="flex:1; min-width:190px; margin-bottom:0;">
+                    <label>Filter by Business</label>
+                    <select id="histBizFilter" onchange="loadHistory()">
+                        <option value="">All Businesses</option>
+                    </select>
+                </div>
+                <button class="btn btn-ghost" onclick="loadHistory()">↻ Refresh</button>
+            </div>
+        </div>
+
+        <div id="histList"><div class="empty"><p>No inspection records found</p></div></div>
+
+    </div><!-- /history -->
+
+</div><!-- .main -->
+
+<!-- ════════════════════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════════════════════ -->
+<script>
+
+// ── State ─────────────────────────────────────────────────────────
+let db             = null;
+let dbReady        = false;
+let bizCache       = [];   // [{id, name, …}]
+let rowIdx         = 0;
+let currentRpt     = null;
+let pendingDelBiz  = null;
+let pendingDelAsset = null;
+
+const COL = {
+    BIZ:   'lolerBusinesses',
+    ASSET: 'lolerAssets',
+    INSP:  'lolerInspections'
+};
+
+// ── Firebase Ready ─────────────────────────────────────────────────
+window.addEventListener('firebaseReady', function() {
+    db = window.firebaseDb;
+    dbReady = true;
+    setConn(true);
+    initApp();
+});
+
+// Fallback
+setTimeout(function() {
+    if (!dbReady && window.firebaseDb) {
+        db = window.firebaseDb;
+        dbReady = true;
+        setConn(true);
+        initApp();
+    }
+}, 1800);
+
+function setConn(live) {
+    document.getElementById('connDot').classList.toggle('live', live);
+    document.getElementById('connLabel').textContent = live ? 'Live' : 'Offline';
+}
+
+function initApp() {
+    loadDashboard();
+    refreshBizDropdowns();
+}
+
+// ── Auth (session-storage first, mirrors maintenance.html) ─────────
+(function initAuth() {
+    const sUser = sessionStorage.getItem('currentUser');
+    const sCode = sessionStorage.getItem('currentAccessCode');
+    if (sUser && sCode) {
+        document.getElementById('inspName').value = sUser;
+        return;
+    }
+    if (window.SafeParkAuth && window.SafeParkAuth.requireAuth) {
+        if (!window.SafeParkAuth.requireAuth()) return;
+        const u = window.SafeParkAuth.getCurrentUser();
+        if (u && u.name) document.getElementById('inspName').value = u.name;
+    }
+})();
+
+// ── Back-button sentinel ──────────────────────────────────────────
+history.replaceState({ __sentinel: true }, '', location.href);
+history.pushState({ section: 'dashboard' }, '', '#dashboard');
+
+window.addEventListener('popstate', function(e) {
+    if (e.state && e.state.section) {
+        switchTab(e.state.section, true);
+    } else {
+        history.pushState({ __sentinel: true }, '', location.href);
+        returnToSafeSystems();
+    }
+});
+
+function returnToSafeSystems() {
+    try {
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'CLOSE_MODULE' }, '*');
+        } else {
+            window.location.href = 'index.html';
+        }
+    } catch(e) { window.location.href = 'index.html'; }
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────
+function switchTab(tab, fromPop) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-' + tab).classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+    if (!fromPop) history.pushState({ section: tab }, '', '#' + tab);
+    if (tab === 'dashboard')  loadDashboard();
+    if (tab === 'businesses') loadBizList();
+    if (tab === 'assets')     refreshBizDropdowns();
+    if (tab === 'inspect')    refreshBizDropdowns();
+    if (tab === 'history')    { refreshBizDropdowns(); loadHistory(); }
+}
+
+// ── Toast ─────────────────────────────────────────────────────────
+function toast(msg, type) {
+    const t = document.createElement('div');
+    t.className = 'toast ' + (type === 'error' ? 'err' : type === 'warning' ? 'warn' : 'ok');
+    t.textContent = msg;
+    document.getElementById('toastArea').appendChild(t);
+    setTimeout(() => t.remove(), 4200);
+}
+
+// ── Modals ────────────────────────────────────────────────────────
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function openSendModal() { document.getElementById('modalSend').classList.add('open'); }
+
+// ── DASHBOARD ─────────────────────────────────────────────────────
+async function loadDashboard() {
+    if (!db) return;
+
+    db.collection(COL.BIZ).get()
+      .then(s => { document.getElementById('sDashBiz').textContent = s.size; });
+
+    db.collection(COL.ASSET).get()
+      .then(s => { document.getElementById('sDashAssets').textContent = s.size; });
+
+    // Recent inspections
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+    db.collection(COL.INSP).orderBy('savedAt', 'desc').limit(20).get()
+      .then(snap => {
+          const recent = snap.docs.filter(d => {
+              const sa = d.data().savedAt;
+              return sa && sa.toDate && sa.toDate() >= cutoff;
+          });
+          document.getElementById('sDashInsp').textContent = recent.length;
+          renderDashRecent(snap.docs.slice(0, 8));
+      }).catch(() => {
+          document.getElementById('sDashInsp').textContent = '—';
+      });
+
+    // Attention items
+    db.collection(COL.ASSET).where('lastStatus', 'in', ['failed','replace','fixable']).get()
+      .then(snap => {
+          document.getElementById('sDashAttn').textContent = snap.size;
+          renderDashAttn(snap.docs);
+      }).catch(() => {
+          document.getElementById('sDashAttn').textContent = '—';
+      });
+}
+
+function renderDashRecent(docs) {
+    const el = document.getElementById('dashRecent');
+    if (!docs.length) { el.innerHTML = '<div class="empty"><p>No inspections yet</p></div>'; return; }
+    el.innerHTML = wrap(tHead(['Date','Business','Type','Report No.','Inspector','Outcome']) +
+        docs.map(d => {
+            const r = d.data();
+            return tRow([
+                r.date ? new Date(r.date).toLocaleDateString('en-GB') : '—',
+                r.businessName || '—',
+                r.inspType || '—',
+                r.rptNum || '—',
+                r.inspector || '—',
+                badge(r.overallStatus)
+            ]);
+        }).join(''));
+}
+
+function renderDashAttn(docs) {
+    const el = document.getElementById('dashAttn');
+    if (!docs.length) { el.innerHTML = '<div class="empty"><p>✓ All clear — no outstanding issues</p></div>'; return; }
+    el.innerHTML = wrap(tHead(['Business','Equipment','Serial No.','Location','Last Status']) +
+        docs.map(d => {
+            const a = d.data();
+            return tRow([a.businessName||'—', a.type||'—', a.serial||'—', a.location||'—', badge(a.lastStatus)]);
+        }).join(''));
+}
+
+// ── BUSINESSES ────────────────────────────────────────────────────
+async function saveBusiness() {
+    if (!db) { toast('Not connected to database', 'error'); return; }
+    const name = v('bizName');
+    if (!name) { toast('Business name is required', 'error'); return; }
+
+    const editId = v('editBizId');
+    const data = {
+        name,
+        address:      v('bizAddress'),
+        contactName:  v('bizContact'),
+        contactEmail: v('bizEmail'),
+        phone:        v('bizPhone'),
+        sector:       v('bizSector'),
+        updatedAt:    firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    const btn = document.getElementById('saveBizBtn');
+    btn.disabled = true;
+    try {
+        if (editId) {
+            await db.collection(COL.BIZ).doc(editId).update(data);
+            toast('Business updated', 'success');
+        } else {
+            data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+            await db.collection(COL.BIZ).add(data);
+            toast(`"${name}" registered`, 'success');
+        }
+        cancelBizEdit();
+        loadBizList();
+        refreshBizDropdowns();
+    } catch(e) {
+        toast('Error: ' + e.message, 'error');
+    }
+    btn.disabled = false;
+}
+
+function cancelBizEdit() {
+    ['editBizId','bizName','bizAddress','bizContact','bizEmail','bizPhone','bizSector']
+      .forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('saveBizBtn').textContent = 'Save Business';
+}
+
+async function loadBizList() {
+    if (!db) return;
+    const el = document.getElementById('bizList');
+    el.innerHTML = '<div class="empty"><p>Loading…</p></div>';
+
+    const snap = await db.collection(COL.BIZ).orderBy('name').get().catch(() => null);
+    if (!snap || snap.empty) {
+        el.innerHTML = '<div class="empty"><p>No businesses registered yet</p></div>';
+        document.getElementById('bizCountLbl').textContent = '';
+        return;
+    }
+    document.getElementById('bizCountLbl').textContent = snap.size + ' registered';
+
+    el.innerHTML = `<div class="biz-grid">${snap.docs.map(doc => {
+        const b = doc.data();
+        const meta = [b.address, b.contactName, b.contactEmail, b.sector].filter(Boolean).join('  ·  ');
+        return `<div class="biz-card">
+            <div class="biz-name">${esc(b.name)}</div>
+            <div class="biz-meta">${esc(meta) || '<em>No additional details</em>'}</div>
+            <div class="biz-actions">
+                <button class="btn btn-ghost btn-sm" onclick="gotoAssets('${doc.id}')">View Assets</button>
+                <button class="btn btn-ghost btn-sm" onclick="editBiz('${doc.id}')">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="promptDelBiz('${doc.id}')">Delete</button>
+            </div>
+        </div>`;
+    }).join('')}</div>`;
+}
+
+function gotoAssets(bizId) {
+    switchTab('assets');
+    setTimeout(() => {
+        const sel = document.getElementById('assetBizSel');
+        sel.value = bizId;
+        loadAssets(bizId);
+    }, 50);
+}
+
+async function editBiz(id) {
+    const doc = await db.collection(COL.BIZ).doc(id).get().catch(() => null);
+    if (!doc || !doc.exists) return;
+    const b = doc.data();
+    document.getElementById('editBizId').value = id;
+    document.getElementById('bizName').value    = b.name || '';
+    document.getElementById('bizAddress').value = b.address || '';
+    document.getElementById('bizContact').value = b.contactName || '';
+    document.getElementById('bizEmail').value   = b.contactEmail || '';
+    document.getElementById('bizPhone').value   = b.phone || '';
+    document.getElementById('bizSector').value  = b.sector || '';
+    document.getElementById('saveBizBtn').textContent = 'Update Business';
+    document.getElementById('bizName').scrollIntoView({ behavior: 'smooth' });
+}
+
+function promptDelBiz(id)     { pendingDelBiz = id; document.getElementById('modalDelBiz').classList.add('open'); }
+async function confirmDelBiz() {
+    if (!pendingDelBiz) return;
+    await db.collection(COL.BIZ).doc(pendingDelBiz).delete().catch(() => {});
+    toast('Business deleted', 'success');
+    closeModal('modalDelBiz');
+    pendingDelBiz = null;
+    loadBizList(); refreshBizDropdowns();
+}
+
+// ── ASSETS ────────────────────────────────────────────────────────
+
+// Auto-generate a unique item reference for new assets with no serial
+function autoRef() {
+    const n = new Date();
+    const yy = String(n.getFullYear()).slice(-2);
+    const mm = String(n.getMonth()+1).padStart(2,'0');
+    const dd = String(n.getDate()).padStart(2,'0');
+    const rand = Math.random().toString(36).substr(2,4).toUpperCase();
+    return `LOL-${yy}${mm}${dd}-${rand}`;
+}
+
+async function loadAssets(bizId) {
+    const wrap = document.getElementById('assetFormWrap');
+    const panel = document.getElementById('assetPanel');
+
+    if (!bizId) {
+        wrap.style.display = 'none';
+        panel.innerHTML = '<div class="empty"><p>Select a business to view its equipment register</p></div>';
+        return;
+    }
+    wrap.style.display = 'block';
+    cancelAssetEdit();
+    panel.innerHTML = '<div class="empty"><p>Loading assets…</p></div>';
+
+    const snap = await db.collection(COL.ASSET)
+        .where('businessId', '==', bizId).get().catch(() => null);
+
+    const biz = bizCache.find(b => b.id === bizId);
+    const bizName = biz ? biz.name : '';
+
+    if (!snap || snap.empty) {
+        panel.innerHTML = `<div class="empty"><p>No equipment registered for ${esc(bizName)} yet. Add items above.</p></div>`;
+        return;
+    }
+
+    panel.innerHTML = `
+        <div class="sec-hdr">
+            <h2>Asset Register — ${esc(bizName)}</h2>
+            <span style="color:var(--muted); font-size:0.83rem;">${snap.size} item${snap.size !== 1 ? 's' : ''}</span>
+        </div>
+        ${wrap_(tHead(['Type','Make / Model','Serial No.','SWL / WLL','Location','Next Inspection','Last Status','Actions']) +
+        snap.docs.map(doc => {
+            const a = doc.data();
+            const due   = a.nextDue ? new Date(a.nextDue).toLocaleDateString('en-GB') : '—';
+            const isDue = a.nextDue && new Date(a.nextDue) <= new Date();
+            const serialDisplay = a.serial
+                ? (a.autoRef
+                    ? `${esc(a.serial)} <span style="font-size:0.7rem;color:#888;font-style:italic;">(auto-ref)</span>`
+                    : esc(a.serial))
+                : '<span style="color:var(--muted)">—</span>';
+            const dueCell = isDue ? `<span style="color:var(--danger)">${due} ⚠</span>` : due;
+            const statusCell = a.oouStatus
+                ? `<span class="badge b-oou">OUT OF USE</span><div style="font-size:0.75rem;color:#888;margin-top:3px;">${esc(a.oouReason||'')}</div>`
+                : a.lastStatus ? badge(a.lastStatus) : '<span style="color:var(--muted); font-size:0.8rem;">Not inspected</span>';
+            return `<tr>
+                <td>${esc(a.type||'—')}</td>
+                <td>${esc(a.make||'—')}</td>
+                <td>${serialDisplay}</td>
+                <td>${esc(a.swl||'—')}</td>
+                <td>${esc(a.location||'—')}</td>
+                <td>${dueCell}</td>
+                <td>${statusCell}</td>
+                <td style="white-space:nowrap;">
+                    <button class="btn btn-ghost btn-sm" onclick="editAsset('${doc.id}')">Edit</button>
+                    ${a.oouStatus
+                        ? `<button class="btn btn-ghost btn-sm" onclick="clearAssetOou('${doc.id}')" style="color:var(--success);">Reinstate</button>`
+                        : `<button class="btn btn-ghost btn-sm" onclick="openOouModal('${doc.id}')" style="color:#aaa;">Mark OOU</button>`
+                    }
+                    <button class="btn btn-danger btn-sm" onclick="promptDelAsset('${doc.id}')">Del</button>
+                </td>
+            </tr>`;
+        }).join(''))}`;
+}
+
+async function saveAsset() {
+    if (!db) { toast('Not connected', 'error'); return; }
+    const bizId = document.getElementById('assetBizSel').value;
+    if (!bizId) { toast('Select a business first', 'error'); return; }
+    const type = document.getElementById('assetType').value;
+    const make = v('assetMake');
+    if (!type || !make) { toast('Equipment type and make/model are required', 'error'); return; }
+
+    const biz = bizCache.find(b => b.id === bizId);
+    const editId = v('editAssetId');
+    let serial = v('assetSerial');
+    let isAutoRef = false;
+
+    // Auto-assign a reference if this is a new item with no serial
+    if (!serial && !editId) {
+        serial   = autoRef();
+        isAutoRef = true;
+        document.getElementById('assetSerial').value = serial;
+    }
+
+    const data = {
+        businessId:   bizId,
+        businessName: biz ? biz.name : '',
+        type,
+        make,
+        serial,
+        autoRef:   isAutoRef,        // flag so we know this was system-generated
+        swl:       v('assetSwl'),
+        location:  v('assetLoc'),
+        installed: v('assetInstalled'),
+        nextDue:   v('assetDue'),
+        tag:       v('assetTag'),
+        notes:     v('assetNotes'),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    try {
+        if (editId) {
+            await db.collection(COL.ASSET).doc(editId).update(data);
+            toast('Equipment updated', 'success');
+        } else {
+            data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+            await db.collection(COL.ASSET).add(data);
+            toast(isAutoRef
+                ? `Equipment added — item ref auto-assigned: ${serial}`
+                : 'Equipment added to register', 'success');
+        }
+        cancelAssetEdit();
+        loadAssets(bizId);
+    } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function editAsset(id) {
+    const doc = await db.collection(COL.ASSET).doc(id).get().catch(() => null);
+    if (!doc || !doc.exists) return;
+    const a = doc.data();
+    document.getElementById('editAssetId').value = id;
+    document.getElementById('assetType').value   = a.type      || '';
+    document.getElementById('assetMake').value   = a.make      || '';
+    document.getElementById('assetSerial').value = a.serial    || '';
+    document.getElementById('assetSwl').value    = a.swl       || '';
+    document.getElementById('assetLoc').value    = a.location  || '';
+    document.getElementById('assetInstalled').value = a.installed || '';
+    document.getElementById('assetDue').value    = a.nextDue   || '';
+    document.getElementById('assetTag').value    = a.tag       || '';
+    document.getElementById('assetNotes').value  = a.notes     || '';
+    document.getElementById('assetFormTitle').textContent = 'Edit Equipment';
+    document.getElementById('assetFormWrap').scrollIntoView({ behavior: 'smooth' });
+}
+
+function cancelAssetEdit() {
+    ['editAssetId','assetMake','assetSerial','assetSwl','assetLoc','assetInstalled','assetDue','assetTag','assetNotes']
+      .forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('assetType').value = '';
+    document.getElementById('assetFormTitle').textContent = 'Add Equipment to Register';
+}
+
+function promptDelAsset(id)     { pendingDelAsset = id; document.getElementById('modalDelAsset').classList.add('open'); }
+async function confirmDelAsset() {
+    if (!pendingDelAsset) return;
+    await db.collection(COL.ASSET).doc(pendingDelAsset).delete().catch(() => {});
+    toast('Asset removed', 'success');
+    closeModal('modalDelAsset');
+    pendingDelAsset = null;
+    loadAssets(document.getElementById('assetBizSel').value);
+}
+
+function openOouModal(assetId) {
+    document.getElementById('oouAssetId').value = assetId;
+    document.getElementById('oouReason').value  = '';
+    document.getElementById('oouNotes').value   = '';
+    document.getElementById('modalOou').classList.add('open');
+}
+
+async function confirmMarkOou() {
+    const assetId = document.getElementById('oouAssetId').value;
+    const reason  = document.getElementById('oouReason').value;
+    const notes   = document.getElementById('oouNotes').value.trim();
+    if (!reason)  { toast('Please select a reason', 'error'); return; }
+    if (!db || !assetId) return;
+    await db.collection(COL.ASSET).doc(assetId).update({
+        oouStatus: true,
+        oouReason: reason + (notes ? ' — ' + notes : ''),
+        oouDate:   new Date().toISOString().slice(0,10),
+        lastStatus: 'oou'
+    }).catch(e => toast('Error: ' + e.message, 'error'));
+    toast('Asset marked Out of Use', 'success');
+    closeModal('modalOou');
+    loadAssets(document.getElementById('assetBizSel').value);
+}
+
+async function clearAssetOou(assetId) {
+    if (!db) return;
+    await db.collection(COL.ASSET).doc(assetId).update({
+        oouStatus: false,
+        oouReason: '',
+        oouDate:   '',
+        lastStatus: 'passed'
+    }).catch(e => toast('Error: ' + e.message, 'error'));
+    toast('Asset reinstated to service', 'success');
+    loadAssets(document.getElementById('assetBizSel').value);
+}
+
+// ── INSPECT ───────────────────────────────────────────────────────
+const STANDARD_TYPES = [
+    'Mobile Crane','Tower Crane','Overhead / Gantry Crane','Chain Hoist','Wire Rope Hoist',
+    'Electric Hoist','Forklift / Lift Truck','MEWP / Cherry Picker','Scissor Lift',
+    'Passenger Lift','Goods Lift','Dumbwaiter','Lifting Slings','Lifting Chains',
+    'Shackles','Eyebolts','Spreader Beam','Lifting Beam','Crane Attachments',
+    'Vehicle Tail Lift','Pallet Truck (powered)','Stacker / Reach Truck','Other'
+];
+
+function typeSelectHTML(r, selectedType) {
+    // Always include the asset's own type as a valid option, even if non-standard
+    const custom = selectedType && !STANDARD_TYPES.includes(selectedType)
+        ? `<option value="${esc(selectedType)}" selected>${esc(selectedType)}</option>` : '';
+    const opts = STANDARD_TYPES.map(t =>
+        `<option value="${t}"${t === selectedType ? ' selected' : ''}>${t}</option>`
+    ).join('');
+    return `<select id="it${r}" required>${custom}<option value="">Select…</option>${opts}</select>`;
+}
+
+function buildInspRowHTML(r, type, make, serial, swl, loc, assetId) {
+    return `<tr id="irow-${r}" data-asset-id="${esc(assetId)}">
+        <td>${typeSelectHTML(r, type)}</td>
+        <td><input type="text" id="im${r}" value="${esc(make)}" placeholder="Make / model"></td>
+        <td><input type="text" id="is${r}" value="${esc(serial)}" placeholder="Serial no."></td>
+        <td><input type="text" id="iw${r}" value="${esc(swl)}" placeholder="e.g. 2t"></td>
+        <td><input type="text" id="il${r}" value="${esc(loc)}" placeholder="Location"></td>
+        <td><select id="iss${r}" required onchange="colorRow(this,'${r}')">
+            <option value="">— Set —</option>
+            <option value="passed">✓ Passed</option>
+            <option value="failed">✗ Failed</option>
+            <option value="fixable">Can Fix</option>
+            <option value="replace">Replace</option>
+            <option value="oou">Out of Use (OOU)</option>
+        </select></td>
+        <td>
+            <input type="text" id="in${r}" placeholder="Defects / observations">
+            <div class="oou-reason-wrap" id="oouWrap${r}">
+                <select id="oouR${r}" style="width:100%; margin-top:5px; font-size:0.8rem; padding:4px 8px; border-radius:4px; border-color:rgba(160,160,160,0.4); background:var(--bg-input); color:var(--text);">
+                    <option value="">Select OOU reason…</option>
+                    <option>Withdrawn for repair</option>
+                    <option>Awaiting parts</option>
+                    <option>Condemned — awaiting disposal</option>
+                    <option>Seasonal withdrawal</option>
+                    <option>Damaged — under assessment</option>
+                    <option>Failed inspection — removed from service</option>
+                    <option>Other (see notes)</option>
+                </select>
+            </div>
+        </td>
+        <td><input type="file" id="if${r}" accept="image/*" style="width:80px;"></td>
+        <td><button type="button" class="btn btn-danger btn-sm" onclick="document.getElementById('irow-${r}').remove(); updateFilterCount()">×</button></td>
+    </tr>`;
+}
+
+async function loadInspAssets(bizId) {
+    const tbody = document.getElementById('inspTbody');
+    const note  = document.getElementById('inspLoadNote');
+    tbody.innerHTML = '';
+    rowIdx = 0;
+
+    if (!bizId) {
+        note.textContent = 'Select a business to auto-load its registered assets, or add items manually.';
+        return;
+    }
+
+    note.textContent = 'Loading assets…';
+
+    // No orderBy — avoids needing a composite Firestore index. Sort client-side.
+    const snap = await db.collection(COL.ASSET)
+        .where('businessId', '==', bizId).get().catch(() => null);
+
+    if (!snap || snap.empty) {
+        note.textContent = 'No registered assets for this business. Add items manually below.';
+        addInspRow();
+        return;
+    }
+
+    // Sort by serial number (numeric-aware) client-side
+    const docs = snap.docs.slice().sort((a, b) => {
+        const sa = a.data().serial || '', sb = b.data().serial || '';
+        return sa.localeCompare(sb, undefined, { numeric: true, sensitivity: 'base' });
+    });
+
+    note.innerHTML = `<strong>${docs.length} assets loaded.</strong> Use <strong>Mark All Passed</strong> to set every item at once, then adjust any with defects individually.`;
+
+    // Build all rows as one HTML string — much faster than 120 individual DOM inserts
+    let html = '';
+    docs.forEach(doc => {
+        const a = doc.data();
+        rowIdx++;
+        html += buildInspRowHTML(rowIdx, a.type, a.make || '', a.serial, a.swl, a.location || '', doc.id);
+    });
+    tbody.innerHTML = html;
+}
+
+function addInspRow(type='', make='', serial='', swl='', loc='', assetId='') {
+    rowIdx++;
+    document.getElementById('inspTbody').insertAdjacentHTML(
+        'beforeend', buildInspRowHTML(rowIdx, type, make, serial, swl, loc, assetId)
+    );
+    updateFilterCount();
+}
+
+function markAll(status) {
+    // Only marks visible (non-filtered-out) rows
+    const rows = document.querySelectorAll('#inspTbody tr');
+    let count = 0;
+    rows.forEach(tr => {
+        if (tr.style.display === 'none') return;
+        const r = tr.id.replace('irow-','');
+        const sel = document.getElementById('iss' + r);
+        if (sel) { sel.value = status; colorRow(sel, r); count++; }
+    });
+    const label = { passed:'Passed', oou:'Out of Use', failed:'Failed', fixable:'Can Fix', replace:'Replace' };
+    toast(`${count} visible item${count !== 1 ? 's' : ''} marked as ${label[status] || status}`, 'success');
+}
+
+function filterInspRows(query) {
+    const q = query.trim().toLowerCase();
+    const rows = document.querySelectorAll('#inspTbody tr');
+    let visible = 0, total = rows.length;
+    rows.forEach(tr => {
+        if (!q) { tr.style.display = ''; visible++; return; }
+        const r   = tr.id.replace('irow-','');
+        const ser = (document.getElementById('is' + r)?.value || '').toLowerCase();
+        const typ = (document.getElementById('it' + r)?.value || '').toLowerCase();
+        const mak = (document.getElementById('im' + r)?.value || '').toLowerCase();
+        const match = ser.includes(q) || typ.includes(q) || mak.includes(q);
+        tr.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+    updateFilterCount(visible, total, !!q);
+}
+
+function clearInspFilter() {
+    document.getElementById('inspFilter').value = '';
+    filterInspRows('');
+}
+
+function updateFilterCount(visible, total, filtered) {
+    const el = document.getElementById('inspFilterCount');
+    if (!el) return;
+    if (total === undefined) {
+        const rows = document.querySelectorAll('#inspTbody tr');
+        total = rows.length;
+        visible = Array.from(rows).filter(r => r.style.display !== 'none').length;
+        filtered = !!document.getElementById('inspFilter')?.value?.trim();
+    }
+    el.textContent = filtered
+        ? `Showing ${visible} of ${total}`
+        : total > 0 ? `${total} items` : '';
+}
+
+function colorRow(sel, r) {
+    const tr = document.getElementById('irow-' + r);
+    if (!tr) return;
+    tr.className = '';
+    const map = { passed:'row-pass', failed:'row-fail', fixable:'row-fix', replace:'row-replace', oou:'row-oou' };
+    if (sel.value && map[sel.value]) tr.classList.add(map[sel.value]);
+    // Show OOU reason dropdown only when OOU selected
+    const oouWrap = document.getElementById('oouWrap' + r);
+    const notesEl = document.getElementById('in' + r);
+    if (oouWrap) {
+        oouWrap.style.display = sel.value === 'oou' ? 'block' : 'none';
+    }
+    if (notesEl) {
+        notesEl.placeholder = sel.value === 'oou'
+            ? 'Additional notes on withdrawal…'
+            : 'Defects / observations';
+    }
+}
+
+function generateReport() {
+    const bizId    = document.getElementById('inspBizSel').value;
+    const inspector = v('inspName');
+    const date     = v('inspDate');
+
+    if (!bizId)      { toast('Select a business', 'error'); return; }
+    if (!inspector)  { toast('Inspector name is required', 'error'); return; }
+    if (!date)       { toast('Inspection date is required', 'error'); return; }
+
+    const rows = Array.from(document.querySelectorAll('#inspTbody tr'));
+    if (!rows.length) { toast('Add at least one piece of equipment', 'error'); return; }
+
+    let rptNum = v('inspRptNum');
+    if (!rptNum) {
+        rptNum = 'LOL-' + new Date().getFullYear() + '-' + Date.now().toString().slice(-5);
+        document.getElementById('inspRptNum').value = rptNum;
+    }
+
+    const biz      = bizCache.find(b => b.id === bizId);
+    const bizName  = biz ? biz.name : bizId;
+    const inspType = document.getElementById('inspType').value;
+    const role     = v('inspRole');
+    const equip    = [];
+
+    for (let tr of rows) {
+        const r = tr.id.replace('irow-','');
+        const status = document.getElementById('iss' + r).value;
+        if (!status) { toast('Set a status for all items', 'error'); return; }
+        const type = document.getElementById('it' + r).value;
+        if (!type)   { toast('Set an equipment type for all items', 'error'); return; }
+        equip.push({
+            assetId:  tr.dataset.assetId || '',
+            type,
+            make:     document.getElementById('im' + r).value,
+            serial:   document.getElementById('is' + r).value,
+            swl:      document.getElementById('iw' + r).value,
+            location: document.getElementById('il' + r).value,
+            status,
+            notes:    document.getElementById('in' + r).value,
+            oouReason: status === 'oou' ? (document.getElementById('oouR' + r)?.value || '') : ''
+        });
+    }
+
+    const activeEquip = equip.filter(e => e.status !== 'oou');
+    const overallStatus =
+        activeEquip.some(e => e.status === 'failed')  ? 'failed'  :
+        activeEquip.some(e => e.status === 'replace') ? 'replace' :
+        activeEquip.some(e => e.status === 'fixable') ? 'fixable' : 'passed';
+
+    currentRpt = { bizId, businessName: bizName, inspector, role, date, rptNum, inspType, equipment: equip, overallStatus };
+
+    // Save inspection record
+    saveInspection(currentRpt);
+
+    // Batch-update all asset lastStatus records in one Firestore commit
+    updateAssetStatuses(equip, date, rptNum);
+
+    renderReport(currentRpt);
+    document.getElementById('inspSetup').style.display  = 'none';
+    document.getElementById('inspReport').classList.add('active');
+    setTimeout(initRptSigCanvas, 50); // ensure canvas is visible before init
+}
+
+async function saveInspection(data) {
+    if (!db) return;
+    try {
+        await db.collection(COL.INSP).add({ ...data, savedAt: firebase.firestore.FieldValue.serverTimestamp() });
+        toast('Inspection saved to SafeSystems.PRO', 'success');
+    } catch(e) { toast('Save error: ' + e.message, 'error'); }
+}
+
+async function updateAssetStatuses(equip, date, rptNum) {
+    if (!db) return;
+    const itemsWithId = equip.filter(e => e.assetId);
+    if (!itemsWithId.length) return;
+    // Firestore batch: up to 500 ops — safe for 120
+    const batch = db.batch();
+    itemsWithId.forEach(e => {
+        batch.update(db.collection(COL.ASSET).doc(e.assetId), {
+            lastStatus:       e.status,
+            lastInspected:    date,
+            lastReportNumber: rptNum
+        });
+    });
+    await batch.commit().catch(err => console.warn('Asset batch update:', err));
+}
+
+// ── Report signature canvas ───────────────────────────────────────
+let rptSigCtx = null;
+let rptSigDrawing = false;
+
+function initRptSigCanvas() {
+    const canvas = document.getElementById('rptSigCanvas');
+    if (!canvas || rptSigCtx) return;
+    rptSigCtx = canvas.getContext('2d');
+    rptSigCtx.strokeStyle = '#1a1a7a';
+    rptSigCtx.lineWidth   = 2.5;
+    rptSigCtx.lineCap     = 'round';
+    rptSigCtx.lineJoin    = 'round';
+
+    function pos(e) {
+        const r = canvas.getBoundingClientRect();
+        const sx = canvas.width / r.width, sy = canvas.height / r.height;
+        const cx = e.touches ? e.touches[0].clientX : e.clientX;
+        const cy = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: (cx - r.left) * sx, y: (cy - r.top) * sy };
+    }
+    canvas.addEventListener('mousedown',  e => { rptSigDrawing = true; const p = pos(e); rptSigCtx.beginPath(); rptSigCtx.moveTo(p.x, p.y); });
+    canvas.addEventListener('mousemove',  e => { if (!rptSigDrawing) return; const p = pos(e); rptSigCtx.lineTo(p.x, p.y); rptSigCtx.stroke(); });
+    canvas.addEventListener('mouseup',    () => rptSigDrawing = false);
+    canvas.addEventListener('mouseleave', () => rptSigDrawing = false);
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); rptSigDrawing = true; const p = pos(e); rptSigCtx.beginPath(); rptSigCtx.moveTo(p.x, p.y); }, { passive: false });
+    canvas.addEventListener('touchmove',  e => { e.preventDefault(); if (!rptSigDrawing) return; const p = pos(e); rptSigCtx.lineTo(p.x, p.y); rptSigCtx.stroke(); }, { passive: false });
+    canvas.addEventListener('touchend',   () => rptSigDrawing = false);
+}
+
+function clearRptSig() {
+    const canvas = document.getElementById('rptSigCanvas');
+    if (canvas && rptSigCtx) rptSigCtx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function getRptSigDataURL() {
+    const canvas = document.getElementById('rptSigCanvas');
+    return canvas ? canvas.toDataURL() : '';
+}
+
+function renderReport(d) {
+    document.getElementById('rptBizName').textContent = d.businessName;
+    document.getElementById('rptRef').textContent     = 'Report No: ' + d.rptNum;
+    document.getElementById('rptSigName').textContent = d.inspector;
+    document.getElementById('rptSigRole').textContent = d.role || 'LOLER Competent Person';
+    document.getElementById('rptSigDate').textContent = new Date(d.date).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+
+    document.getElementById('rptMeta').innerHTML = [
+        { lbl: 'Business',         val: d.businessName },
+        { lbl: 'Inspection Type',  val: d.inspType },
+        { lbl: 'Date',             val: new Date(d.date).toLocaleDateString('en-GB') },
+        { lbl: 'Inspector',        val: d.inspector + (d.role ? ' (' + d.role + ')' : '') },
+        { lbl: 'Report No.',       val: d.rptNum },
+        { lbl: 'Overall Outcome',  val: d.overallStatus.toUpperCase() }
+    ].map(m => `<div class="meta-tile"><div class="lbl">${m.lbl}</div><div class="val">${esc(m.val)}</div></div>`).join('');
+
+    const cnt = { passed:0, failed:0, fixable:0, replace:0, oou:0 };
+    d.equipment.forEach(e => { if (cnt[e.status] !== undefined) cnt[e.status]++; });
+
+    document.getElementById('rptStats').innerHTML = `
+        <div class="rpt-stat s-pass"><div class="num">${cnt.passed}</div><div class="lbl">Passed</div></div>
+        <div class="rpt-stat s-fail"><div class="num">${cnt.failed}</div><div class="lbl">Failed</div></div>
+        <div class="rpt-stat s-fix"><div class="num">${cnt.fixable}</div><div class="lbl">Can Fix</div></div>
+        <div class="rpt-stat s-rep"><div class="num">${cnt.replace}</div><div class="lbl">Replace</div></div>
+        <div class="rpt-stat s-oou"><div class="num">${cnt.oou}</div><div class="lbl">Out of Use</div></div>`;
+
+    const rowCls = { passed:'row-pass', failed:'row-fail', fixable:'row-fix', replace:'row-replace', oou:'row-oou' };
+    document.getElementById('rptTbody').innerHTML = d.equipment.map((e, idx) => {
+        const notesCell = e.status === 'oou' && e.oouReason
+            ? `<strong>OOU:</strong> ${esc(e.oouReason)}${e.notes ? '<br><span style="color:var(--muted);font-size:0.82rem;">' + esc(e.notes) + '</span>' : ''}`
+            : esc(e.notes || '—');
+        return `<tr class="${rowCls[e.status]||''}">
+            <td>${esc(e.type)}</td><td>${esc(e.make||'—')}</td><td>${esc(e.serial||'—')}</td>
+            <td>${esc(e.swl||'—')}</td><td>${esc(e.location||'—')}</td>
+            <td>${badge(e.status)}</td><td>${notesCell}</td>
+            <td>${e.status !== 'oou'
+                ? `<button class="btn btn-ghost btn-sm" onclick="genCert(${idx})" style="white-space:nowrap;">View Cert</button>`
+                : `<span style="color:var(--muted); font-size:0.78rem;">OOU — no cert</span>`
+            }</td>
+        </tr>`;
+    }).join('');
+
+    // OOU notice section
+    const oouItems = d.equipment.filter(e => e.status === 'oou');
+    const oouSection = document.getElementById('rptOouSection');
+    const oouList    = document.getElementById('rptOouItems');
+    if (oouItems.length) {
+        oouSection.style.display = 'block';
+        oouList.innerHTML = oouItems.map(e => `
+            <div class="oou-notice-item">
+                <div class="oou-item-hdr">${esc(e.type)}${e.serial ? ' — Serial: ' + esc(e.serial) : ''}${e.swl ? ' — SWL: ' + esc(e.swl) : ''}</div>
+                <div class="oou-item-reason">${e.oouReason ? esc(e.oouReason) : 'Reason not stated'}${e.notes ? ' — ' + esc(e.notes) : ''}</div>
+            </div>`).join('');
+    } else {
+        oouSection.style.display = 'none';
+    }
+}
+
+function backToInspection() {
+    document.getElementById('inspReport').classList.remove('active');
+    document.getElementById('inspSetup').style.display = 'block';
+}
+
+function startNew() {
+    document.getElementById('inspReport').classList.remove('active');
+    document.getElementById('inspSetup').style.display = 'block';
+    document.getElementById('inspTbody').innerHTML  = '';
+    document.getElementById('inspRptNum').value     = '';
+    document.getElementById('inspDate').valueAsDate = new Date();
+    rowIdx = 0; currentRpt = null;
+}
+
+// ── SEND REPORT ───────────────────────────────────────────────────
+function doSendReport() {
+    const email = v('sendEmail');
+    if (!email)     { toast('Enter a recipient email', 'error'); return; }
+    if (!currentRpt){ toast('No report loaded', 'error'); return; }
+
+    const d = currentRpt;
+    const dateStr = new Date(d.date).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+    const statusLabel = { passed:'PASSED', failed:'FAILED', fixable:'CAN FIX', replace:'REPLACE', oou:'OUT OF USE' };
+
+    const lines = d.equipment.map(e => {
+        const base = `  • ${e.type}${e.serial ? ' [' + e.serial + ']' : ''}: ${statusLabel[e.status] || e.status}`;
+        const detail = e.status === 'oou' && e.oouReason ? ` — ${e.oouReason}` : (e.notes ? ` — ${e.notes}` : '');
+        return base + detail;
+    }).join('\n');
+
+    const oouItems = d.equipment.filter(e => e.status === 'oou');
+    const oouBlock = oouItems.length ? `\nNOTICE — ITEMS OUT OF USE (${oouItems.length})\n${'─'.repeat(40)}\n` +
+        oouItems.map(e => `  ${e.type}${e.serial ? ' ['+e.serial+']' : ''}: ${e.oouReason || 'Reason not stated'}`).join('\n') + '\n' : '';
+
+    const note = v('sendNote');
+    const body =
+`LOLER Inspection Report
+${'─'.repeat(40)}
+Report No:   ${d.rptNum}
+Business:    ${d.businessName}
+Type:        ${d.inspType}
+Date:        ${dateStr}
+Inspector:   ${d.inspector}${d.role ? ' (' + d.role + ')' : ''}
+Outcome:     ${d.overallStatus.toUpperCase()}
+
+Equipment Inspected
+${'─'.repeat(40)}
+${lines}
+${oouBlock}${'─'.repeat(40)}
+${note ? note + '\n\n' : ''}Generated by LOLERSafe.PRO | SafeSystems.PRO`;
+
+    window.location.href =
+        'mailto:' + encodeURIComponent(email) +
+        '?subject=' + encodeURIComponent('LOLER Inspection Report — ' + d.businessName + ' — ' + d.rptNum) +
+        '&body=' + encodeURIComponent(body);
+    closeModal('modalSend');
+}
+
+// ── HISTORY ───────────────────────────────────────────────────────
+async function loadHistory() {
+    if (!db) return;
+    const el = document.getElementById('histList');
+    el.innerHTML = '<div class="empty"><p>Loading…</p></div>';
+
+    const bizFilter = document.getElementById('histBizFilter').value;
+    // Load all recent inspections, filter client-side — avoids composite index requirement
+    const snap = await db.collection(COL.INSP).orderBy('savedAt', 'desc').limit(200).get().catch(() => null);
+    if (!snap || snap.empty) {
+        el.innerHTML = '<div class="empty"><p>No inspection records found</p></div>';
+        return;
+    }
+
+    const docs = bizFilter
+        ? snap.docs.filter(d => d.data().bizId === bizFilter)
+        : snap.docs;
+
+    if (!docs.length) {
+        el.innerHTML = '<div class="empty"><p>No inspection records found for this business</p></div>';
+        return;
+    }
+
+    el.innerHTML = wrap_(tHead(['Date','Business','Inspection Type','Report No.','Inspector','Items','Overall Status']) +
+        docs.map(doc => {
+            const r = doc.data();
+            const date  = r.date ? new Date(r.date).toLocaleDateString('en-GB') : '—';
+            const items = Array.isArray(r.equipment) ? r.equipment.length : '—';
+            return tRow([date, r.businessName||'—', r.inspType||'—', r.rptNum||'—', r.inspector||'—', items, badge(r.overallStatus)]);
+        }).join(''));
+}
+
+// ── DROPDOWN REFRESH ──────────────────────────────────────────────
+async function refreshBizDropdowns() {
+    if (!db) return;
+    const snap = await db.collection(COL.BIZ).orderBy('name').get().catch(() => null);
+    if (!snap) return;
+
+    bizCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const opts = bizCache.map(b => `<option value="${b.id}">${esc(b.name)}</option>`).join('');
+
+    function setOpts(id, prefix) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const cur = el.value;
+        el.innerHTML = prefix + opts;
+        if (cur) el.value = cur;
+    }
+    setOpts('assetBizSel',   '<option value="">— Choose a business —</option>');
+    setOpts('inspBizSel',    '<option value="">— Select business —</option>');
+    setOpts('histBizFilter', '<option value="">All Businesses</option>');
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────
+function v(id) { return (document.getElementById(id).value || '').trim(); }
+
+function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function badge(status) {
+    const map = {
+        passed:  ['b-pass',    'PASSED'],
+        failed:  ['b-fail',    'FAILED'],
+        fixable: ['b-fix',     'CAN FIX'],
+        replace: ['b-replace', 'REPLACE'],
+        oou:     ['b-oou',     'OUT OF USE']
+    };
+    const [cls, lbl] = map[status] || ['b-none', (status||'—').toUpperCase()];
+    return `<span class="badge ${cls}">${lbl}</span>`;
+}
+
+function tHead(cols) { return '<thead><tr>' + cols.map(c => `<th>${c}</th>`).join('') + '</tr></thead><tbody>'; }
+function tRow(cols)  { return '<tr>' + cols.map(c => `<td>${c}</td>`).join('') + '</tr>'; }
+function wrap(inner) { return '<div class="table-wrap"><table>' + inner + '</tbody></table></div>'; }
+function wrap_(inner){ return '<div class="table-wrap"><table>' + inner + '</tbody></table></div>'; }
+
+// ── COMBINED LOCATION CERTIFICATE ────────────────────────────────
+function genCombinedCert() {
+    if (!currentRpt) { toast('No report loaded', 'error'); return; }
+    const d   = currentRpt;
+    const biz = bizCache.find(b => b.id === d.bizId) || {};
+
+    const sigDataURL = getRptSigDataURL();
+    const hasSig     = sigDataURL && sigDataURL !== document.createElement('canvas').toDataURL();
+
+    const examDate   = new Date(d.date).toLocaleDateString('en-GB');
+    const reportDate = new Date().toLocaleDateString('en-GB');
+    const nextDate6  = new Date(d.date); nextDate6.setMonth(nextDate6.getMonth() + 6);
+    const nextDate12 = new Date(d.date); nextDate12.setMonth(nextDate12.getMonth() + 12);
+    const fmt6       = nextDate6.toLocaleDateString('en-GB');
+    const fmt12      = nextDate12.toLocaleDateString('en-GB');
+
+    const bizAddr    = [biz.name, biz.address].filter(Boolean).join('\n');
+    const certRef    = 'FM001-LOL-SITE-' + d.rptNum;
+
+    const activeEquip = d.equipment.filter(e => e.status !== 'oou');
+    const oouEquip    = d.equipment.filter(e => e.status === 'oou');
+    const allSafe     = activeEquip.every(e => e.status === 'passed' || e.status === 'fixable');
+    const hasDefects  = d.equipment.some(e => e.notes && e.notes.trim() && e.status !== 'passed');
+
+    const cnt = { passed:0, failed:0, fixable:0, replace:0, oou: oouEquip.length };
+    activeEquip.forEach(e => { if (cnt[e.status] !== undefined) cnt[e.status]++; });
+
+    // Status label + colour for each row
+    const STATUS_LABEL = { passed:'PASSED', failed:'FAILED', fixable:'CAN FIX', replace:'REPLACE', oou:'OUT OF USE' };
+    const STATUS_COLOUR = {
+        passed:  '#1a7a1a',
+        failed:  '#c0392b',
+        fixable: '#b8860b',
+        replace: '#cc5500',
+        oou:     '#888'
+    };
+
+    const itemRows = d.equipment.map((e, idx) => {
+        const ref    = e.serial || ('ITEM-' + String(idx+1).padStart(3,'0'));
+        const status = STATUS_LABEL[e.status]  || e.status.toUpperCase();
+        const colour = STATUS_COLOUR[e.status] || '#333';
+        const noteTxt = e.status === 'oou' ? (e.oouReason || 'Out of use') : (e.notes || 'NONE');
+        return `<tr>
+            <td style="font-size:9.5pt;">${ref}</td>
+            <td style="font-size:9.5pt;">${e.type}</td>
+            <td style="font-size:9.5pt;">${e.make||'—'}</td>
+            <td style="font-size:9.5pt;text-align:center;">${e.swl||'—'}</td>
+            <td style="font-size:9.5pt;">${e.location||'—'}</td>
+            <td style="font-size:9.5pt;font-weight:700;color:${colour};text-align:center;">${status}</td>
+            <td style="font-size:9pt;">${noteTxt}</td>
+        </tr>`;
+    }).join('');
+
+    const defectRows = d.equipment
+        .filter(e => e.notes && e.notes.trim() && e.status !== 'passed' && e.status !== 'oou')
+        .map(e => {
+            const ref = e.serial || e.type;
+            return `<tr>
+                <td style="font-weight:600;">${ref}</td>
+                <td>${e.type}</td>
+                <td>${e.notes}</td>
+            </tr>`;
+        }).join('');
+
+    const oouRows = oouEquip.map(e => {
+        const ref = e.serial || e.type;
+        return `<div style="border-left:3px solid #888;padding:7px 12px;margin-bottom:8px;background:#f8f8f8;">
+            <div style="font-weight:700;font-size:10pt;">${ref} — ${e.type}${e.swl ? ' ('+e.swl+')' : ''}</div>
+            <div style="font-size:9.5pt;color:#555;">${e.oouReason || 'Reason not stated'}${e.notes ? ' — ' + e.notes : ''}</div>
+        </div>`;
+    }).join('');
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LOLER Combined Site Certificate — ${d.businessName} — ${d.rptNum}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;color:#111;background:#f0f0f0;padding:16px}
+.page{background:#fff;max-width:900px;margin:0 auto;border:1px solid #ccc;box-shadow:0 4px 20px rgba(0,0,0,0.15)}
+.cert-header{background:#e05c1a;padding:16px 24px 10px}
+.form-badge{display:inline-block;background:#fff;color:#e05c1a;font-weight:900;font-size:11pt;padding:2px 9px;border:2px solid #fff;margin-bottom:8px;letter-spacing:1px}
+.cert-header h1{color:#fff;font-size:20pt;font-weight:700;margin-bottom:3px}
+.cert-header .sub{color:rgba(255,255,255,0.85);font-size:9.5pt}
+.cert-statement{padding:10px 24px;font-style:italic;font-size:10pt;border-bottom:1px solid #ddd;color:#333;background:#fafafa}
+.cert-body{padding:0 24px 20px}
+table.ct{width:100%;border-collapse:collapse;margin-top:12px}
+table.ct td,table.ct th{border:1px solid #999;padding:5px 8px;vertical-align:top;font-size:10pt}
+table.ct th{background:#e8e8e8;font-weight:700;font-size:9pt;text-align:left}
+.lc{font-weight:700;background:#f8f8f8}
+.hc{font-weight:700;background:#e8e8e8;text-align:center}
+.section-hdr{font-weight:700;font-size:10pt;background:#eeeeee;padding:7px 10px;border:1px solid #ccc;border-bottom:none;margin-top:14px}
+.stats-row{display:flex;gap:0;border:1px solid #ccc;margin-top:0}
+.stat-box{flex:1;text-align:center;padding:10px 8px;border-right:1px solid #ccc}
+.stat-box:last-child{border-right:none}
+.stat-num{font-weight:800;font-size:18pt;line-height:1}
+.stat-lbl{font-size:8.5pt;text-transform:uppercase;margin-top:3px}
+.stat-pass{color:#1a7a1a} .stat-fail{color:#c0392b} .stat-fix{color:#b8860b} .stat-rep{color:#cc5500} .stat-oou{color:#888}
+.safe-row{display:flex;align-items:center;border:1px solid #999;margin-top:12px}
+.safe-lbl{font-weight:700;font-size:10pt;padding:7px 11px;background:#f8f8f8;border-right:1px solid #999;flex:1}
+.safe-val{padding:7px 15px;font-weight:700;font-size:11pt}
+.safe-yes{color:#1a7a1a} .safe-no{color:#c0392b}
+.sig-section{margin-top:12px;border:1px solid #999}
+.sig-hdr-row{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid #999}
+.sig-hdr-cell{font-weight:700;font-size:9pt;padding:5px 9px;background:#e8e8e8;border-right:1px solid #999}
+.sig-hdr-cell:last-child{border-right:none}
+.sig-data-row{display:grid;grid-template-columns:1fr 1fr 1fr}
+.sig-data-cell{padding:9px;border-right:1px solid #999;font-size:10pt;min-height:90px}
+.sig-data-cell:last-child{border-right:none}
+.cert-footer{background:#e05c1a;padding:9px 24px;display:flex;justify-content:space-between;align-items:center}
+.ft-left{color:#fff;font-weight:700;font-size:9.5pt}
+.ft-right{color:rgba(255,255,255,0.8);font-size:8.5pt;font-style:italic}
+.action-bar{display:flex;gap:10px;justify-content:center;padding:14px;background:#1a1a1a;flex-wrap:wrap}
+.abtn{padding:9px 20px;border:none;border-radius:5px;cursor:pointer;font-family:Arial;font-size:10pt;font-weight:600}
+.abtn-orange{background:#e05c1a;color:#fff}
+.abtn-ghost{background:rgba(255,255,255,0.1);color:#ccc;border:1px solid rgba(255,255,255,0.2)}
+#sigCanvas{border:1px dashed #aaa;border-radius:2px;cursor:crosshair;background:#fff;width:100%;height:80px;display:block;touch-action:none}
+.sched-selector{display:flex;gap:14px;flex-wrap:wrap;font-size:9pt;padding:8px 10px;background:#fffbe6;border-top:1px solid #ddd}
+.sched-selector label{display:flex;align-items:center;gap:4px;cursor:pointer}
+.next-date-input{border:1px solid #bbb;padding:4px 8px;font-size:10pt;font-family:Arial;background:#fffbe6}
+.item-tbl td,.item-tbl th{padding:4px 7px!important;font-size:9.5pt}
+.page-break{page-break-before:always}
+@media print{
+  body{background:#fff;padding:0}
+  .action-bar,.sched-selector{display:none!important}
+  .page{box-shadow:none;border:none;max-width:100%}
+  #sigCanvas{border:none}
+}
+</style>
+</head>
+<body>
+
+<div class="action-bar">
+  <button class="abtn abtn-ghost" onclick="clearSig()">Clear Signature</button>
+  <button class="abtn abtn-orange" onclick="window.print()">Print / Save as PDF</button>
+</div>
+
+<div class="page">
+
+<div class="cert-header">
+  <div class="form-badge">FORM</div>
+  <h1>Combined Site Certificate — Report of Thorough Examination</h1>
+  <div class="sub">LIFTING OPERATIONS AND LIFTING EQUIPMENT REGULATIONS 1998 &nbsp;|&nbsp; Ref: ${certRef}</div>
+</div>
+
+<div class="cert-statement">
+  This Report covers all lifting equipment and accessories at the location stated below and conforms to the requirements of the Lifting Operations and Lifting Equipment Regulations 1998.
+</div>
+
+<div class="cert-body">
+
+<table class="ct">
+  <tr>
+    <td class="lc" style="width:25%">Date of Thorough Examination:</td><td>${examDate}</td>
+    <td class="lc" style="width:25%">Date of Report:</td><td>${reportDate}</td>
+  </tr>
+  <tr>
+    <td class="hc" colspan="2">Name &amp; Address of the Employer:</td>
+    <td class="hc" colspan="2">Equipment Location:</td>
+  </tr>
+  <tr>
+    <td colspan="2" style="white-space:pre-line;vertical-align:top;">${bizAddr}</td>
+    <td colspan="2" style="white-space:pre-line;vertical-align:top;">${d.businessName}${biz.address ? '\n' + biz.address : ''}</td>
+  </tr>
+  <tr>
+    <td class="lc">Inspection Type:</td><td>${d.inspType}</td>
+    <td class="lc">Total Items Examined:</td><td>${d.equipment.length} (${oouEquip.length} placed Out of Use)</td>
+  </tr>
+</table>
+
+<!-- Examination Schedule -->
+<div class="section-hdr">Examination Schedule</div>
+<table class="ct" style="margin-top:0;">
+  <tr>
+    <th style="width:60%;text-align:left;">Examination Interval</th>
+    <th style="text-align:center;">Applies</th>
+    <th style="text-align:center;">Next Examination Due</th>
+  </tr>
+  <tr><td>Within An Interval Of 6 Months</td>
+    <td style="text-align:center;font-weight:700;color:#1a7a1a;" id="s6v">Yes</td>
+    <td style="text-align:center;" id="nxtDate">${fmt6}</td></tr>
+  <tr><td>Within An Interval Of 12 Months</td>
+    <td style="text-align:center;font-weight:700;color:#c0392b;" id="s12v">No</td>
+    <td></td></tr>
+  <tr><td>In Accordance With An Examination Scheme</td>
+    <td style="text-align:center;font-weight:700;color:#c0392b;" id="sscv">No</td><td></td></tr>
+  <tr><td>After An Occurrence Of Exceptional Circumstances</td>
+    <td style="text-align:center;font-weight:700;color:#c0392b;" id="sexv">No</td><td></td></tr>
+</table>
+<div class="sched-selector">
+  <strong>Change schedule:</strong>
+  <label><input type="radio" name="sched" value="6" checked onchange="updateSched(this.value)"> 6 months</label>
+  <label><input type="radio" name="sched" value="12" onchange="updateSched(this.value)"> 12 months</label>
+  <label><input type="radio" name="sched" value="scheme" onchange="updateSched(this.value)"> Examination scheme</label>
+  <label><input type="radio" name="sched" value="exceptional" onchange="updateSched(this.value)"> Exceptional circumstances</label>
+  &nbsp;&nbsp;<strong>Override next due:</strong>
+  <input class="next-date-input" id="nextDateOverride" type="text" value="${fmt6}" style="width:90px;" oninput="document.getElementById('nxtDate').textContent=this.value">
+</div>
+
+<!-- Summary stats -->
+<div class="section-hdr">Inspection Summary</div>
+<div class="stats-row">
+  <div class="stat-box"><div class="stat-num stat-pass">${cnt.passed}</div><div class="stat-lbl">Passed</div></div>
+  <div class="stat-box"><div class="stat-num stat-fail">${cnt.failed}</div><div class="stat-lbl">Failed</div></div>
+  <div class="stat-box"><div class="stat-num stat-fix">${cnt.fixable}</div><div class="stat-lbl">Can Fix</div></div>
+  <div class="stat-box"><div class="stat-num stat-rep">${cnt.replace}</div><div class="stat-lbl">Replace</div></div>
+  <div class="stat-box"><div class="stat-num stat-oou">${cnt.oou}</div><div class="stat-lbl">Out of Use</div></div>
+</div>
+
+<!-- Equipment table -->
+<div class="section-hdr">Equipment Examined</div>
+<table class="ct item-tbl" style="margin-top:0;">
+  <tr>
+    <th style="width:10%">Item Ref</th>
+    <th style="width:18%">Description</th>
+    <th style="width:12%">Make / Model</th>
+    <th style="width:7%;text-align:center;">SWL</th>
+    <th style="width:12%">Location / Area</th>
+    <th style="width:9%;text-align:center;">Status</th>
+    <th>Notes / Defects / Reason</th>
+  </tr>
+  ${itemRows}
+</table>
+
+${hasDefects ? `
+<!-- Defects -->
+<div class="section-hdr">Identification of Defects Requiring Attention</div>
+<table class="ct" style="margin-top:0;">
+  <tr><th style="width:15%">Item Ref</th><th style="width:20%">Description</th><th>Detail</th></tr>
+  ${defectRows}
+</table>` : ''}
+
+${oouEquip.length ? `
+<!-- OOU Notice -->
+<div class="section-hdr">Notice of Withdrawal from Service</div>
+<div style="border:1px solid #ccc;padding:12px;margin-top:0;background:#fafafa;">
+  <p style="font-size:9.5pt;color:#555;margin-bottom:10px;">The following items have been placed Out of Use and must not be operated until the stated condition is resolved or the item formally disposed of.</p>
+  ${oouRows}
+</div>` : ''}
+
+<!-- Safe to operate -->
+<div class="safe-row">
+  <div class="safe-lbl">IS ALL ACTIVE EQUIPMENT SAFE TO OPERATE?</div>
+  <div class="safe-val ${allSafe ? 'safe-yes' : 'safe-no'}">${allSafe ? 'Yes' : 'No'}</div>
+</div>
+
+<!-- Signature -->
+<div class="sig-section">
+  <div class="sig-hdr-row">
+    <div class="sig-hdr-cell">Name &amp; qualification of the company appointed person making this report:</div>
+    <div class="sig-hdr-cell">Signature:</div>
+    <div class="sig-hdr-cell">Latest date by which next thorough examination must be carried out:</div>
+  </div>
+  <div class="sig-data-row">
+    <div class="sig-data-cell">
+      <div style="font-weight:600;margin-bottom:4px;">${d.inspector}</div>
+      <div style="font-size:9.5pt;color:#555;">${d.role || ''}</div>
+    </div>
+    <div class="sig-data-cell" style="padding:8px;">
+      ${hasSig
+        ? `<img src="${sigDataURL}" style="width:100%;height:80px;object-fit:contain;display:block;" alt="Signature">`
+        : `<canvas id="sigCanvas" width="250" height="80"></canvas>`
+      }
+    </div>
+    <div class="sig-data-cell">
+      <div style="font-weight:700;font-size:11pt;" id="nextDateDisplay">${fmt6}</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /cert-body -->
+
+<div class="cert-footer">
+  <div class="ft-left">SafeSystems.PRO &nbsp;|&nbsp; LOLERSafe.PRO &nbsp;|&nbsp; ${d.businessName}</div>
+  <div class="ft-right">LIFTING OPERATIONS AND LIFTING EQUIPMENT REGULATIONS 1998 &nbsp;|&nbsp; ${certRef}</div>
+</div>
+
+</div><!-- /page -->
+
+<script>
+${hasSig ? '' : `
+const canvas = document.getElementById('sigCanvas');
+const ctx    = canvas ? canvas.getContext('2d') : null;
+let drawing  = false;
+if (ctx) {
+  ctx.strokeStyle='#1a1a7a'; ctx.lineWidth=2; ctx.lineCap='round'; ctx.lineJoin='round';
+  function pos(e){
+    const r=canvas.getBoundingClientRect(),sx=canvas.width/r.width,sy=canvas.height/r.height;
+    const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY;
+    return{x:(cx-r.left)*sx,y:(cy-r.top)*sy};
+  }
+  canvas.addEventListener('mousedown',  e=>{drawing=true;const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y)});
+  canvas.addEventListener('mousemove',  e=>{if(!drawing)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke()});
+  canvas.addEventListener('mouseup',    ()=>drawing=false);
+  canvas.addEventListener('mouseleave', ()=>drawing=false);
+  canvas.addEventListener('touchstart', e=>{e.preventDefault();drawing=true;const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y)},{passive:false});
+  canvas.addEventListener('touchmove',  e=>{e.preventDefault();if(!drawing)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke()},{passive:false});
+  canvas.addEventListener('touchend',   ()=>drawing=false);
+}
+function clearSig(){if(ctx)ctx.clearRect(0,0,canvas.width,canvas.height);}
+`}
+
+function updateSched(val){
+  const yn=(v)=>v==='Yes'?'#1a7a1a':'#c0392b';
+  const set=(id,v)=>{const e=document.getElementById(id);if(e){e.textContent=v;e.style.color=yn(v);}};
+  const dates={'6':'${fmt6}','12':'${fmt12}'};
+  if(val==='6'){set('s6v','Yes');set('s12v','No');set('sscv','No');set('sexv','No');}
+  else if(val==='12'){set('s6v','No');set('s12v','Yes');set('sscv','No');set('sexv','No');}
+  else if(val==='scheme'){set('s6v','No');set('s12v','No');set('sscv','Yes');set('sexv','No');}
+  else{set('s6v','No');set('s12v','No');set('sscv','No');set('sexv','Yes');}
+  if(dates[val]){
+    document.getElementById('nextDateOverride').value=dates[val];
+    document.getElementById('nxtDate').textContent=dates[val];
+    document.getElementById('nextDateDisplay').textContent=dates[val];
+  }
+}
+<\/script>
+</body>
+</html>`;
+
+    const w = window.open('', '_blank');
+    if (!w) { toast('Pop-up blocked — please allow pop-ups for this site', 'warning'); return; }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+}
+
+// ── CERTIFICATE GENERATOR (FM001 style) ───────────────────────────
+function genCert(itemIdx) {
+    if (!currentRpt) { toast('No report loaded', 'error'); return; }
+    const e   = currentRpt.equipment[itemIdx];
+    const d   = currentRpt;
+    const biz = bizCache.find(b => b.id === d.bizId) || {};
+
+    // Capture signature from the report canvas (if drawn)
+    const sigDataURL = getRptSigDataURL();
+    const hasSig     = sigDataURL && sigDataURL !== document.createElement('canvas').toDataURL();
+
+    const examDate   = new Date(d.date).toLocaleDateString('en-GB');
+    const reportDate = new Date().toLocaleDateString('en-GB');
+    const safe       = (e.status === 'passed' || e.status === 'fixable') ? 'Yes' : 'No';
+    const defects    = (e.notes && e.notes.trim()) ? e.notes.trim().toUpperCase() : 'NONE';
+
+    // Next exam defaults: 6 months from exam date
+    const nextDate6  = new Date(d.date); nextDate6.setMonth(nextDate6.getMonth() + 6);
+    const nextDate12 = new Date(d.date); nextDate12.setMonth(nextDate12.getMonth() + 12);
+    const fmt6       = nextDate6.toLocaleDateString('en-GB');
+    const fmt12      = nextDate12.toLocaleDateString('en-GB');
+
+    // Use serial as item ref. If blank (shouldn't happen post auto-ref), fall back to positional ref.
+    const itemRef  = e.serial || ('ITEM-' + String(itemIdx + 1).padStart(3,'0'));
+    const certRef  = 'FM001-LOL-' + d.rptNum + '-' + itemRef;
+    const bizAddr = [biz.name, biz.address].filter(Boolean).join('\n');
+    const locAddr = [e.location || biz.address || biz.name].filter(Boolean).join('\n');
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LOLER Certificate — ${e.serial || e.type}</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; color: #111; background: #f4f4f4; padding: 20px; }
+  .page { background: #fff; max-width: 800px; margin: 0 auto; padding: 0; border: 1px solid #ccc; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+
+  /* Header */
+  .cert-header { background: #e05c1a; padding: 18px 24px 12px; position: relative; }
+  .cert-header .form-badge { display: inline-block; background: #fff; color: #e05c1a; font-weight: 900; font-size: 11pt; padding: 2px 10px; border: 2px solid #fff; margin-bottom: 10px; letter-spacing: 1px; }
+  .cert-header h1 { color: #fff; font-size: 24pt; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .cert-header .ref { color: rgba(255,255,255,0.8); font-size: 9pt; }
+
+  /* Statutory statement */
+  .cert-statement { padding: 14px 24px; font-style: italic; font-size: 10pt; border-bottom: 1px solid #ddd; color: #333; }
+
+  /* Main table */
+  .cert-body { padding: 0 24px 20px; }
+  table.cert-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+  table.cert-table td, table.cert-table th { border: 1px solid #999; padding: 6px 9px; vertical-align: top; font-size: 10pt; }
+  table.cert-table th { background: #f0f0f0; font-weight: 700; font-size: 9pt; text-align: left; }
+  .label-cell { font-weight: 700; background: #f8f8f8; width: 45%; }
+  .header-cell { font-weight: 700; background: #e8e8e8; text-align: center; }
+
+  /* Defects box */
+  .defects-box { border: 1px solid #999; padding: 10px 12px; margin-top: 14px; min-height: 70px; font-size: 10pt; background: #fff; white-space: pre-wrap; }
+  .defects-label { font-size: 9pt; color: #555; margin-bottom: 6px; line-height: 1.4; }
+
+  /* Safe-to-operate */
+  .safe-row { display: flex; align-items: center; gap: 0; margin-top: 14px; border: 1px solid #999; }
+  .safe-lbl { font-weight: 700; font-size: 10pt; padding: 8px 12px; background: #f8f8f8; border-right: 1px solid #999; flex: 1; }
+  .safe-val { padding: 8px 16px; font-weight: 700; font-size: 11pt; }
+  .safe-yes { color: #1a7a1a; }
+  .safe-no  { color: #c0392b; }
+
+  /* Schedule */
+  .schedule-grid { display: grid; grid-template-columns: 1fr auto; gap: 0; border: 1px solid #999; border-top: none; }
+  .sched-row { display: contents; }
+  .sched-item { border-top: 1px solid #ddd; border-right: 1px solid #999; padding: 5px 10px; font-size: 10pt; }
+  .sched-val  { border-top: 1px solid #ddd; padding: 5px 10px; font-size: 10pt; font-weight: 700; text-align: center; }
+  .sched-hdr  { background: #e8e8e8; font-weight: 700; font-size: 9pt; border-top: none; padding: 6px 10px; }
+  .sched-val-hdr { background: #e8e8e8; font-weight: 700; font-size: 9pt; border-top: none; padding: 6px 10px; text-align:center; }
+  .sched-yn-yes { color: #1a7a1a; }
+  .sched-yn-no  { color: #c0392b; }
+
+  /* Signature section */
+  .sig-section { margin-top: 14px; border: 1px solid #999; }
+  .sig-header-row { display: grid; grid-template-columns: 1fr 1fr 1fr; border-bottom: 1px solid #999; }
+  .sig-header-cell { font-weight: 700; font-size: 9pt; padding: 6px 10px; background: #e8e8e8; border-right: 1px solid #999; }
+  .sig-header-cell:last-child { border-right: none; }
+  .sig-data-row { display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .sig-data-cell { padding: 10px; border-right: 1px solid #999; font-size: 10pt; min-height: 90px; }
+  .sig-data-cell:last-child { border-right: none; }
+  .sig-data-cell .name { font-weight: 600; margin-bottom: 4px; }
+  .sig-data-cell .qual { font-size: 9pt; color: #444; }
+
+  /* Signature canvas */
+  #sigCanvas { border: 1px dashed #aaa; border-radius: 2px; cursor: crosshair; background: #fff; width: 100%; height: 80px; display: block; touch-action: none; }
+  .sig-controls { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+
+  /* Next date input */
+  .next-date-input { border: 1px solid #bbb; padding: 4px 8px; font-size: 10pt; font-family: Arial; width: 100%; margin-top: 4px; background: #fffbe6; }
+  .next-date-label { font-size: 9pt; color: #666; margin-bottom: 2px; }
+
+  /* Footer */
+  .cert-footer { background: #e05c1a; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; }
+  .cert-footer .ft-left { color: #fff; font-weight: 700; font-size: 10pt; }
+  .cert-footer .ft-right { color: rgba(255,255,255,0.85); font-size: 9pt; font-style: italic; }
+
+  /* Action bar (hidden on print) */
+  .action-bar { display: flex; gap: 10px; justify-content: center; padding: 16px; background: #2a2a2a; flex-wrap: wrap; }
+  .abtn { padding: 9px 20px; border: none; border-radius: 5px; cursor: pointer; font-family: Arial; font-size: 10pt; font-weight: 600; }
+  .abtn-print  { background: #e05c1a; color: #fff; }
+  .abtn-clear  { background: rgba(255,255,255,0.12); color: #ccc; border: 1px solid rgba(255,255,255,0.2); }
+  .abtn-sched  { background: rgba(255,255,255,0.08); color: #ccc; border: 1px solid rgba(255,255,255,0.15); font-size: 9pt; }
+
+  /* Schedule interactive selectors (hidden on print) */
+  .sched-selector { display: flex; gap: 12px; align-items: center; font-size: 9pt; padding: 8px 10px; background: #fffbe6; border-top: 1px solid #ddd; flex-wrap: wrap; }
+  .sched-selector label { display: flex; align-items: center; gap: 4px; cursor: pointer; font-size: 9pt; }
+
+  /* First exam row */
+  .first-exam-grid { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #999; border-top: none; }
+  .fe-cell { padding: 7px 10px; border-right: 1px solid #999; font-size: 10pt; }
+  .fe-cell:last-child { border-right: none; }
+  .fe-lbl { font-weight: 700; font-size: 9pt; margin-bottom: 3px; }
+  .fe-val { display: flex; gap: 14px; margin-top: 4px; }
+  .fe-val label { display: flex; align-items: center; gap: 4px; font-size: 10pt; cursor: pointer; }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .action-bar, .sig-controls, .sched-selector, .next-date-input, .next-date-label { display: none !important; }
+    .page { box-shadow: none; border: none; max-width: 100%; }
+    #sigCanvas { border: none; }
+    .next-date-display { display: block !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="action-bar" id="actionBar">
+  <button class="abtn abtn-clear" onclick="clearSig()">Clear Signature</button>
+  <button class="abtn abtn-print" onclick="printCert()">Print / Save as PDF</button>
+</div>
+
+<div class="page">
+
+  <div class="cert-header">
+    <div class="form-badge">FORM</div>
+    <h1>Report of Thorough Examination</h1>
+    <div class="ref">LIFTING OPERATIONS AND LIFTING EQUIPMENT REGULATIONS 1998 &nbsp;|&nbsp; Ref: ${certRef}</div>
+  </div>
+
+  <div class="cert-statement">
+    This Report conforms to the requirements of the Lifting Operations and Lifting Equipment Regulations 1998.
+  </div>
+
+  <div class="cert-body">
+
+    <table class="cert-table">
+      <tr>
+        <td class="label-cell">Date of Thorough Examination:</td>
+        <td>${examDate}</td>
+        <td class="label-cell">Date of Report:</td>
+        <td>${reportDate}</td>
+      </tr>
+      <tr>
+        <td class="header-cell" colspan="2">Name &amp; Address of the Employer:</td>
+        <td class="header-cell" colspan="2">Equipment Location:</td>
+      </tr>
+      <tr>
+        <td colspan="2" style="white-space:pre-line; vertical-align:top;">${esc(bizAddr || d.businessName)}</td>
+        <td colspan="2" style="white-space:pre-line; vertical-align:top;">${esc(locAddr)}</td>
+      </tr>
+      <tr>
+        <th>Serial No.</th>
+        <th colspan="2">Description</th>
+        <th>Safe Working Load (SWL)</th>
+      </tr>
+      <tr>
+        <td>${esc(e.serial || '—')}</td>
+        <td colspan="2">${esc(e.type + (e.make ? ' — ' + e.make : ''))}</td>
+        <td>${esc(e.swl || '—')}</td>
+      </tr>
+    </table>
+
+    <!-- First examination -->
+    <div class="first-exam-grid" style="margin-top:0;">
+      <div class="fe-cell">
+        <div class="fe-lbl">Is this the first examination after installation or assembly?</div>
+        <div class="fe-val" id="firstExamVal">
+          <label><input type="radio" name="firstExam" value="Yes"> Yes</label>
+          <label><input type="radio" name="firstExam" value="No" checked> No</label>
+        </div>
+      </div>
+      <div class="fe-cell">
+        <div class="fe-lbl">What is the correct Examination Schedule for this Equipment?</div>
+        <div class="schedule-grid" style="margin-top:6px; border:1px solid #ddd;">
+          <div class="sched-hdr">Examination Interval</div>
+          <div class="sched-val-hdr">Applies</div>
+          <div class="sched-item" id="sched6lbl">Within An Interval Of 6 Months</div>
+          <div class="sched-val sched-yn-yes" id="sched6val">Yes</div>
+          <div class="sched-item" id="sched12lbl">Within An Interval Of 12 Months</div>
+          <div class="sched-val sched-yn-no" id="sched12val">No</div>
+          <div class="sched-item">In Accordance With An Examination Scheme</div>
+          <div class="sched-val sched-yn-no" id="schedSchemeVal">No</div>
+          <div class="sched-item">After An Occurrence Of Exceptional Circumstances</div>
+          <div class="sched-val sched-yn-no" id="schedExcepVal">No</div>
+        </div>
+        <!-- Interactive selector (hidden on print) -->
+        <div class="sched-selector" id="schedSelector">
+          <strong style="color:#333;">Select interval:</strong>
+          <label><input type="radio" name="sched" value="6" checked onchange="updateSched(this.value)"> 6 months</label>
+          <label><input type="radio" name="sched" value="12" onchange="updateSched(this.value)"> 12 months</label>
+          <label><input type="radio" name="sched" value="scheme" onchange="updateSched(this.value)"> Examination scheme</label>
+          <label><input type="radio" name="sched" value="exceptional" onchange="updateSched(this.value)"> Exceptional circumstances</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Defects -->
+    <div style="margin-top:14px;">
+      <div class="defects-label">Identification of any part to have a defect which is or could become a danger to persons and a description of the defect or identification of deteriorating conditions which require attention, repair or adjustment. (If none state NONE)</div>
+      <div class="defects-box">${esc(defects)}</div>
+    </div>
+
+    <!-- Safe to operate -->
+    <div class="safe-row" style="margin-top:14px;">
+      <div class="safe-lbl">IS THIS EQUIPMENT SAFE TO OPERATE?</div>
+      <div class="safe-val ${safe === 'Yes' ? 'safe-yes' : 'safe-no'}">${safe}</div>
+    </div>
+
+    <!-- Signature section -->
+    <div class="sig-section">
+      <div class="sig-header-row">
+        <div class="sig-header-cell">Name &amp; qualification of the company appointed person making this report:</div>
+        <div class="sig-header-cell">Signature:</div>
+        <div class="sig-header-cell">Latest date by which next thorough examination must be carried out:</div>
+      </div>
+      <div class="sig-data-row">
+        <div class="sig-data-cell">
+          <div class="name">${esc(d.inspector)}</div>
+          <div class="qual">${esc(d.role || '')}</div>
+        </div>
+        <div class="sig-data-cell">
+          ${hasSig
+            ? `<img src="${sigDataURL}" style="width:100%;height:80px;object-fit:contain;display:block;" alt="Signature">`
+            : `<canvas id="sigCanvas" width="220" height="80"></canvas>
+               <div class="sig-controls">
+                 <button class="abtn abtn-clear" style="font-size:8pt;padding:4px 10px;" onclick="clearSig()">Clear</button>
+               </div>`
+          }
+        </div>
+        <div class="sig-data-cell">
+          <div class="next-date-label">Next examination due:</div>
+          <div class="next-date-display" id="nextDateDisplay" style="display:none; font-weight:700; font-size:11pt;">${fmt6}</div>
+          <input class="next-date-input" id="nextDateInput" type="text" value="${fmt6}" placeholder="DD/MM/YYYY">
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /cert-body -->
+
+  <div class="cert-footer">
+    <div class="ft-left">SafeSystems.PRO &nbsp;|&nbsp; LOLERSafe.PRO</div>
+    <div class="ft-right">LIFTING OPERATIONS AND LIFTING EQUIPMENT REGULATIONS 1998</div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+// ── Signature Pad ──
+const canvas = document.getElementById('sigCanvas');
+const ctx = canvas.getContext('2d');
+let drawing = false;
+let hasSig = false;
+
+function getPos(e, canvas) {
+  const r = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / r.width;
+  const scaleY = canvas.height / r.height;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  return { x: (clientX - r.left) * scaleX, y: (clientY - r.top) * scaleY };
+}
+
+ctx.strokeStyle = '#1a1a7a';
+ctx.lineWidth = 2;
+ctx.lineCap = 'round';
+ctx.lineJoin = 'round';
+
+canvas.addEventListener('mousedown',  e => { drawing = true; const p = getPos(e, canvas); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
+canvas.addEventListener('mousemove',  e => { if (!drawing) return; hasSig = true; const p = getPos(e, canvas); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+canvas.addEventListener('mouseup',    () => drawing = false);
+canvas.addEventListener('mouseleave', () => drawing = false);
+canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; const p = getPos(e, canvas); ctx.beginPath(); ctx.moveTo(p.x, p.y); }, { passive: false });
+canvas.addEventListener('touchmove',  e => { e.preventDefault(); if (!drawing) return; hasSig = true; const p = getPos(e, canvas); ctx.lineTo(p.x, p.y); ctx.stroke(); }, { passive: false });
+canvas.addEventListener('touchend',   () => drawing = false);
+
+function clearSig() { ctx.clearRect(0, 0, canvas.width, canvas.height); hasSig = false; }
+
+// ── Examination Schedule ──
+function updateSched(val) {
+  const map = {
+    '6':           { s6:'Yes', s12:'No', ssc:'No', sex:'No', date: '${fmt6}'  },
+    '12':          { s6:'No', s12:'Yes', ssc:'No', sex:'No', date: '${fmt12}' },
+    'scheme':      { s6:'No', s12:'No', ssc:'Yes', sex:'No', date: ''  },
+    'exceptional': { s6:'No', s12:'No', ssc:'No', sex:'Yes', date: ''  }
+  };
+  const m = map[val] || map['6'];
+  const yn = (v) => v === 'Yes' ? 'sched-yn-yes' : 'sched-yn-no';
+  const set = (id, v) => { const el = document.getElementById(id); if (el) { el.textContent = v; el.className = 'sched-val ' + yn(v); } };
+  set('sched6val',     m.s6);
+  set('sched12val',    m.s12);
+  set('schedSchemeVal', m.ssc);
+  set('schedExcepVal', m.sex);
+  if (m.date) document.getElementById('nextDateInput').value = m.date;
+}
+
+// ── Print ──
+function printCert() {
+  const nd = document.getElementById('nextDateInput').value;
+  document.getElementById('nextDateDisplay').textContent = nd;
+  document.getElementById('nextDateDisplay').style.display = 'block';
+  window.print();
+}
+<\/script>
+</body>
+</html>`;
+
+    const w = window.open('', '_blank');
+    if (!w) { toast('Pop-up blocked — please allow pop-ups for this site', 'warning'); return; }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+document.getElementById('inspDate').valueAsDate = new Date();
+
+</script>
+</body>
+</html>
