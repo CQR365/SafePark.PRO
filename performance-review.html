@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeReview — Highland Holidays</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0d1117;--surface:#161b22;--surface2:#1e242d;--border:#2a3140;
+  --accent:#e05c1a;--accent2:#fe7f2d;--blue:#4f8ef7;--teal:#2dd4b0;
+  --green:#3fb950;--gold:#e5b94e;--purple:#c084fc;--red:#f85149;
+  --text:#e6edf3;--muted:#7d8590;--faint:#2a3140;--r:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+.app-header{background:var(--surface);border-bottom:1px solid var(--border);
+  padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:200}
+.logo{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-family:'Outfit',sans-serif;font-weight:800;font-size:13px;color:#fff;flex-shrink:0}
+.app-header h1{font-family:'Outfit',sans-serif;font-size:15px;font-weight:700}
+.app-header small{font-size:11px;color:var(--muted);display:block;margin-top:1px}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.badge-pill{background:rgba(224,92,26,.12);border:1px solid rgba(224,92,26,.3);
+  color:var(--accent);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+
+.layout{display:flex;min-height:calc(100vh - 57px)}
+.sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);
+  flex-shrink:0;padding:16px 0;position:sticky;top:57px;height:calc(100vh - 57px);overflow-y:auto}
+.sidebar-section{padding:8px 16px 4px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 16px;cursor:pointer;
+  transition:background .15s;font-size:13px;color:var(--muted);border-left:3px solid transparent}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:rgba(224,92,26,.08);color:var(--accent);border-left-color:var(--accent)}
+.nav-item .ico{font-size:14px;width:20px;text-align:center}
+hr.div{border:none;border-top:1px solid var(--border);margin:8px 0}
+.main{flex:1;padding:24px;overflow-x:hidden}
+
+/* VIEWS */
+.view{display:none}.view.active{display:block}
+
+/* PAGE HEADER */
+.pg-head{margin-bottom:24px}
+.pg-head h2{font-family:'Outfit',sans-serif;font-size:22px;font-weight:700}
+.pg-head p{color:var(--muted);font-size:13px;margin-top:4px}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.stat .n{font-family:'Outfit',sans-serif;font-size:26px;font-weight:700}
+.stat .l{font-size:12px;color:var(--muted)}
+.c-accent .n{color:var(--accent)}.c-green .n{color:var(--green)}
+.c-blue .n{color:var(--blue)}.c-gold .n{color:var(--gold)}
+
+/* TOOLBAR */
+.toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.search{flex:1;min-width:180px;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;
+  padding:8px 12px}.search:focus{outline:none;border-color:var(--accent)}
+.search::placeholder{color:var(--muted)}
+.btn{padding:8px 14px;border-radius:var(--r);border:none;font-family:'Outfit',sans-serif;
+  font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s,transform .1s;
+  display:inline-flex;align-items:center;gap:6px}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{opacity:.9}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.filter-tabs{display:flex;gap:6px}
+.ftab{padding:5px 12px;border-radius:20px;border:1px solid var(--border);
+  background:transparent;color:var(--muted);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.ftab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* GRID */
+.reviews-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.review-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:18px;cursor:pointer;transition:border-color .2s,transform .15s;position:relative;overflow:hidden}
+.review-card::before{content:'';position:absolute;left:0;top:0;width:4px;height:100%;
+  background:var(--accent);opacity:0;transition:opacity .2s}
+.review-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.review-card:hover::before,.review-card.complete::before{opacity:1}
+.review-card.complete::before{background:var(--green)}
+.review-card.complete{border-color:rgba(63,185,80,.25)}
+.rc-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.rc-avatar{width:40px;height:40px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;font-weight:700;font-size:15px;color:#fff}
+.rc-name{font-family:'Outfit',sans-serif;font-size:14px;font-weight:600}
+.rc-role{font-size:12px;color:var(--muted);margin-top:1px}
+.rc-park{font-size:11px;color:var(--accent);margin-top:2px}
+.rc-type{font-size:11px;color:var(--blue);margin-top:2px;font-weight:500}
+.spill{margin-left:auto;padding:3px 8px;border-radius:10px;font-size:10px;font-weight:600}
+.spill.draft{background:rgba(229,185,78,.12);color:var(--gold)}
+.spill.complete{background:rgba(63,185,80,.12);color:var(--green)}
+.spill.in_progress{background:rgba(79,142,247,.12);color:var(--blue)}
+.annexes-row{display:flex;gap:6px;flex-wrap:wrap}
+.anx-chip{padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;border:1px solid}
+.anx-chip.done{background:rgba(63,185,80,.12);border-color:rgba(63,185,80,.3);color:var(--green)}
+.anx-chip.pending{background:rgba(61,68,84,.4);border-color:var(--border);color:var(--muted)}
+.rc-date{font-size:11px;color:var(--muted);margin-top:8px}
+
+/* DETAIL */
+.dh{display:flex;align-items:center;gap:16px;margin-bottom:20px;
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px}
+.dh-avatar{width:52px;height:52px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;font-weight:800;font-size:21px;color:#fff}
+.dh-info h2{font-family:'Outfit',sans-serif;font-size:19px;font-weight:700}
+.dh-info span{font-size:13px;color:var(--muted)}
+.dh-park{color:var(--accent);font-size:12px;font-weight:600;margin-top:2px}
+.dh-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+
+/* ANNEX SELECTOR */
+.anx-selector{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.anx-btn{background:var(--surface);border:2px solid var(--border);border-radius:10px;
+  padding:14px 10px;text-align:center;cursor:pointer;transition:all .2s}
+.anx-btn:hover{border-color:var(--accent)}
+.anx-btn.active{border-color:var(--accent);background:rgba(224,92,26,.08)}
+.anx-btn.done{border-color:var(--green);background:rgba(63,185,80,.06)}
+.anx-btn .alabel{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;margin-bottom:4px}
+.anx-btn .atitle{font-size:11px;color:var(--muted)}
+.anx-btn .adate{font-size:10px;color:var(--green);margin-top:3px}
+
+/* REVIEW FORM */
+.review-form{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.form-section{border-bottom:1px solid var(--border)}
+.form-section:last-child{border-bottom:none}
+.form-section-head{padding:14px 18px;background:var(--surface2);display:flex;align-items:center;gap:10px;cursor:pointer}
+.form-section-head h3{font-family:'Outfit',sans-serif;font-size:14px;font-weight:600}
+.form-section-body{padding:16px 18px}
+
+/* SCORE TABLE */
+.score-table{width:100%;border-collapse:collapse}
+.score-table th{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.4px;padding:6px 8px;text-align:center;border-bottom:1px solid var(--border)}
+.score-table th:first-child{text-align:left}
+.score-table td{padding:8px;border-bottom:1px solid var(--faint);font-size:13px;vertical-align:middle}
+.score-table tr:last-child td{border-bottom:none}
+.score-table td:first-child{color:var(--text)}
+.score-btns{display:flex;gap:4px;justify-content:center}
+.sc-btn{width:32px;height:32px;border:2px solid var(--border);border-radius:4px;
+  background:var(--surface2);color:var(--muted);font-family:'Outfit',sans-serif;font-size:13px;
+  font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.sc-btn:hover{border-color:var(--accent);color:var(--accent)}
+.sc-btn.sel{border-color:var(--accent);background:rgba(224,92,26,.15);color:var(--accent)}
+
+/* SCORE SUMMARY */
+.score-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:16px 18px;background:var(--surface2)}
+.ss-item{text-align:center}
+.ss-num{font-family:'Outfit',sans-serif;font-size:24px;font-weight:800;color:var(--accent)}
+.ss-lbl{font-size:11px;color:var(--muted)}
+
+/* RATING BAND */
+.rating-band{display:flex;gap:8px;flex-wrap:wrap;padding:14px 18px;border-top:1px solid var(--border)}
+.rb-pip{flex:1;min-width:80px;padding:8px;border-radius:6px;border:2px solid transparent;text-align:center;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s}
+.rb-pip.sel-rb{border-width:2px}
+
+/* TEXTAREA */
+textarea.review-text{width:100%;background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;
+  padding:10px 12px;resize:vertical;min-height:80px;line-height:1.5;transition:border-color .2s}
+textarea.review-text:focus{outline:none;border-color:var(--accent)}
+textarea.review-text::placeholder{color:var(--muted)}
+
+/* OBJECTIVES TABLE */
+.obj-table{width:100%;border-collapse:collapse;margin-bottom:10px}
+.obj-table th{font-size:11px;color:var(--muted);text-transform:uppercase;padding:6px 8px;
+  text-align:left;border-bottom:1px solid var(--border)}
+.obj-table td{padding:6px 4px;border-bottom:1px solid var(--faint)}
+.obj-table input{width:100%;background:var(--surface2);border:1px solid var(--border);
+  border-radius:4px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;
+  padding:6px 8px}.obj-table input:focus{outline:none;border-color:var(--accent)}
+.btn-add-obj{background:transparent;border:1px dashed var(--border);border-radius:var(--r);
+  color:var(--muted);font-size:12px;padding:6px 12px;cursor:pointer;transition:all .15s;width:100%}
+.btn-add-obj:hover{border-color:var(--accent);color:var(--accent)}
+
+/* SIGNOFF BAR */
+.signoff-bar{display:flex;gap:10px;flex-wrap:wrap;padding:16px 18px;
+  background:var(--surface2);border-top:1px solid var(--border);align-items:center}
+.sign-btn{padding:7px 14px;border-radius:20px;border:1px solid var(--border);
+  background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.sign-btn.signed{background:rgba(63,185,80,.12);border-color:rgba(63,185,80,.3);color:var(--green)}
+.sign-btn:not(.signed):hover{border-color:var(--accent);color:var(--accent)}
+.signoff-note{font-size:11px;color:var(--muted)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;
+  display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  width:100%;max-width:520px;overflow:hidden}
+.modal-head{padding:16px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between}
+.modal-head h3{font-family:'Outfit',sans-serif;font-size:16px;font-weight:700}
+.modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer}
+.modal-body{padding:20px;display:flex;flex-direction:column;gap:12px}
+.modal-foot{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.fg label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px}
+.fg input,.fg select{width:100%;background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;
+  padding:8px 10px;transition:border-color .2s}
+.fg input:focus,.fg select:focus{outline:none;border-color:var(--accent)}
+.fg select option{background:var(--surface2)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;padding:12px 16px;font-size:13px;z-index:500;
+  transform:translateY(80px);opacity:0;transition:all .3s;display:flex;align-items:center;gap:8px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-color:rgba(63,185,80,.4);color:var(--green)}
+.toast.error{border-color:rgba(248,81,73,.4);color:var(--red)}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .7s linear infinite;margin:40px auto;display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-state .ei{font-size:40px;margin-bottom:12px}
+
+@media(max-width:768px){
+  .sidebar{display:none}.stats{grid-template-columns:repeat(2,1fr)}
+  .reviews-grid{grid-template-columns:1fr}.anx-selector{grid-template-columns:repeat(2,1fr)}
+  .field-row{grid-template-columns:1fr}.score-summary{grid-template-columns:repeat(2,1fr)}
+}
+
+/* ── MOBILE & TABLET GUARANTEE ───────────────────────────────────────────── */
+/* iOS Safari zooms in on inputs < 16px — prevent this universally */
+@media (max-width: 768px) {
+  input, select, textarea, .inline-edit, .task-row input, .comp-item-row input,
+  .auth-input, .search-input, .search, .fg input, .fg select, .fg textarea,
+  .training-cert, .obj-table input, input[type="text"], input[type="date"],
+  input[type="email"], input[type="tel"], input[type="number"], input[type="password"] {
+    font-size: 16px !important;
+  }
+}
+
+.mobile-strip {
+  display: none;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  position: sticky; top: 57px; z-index: 90;
+}
+.mobile-strip::-webkit-scrollbar { display: none; }
+.mobile-strip-row { display: flex; gap: 6px; min-width: max-content; align-items: center; }
+.ms-btn {
+  padding: 6px 13px; border-radius: 20px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--muted); font-family: 'Outfit',sans-serif;
+  font-size: 12px; font-weight: 500; cursor: pointer;
+  white-space: nowrap; transition: all .15s; min-height: 34px;
+}
+.ms-btn.ms-active { background: var(--accent); color:#fff; border-color:var(--accent); }
+.mobile-fab {
+  display: none; position: fixed; bottom: 24px; right: 20px;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--accent); color: #fff; border: none;
+  font-size: 28px; font-weight: 300;
+  box-shadow: 0 4px 20px rgba(224,92,26,.4);
+  cursor: pointer; z-index: 300;
+  align-items: center; justify-content: center; line-height: 1;
+}
+
+/* Score table — always scrollable horizontally */
+.score-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 0 0 var(--r) var(--r);
+}
+.score-table { min-width: 600px; }
+
+@media (max-width: 768px) {
+  .mobile-strip { display: block; }
+  .mobile-fab { display: flex; }
+  .sidebar { display: none; }
+  .main { padding: 14px; }
+  .stats { grid-template-columns: repeat(2,1fr); gap: 8px; }
+  .stat .n { font-size: 22px; }
+  .reviews-grid { grid-template-columns: 1fr; }
+  .toolbar { gap: 8px; }
+  .filter-tabs { display: none; }
+  .anx-selector { grid-template-columns: repeat(2,1fr); gap: 8px; }
+  .anx-btn { padding: 10px 8px; }
+  .anx-btn .alabel { font-size: 18px; }
+  .dh { flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px; }
+  .dh-actions { width: 100%; flex-wrap: wrap; }
+  .dh-actions button { flex: 1; }
+  .form-section-body { padding: 12px 14px; }
+  .form-section-body > div { grid-template-columns: 1fr !important; }
+  .score-summary { grid-template-columns: repeat(3,1fr); }
+  .rating-band { flex-direction: column; gap: 6px; }
+  .rb-pip { min-width: 0; }
+  .obj-table { min-width: 480px; }
+  .signoff-bar { flex-direction: column; align-items: stretch; gap: 8px; }
+  .signoff-bar .btn, .signoff-bar .sign-btn { width: 100%; justify-content: center; }
+  .modal { margin: 10px; width: calc(100% - 20px); max-width: none; }
+  .field-row { grid-template-columns: 1fr; }
+  body { padding-bottom: 80px; }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar { width: 200px; }
+  .main { padding: 18px; }
+  .stats { grid-template-columns: repeat(2,1fr); }
+  .reviews-grid { grid-template-columns: repeat(2,1fr); }
+  .anx-selector { grid-template-columns: repeat(4,1fr); }
+}
+
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="logo">HH</div>
+  <div>
+    <h1>SafeReview</h1>
+    <small>Performance Review Management — SafeSystems.PRO</small>
+  </div>
+  <div class="header-right">
+    <span class="badge-pill" id="parkLabel">All Parks</span>
+    <a href="safeteam.html" style="font-size:12px;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:4px 10px;border-radius:var(--r);transition:border-color .2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">Back to SafeTeam</a>
+    <span id="authStatus" style="font-size:12px;color:var(--muted)">Connecting…</span>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-section">Reviews</div>
+    <div class="nav-item active" onclick="showView('dashboard')" id="nav-dashboard">Dashboard</div>
+    <hr class="div">
+    <div class="sidebar-section">Filter by Park</div>
+    <div class="nav-item" onclick="setParkFilter('all')">All Parks</div>
+    <div class="nav-item" onclick="setParkFilter('Ben Nevis Holiday Park')">Ben Nevis</div>
+    <div class="nav-item" onclick="setParkFilter('Oban Holiday Park')">Oban</div>
+    <div class="nav-item" onclick="setParkFilter('Tyndrum Holiday Park')">Tyndrum</div>
+    <div class="nav-item" onclick="setParkFilter('Head Office')">Head Office</div>
+    <hr class="div">
+    <div class="sidebar-section">Filter by Annex</div>
+    <div class="nav-item" onclick="setAnnexFilter('all')">All Annexes</div>
+    <div class="nav-item" onclick="setAnnexFilter('A')"><span class="ico"></span> Annex A — Baseline</div>
+    <div class="nav-item" onclick="setAnnexFilter('B')"><span class="ico"></span> Annex B — Q1</div>
+    <div class="nav-item" onclick="setAnnexFilter('C')"><span class="ico"></span> Annex C — Q2</div>
+    <div class="nav-item" onclick="setAnnexFilter('D')"><span class="ico"></span> Annex D — Annual</div>
+    <hr class="div">
+    <div class="nav-item" onclick="openNewModal()"><span class="ico">+</span> New Review</div>
+  </nav>
+
+  <main class="main">
+
+    <!-- Mobile nav strip -->
+    <div class="mobile-strip" id="mobileStrip">
+      <div class="mobile-strip-row">
+        <button class="ms-btn ms-active" onclick="mobileParkFilter('all',this)">All Parks</button>
+        <button class="ms-btn" onclick="mobileParkFilter('Ben Nevis Holiday Park',this)">Ben Nevis</button>
+        <button class="ms-btn" onclick="mobileParkFilter('Oban Holiday Park',this)">Oban</button>
+        <button class="ms-btn" onclick="mobileParkFilter('Tyndrum Holiday Park',this)">Tyndrum</button>
+        <button class="ms-btn" onclick="mobileParkFilter('Head Office',this)">HQ</button>
+        <span style="width:1px;background:var(--border);flex-shrink:0;margin:0 4px"></span>
+        <button class="ms-btn" onclick="mobileAnnexFilter('all',this)">All</button>
+        <button class="ms-btn" onclick="mobileAnnexFilter('A',this)">A</button>
+        <button class="ms-btn" onclick="mobileAnnexFilter('B',this)">B</button>
+        <button class="ms-btn" onclick="mobileAnnexFilter('C',this)">C</button>
+        <button class="ms-btn" onclick="mobileAnnexFilter('D',this)">D</button>
+      </div>
+    </div>
+    <button class="mobile-fab" onclick="openNewModal()" aria-label="New Review">+</button>
+
+    <!-- DASHBOARD -->
+    <div class="view active" id="view-dashboard">
+      <div class="pg-head">
+        <h2>Performance Reviews</h2>
+        <p>Manage staff performance reviews across all Highland Holidays parks</p>
+      </div>
+      <div class="stats">
+        <div class="stat c-accent"><div class="n" id="sTotal">0</div><div class="l">Total Reviews</div></div>
+        <div class="stat c-gold"><div class="n" id="sDraft">0</div><div class="l">In Progress</div></div>
+        <div class="stat c-green"><div class="n" id="sComplete">0</div><div class="l">Completed</div></div>
+        <div class="stat c-blue"><div class="n" id="sThisYear">0</div><div class="l">This Year</div></div>
+      </div>
+      <div class="toolbar">
+        <input class="search" type="text" id="searchInput" placeholder="Search by name, role or park…" oninput="renderDashboard()">
+        <div class="filter-tabs">
+          <button class="ftab active" onclick="setStatusFilter('all',this)">All</button>
+          <button class="ftab" onclick="setStatusFilter('draft',this)">In Progress</button>
+          <button class="ftab" onclick="setStatusFilter('complete',this)">Complete</button>
+        </div>
+        <button class="btn btn-primary" onclick="openNewModal()">+ New Review</button>
+      </div>
+      <div class="reviews-grid" id="reviewsGrid"><div class="spinner"></div></div>
+    </div>
+
+    <!-- DETAIL -->
+    <div class="view" id="view-detail">
+      <button class="btn btn-ghost btn-sm" onclick="showView('dashboard')" style="margin-bottom:16px">← Back to Dashboard</button>
+      <div class="dh" id="detailHeader"></div>
+
+      <!-- Annex selector -->
+      <div class="anx-selector" id="anxSelector"></div>
+
+      <!-- Active annex form -->
+      <div id="reviewFormWrap"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- NEW REVIEW MODAL -->
+<div class="modal-overlay" id="newModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>New Performance Review</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="fg"><label>Employee Name *</label><input id="mName" placeholder="Full name"></div>
+        <div class="fg"><label>Job Title / Role *</label>
+          <select id="mRole">
+            <option value="">Select role…</option>
+            <option>Park Manager</option>
+            <option>General Manager</option>
+            <option>Grounds & Maintenance Manager</option>
+            <option>HR Manager</option>
+            <option>Social Media Executive</option>
+            <option>Head Chef / Chef</option>
+            <option>Receptionist / Front of House</option>
+            <option>Housekeeper</option>
+            <option>Park Worker</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="fg"><label>Park *</label>
+          <select id="mPark">
+            <option value="">Select park…</option>
+            <option>Ben Nevis Holiday Park</option>
+            <option>Oban Holiday Park</option>
+            <option>Tyndrum Holiday Park</option>
+            <option>Head Office</option>
+          </select>
+        </div>
+        <div class="fg"><label>Reviewed By</label><input id="mReviewer" placeholder="Reviewer name"></div>
+      </div>
+      <div class="field-row">
+        <div class="fg"><label>Review Date</label><input id="mDate" type="date"></div>
+        <div class="fg"><label>Review Type</label>
+          <select id="mType">
+            <option value="standard">Standard (Annex A → D)</option>
+            <option value="probation">Probation Review</option>
+            <option value="adhoc">Ad Hoc / Capability</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="createReview()">Create Review Record</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, serverTimestamp, query, orderBy }
+  from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getAuth, signInAnonymously, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+const app = initializeApp({
+  apiKey:"AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+  authDomain:"safepark-pro.firebaseapp.com",
+  projectId:"safepark-pro",
+  storageBucket:"safepark-pro.appspot.com",
+  messagingSenderId:"511221743341",
+  appId:"1:511221743341:web:95bcc7e83d4861578016e4"
+});
+const db   = getFirestore(app);
+const auth = getAuth(app);
+
+// ── DATA ─────────────────────────────────────────────────────────────────────
+const ANNEXES = {
+  A: { label:'Baseline Assessment', freq:'Initial', color:'var(--green)' },
+  B: { label:'Quarterly Review 1',  freq:'Q1',      color:'var(--blue)' },
+  C: { label:'Quarterly Review 2',  freq:'Q2',      color:'var(--gold)' },
+  D: { label:'Annual Review',       freq:'Annual',  color:'var(--purple)' },
+};
+
+const SECTIONS = {
+  responsibilities: {
+    label: 'Responsibilities',
+    items: [
+      'Team Leadership & Management',
+      'Operational Delivery & Standards',
+      'Health, Safety & Compliance',
+      'Guest Experience & Service',
+      'Communication & Collaboration',
+      'Planning & Organisation',
+    ]
+  },
+  knowledge: {
+    label: 'Knowledge & Experience',
+    items: [
+      'Job-Specific Technical Knowledge',
+      'SafeSystems.PRO Proficiency',
+      'H&S Legislation Awareness',
+      'Industry / Sector Knowledge',
+    ]
+  },
+  personal: {
+    label: 'Personal Qualities',
+    items: [
+      'Reliability & Consistency',
+      'Attitude & Professionalism',
+      'Initiative & Problem-Solving',
+      'Team Culture Contribution',
+    ]
+  }
+};
+
+const RATING_BANDS = [
+  { score:5, label:'Outstanding',          color:'#2dd4b0', bg:'rgba(45,212,176,.12)' },
+  { score:4, label:'Exceeds Expectations', color:'#4f8ef7', bg:'rgba(79,142,247,.12)' },
+  { score:3, label:'Meets Expectations',   color:'#e5b94e', bg:'rgba(229,185,78,.12)' },
+  { score:2, label:'Developing',           color:'#e05c1a', bg:'rgba(224,92,26,.12)' },
+  { score:1, label:'Below Expectations',   color:'#f85149', bg:'rgba(248,81,73,.12)' },
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let allReviews = [], currentReview = null, activeAnnex = 'A';
+let statusFilter = 'all', parkFilter = 'all', annexFilter = 'all';
+let objectives = [{ obj:'', action:'', date:'' }];
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+onAuthStateChanged(auth, async user => {
+  if (user) { document.getElementById('authStatus').textContent='Authenticated'; await loadReviews(); }
+});
+await signInAnonymously(auth).catch(console.error);
+
+// ── LOAD ──────────────────────────────────────────────────────────────────────
+async function loadReviews() {
+  const snap = await getDocs(query(collection(db,'performanceReviews'), orderBy('createdAt','desc')));
+  allReviews = snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderDashboard();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+window.showView = id => {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+id)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('nav-'+id)?.classList.add('active');
+};
+
+window.setParkFilter   = p  => { parkFilter  = p;  renderDashboard(); };
+window.setAnnexFilter  = a  => { annexFilter = a;  renderDashboard(); };
+window.setStatusFilter = (s,btn) => {
+  statusFilter = s;
+  document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderDashboard();
+};
+
+function renderDashboard() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  let r = allReviews;
+  if (parkFilter  !== 'all') r = r.filter(x=>x.park===parkFilter);
+  if (annexFilter !== 'all') r = r.filter(x=>Object.keys(x.annexes||{}).includes(annexFilter));
+  if (statusFilter!== 'all') r = r.filter(x=>x.status===statusFilter);
+  if (search) r = r.filter(x=>(x.employeeName||'').toLowerCase().includes(search)||(x.jobTitle||'').toLowerCase().includes(search)||(x.park||'').toLowerCase().includes(search));
+
+  const yr = new Date().getFullYear().toString();
+  document.getElementById('sTotal').textContent = allReviews.length;
+  document.getElementById('sDraft').textContent = allReviews.filter(x=>x.status==='draft'||x.status==='in_progress').length;
+  document.getElementById('sComplete').textContent = allReviews.filter(x=>x.status==='complete').length;
+  document.getElementById('sThisYear').textContent = allReviews.filter(x=>(x.reviewDate||'').startsWith(yr)).length;
+
+  const grid = document.getElementById('reviewsGrid');
+  if (!r.length) { grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><p>No review records found</p></div>`; return; }
+
+  grid.innerHTML = r.map(rv => {
+    const initials = (rv.employeeName||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const annexDone = Object.keys(ANNEXES).filter(k=>rv.annexes?.[k]?.status==='complete');
+    return `<div class="review-card ${rv.status||'draft'}" onclick="openReview('${rv.id}')">
+      <div class="rc-head">
+        <div class="rc-avatar">${initials}</div>
+        <div>
+          <div class="rc-name">${rv.employeeName||'—'}</div>
+          <div class="rc-role">${rv.jobTitle||'—'}</div>
+          <div class="rc-park">${rv.park||'—'}</div>
+          <div class="rc-type">${rv.reviewType||'Standard Review'}</div>
+        </div>
+        <span class="spill ${rv.status||'draft'}">${rv.status==='complete'?'Complete':rv.status==='in_progress'?'In Progress':'Draft'}</span>
+      </div>
+      <div class="annexes-row">
+        ${Object.keys(ANNEXES).map(k=>`<span class="anx-chip ${rv.annexes?.[k]?.status==='complete'?'done':'pending'}">${k}</span>`).join('')}
+      </div>
+      <div class="rc-date">Reviewed by: ${rv.reviewedBy||'—'} · ${rv.reviewDate||'—'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── DETAIL ────────────────────────────────────────────────────────────────────
+window.openReview = async id => {
+  const snap = await getDoc(doc(db,'performanceReviews',id));
+  if (!snap.exists()) return;
+  currentReview = {id:snap.id,...snap.data()};
+  if (!currentReview.annexes) currentReview.annexes = {};
+  renderDetail();
+  showView('detail');
+};
+
+function renderDetail() {
+  const r = currentReview;
+  const initials = (r.employeeName||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+
+  document.getElementById('detailHeader').innerHTML = `
+    <div class="dh-avatar">${initials}</div>
+    <div class="dh-info">
+      <h2>${r.employeeName||'—'}</h2>
+      <span>${r.jobTitle||'—'} · ${r.park||'—'}</span>
+      <div class="dh-park">Reviewed by: ${r.reviewedBy||'—'} · ${r.reviewDate||'—'}</div>
+    </div>
+    <div class="dh-actions">
+      <span class="spill ${r.status||'draft'}" style="font-size:12px">${r.status==='complete'?'✓ Complete':r.status==='in_progress'?'In Progress':'Draft'}</span>
+      <button class="btn btn-primary btn-sm" onclick="markReviewComplete()">Mark Complete ✓</button>
+    </div>`;
+
+  renderAnnexSelector();
+  renderAnnexForm(activeAnnex);
+}
+
+function renderAnnexSelector() {
+  const r = currentReview;
+  document.getElementById('anxSelector').innerHTML = Object.entries(ANNEXES).map(([k,v])=>{
+    const anx = r.annexes?.[k] || {};
+    const isDone = anx.status === 'complete';
+    return `<div class="anx-btn ${activeAnnex===k?'active':''} ${isDone?'done':''}" onclick="selectAnnex('${k}')">
+      <div class="alabel" style="color:${v.color}">${k}</div>
+      <div class="atitle">${v.label}</div>
+      <div class="adate">${isDone?`✓ ${anx.completedDate||''}`:`${v.freq}`}</div>
+    </div>`;
+  }).join('');
+}
+
+window.selectAnnex = k => { activeAnnex = k; renderAnnexSelector(); renderAnnexForm(k); };
+
+// ── ANNEX FORM ────────────────────────────────────────────────────────────────
+function renderAnnexForm(annexKey) {
+  const r = currentReview;
+  const anx = r.annexes?.[annexKey] || {};
+  const scores = anx.scores || {};
+  const overall = calcOverall(scores);
+  objectives = anx.objectives || [{ obj:'', action:'', date:'' }];
+
+  const formHtml = `
+    <div class="review-form">
+
+      <!-- Annex header -->
+      <div style="padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--surface2)">
+        <div style="font-family:'Outfit',sans-serif;font-size:26px;font-weight:800;color:${ANNEXES[annexKey].color}">Annex ${annexKey}</div>
+        <div>
+          <div style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:600">${ANNEXES[annexKey].label}</div>
+          <div style="font-size:12px;color:var(--muted)">${r.employeeName} · ${r.reviewDate||'Date TBC'}</div>
+        </div>
+        ${anx.status==='complete'?`<span class="spill complete" style="margin-left:auto">✓ Complete</span>`:''}
+      </div>
+
+      <!-- Rating scale legend -->
+      <div style="display:flex;gap:6px;padding:12px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap">
+        ${RATING_BANDS.map(b=>`<span style="padding:3px 10px;border-radius:4px;font-size:11px;font-weight:600;background:${b.bg};color:${b.color}">${b.score} — ${b.label}</span>`).join('')}
+      </div>
+
+      <!-- Score sections -->
+      ${Object.entries(SECTIONS).map(([sk,sv])=>`
+        <div class="form-section">
+          <div class="form-section-head">
+            <h3>${sv.label}</h3>
+            <span style="margin-left:auto;font-size:12px;color:var(--muted)">${calcSectionAvg(scores[sk]||{},sv.items)}</span>
+          </div>
+          <div class="form-section-body">
+            <div class="score-table-wrap"><table class="score-table">
+              <thead><tr>
+                <th>Responsibility / Competency</th>
+                ${RATING_BANDS.map(b=>`<th>${b.score}</th>`).join('')}
+                <th>Score</th>
+              </tr></thead>
+              <tbody>
+                ${sv.items.map((item,i)=>{
+                  const key = `item_${i}`;
+                  const current = scores[sk]?.[key];
+                  return `<tr>
+                    <td>${item}</td>
+                    ${RATING_BANDS.map(b=>`<td><div class="score-btns">
+                      <button class="sc-btn ${current===b.score?'sel':''}" onclick="setScore('${sk}','${key}',${b.score})">${b.score}</button>
+                    </div></td>`).join('')}
+                    <td style="text-align:center;font-family:'Outfit',sans-serif;font-weight:700;color:var(--accent)">${current||'—'}</td>
+                  </tr>`;
+                }).join('')}
+              </tbody>
+            </table></div>
+          </div>
+        </div>`).join('')}
+
+      <!-- Score summary -->
+      <div class="score-summary">
+        <div class="ss-item"><div class="ss-num">${calcSectionScore(scores.responsibilities,SECTIONS.responsibilities.items)||'—'}</div><div class="ss-lbl">Responsibilities /5</div></div>
+        <div class="ss-item"><div class="ss-num">${calcSectionScore(scores.knowledge,SECTIONS.knowledge.items)||'—'}</div><div class="ss-lbl">Knowledge /5</div></div>
+        <div class="ss-item"><div class="ss-num" style="color:${overall?'var(--accent)':'var(--muted)'}">${overall||'—'}</div><div class="ss-lbl">Overall /5</div></div>
+      </div>
+
+      <!-- Overall rating selector -->
+      <div class="rating-band">
+        <span style="font-size:12px;color:var(--muted);margin-right:4px;align-self:center">Overall Rating:</span>
+        ${RATING_BANDS.map(b=>`<div class="rb-pip ${anx.overallRating===b.score?'sel-rb':''}"
+          style="background:${anx.overallRating===b.score?b.bg:'transparent'};color:${anx.overallRating===b.score?b.color:'var(--muted)'};border-color:${anx.overallRating===b.score?b.color:'var(--border)'}"
+          onclick="setOverallRating(${b.score},'${annexKey}')">
+          ${b.score} — ${b.label}
+        </div>`).join('')}
+      </div>
+
+      <!-- Narrative sections -->
+      <div class="form-section">
+        <div class="form-section-head"><h3>Performance Summary</h3></div>
+        <div class="form-section-body" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px">Key Strengths</label>
+            <textarea class="review-text" id="txStrengths" placeholder="Describe the employee's key strengths and positive contributions…" rows="4">${anx.strengths||''}</textarea>
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px">Development Areas</label>
+            <textarea class="review-text" id="txDev" placeholder="Areas where improvement or development is needed…" rows="4">${anx.development||''}</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Objectives -->
+      <div class="form-section">
+        <div class="form-section-head"><h3>Objectives & Agreed Actions</h3></div>
+        <div class="form-section-body">
+          <div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="obj-table">
+            <thead><tr><th>Objective</th><th>Action Required</th><th>Target Date</th></tr></thead>
+            <tbody id="objTableBody">${renderObjRows()}</tbody>
+          </table></div>
+          <button class="btn-add-obj" onclick="addObjRow()">+ Add Objective</button>
+        </div>
+      </div>
+
+      <!-- Save + Sign-off -->
+      <div class="signoff-bar">
+        <button class="btn btn-primary" onclick="saveAnnex('${annexKey}')">Save Annex ${annexKey}</button>
+        <span class="signoff-note">Sign-off:</span>
+        <button class="sign-btn ${anx.reviewerSigned?'signed':''}" onclick="signAnnex('${annexKey}','reviewer')">${anx.reviewerSigned?`✓ Reviewer Signed ${anx.reviewerDate||''}`:'Reviewer Sign-Off'}</button>
+        <button class="sign-btn ${anx.employeeSigned?'signed':''}" onclick="signAnnex('${annexKey}','employee')">${anx.employeeSigned?'✓ Employee Signed':'Employee Sign-Off'}</button>
+        ${(annexKey==='D')?`<button class="sign-btn ${anx.directorSigned?'signed':''}" onclick="signAnnex('${annexKey}','director')">${anx.directorSigned?'✓ Director Signed':'Director Sign-Off'}</button>`:''}
+        <button class="btn btn-ghost btn-sm" onclick="completeAnnex('${annexKey}')" style="margin-left:auto">Mark Annex ${annexKey} Complete ✓</button>
+      </div>
+    </div>`;
+
+  document.getElementById('reviewFormWrap').innerHTML = formHtml;
+}
+
+// ── SCORING ───────────────────────────────────────────────────────────────────
+window.setScore = async (section, key, score) => {
+  const r = currentReview;
+  if (!r.annexes[activeAnnex]) r.annexes[activeAnnex] = {};
+  if (!r.annexes[activeAnnex].scores) r.annexes[activeAnnex].scores = {};
+  if (!r.annexes[activeAnnex].scores[section]) r.annexes[activeAnnex].scores[section] = {};
+  r.annexes[activeAnnex].scores[section][key] = score;
+  await updateDoc(doc(db,'performanceReviews',r.id),{annexes:r.annexes});
+  renderAnnexForm(activeAnnex);
+};
+
+window.setOverallRating = async (score, annexKey) => {
+  const r = currentReview;
+  if (!r.annexes[annexKey]) r.annexes[annexKey] = {};
+  r.annexes[annexKey].overallRating = score;
+  r.status = 'in_progress';
+  await updateDoc(doc(db,'performanceReviews',r.id),{annexes:r.annexes,status:'in_progress'});
+  renderAnnexForm(annexKey);
+  toast('Rating updated','success');
+};
+
+function calcSectionScore(sectionScores, items) {
+  if (!sectionScores) return null;
+  const vals = items.map((_,i)=>sectionScores[`item_${i}`]).filter(v=>v!=null);
+  if (!vals.length) return null;
+  return (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1);
+}
+function calcSectionAvg(scores, items) {
+  const v = calcSectionScore(scores, items);
+  return v ? `Avg: ${v}/5` : 'Not scored';
+}
+function calcOverall(scores) {
+  const all = Object.entries(SECTIONS).map(([sk,sv])=>calcSectionScore(scores[sk]||{},sv.items)).filter(v=>v!=null);
+  if (!all.length) return null;
+  return (all.reduce((a,b)=>a+parseFloat(b),0)/all.length).toFixed(1);
+}
+
+// ── OBJECTIVES ────────────────────────────────────────────────────────────────
+function renderObjRows() {
+  return objectives.map((o,i)=>`<tr>
+    <td><input value="${o.obj||''}" placeholder="Objective…" onchange="objectives[${i}].obj=this.value"></td>
+    <td><input value="${o.action||''}" placeholder="Actions required…" onchange="objectives[${i}].action=this.value"></td>
+    <td><input value="${o.date||''}" placeholder="DD/MM/YY" style="width:90px" onchange="objectives[${i}].date=this.value"></td>
+  </tr>`).join('');
+}
+window.addObjRow = () => {
+  objectives.push({obj:'',action:'',date:''});
+  document.getElementById('objTableBody').innerHTML = renderObjRows();
+};
+
+// ── SAVE ──────────────────────────────────────────────────────────────────────
+window.saveAnnex = async annexKey => {
+  const r = currentReview;
+  if (!r.annexes[annexKey]) r.annexes[annexKey] = {};
+  r.annexes[annexKey].strengths   = document.getElementById('txStrengths')?.value || '';
+  r.annexes[annexKey].development = document.getElementById('txDev')?.value || '';
+  r.annexes[annexKey].objectives  = objectives;
+  r.annexes[annexKey].savedAt     = new Date().toLocaleDateString('en-GB');
+  r.status = 'in_progress';
+  await updateDoc(doc(db,'performanceReviews',r.id),{annexes:r.annexes,status:'in_progress'});
+  toast(`Annex ${annexKey} saved`,'success');
+};
+
+window.signAnnex = async (annexKey, type) => {
+  const r = currentReview;
+  if (!r.annexes[annexKey]) r.annexes[annexKey] = {};
+  const now = new Date().toLocaleDateString('en-GB');
+  if (type==='reviewer') { r.annexes[annexKey].reviewerSigned=true; r.annexes[annexKey].reviewerDate=now; }
+  if (type==='employee') { r.annexes[annexKey].employeeSigned=true; r.annexes[annexKey].employeeDate=now; }
+  if (type==='director') { r.annexes[annexKey].directorSigned=true; r.annexes[annexKey].directorDate=now; }
+  await updateDoc(doc(db,'performanceReviews',r.id),{annexes:r.annexes});
+  renderAnnexForm(annexKey);
+  toast(`${type.charAt(0).toUpperCase()+type.slice(1)} sign-off recorded`,'success');
+};
+
+window.completeAnnex = async annexKey => {
+  const r = currentReview;
+  if (!r.annexes[annexKey]) r.annexes[annexKey] = {};
+  r.annexes[annexKey].status = 'complete';
+  r.annexes[annexKey].completedDate = new Date().toLocaleDateString('en-GB');
+  await updateDoc(doc(db,'performanceReviews',r.id),{annexes:r.annexes});
+  renderAnnexSelector();
+  renderAnnexForm(annexKey);
+  toast(`Annex ${annexKey} marked complete`,'success');
+};
+
+window.markReviewComplete = async () => {
+  const r = currentReview;
+  r.status = 'complete';
+  await updateDoc(doc(db,'performanceReviews',r.id),{status:'complete',completedAt:serverTimestamp()});
+  renderDetail();
+  await loadReviews();
+  toast('Review marked as complete ✓','success');
+};
+
+// ── NEW REVIEW ────────────────────────────────────────────────────────────────
+window.openNewModal = () => {
+  document.getElementById('mDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('newModal').classList.add('open');
+};
+window.closeModal = () => document.getElementById('newModal').classList.remove('open');
+
+window.createReview = async () => {
+  const name = document.getElementById('mName').value.trim();
+  const role = document.getElementById('mRole').value;
+  const park = document.getElementById('mPark').value;
+  if (!name||!park||!role) { toast('Please fill all required fields','error'); return; }
+  const ref = await addDoc(collection(db,'performanceReviews'),{
+    employeeName:name, jobTitle:role, park,
+    reviewedBy: document.getElementById('mReviewer').value.trim(),
+    reviewDate: document.getElementById('mDate').value,
+    reviewType: document.getElementById('mType').value,
+    status:'draft', annexes:{},
+    createdAt: serverTimestamp(),
+  });
+  closeModal();
+  await loadReviews();
+  toast('Review record created','success');
+  await openReview(ref.id);
+};
+
+
+        window.mobileParkFilter = function(park, btn) {
+            parkFilter = park;
+            document.querySelectorAll('.ms-btn').forEach(b => b.classList.remove('ms-active'));
+            if (btn) btn.classList.add('ms-active');
+            renderDashboard();
+        };
+        window.mobileAnnexFilter = function(annex, btn) {
+            annexFilter = annex;
+            // Only activate within annex group buttons (last 5)
+            const btns = document.querySelectorAll('.ms-btn');
+            // Don't deactivate park buttons, just the annex ones
+            renderDashboard();
+        };
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function toast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=(type==='success'?'✓ ':'✕ ')+msg;
+  t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+        // ── PHONE BACK-BUTTON SENTINEL ────────────────────────────────────────────
+        // Catches hardware back button on all devices (iOS, Android, desktop).
+        // Navigates within the page first; only exits when at the top-level view.
+        (function() {
+            function pushSentinel() { history.pushState({ safesp: true }, ''); }
+            pushSentinel();
+            window.addEventListener('popstate', function() {
+                // Check if we are inside a detail/secondary view
+                var detail = document.getElementById('view-detail');
+                var hasDetail = detail && detail.classList.contains('active');
+                if (typeof handleBackButton === 'function') {
+                    handleBackButton();
+                } else if (hasDetail && typeof showView === 'function') {
+                    showView('dashboard');
+                }
+                // Always re-push so the next back press is also caught
+                pushSentinel();
+            });
+        })();
+
+        function handleBackButton() {
+            var detail = document.getElementById('view-detail');
+            if (detail && detail.classList.contains('active')) {
+                showView('dashboard');
+            }
+        }
+</script>
+</body>
+</html>

@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HR Config — SafeSystems.PRO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0d1117;--surface:#161b22;--surface2:#1e242d;--border:#2a3140;
+  --accent:#e05c1a;--accent2:#fe7f2d;--blue:#4f8ef7;--teal:#2dd4b0;
+  --green:#3fb950;--gold:#e5b94e;--purple:#c084fc;--red:#f85149;
+  --text:#e6edf3;--muted:#7d8590;--faint:#2a3140;--r:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* HEADER */
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 20px;
+  display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:200}
+.logo{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-family:'Outfit',sans-serif;font-weight:800;font-size:13px;color:#fff;flex-shrink:0}
+.hdr h1{font-family:'Outfit',sans-serif;font-size:15px;font-weight:700}
+.hdr small{font-size:11px;color:var(--muted);display:block;margin-top:1px}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.lock-badge{background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.3);
+  color:var(--red);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.lock-badge.unlocked{background:rgba(63,185,80,.12);border-color:rgba(63,185,80,.3);color:var(--green)}
+
+/* LAYOUT */
+.layout{display:flex;min-height:calc(100vh - 57px)}
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);
+  flex-shrink:0;padding:12px 0;position:sticky;top:57px;height:calc(100vh - 57px);overflow-y:auto}
+.sec-label{padding:8px 14px 4px;font-size:10px;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.6px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 14px;cursor:pointer;
+  transition:background .15s;font-size:13px;color:var(--muted);border-left:3px solid transparent}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:rgba(224,92,26,.08);color:var(--accent);border-left-color:var(--accent)}
+.nav-item .ic{font-size:14px;width:18px;text-align:center}
+hr.dv{border:none;border-top:1px solid var(--border);margin:8px 0}
+.main{flex:1;padding:24px;overflow-x:hidden}
+
+/* AUTH GATE */
+.auth-gate{display:flex;align-items:center;justify-content:center;min-height:60vh}
+.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:40px;text-align:center;max-width:380px;width:100%;box-sizing:border-box}
+.auth-card .icon{font-size:40px;margin-bottom:16px}
+.auth-card h2{font-family:'Outfit',sans-serif;font-size:20px;font-weight:700;margin-bottom:8px}
+.auth-card p{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5}
+.auth-input{width:100%;background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;
+  padding:10px 14px;text-align:center;letter-spacing:3px;margin-bottom:12px;transition:border-color .2s}
+.auth-input:focus{outline:none;border-color:var(--accent)}
+.auth-error{color:var(--red);font-size:12px;margin-bottom:10px;display:none}
+
+/* VIEWS */
+.view{display:none}.view.active{display:block}
+
+/* PAGE HEADER */
+.pg-hd{margin-bottom:20px;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.pg-hd h2{font-family:'Outfit',sans-serif;font-size:20px;font-weight:700}
+.pg-hd p{font-size:13px;color:var(--muted);margin-top:3px}
+
+/* BUTTONS */
+.btn{padding:8px 14px;border-radius:var(--r);border:none;font-family:'Outfit',sans-serif;
+  font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s,transform .1s;
+  display:inline-flex;align-items:center;gap:6px}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{opacity:.9}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-danger{background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.3);color:var(--red)}
+
+/* CONFIG TABLE */
+.config-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  margin-bottom:16px;overflow:hidden}
+.config-card-head{padding:14px 18px;background:var(--surface2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px}
+.config-card-head h3{font-family:'Outfit',sans-serif;font-size:14px;font-weight:600}
+.config-card-head .hd-actions{margin-left:auto;display:flex;gap:8px}
+.config-table{width:100%;border-collapse:collapse}
+.config-table th{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.4px;padding:8px 16px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface2)}
+.config-table td{padding:10px 16px;border-bottom:1px solid var(--faint);font-size:13px;vertical-align:middle}
+.config-table tr:last-child td{border-bottom:none}
+.config-table tr:hover td{background:rgba(255,255,255,.02)}
+.pill{padding:3px 9px;border-radius:10px;font-size:11px;font-weight:600}
+.pill-blue{background:rgba(79,142,247,.12);color:var(--blue)}
+.pill-green{background:rgba(63,185,80,.12);color:var(--green)}
+.pill-gold{background:rgba(229,185,78,.12);color:var(--gold)}
+.pill-purple{background:rgba(192,132,252,.12);color:var(--purple)}
+.pill-red{background:rgba(248,81,73,.12);color:var(--red)}
+.pill-muted{background:rgba(125,133,144,.12);color:var(--muted)}
+
+/* INLINE EDIT */
+.inline-edit{background:var(--surface2);border:1px solid var(--border);border-radius:4px;
+  color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;
+  padding:5px 8px;width:100%;transition:border-color .2s}
+.inline-edit:focus{outline:none;border-color:var(--accent)}
+.inline-edit.narrow{width:120px}
+
+/* DRAG HANDLE */
+.drag-handle{cursor:grab;color:var(--muted);font-size:16px;padding:0 4px;user-select:none}
+.drag-handle:active{cursor:grabbing}
+
+/* WEEKS BUILDER */
+.week-block{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.week-head{padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px}
+.week-head input{flex:1;background:transparent;border:none;color:var(--text);
+  font-family:'Outfit',sans-serif;font-size:14px;font-weight:600}
+.week-head input:focus{outline:none}
+.week-tasks{padding:0}
+.task-row{display:flex;align-items:center;gap:8px;padding:8px 16px;
+  border-bottom:1px solid var(--faint)}
+.task-row:last-child{border-bottom:none}
+.task-row input{flex:1;background:var(--surface2);border:1px solid var(--border);
+  border-radius:4px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 8px}
+.task-row input:focus{outline:none;border-color:var(--accent)}
+.task-row input.narrow{width:100px;flex:none}
+.task-row input.xnarrow{width:80px;flex:none}
+.task-lbl{font-size:10px;color:var(--muted);white-space:nowrap}
+.btn-add-task{width:100%;padding:8px;border:1px dashed var(--border);border-radius:0;
+  background:transparent;color:var(--muted);font-size:12px;cursor:pointer;transition:all .15s}
+.btn-add-task:hover{border-color:var(--accent);color:var(--accent)}
+.btn-del{background:transparent;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:2px 4px}
+.btn-del:hover{color:var(--red)}
+
+/* COMPETENCY BUILDER */
+.comp-section{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.comp-head{padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px}
+.comp-head input{flex:1;background:transparent;border:none;color:var(--text);
+  font-family:'Outfit',sans-serif;font-size:14px;font-weight:600}
+.comp-head input:focus{outline:none}
+.comp-items{padding:0}
+.comp-item-row{display:flex;align-items:center;gap:8px;padding:7px 16px;border-bottom:1px solid var(--faint)}
+.comp-item-row:last-child{border-bottom:none}
+.comp-item-row input{flex:1;background:var(--surface2);border:1px solid var(--border);
+  border-radius:4px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 8px}
+.comp-item-row input:focus{outline:none;border-color:var(--accent)}
+
+/* SECTION ACTIONS */
+.section-actions{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:400;
+  display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  width:100%;max-width:560px;max-height:90vh;overflow-y:auto}
+.modal-head{padding:16px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1}
+.modal-head h3{font-family:'Outfit',sans-serif;font-size:16px;font-weight:700}
+.modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer}
+.modal-body{padding:20px;display:flex;flex-direction:column;gap:14px}
+.modal-foot{padding:12px 20px;border-top:1px solid var(--border);
+  display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:var(--surface)}
+.fg label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px}
+.fg input,.fg select,.fg textarea{width:100%;background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;
+  padding:8px 10px;transition:border-color .2s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--accent)}
+.fg select option{background:var(--surface2)}
+.fg textarea{resize:vertical;min-height:60px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+
+/* INFO BOX */
+.info-box{background:rgba(79,142,247,.06);border:1px solid rgba(79,142,247,.2);
+  border-radius:8px;padding:12px 14px;font-size:12px;color:var(--muted);line-height:1.6}
+.info-box strong{color:var(--blue)}
+
+/* EMPTY */
+.empty{padding:32px;text-align:center;color:var(--muted);font-size:13px}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);
+  border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:13px;
+  z-index:500;transform:translateY(80px);opacity:0;transition:all .3s}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-color:rgba(63,185,80,.4);color:var(--green)}
+.toast.error{border-color:rgba(248,81,73,.4);color:var(--red)}
+
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .7s linear infinite;margin:30px auto;display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:768px){
+  .sidebar{display:none}.field-row,.field-row-3{grid-template-columns:1fr}
+}
+
+/* ── MOBILE & TABLET GUARANTEE ───────────────────────────────────────────── */
+/* iOS Safari zooms in on inputs < 16px — prevent this universally */
+@media (max-width: 768px) {
+  input, select, textarea, .inline-edit, .task-row input, .comp-item-row input,
+  .auth-input, .search-input, .search, .fg input, .fg select, .fg textarea,
+  .training-cert, .obj-table input, input[type="text"], input[type="date"],
+  input[type="email"], input[type="tel"], input[type="number"], input[type="password"] {
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main { padding: 14px; }
+  /* Auth card */
+  .auth-card { padding: 24px 18px; }
+  /* Config card */
+  .config-table th, .config-table td { padding: 8px 10px; font-size: 12px; }
+  /* Modals — full width on mobile */
+  .modal { margin: 10px; width: calc(100% - 20px) !important;
+           max-width: none !important; max-height: 92vh; }
+  .modal-body { padding: 0; }
+  .field-row, .field-row-3 { grid-template-columns: 1fr; }
+  /* JD editor sections */
+  .week-block { margin-bottom: 10px; }
+  .task-row { flex-wrap: wrap; gap: 6px; }
+  .task-row input { width: 100% !important; flex: 1 1 100% !important; }
+  .task-row input.xnarrow { width: 100% !important; }
+  /* Buddy rules table */
+  .inline-edit.narrow { width: 100%; }
+  /* Parks list */
+  #parksBody > div > div { flex-direction: column; }
+  /* Pg header */
+  .pg-hd { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .pg-hd button { width: 100%; }
+  /* Competency builder */
+  .comp-item-row { flex-wrap: wrap; }
+  .comp-item-row input { flex: 1 1 80%; }
+}
+
+@media (min-width: 769px) and (max-width: 1100px) {
+  .sidebar { width: 190px; }
+  .main { padding: 18px; }
+  .modal { max-width: min(820px, 95vw) !important; }
+}
+
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="logo">HH</div>
+  <div>
+    <h1>HR Config</h1>
+    <small>SafeTeam Suite Configuration — SafeSystems.PRO</small>
+  </div>
+  <div class="hdr-right">
+    <span class="lock-badge" id="lockBadge">Admin Only — Locked</span>
+    <a href="safeteam.html" style="font-size:12px;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:4px 10px;border-radius:var(--r);transition:border-color .2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">Back to SafeTeam</a>
+    <span id="authStatus" style="font-size:12px;color:var(--muted)">Connecting…</span>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sec-label">Configuration</div>
+    <div class="nav-item active" onclick="showView('roles')" id="nav-roles"> Job Roles</div>
+    <div class="nav-item" onclick="showView('induction')" id="nav-induction"> Induction Templates</div>
+    <div class="nav-item" onclick="showView('competencies')" id="nav-competencies"> Review Competencies</div>
+    <div class="nav-item" onclick="showView('buddy')" id="nav-buddy"> Buddy Rules</div>
+    <div class="nav-item" onclick="showView('parks')" id="nav-parks"> Parks</div>
+    <hr class="dv">
+    <div class="sec-label">System</div>
+    <div class="nav-item" onclick="showView('schedule')" id="nav-schedule"> Review Schedule</div>
+    <div class="nav-item" onclick="showView('notify')" id="nav-notify"> Notify Settings</div>
+  </nav>
+
+  <main class="main" id="mainContent">
+    <!-- Auth gate shown first -->
+    <div class="auth-gate" id="authGate">
+      <div class="auth-card">
+        <div class="icon">[Locked]</div>
+        <h2>Admin Access Required</h2>
+        <p>HR Config contains sensitive system settings. Enter the master admin code to continue.</p>
+        <input class="auth-input" type="password" id="codeInput" placeholder="••••••••••" maxlength="12"
+               onkeydown="if(event.key==='Enter')checkCode()">
+        <div class="auth-error" id="authError">Incorrect code. Please try again.</div>
+        <button class="btn btn-primary" style="width:100%" onclick="checkCode()">Unlock Config</button>
+      </div>
+    </div>
+
+    <!-- VIEWS (hidden until authed) -->
+    <div id="configViews" style="display:none">
+
+      <!-- ROLES -->
+      <div class="view active" id="view-roles">
+        <div class="pg-hd">
+          <div><h2>Job Roles</h2><p>All roles across Highland Holidays — used throughout the SafeTeam suite</p></div>
+          <button class="btn btn-primary" onclick="openRoleModal()">+ Add Role</button>
+          <button class="btn btn-ghost" onclick="loadDefaultHHRoles()">Load Default HH Roles</button>
+        </div>
+        <div class="info-box" style="margin-bottom:16px">
+          <strong>Role Type</strong> determines buddy matching, 360° review eligibility, and review schedule. <strong>Management / Dept Head</strong> roles receive peer reviews before each performance review.
+        </div>
+        <div class="config-card">
+          <div class="config-card-head"><h3>Role Register</h3><span id="roleCount" style="font-size:12px;color:var(--muted)"></span><span style="font-size:11px;color:var(--muted);margin-left:8px">Upload date and version shown on each record</span></div>
+          <div id="rolesTableWrap"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- INDUCTION TEMPLATES -->
+      <div class="view" id="view-induction">
+        <div class="pg-hd">
+          <div><h2>Induction Templates</h2><p>Week-by-week programmes assigned automatically when an employee is enrolled</p></div>
+          <button class="btn btn-primary" onclick="openInductionModal()">+ Add Programme</button>
+        </div>
+        <div class="info-box" style="margin-bottom:16px">
+          <strong>Each role</strong> is linked to one induction programme. When a new employee is created in SafeTeam, the matching programme is auto-loaded into their induction record. The <strong>Corporate Day 1</strong> checklist is universal and always included.
+        </div>
+        <div id="inductionList"><div class="spinner"></div></div>
+      </div>
+
+      <!-- COMPETENCIES -->
+      <div class="view" id="view-competencies">
+        <div class="pg-hd">
+          <div><h2>Review Competencies</h2><p>Sections and items used in performance reviews — applies to all roles</p></div>
+          <button class="btn btn-primary" onclick="addCompSection()">+ Add Section</button>
+        </div>
+        <div class="info-box" style="margin-bottom:16px">
+          Changes here affect <strong>all future performance reviews</strong>. Existing completed reviews are not affected. Each item is scored 1–5 during a review.
+        </div>
+        <div id="compBuilder"></div>
+        <button class="btn btn-primary" style="margin-top:8px" onclick="saveCompetencies()">Save Competencies</button>
+      </div>
+
+      <!-- BUDDY RULES -->
+      <div class="view" id="view-buddy">
+        <div class="pg-hd">
+          <div><h2>Buddy Level Rules</h2><p>Defines the minimum role type a buddy must be for each employee level</p></div>
+        </div>
+        <div class="config-card">
+          <div class="config-card-head"><h3>Buddy Matching Rules</h3></div>
+          <table class="config-table">
+            <thead><tr><th>Employee Role Type</th><th>Buddy Must Be At Least</th><th></th></tr></thead>
+            <tbody id="buddyRulesBody"></tbody>
+          </table>
+        </div>
+        <button class="btn btn-primary" onclick="saveBuddyRules()">Save Buddy Rules</button>
+      </div>
+
+      <!-- PARKS -->
+      <div class="view" id="view-parks">
+        <div class="pg-hd">
+          <div><h2>Parks</h2><p>Highland Holidays locations — used throughout the suite</p></div>
+          <button class="btn btn-primary" onclick="addPark()">+ Add Park</button>
+        </div>
+        <div class="config-card">
+          <div class="config-card-head"><h3>Park Register</h3></div>
+          <div id="parksBody"></div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:12px" onclick="saveParks()">Save Parks</button>
+      </div>
+
+      <!-- REVIEW SCHEDULE -->
+      <div class="view" id="view-schedule">
+        <div class="pg-hd">
+          <div><h2>Review Schedule Settings</h2><p>Milestone dates calculated from each employee's start date</p></div>
+        </div>
+        <div class="config-card">
+          <div class="config-card-head"><h3>Scheduled Review Milestones</h3></div>
+          <table class="config-table">
+            <thead><tr><th>Review</th><th>Months from Start Date</th><th>Annex</th><th>Peer Review?</th><th>Who Conducts</th></tr></thead>
+            <tbody id="scheduleBody"></tbody>
+          </table>
+        </div>
+        <div class="info-box" style="margin-top:12px">
+          <strong>Peer review eligibility</strong> is determined by role type — dept_head and above only. The peer review cycle opens <strong>2 weeks before</strong> the review date to allow time for responses.
+        </div>
+        <button class="btn btn-primary" style="margin-top:12px" onclick="saveSchedule()">Save Schedule</button>
+      </div>
+
+      <!-- NOTIFY SETTINGS -->
+      <div class="view" id="view-notify">
+        <div class="pg-hd">
+          <div><h2>SafeNotify Settings</h2><p>When and who receives review reminders</p></div>
+        </div>
+        <div class="config-card">
+          <div class="config-card-head"><h3>Reminder Timing</h3></div>
+          <table class="config-table">
+            <thead><tr><th>Trigger</th><th>Days Before</th><th>Recipients</th><th>Active</th></tr></thead>
+            <tbody id="notifyBody"></tbody>
+          </table>
+        </div>
+        <button class="btn btn-primary" style="margin-top:12px" onclick="saveNotifySettings()">Save Notify Settings</button>
+      </div>
+
+    </div><!-- /configViews -->
+  </main>
+</div>
+
+<!-- ROLE MODAL -->
+<div class="modal-overlay" id="roleModal">
+  <div class="modal" style="max-width:820px">
+    <div class="modal-head">
+      <h3 id="roleModalTitle">Add Job Role</h3>
+      <button class="modal-close" onclick="closeModal('roleModal')">✕</button>
+    </div>
+    <div class="modal-body" style="gap:0;padding:0">
+
+      <!-- ── BASIC DETAILS ── -->
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);background:var(--surface2)">
+        <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Role Details</div>
+        <div class="field-row">
+          <div class="fg"><label>Role Title *</label><input id="rm_title" placeholder="e.g. Park Manager"></div>
+          <div class="fg"><label>Short Code</label><input id="rm_code" placeholder="e.g. PM" maxlength="6"></div>
+        </div>
+        <div class="field-row" style="margin-top:10px">
+          <div class="fg">
+            <label>Role Type *</label>
+            <select id="rm_type">
+              <option value="">Select type…</option>
+              <option value="director">Director</option>
+              <option value="management">Management</option>
+              <option value="dept_head">Department Head</option>
+              <option value="operative">Operative / Park Worker</option>
+              <option value="seasonal">Seasonal</option>
+              <option value="support">Support / Admin</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>Park / Base</label>
+            <select id="rm_park">
+              <option value="all">All Parks / HO</option>
+              <option>Ben Nevis Holiday Park</option>
+              <option>Oban Holiday Park</option>
+              <option>Tyndrum Holiday Park</option>
+              <option>Head Office</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row" style="margin-top:10px">
+          <div class="fg">
+            <label>Induction Programme</label>
+            <select id="rm_induction"><option value="">None / TBC</option></select>
+          </div>
+          <div class="fg">
+            <label>Reports To</label>
+            <select id="rm_reportsTo">
+              <option value="director">Director</option>
+              <option value="management">Management</option>
+              <option value="dept_head">Department Head</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>Peer Review</label>
+            <select id="rm_peerReview">
+              <option value="auto">Auto (dept_head+)</option>
+              <option value="yes">Yes — always</option>
+              <option value="no">No — never</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── JOB PURPOSE ── -->
+      <div style="padding:14px 20px;border-bottom:1px solid var(--border)">
+        <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Job Purpose</div>
+        <textarea id="rm_purpose" class="fg" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:10px 12px;resize:vertical;min-height:70px;line-height:1.5" placeholder="Overall purpose and accountability of this role…"></textarea>
+      </div>
+
+      <!-- ── RESPONSIBILITIES ── -->
+      <div style="padding:14px 20px;border-bottom:1px solid var(--border)">
+        <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Key Responsibilities</div>
+        <div id="rm_respGroups"></div>
+        <button onclick="addRespGroup()" style="margin-top:8px;width:100%;padding:7px;border:1px dashed var(--border);border-radius:var(--r);background:transparent;color:var(--muted);font-size:12px;cursor:pointer" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">+ Add Responsibility Group</button>
+      </div>
+
+      <!-- ── KNOWLEDGE ── -->
+      <div style="padding:14px 20px;border-bottom:1px solid var(--border)">
+        <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Knowledge & Experience</div>
+        <div id="rm_knowledge"></div>
+        <button onclick="addJDItem('knowledge')" style="margin-top:6px;width:100%;padding:6px;border:1px dashed var(--border);border-radius:4px;background:transparent;color:var(--muted);font-size:12px;cursor:pointer">+ Add Item</button>
+      </div>
+
+      <!-- ── PERSONAL QUALITIES ── -->
+      <div style="padding:14px 20px;border-bottom:1px solid var(--border)">
+        <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Personal Qualities</div>
+        <div id="rm_qualities"></div>
+        <button onclick="addJDItem('qualities')" style="margin-top:6px;width:100%;padding:6px;border:1px dashed var(--border);border-radius:4px;background:transparent;color:var(--muted);font-size:12px;cursor:pointer">+ Add Item</button>
+      </div>
+
+      <!-- ── KEY RELATIONSHIPS ── -->
+      <div style="padding:14px 20px;border-bottom:1px solid var(--border)">
+        <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Key Relationships</div>
+        <div id="rm_relationships"></div>
+        <button onclick="addJDItem('relationships')" style="margin-top:6px;width:100%;padding:6px;border:1px dashed var(--border);border-radius:4px;background:transparent;color:var(--muted);font-size:12px;cursor:pointer">+ Add Item</button>
+      </div>
+
+      <!-- ── AMENDMENT NOTE (edit only) ── -->
+      <div id="rm_amendSection" style="padding:14px 20px;border-bottom:1px solid var(--border);display:none">
+        <div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Amendment Note</div>
+        <input id="rm_amendNote" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 12px" placeholder="Brief summary of what was changed and why…">
+        <div id="rm_amendHistory" style="margin-top:10px"></div>
+      </div>
+
+      <!-- ── UPLOAD META ── -->
+      <div id="rm_uploadMeta" style="padding:10px 20px;font-size:11px;color:var(--muted)"></div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('roleModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRole()">Save Role</button>
+    </div>
+  </div>
+</div>
+
+<!-- INDUCTION PROGRAMME MODAL -->
+<div class="modal-overlay" id="inductionModal">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-head">
+      <h3 id="indModalTitle">New Induction Programme</h3>
+      <button class="modal-close" onclick="closeModal('inductionModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="fg"><label>Programme Name *</label><input id="im_name" placeholder="e.g. Housekeeping Programme"></div>
+        <div class="fg"><label>Programme Key (no spaces) *</label><input id="im_key" placeholder="e.g. housekeeping"></div>
+      </div>
+      <div class="fg"><label>Applies to Roles</label><input id="im_roles" placeholder="e.g. Housekeeper, Laundry Assistant…"></div>
+      <div id="imWeeksBuilder"></div>
+      <button class="btn-add-task" onclick="addWeekToModal()" style="border-radius:var(--r);padding:10px">+ Add Week</button>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('inductionModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveInductionProgramme()">Save Programme</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getFirestore, collection, doc, getDocs, getDoc, setDoc, addDoc,
+         updateDoc, deleteDoc, serverTimestamp, query, orderBy }
+  from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getAuth, signInAnonymously, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+const app = initializeApp({
+  apiKey:"AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+  authDomain:"safepark-pro.firebaseapp.com",
+  projectId:"safepark-pro",
+  storageBucket:"safepark-pro.appspot.com",
+  messagingSenderId:"511221743341",
+  appId:"1:511221743341:web:95bcc7e83d4861578016e4"
+});
+const db   = getFirestore(app);
+const auth = getAuth(app);
+
+const ADMIN_CODE = 'CQR365SPP25';
+let isAuthed = false;
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let roles = [], programmes = [], competencies = [], parks = [], buddyRules = [],
+    schedule = [], notifySettings = [];
+let editingRoleId = null, editingProgId = null, modalWeeks = [];
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+onAuthStateChanged(auth, async user => {
+  if (user) { document.getElementById('authStatus').textContent = 'Connected'; }
+});
+await signInAnonymously(auth).catch(console.error);
+
+window.checkCode = () => {
+  const val = document.getElementById('codeInput').value.trim();
+  if (val === ADMIN_CODE) {
+    isAuthed = true;
+    document.getElementById('authGate').style.display = 'none';
+    document.getElementById('configViews').style.display = 'block';
+    document.getElementById('lockBadge').textContent = 'Admin Unlocked';
+    document.getElementById('lockBadge').classList.add('unlocked');
+    loadAll();
+  } else {
+    document.getElementById('authError').style.display = 'block';
+    document.getElementById('codeInput').value = '';
+  }
+};
+
+// ── LOAD ALL ─────────────────────────────────────────────────────────────────
+async function loadAll() {
+  await Promise.all([loadRoles(), loadProgrammes(), loadCompetencies(),
+                     loadBuddyRules(), loadParks(), loadSchedule(), loadNotify()]);
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+window.showView = id => {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+id)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('nav-'+id)?.classList.add('active');
+};
+
+// ── ROLES ─────────────────────────────────────────────────────────────────────
+async function loadRoles() {
+  const snap = await getDocs(query(collection(db,'hrConfig_roles'), orderBy('title')));
+  roles = snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderRoles();
+}
+
+function renderRoles() {
+  document.getElementById('roleCount').textContent = `${roles.length} roles`;
+  const typeColors = {
+    director:'pill-purple', management:'pill-blue', dept_head:'pill-teal',
+    operative:'pill-green', seasonal:'pill-gold', support:'pill-muted'
+  };
+  const wrap = document.getElementById('rolesTableWrap');
+  if (!roles.length) { wrap.innerHTML='<div class="empty">No roles configured yet. Add your first role.</div>'; return; }
+  wrap.innerHTML = `<table class="config-table">
+    <thead><tr><th>Role Title</th><th>Code</th><th>Type</th><th>Park</th><th>Induction</th><th>Peer Review</th><th>Version</th><th></th></tr></thead>
+    <tbody>${roles.map(r=>`<tr>
+      <td><strong>${r.title||'—'}</strong>${r.notes?`<div style="font-size:11px;color:var(--muted)">${r.notes}</div>`:''}</td>
+      <td><code style="background:var(--surface2);padding:2px 6px;border-radius:4px;font-size:12px">${r.code||'—'}</code></td>
+      <td><span class="pill ${typeColors[r.type]||'pill-muted'}">${r.type||'—'}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${r.park||'All'}</td>
+      <td style="font-size:12px;color:var(--muted)">${r.inductionProgramme||'—'}</td>
+      <td><span class="pill ${r.peerReview==='no'?'pill-muted':'pill-blue'}">${r.peerReview==='yes'?'Yes':r.peerReview==='no'?'No':'Auto'}</span></td>
+      <td style="font-size:11px;color:var(--muted)">v${r.version||1}${r.uploadedAt?' — '+(r.uploadedAt.toDate?r.uploadedAt.toDate().toLocaleDateString('en-GB'):r.uploadedAt):''}</td>
+      <td style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="editRole('${r.id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteRole('${r.id}')">Del</button>
+      </td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+
+// ── JD EDITOR STATE ───────────────────────────────────────────────────────────
+let jdRespGroups = []; // [{title, items:[]}]
+let jdKnowledge  = [];
+let jdQualities  = [];
+let jdRelationships = [];
+
+function renderJDItem(listKey, items) {
+  const container = document.getElementById(`rm_${listKey}`);
+  if (!container) return;
+  container.innerHTML = items.map((item, i) => `
+    <div style="display:flex;gap:6px;margin-bottom:5px;align-items:center">
+      <input value="${(item||'').replace(/"/g,'&quot;')}" placeholder="Item…" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 8px" oninput="jd${listKey.charAt(0).toUpperCase()+listKey.slice(1)}[${i}]=this.value">
+      <button onclick="removeJDItem('${listKey}',${i})" style="background:transparent;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:2px 4px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</button>
+    </div>`).join('');
+}
+
+window.addJDItem = key => {
+  const map = {knowledge:jdKnowledge,qualities:jdQualities,relationships:jdRelationships};
+  map[key].push('');
+  renderJDItem(key, map[key]);
+};
+window.removeJDItem = (key, i) => {
+  const map = {knowledge:jdKnowledge,qualities:jdQualities,relationships:jdRelationships};
+  map[key].splice(i,1);
+  renderJDItem(key, map[key]);
+};
+
+function renderRespGroups() {
+  const container = document.getElementById('rm_respGroups');
+  if (!container) return;
+  container.innerHTML = jdRespGroups.map((g,gi) => `
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;margin-bottom:8px;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border)">
+        <input value="${(g.title||'').replace(/"/g,'&quot;')}" placeholder="Group name (e.g. Team, Operational…)" style="flex:1;background:transparent;border:none;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600" oninput="jdRespGroups[${gi}].title=this.value">
+        <button onclick="removeRespGroup(${gi})" style="background:transparent;border:none;color:var(--muted);font-size:13px;cursor:pointer" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">Remove</button>
+      </div>
+      <div style="padding:8px 12px">
+        ${(g.items||[]).map((item,ii) => `
+          <div style="display:flex;gap:6px;margin-bottom:5px;align-items:center">
+            <span style="font-size:11px;color:var(--muted);min-width:20px;text-align:right">${ii+1}.</span>
+            <input value="${(item||'').replace(/"/g,'&quot;')}" placeholder="Responsibility…" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 8px" oninput="jdRespGroups[${gi}].items[${ii}]=this.value">
+            <button onclick="removeRespItem(${gi},${ii})" style="background:transparent;border:none;color:var(--muted);font-size:13px;cursor:pointer" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</button>
+          </div>`).join('')}
+        <button onclick="addRespItem(${gi})" style="margin-top:4px;padding:4px 10px;border:1px dashed var(--border);border-radius:4px;background:transparent;color:var(--muted);font-size:11px;cursor:pointer">+ Add Responsibility</button>
+      </div>
+    </div>`).join('');
+}
+
+window.addRespGroup = () => { jdRespGroups.push({title:'',items:['']}); renderRespGroups(); };
+window.removeRespGroup = gi => { jdRespGroups.splice(gi,1); renderRespGroups(); };
+window.addRespItem = gi => { jdRespGroups[gi].items.push(''); renderRespGroups(); };
+window.removeRespItem = (gi,ii) => { jdRespGroups[gi].items.splice(ii,1); renderRespGroups(); };
+
+window.openRoleModal = (id=null) => {
+  editingRoleId = id;
+  document.getElementById('roleModalTitle').textContent = id ? 'Edit Job Role & Responsibilities' : 'Add Job Role';
+
+  // Reset JD state
+  jdRespGroups=[]; jdKnowledge=[]; jdQualities=[]; jdRelationships=[];
+
+  // Populate induction dropdown
+  const sel = document.getElementById('rm_induction');
+  sel.innerHTML = '<option value="">None / TBC</option>' + programmes.map(p=>`<option value="${p.key}">${p.name}</option>`).join('');
+
+  if (id) {
+    const r = roles.find(x=>x.id===id);
+    if (r) {
+      document.getElementById('rm_title').value   = r.title||'';
+      document.getElementById('rm_code').value    = r.code||'';
+      document.getElementById('rm_type').value    = r.type||'';
+      document.getElementById('rm_park').value    = r.park||'all';
+      sel.value                                   = r.inductionProgramme||'';
+      document.getElementById('rm_reportsTo').value  = r.reportsTo||'director';
+      document.getElementById('rm_peerReview').value = r.peerReview||'auto';
+      document.getElementById('rm_purpose').value    = r.purpose||'';
+
+      // JD content
+      jdRespGroups   = JSON.parse(JSON.stringify(r.responsibilities||[]));
+      jdKnowledge    = [...(r.knowledge||[])];
+      jdQualities    = [...(r.personalQualities||[])];
+      jdRelationships= [...(r.keyRelationships||[])];
+
+      // Amendment section
+      document.getElementById('rm_amendSection').style.display = 'block';
+      document.getElementById('rm_amendNote').value = '';
+
+      // Amendment history
+      const history = (r.amendments||[]).slice().reverse();
+      document.getElementById('rm_amendHistory').innerHTML = history.length ?
+        '<div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Previous Amendments</div>' +
+        history.map(a=>`<div style="font-size:11px;color:var(--muted);padding:4px 0;border-bottom:1px solid var(--faint)">v${a.version} — ${a.date} — ${a.amendedBy}: ${a.summary}</div>`).join('') : '';
+
+      // Upload meta
+      const uploadDate = r.uploadedAt ? (r.uploadedAt.toDate ? r.uploadedAt.toDate().toLocaleDateString('en-GB') : r.uploadedAt) : '—';
+      document.getElementById('rm_uploadMeta').textContent =
+        `v${r.version||1} — Uploaded by ${r.uploadedBy||'HR'} on ${uploadDate}`;
+    }
+  } else {
+    ['rm_title','rm_code','rm_purpose'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('rm_type').value='';
+    document.getElementById('rm_park').value='all';
+    document.getElementById('rm_peerReview').value='auto';
+    document.getElementById('rm_amendSection').style.display='none';
+    document.getElementById('rm_uploadMeta').textContent='';
+    jdRespGroups=[{title:'Team',items:['']},{title:'Operational',items:['']}];
+  }
+
+  renderRespGroups();
+  renderJDItem('knowledge',jdKnowledge);
+  renderJDItem('qualities',jdQualities);
+  renderJDItem('relationships',jdRelationships);
+  document.getElementById('roleModal').classList.add('open');
+};
+
+window.editRole = id => openRoleModal(id);
+
+window.saveRole = async () => {
+  const title = document.getElementById('rm_title').value.trim();
+  const type  = document.getElementById('rm_type').value;
+  if (!title||!type) { toast('Role title and type are required','error'); return; }
+
+  // Sync live input values from DOM (in case oninput didn't fire for last edit)
+  document.querySelectorAll('#rm_respGroups input').forEach(inp => {
+    // values already bound via oninput
+  });
+
+  const now = new Date().toLocaleDateString('en-GB');
+
+  const baseData = {
+    title,
+    code:             document.getElementById('rm_code').value.trim().toUpperCase(),
+    type,
+    park:             document.getElementById('rm_park').value,
+    inductionProgramme: document.getElementById('rm_induction').value,
+    reportsTo:        document.getElementById('rm_reportsTo').value,
+    peerReview:       document.getElementById('rm_peerReview').value,
+    purpose:          document.getElementById('rm_purpose').value.trim(),
+    responsibilities: jdRespGroups.map(g=>({title:g.title,items:g.items.filter(i=>i.trim())})).filter(g=>g.title||g.items.length),
+    knowledge:        jdKnowledge.filter(i=>i.trim()),
+    personalQualities:jdQualities.filter(i=>i.trim()),
+    keyRelationships: jdRelationships.filter(i=>i.trim()),
+    updatedAt:        serverTimestamp(),
+  };
+
+  if (editingRoleId) {
+    const existing = roles.find(r=>r.id===editingRoleId)||{};
+    const currentVersion = existing.version||1;
+    const amendNote = document.getElementById('rm_amendNote').value.trim();
+    const amendments = [...(existing.amendments||[])];
+    if (amendNote) {
+      amendments.push({ version: currentVersion, date: now, amendedBy: 'HR', summary: amendNote });
+    }
+    baseData.version    = currentVersion + (amendNote ? 1 : 0);
+    baseData.amendments = amendments;
+    baseData.uploadedBy = existing.uploadedBy || 'HR';
+    baseData.uploadedAt = existing.uploadedAt || serverTimestamp();
+    await updateDoc(doc(db,'hrConfig_roles',editingRoleId), baseData);
+    toast('Role & responsibilities updated','success');
+  } else {
+    baseData.version    = 1;
+    baseData.amendments = [];
+    baseData.uploadedBy = 'HR';
+    baseData.uploadedAt = serverTimestamp();
+    baseData.createdAt  = serverTimestamp();
+    await addDoc(collection(db,'hrConfig_roles'), baseData);
+    toast('Role added','success');
+  }
+  closeModal('roleModal');
+  await loadRoles();
+};
+
+window.deleteRole = async id => {
+  if (!confirm('Delete this role? This cannot be undone.')) return;
+  await deleteDoc(doc(db,'hrConfig_roles',id));
+  await loadRoles();
+  toast('Role deleted','success');
+};
+
+// Default HH roles seeder
+window.loadDefaultHHRoles = async () => {
+  if (!confirm('This will add the 4 default Highland Holidays roles if they do not already exist. Continue?')) return;
+  const existing = roles.map(r=>r.title.toLowerCase());
+  const defaults = [
+    {
+      title:'Park Manager', code:'PM', type:'management', park:'all', reportsTo:'director', peerReview:'auto',
+      purpose:'To take accountability for the smooth running of all aspects of the park, leisure facilities, lodge and caravan fleet. To ensure all budgets are achieved whilst upholding standards. To drive excellent service delivery at all times and be a proactive member of the Senior Management Team.',
+      responsibilities:[
+        {title:'Team',items:['Effectively manage all team members ensuring performance targets are achieved and highest standards are delivered','Oversee performance management including probation and performance reviews, addressing poor performance and championing high performers','Actively manage team ongoing personal development and training','Conduct regular appraisals with direct reports, dealing with performance issues as required']},
+        {title:'Operational',items:['Lead the smooth and commercial running of the park from a senior perspective','Support delivery of an outstanding guest experience through strong leadership and motivation','Promote and manage the effective implementation of the Health & Safety Policy and associated documents','Champion, Record, Control and Review all functions of SafeSystems.PRO','Take senior accountability for reception and housekeeping delivery in line with set budgets and standards','Take senior accountability for maintenance operations ensuring all budgets are met within set timescales and legal standards','Set, train and lead commercial and customer-friendly processes','Develop and lead a friendly Holiday Homeowner environment','Monitor customer complaints process and ensure satisfactory resolution','Attend Senior Management meetings and report on all performance and complaints','Work with HR on all recruitment, induction and employee training in line with budgets','Ensure regular management meetings take place to ensure open communication','Work with the Marketing Team to ensure all on-park marketing is up to date and relevant']},
+        {title:'Quality',items:['Ensure all park Health & Safety and First Aid regulations are adhered to throughout','Take senior accountability for unexpected Health & Safety and incident management','Ensure all functions and departments adhere to all company processes and procedures']},
+        {title:'Finance',items:['Ensure strong cost controls are in place across all functions and departments','Maximise all profit streams and actively seek new revenue opportunities','Manage all cash handling processes']},
+        {title:'General',items:['Act as ambassador for the business, promoting the company externally at all times','Perform any other duties as required by the company']}
+      ],
+      knowledge:['Proven experience in a senior hospitality or holiday park management role','Strong leadership and people management skills','Budget management and commercial acumen','Full driving licence'],
+      personalQualities:['Natural leader with high standards and visible presence','Commercially minded with a focus on results','Excellent communicator at all levels','Calm under pressure with strong problem-solving ability','Proactive and able to work with minimal supervision'],
+      keyRelationships:['Director','HR Manager','All Department Heads','Guests and Holiday Homeowners']
+    },
+    {
+      title:'Grounds & Maintenance Manager', code:'GMM', type:'dept_head', park:'all', reportsTo:'management', peerReview:'auto',
+      purpose:'To undertake appropriate duties and tasks to assist in the day-to-day smooth running of the Holiday Park, ensuring that excellent standards and customer service is delivered to all customers.',
+      responsibilities:[
+        {title:'Team',items:['Maintain high standards of team appearance by checking uniform and presentation','Monitor staff on shift ensuring highest standard of customer service is always delivered','Train and manage permanent and seasonal staff','Hold regular staff meetings and 1-2-1s, dealing with any issues appropriately']},
+        {title:'Operational',items:['Assist in the effective day-to-day running of the holiday park and all its facilities','Ensure customers always receive excellent customer service','Promote and manage the effective implementation of the current Health & Safety Policy','Champion, Record, Control and Review all functions of SafeSystems.PRO','Handle customer queries promptly and effectively','Be on-call out of hours and deal with call-outs as required','Responsible for the general upkeep of all holiday park facilities','Perform housekeeping duties ensuring the hire fleet is ready for occupation to timescale and company SOP','Put forward ideas and suggestions for improvements in service provision','Lead by example and maintain a physical presence whilst on duty','Liaise with reservations team to maximise hire fleet opportunities','Undertake maintenance duties as required','Undertake external duties including hedge cutting, grass trimming, litter picking and bin emptying','Carry out park and facilities tours with prospective owners','Report maintenance and repair issues, undertake minor maintenance tasks','Understand SafeSystems.PRO and ensure all information logged is accurate and timely','Act as a role model for park staff in conduct, appearance and work ethic','Point of contact for holiday homeowners and holiday makers','Manage and conduct hot tub hygiene and cleaning daily, weekly and monthly routines']},
+        {title:'Quality',items:['Ensure Health and Safety regulations are observed at all times','Maintain and operate equipment in a safe manner','Maintain and clean reception and facilities to a high standard and according to schedule']},
+        {title:'Finance',items:['Ensure cash handling and security procedures are always followed','Identify additional revenue generating opportunities']}
+      ],
+      knowledge:['Practical maintenance and grounds experience','Knowledge of H&S regulations relevant to grounds and maintenance','Experience with hot tub and water hygiene management','Competency with SafeSystems.PRO or similar compliance platforms'],
+      personalQualities:['Hardworking and hands-on with high standards','Reliable and punctual with strong work ethic','Good communicator with guests and team members','Safety conscious and meticulous about record keeping','Flexible and willing to go above and beyond'],
+      keyRelationships:['Park Manager','Reception Team','Housekeeping Team','Guests and Holiday Homeowners','Contractors']
+    },
+    {
+      title:'HR Manager', code:'HRM', type:'management', park:'Head Office', reportsTo:'director', peerReview:'auto',
+      purpose:'To take full responsibility and accountability for the pro-active provision of commercial HR services, policies and procedures throughout the business, with clear focus on continuous improvement and efficiency.',
+      responsibilities:[
+        {title:'Team',items:['Develop team wellbeing and progression in roles within the business']},
+        {title:'Operational',items:['Develop HR strategies aligned to overall business strategies','Continuously produce and review management information in all HR areas, identifying trends and making commercial recommendations','Lead recruitment, learning and development, employee engagement, compensation and benefits, HR information systems and financial planning','Remain accountable for recruitment and induction throughout the group','Oversee the implementation of performance management throughout the group and make recommendations for future L&D','Develop and oversee managers in the pro-active application of HR requirements','Promote and manage the effective implementation of the current Health & Safety Policy','Champion, Record, Control and Review all functions of SafeSystems.PRO']},
+        {title:'Quality',items:['Ensure all operational HR policies and procedures are commercial and drive efficiency throughout the business','Oversee the application of policies and procedures to ensure consistency and fairness','Manage and continually review policies and procedures to ensure compliance and cost effectiveness','Develop company wellbeing, health and counselling policies']},
+        {title:'Finance',items:['Create and manage the HR department and salary annual budgets']},
+        {title:'General',items:['Act as ambassador for the business and ensure the company is promoted externally at all times','Attend training and meetings as required','Perform any other duties as required by the company']}
+      ],
+      knowledge:['CIPD Fellow or member status','Previous experience in a similar level HR role','Hospitality or family business background preferred'],
+      personalQualities:['Commercial and pro-active','Ability to multitask and remain calm under pressure','Positive attitude and enthusiastic outlook','Driven, with the ability to work unsupervised','IT literate','Tact with the ability to handle difficult situations','Confidential and trustworthy'],
+      keyRelationships:['All Directors','Head of Finance','All Managers','All Team Members','External Suppliers']
+    },
+    {
+      title:'Social Media Executive', code:'SME', type:'support', park:'Head Office', reportsTo:'management', peerReview:'no',
+      purpose:'The Social Media Executive works alongside the Marketing Team to plan and execute all digital marketing campaigns, and design, maintain and supply content for the Highland Holidays website(s).',
+      responsibilities:[
+        {title:'Operational',items:['Manage all digital marketing for Highland Holidays','Assist in the formulation of strategies to build a lasting digital connection with customers','Responsible for the design, development and content for all sites','Work with the Marketing Team to populate each brand-marketing calendar for all e-commerce activities, planning at least 6 months in advance','Assist with all web content, product uploads including product descriptions and images','Work with the Directors to cover any activity with new units arriving','Work with Managers on park to capture activity on the parks','Launch optimised online adverts including Google Ads, Facebook and Instagram to increase brand awareness','Build, plan and implement the social media strategy','Research, compile and deliver engaging content across Highland Holidays digital channels','Manage content on the Highland Holidays owners and guest portals','Liaise with all departments to promote full range of Highland Holidays activities','Monitor competition and provide suggestions for improvement','Build and maintain key relationships with Highland Holidays partners']},
+        {title:'Timeline',items:['All workload to be managed with the Marketing Team','Some projects may involve tight timelines','Manage expectations with the Marketing Team']},
+        {title:'Communication',items:['Report weekly on digital workflow to the Marketing Team','Contribute to idea generation and team meetings']},
+        {title:'General',items:['General assistance within the Marketing Department','Any other ad hoc tasks']}
+      ],
+      knowledge:['Minimum 2 years experience in digital marketing','Experience of copywriting, editing and production publications','Experience of managing website content','Proven experience as Digital Marketing Executive or similar role','Strong knowledge of web analytics tools including Google Analytics','High level of computer literacy including word processing, spreadsheets, email and internet'],
+      personalQualities:['Creative and proactive with drive and ambition','Excellent understanding of digital marketing concepts and best practices','Strong written and verbal communication skills','Organised and able to manage multiple projects simultaneously'],
+      keyRelationships:['Marketing Team','Directors','General Managers and Managers','All Team Members','Owners and Guests']
+    }
+  ];
+
+  let added = 0;
+  for (const role of defaults) {
+    if (existing.includes(role.title.toLowerCase())) continue;
+    await addDoc(collection(db,'hrConfig_roles'), {
+      ...role, version:1, amendments:[], uploadedBy:'HR',
+      uploadedAt:serverTimestamp(), createdAt:serverTimestamp(), updatedAt:serverTimestamp()
+    });
+    added++;
+  }
+  await loadRoles();
+  toast(`${added} default role(s) added`, 'success');
+};
+
+// ── INDUCTION PROGRAMMES ──────────────────────────────────────────────────────
+async function loadProgrammes() {
+  const snap = await getDocs(collection(db,'hrConfig_inductionPlans'));
+  programmes = snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderProgrammes();
+}
+
+function renderProgrammes() {
+  const list = document.getElementById('inductionList');
+  if (!programmes.length) {
+    list.innerHTML = '<div class="empty">No induction programmes configured.</div>'; return;
+  }
+  list.innerHTML = programmes.map(p => `
+    <div class="config-card" style="margin-bottom:14px">
+      <div class="config-card-head">
+        <h3>${p.name||'Unnamed'} <code style="font-size:11px;background:var(--surface);padding:2px 6px;border-radius:4px;margin-left:6px">${p.key||''}</code></h3>
+        <span style="font-size:12px;color:var(--muted);margin-left:8px">${(p.weeks||[]).length} weeks · Applies to: ${p.appliesToRoles||'—'}</span>
+        <div class="hd-actions">
+          <button class="btn btn-ghost btn-sm" onclick="editProgramme('${p.id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteProgramme('${p.id}')">Delete</button>
+        </div>
+      </div>
+      ${(p.weeks||[]).map(w=>`
+        <div style="padding:10px 18px;border-bottom:1px solid var(--faint)">
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px">Week ${w.num} — ${w.title}</div>
+          ${(w.items||[]).slice(0,3).map(i=>`<div style="font-size:12px;color:var(--muted);padding:1px 0">· ${i.task}</div>`).join('')}
+          ${(w.items||[]).length>3?`<div style="font-size:11px;color:var(--muted);margin-top:2px">+${(w.items||[]).length-3} more tasks…</div>`:''}
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+window.openInductionModal = (id=null) => {
+  editingProgId = id;
+  modalWeeks = [];
+  document.getElementById('indModalTitle').textContent = id ? 'Edit Programme' : 'New Induction Programme';
+
+  if (id) {
+    const p = programmes.find(x=>x.id===id);
+    if (p) {
+      document.getElementById('im_name').value  = p.name||'';
+      document.getElementById('im_key').value   = p.key||'';
+      document.getElementById('im_roles').value = p.appliesToRoles||'';
+      modalWeeks = JSON.parse(JSON.stringify(p.weeks||[]));
+    }
+  } else {
+    ['im_name','im_key','im_roles'].forEach(i=>document.getElementById(i).value='');
+    modalWeeks = [{ num:1, title:'Week 1 — Foundation', items:[{task:'',method:'Practical',trainer:'Buddy'}] }];
+  }
+  renderModalWeeks();
+  document.getElementById('inductionModal').classList.add('open');
+};
+
+window.editProgramme  = id => openInductionModal(id);
+
+function renderModalWeeks() {
+  document.getElementById('imWeeksBuilder').innerHTML = modalWeeks.map((w,wi)=>`
+    <div class="week-block" style="margin-top:12px">
+      <div class="week-head">
+        <input value="${w.title||''}" placeholder="Week title…" onchange="modalWeeks[${wi}].title=this.value">
+        <button class="btn btn-danger btn-sm" onclick="removeWeek(${wi})">Remove Week</button>
+      </div>
+      <div class="week-tasks">
+        <div style="display:grid;grid-template-columns:1fr 100px 100px 32px;gap:6px;padding:6px 12px;border-bottom:1px solid var(--faint)">
+          <span class="task-lbl">Task / Topic</span><span class="task-lbl">Method</span><span class="task-lbl">Trainer</span><span></span>
+        </div>
+        ${(w.items||[]).map((it,ii)=>`
+          <div class="task-row">
+            <input value="${it.task||''}" placeholder="Task description…" onchange="modalWeeks[${wi}].items[${ii}].task=this.value">
+            <input class="xnarrow" value="${it.method||'Practical'}" onchange="modalWeeks[${wi}].items[${ii}].method=this.value">
+            <input class="xnarrow" value="${it.trainer||'Buddy'}" onchange="modalWeeks[${wi}].items[${ii}].trainer=this.value">
+            <button class="btn-del" onclick="removeTask(${wi},${ii})">✕</button>
+          </div>`).join('')}
+        <button class="btn-add-task" onclick="addTask(${wi})">+ Add Task</button>
+      </div>
+    </div>`).join('');
+}
+
+window.addWeekToModal = () => {
+  const n = modalWeeks.length + 1;
+  modalWeeks.push({ num:n, title:`Week ${n} — `, items:[{task:'',method:'Practical',trainer:'Buddy'}] });
+  renderModalWeeks();
+};
+window.removeWeek = wi => { modalWeeks.splice(wi,1); renderModalWeeks(); };
+window.addTask    = wi => { modalWeeks[wi].items.push({task:'',method:'Practical',trainer:'Buddy'}); renderModalWeeks(); };
+window.removeTask = (wi,ii) => { modalWeeks[wi].items.splice(ii,1); renderModalWeeks(); };
+
+window.saveInductionProgramme = async () => {
+  const name = document.getElementById('im_name').value.trim();
+  const key  = document.getElementById('im_key').value.trim().toLowerCase().replace(/\s+/g,'_');
+  if (!name||!key) { toast('Name and key are required','error'); return; }
+
+  // Sync week nums
+  modalWeeks.forEach((w,i)=>w.num=i+1);
+
+  const data = {
+    name, key,
+    appliesToRoles: document.getElementById('im_roles').value.trim(),
+    weeks: modalWeeks,
+    updatedAt: serverTimestamp(),
+  };
+  if (editingProgId) {
+    await updateDoc(doc(db,'hrConfig_inductionPlans',editingProgId), data);
+    toast('Programme updated','success');
+  } else {
+    data.createdAt = serverTimestamp();
+    await addDoc(collection(db,'hrConfig_inductionPlans'), data);
+    toast('Programme created','success');
+  }
+  closeModal('inductionModal');
+  await loadProgrammes();
+};
+
+window.deleteProgramme = async id => {
+  if (!confirm('Delete this programme?')) return;
+  await deleteDoc(doc(db,'hrConfig_inductionPlans',id));
+  await loadProgrammes();
+  toast('Programme deleted','success');
+};
+
+// ── COMPETENCIES ──────────────────────────────────────────────────────────────
+async function loadCompetencies() {
+  const snap = await getDoc(doc(db,'hrConfig_system','competencies'));
+  competencies = snap.exists() ? (snap.data().sections || defaultCompetencies()) : defaultCompetencies();
+  renderCompetencies();
+}
+
+function defaultCompetencies() {
+  return [
+    { title:'Responsibilities', items:['Team Leadership & Management','Operational Delivery & Standards','Health, Safety & Compliance','Guest Experience & Service','Communication & Collaboration','Planning & Organisation'] },
+    { title:'Knowledge & Experience', items:['Job-Specific Technical Knowledge','SafeSystems.PRO Proficiency','H&S Legislation Awareness','Industry / Sector Knowledge'] },
+    { title:'Personal Qualities', items:['Reliability & Consistency','Attitude & Professionalism','Initiative & Problem-Solving','Team Culture Contribution'] },
+  ];
+}
+
+function renderCompetencies() {
+  document.getElementById('compBuilder').innerHTML = competencies.map((s,si)=>`
+    <div class="comp-section">
+      <div class="comp-head">
+        <input value="${s.title||''}" placeholder="Section name…" onchange="competencies[${si}].title=this.value">
+        <button class="btn btn-danger btn-sm" onclick="removeCompSection(${si})">Remove Section</button>
+      </div>
+      <div class="comp-items">
+        ${(s.items||[]).map((item,ii)=>`
+          <div class="comp-item-row">
+            <span class="drag-handle">⠿</span>
+            <input value="${item||''}" placeholder="Competency item…" onchange="competencies[${si}].items[${ii}]=this.value">
+            <button class="btn-del" onclick="removeCompItem(${si},${ii})">✕</button>
+          </div>`).join('')}
+        <div style="padding:6px 16px">
+          <button class="btn-add-task" onclick="addCompItem(${si})" style="border-radius:4px">+ Add Item</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+window.addCompSection  = () => { competencies.push({title:'New Section',items:['']}); renderCompetencies(); };
+window.removeCompSection=(si)=> { if (!confirm('Remove this section?')) return; competencies.splice(si,1); renderCompetencies(); };
+window.addCompItem     = si => { competencies[si].items.push(''); renderCompetencies(); };
+window.removeCompItem  = (si,ii)=> { competencies[si].items.splice(ii,1); renderCompetencies(); };
+
+window.saveCompetencies = async () => {
+  await setDoc(doc(db,'hrConfig_system','competencies'), { sections: competencies, updatedAt: serverTimestamp() });
+  toast('Competencies saved','success');
+};
+
+// ── BUDDY RULES ───────────────────────────────────────────────────────────────
+async function loadBuddyRules() {
+  const snap = await getDoc(doc(db,'hrConfig_system','buddyRules'));
+  buddyRules = snap.exists() ? snap.data().rules : defaultBuddyRules();
+  renderBuddyRules();
+}
+function defaultBuddyRules() {
+  return [
+    { employeeType:'operative',  buddyMinType:'dept_head',  label:'Operative / Park Worker' },
+    { employeeType:'seasonal',   buddyMinType:'dept_head',  label:'Seasonal Worker' },
+    { employeeType:'support',    buddyMinType:'dept_head',  label:'Support / Admin' },
+    { employeeType:'dept_head',  buddyMinType:'management', label:'Department Head' },
+    { employeeType:'management', buddyMinType:'director',   label:'Management / Park Manager' },
+  ];
+}
+function renderBuddyRules() {
+  const typeOpts = ['operative','dept_head','management','director'].map(t=>`<option value="${t}">${t}</option>`).join('');
+  document.getElementById('buddyRulesBody').innerHTML = buddyRules.map((r,i)=>`<tr>
+    <td>${r.label}</td>
+    <td><select class="inline-edit narrow" onchange="buddyRules[${i}].buddyMinType=this.value">${typeOpts.replace(`"${r.buddyMinType}"`,`"${r.buddyMinType}" selected`)}</select></td>
+    <td><button class="btn btn-danger btn-sm" onclick="buddyRules.splice(${i},1);renderBuddyRules()">Remove</button></td>
+  </tr>`).join('');
+}
+window.saveBuddyRules = async () => {
+  await setDoc(doc(db,'hrConfig_system','buddyRules'),{rules:buddyRules,updatedAt:serverTimestamp()});
+  toast('Buddy rules saved','success');
+};
+
+// ── PARKS ─────────────────────────────────────────────────────────────────────
+async function loadParks() {
+  const snap = await getDoc(doc(db,'hrConfig_system','parks'));
+  parks = snap.exists() ? snap.data().parks : ['Ben Nevis Holiday Park','Oban Holiday Park','Tyndrum Holiday Park'];
+  renderParks();
+}
+function renderParks() {
+  document.getElementById('parksBody').innerHTML = `<div style="padding:12px 18px;display:flex;flex-direction:column;gap:8px">
+    ${parks.map((p,i)=>`<div style="display:flex;gap:8px;align-items:center">
+      <input class="inline-edit" value="${p}" style="flex:1" onchange="parks[${i}]=this.value">
+      <button class="btn btn-danger btn-sm" onclick="parks.splice(${i},1);renderParks()">Remove</button>
+    </div>`).join('')}
+  </div>`;
+}
+window.addPark = () => { parks.push('New Park'); renderParks(); };
+window.saveParks = async () => {
+  await setDoc(doc(db,'hrConfig_system','parks'),{parks,updatedAt:serverTimestamp()});
+  toast('Parks saved','success');
+};
+
+// ── SCHEDULE ──────────────────────────────────────────────────────────────────
+async function loadSchedule() {
+  const snap = await getDoc(doc(db,'hrConfig_system','schedule'));
+  schedule = snap.exists() ? snap.data().milestones : defaultSchedule();
+  renderSchedule();
+}
+function defaultSchedule() {
+  return [
+    { key:'trial',   label:'Trial / Probation Review', months:1,  annex:'A', peerReview:false, conductor:'Line Manager + HR' },
+    { key:'review3m',label:'3 Month Review',           months:3,  annex:'B', peerReview:true,  conductor:'Line Manager' },
+    { key:'review6m',label:'6 Month Review',           months:6,  annex:'C', peerReview:true,  conductor:'Line Manager' },
+    { key:'annual',  label:'Annual Review',            months:12, annex:'D', peerReview:true,  conductor:'Director / Park Manager' },
+  ];
+}
+function renderSchedule() {
+  document.getElementById('scheduleBody').innerHTML = schedule.map((s,i)=>`<tr>
+    <td><strong>${s.label}</strong></td>
+    <td><input class="inline-edit narrow" type="number" min="1" max="36" value="${s.months}" onchange="schedule[${i}].months=+this.value"> months</td>
+    <td><span class="pill pill-blue">Annex ${s.annex}</span></td>
+    <td><select class="inline-edit" style="width:80px" onchange="schedule[${i}].peerReview=this.value==='true'">
+      <option value="true" ${s.peerReview?'selected':''}>Yes *</option>
+      <option value="false" ${!s.peerReview?'selected':''}>No</option>
+    </select></td>
+    <td style="font-size:12px;color:var(--muted)">${s.conductor}</td>
+  </tr>`).join('') + `<tr><td colspan="5" style="font-size:11px;color:var(--muted);padding:8px 16px">* Peer review applies to dept_head and above only</td></tr>`;
+}
+window.saveSchedule = async () => {
+  await setDoc(doc(db,'hrConfig_system','schedule'),{milestones:schedule,updatedAt:serverTimestamp()});
+  toast('Schedule saved','success');
+};
+
+// ── NOTIFY SETTINGS ───────────────────────────────────────────────────────────
+async function loadNotify() {
+  const snap = await getDoc(doc(db,'hrConfig_system','notifySettings'));
+  notifySettings = snap.exists() ? snap.data().triggers : defaultNotify();
+  renderNotify();
+}
+function defaultNotify() {
+  return [
+    { trigger:'review_due',   daysBefore:14, recipients:'HR, Line Manager', active:true,  label:'Review Due — First Warning' },
+    { trigger:'review_due2',  daysBefore:7,  recipients:'HR, Line Manager', active:true,  label:'Review Due — Final Reminder' },
+    { trigger:'overdue',      daysBefore:-7, recipients:'HR, Director',     active:true,  label:'Review Overdue (7 days past)' },
+    { trigger:'peer_open',    daysBefore:14, recipients:'Selected Peers',   active:true,  label:'Peer Review Forms Sent' },
+    { trigger:'induction_lag',daysBefore:0,  recipients:'HR',               active:true,  label:'Induction Stalled (no progress 7 days)' },
+    { trigger:'complete',     daysBefore:0,  recipients:'HR, Employee',     active:true,  label:'Review / Induction Completed' },
+  ];
+}
+function renderNotify() {
+  document.getElementById('notifyBody').innerHTML = notifySettings.map((n,i)=>`<tr>
+    <td><strong>${n.label}</strong></td>
+    <td>${n.daysBefore>0?`${n.daysBefore} days before`:n.daysBefore<0?`${Math.abs(n.daysBefore)} days after`:'On event'}</td>
+    <td style="font-size:12px;color:var(--muted)">${n.recipients}</td>
+    <td><select class="inline-edit" style="width:70px" onchange="notifySettings[${i}].active=this.value==='true'">
+      <option value="true" ${n.active?'selected':''}>On</option>
+      <option value="false" ${!n.active?'selected':''}>Off</option>
+    </select></td>
+  </tr>`).join('');
+}
+window.saveNotifySettings = async () => {
+  await setDoc(doc(db,'hrConfig_system','notifySettings'),{triggers:notifySettings,updatedAt:serverTimestamp()});
+  toast('Notify settings saved','success');
+};
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+window.closeModal = id => document.getElementById(id).classList.remove('open');
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function toast(msg,type='success') {
+  const t=document.getElementById('toast');
+  t.textContent=(type==='success'?'✓ ':'✕ ')+msg;
+  t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+        // ── PHONE BACK-BUTTON SENTINEL ────────────────────────────────────────────
+        // Catches hardware back button on all devices (iOS, Android, desktop).
+        // Navigates within the page first; only exits when at the top-level view.
+        (function() {
+            function pushSentinel() { history.pushState({ safesp: true }, ''); }
+            pushSentinel();
+            window.addEventListener('popstate', function() {
+                // Check if we are inside a detail/secondary view
+                var detail = document.getElementById('view-detail');
+                var hasDetail = detail && detail.classList.contains('active');
+                if (typeof handleBackButton === 'function') {
+                    handleBackButton();
+                } else if (hasDetail && typeof showView === 'function') {
+                    showView('dashboard');
+                }
+                // Always re-push so the next back press is also caught
+                pushSentinel();
+            });
+        })();
+
+        function handleBackButton() {
+            // Config page — no detail view, back navigates to roles by default
+            showView('roles');
+        }
+</script>
+</body>
+</html>
