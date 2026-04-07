@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>360° Peer Review — Highland Holidays</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0d1117;
+    --surface:   #161b22;
+    --surface2:  #1e242d;
+    --border:    #2a3140;
+    --accent:    #4f8ef7;
+    --accent2:   #7c5cbf;
+    --orange:    #e05c1a;
+    --text:      #e6edf3;
+    --muted:     #7d8590;
+    --success:   #3fb950;
+    --warn:      #d29922;
+    --danger:    #f85149;
+    --teal:      #1a6b5f;
+    --gold:      #8b6914;
+    --navy:      #1b2a4a;
+    --r: 6px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 60px;
+  }
+
+  /* ── HEADER ── */
+  .site-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo-mark {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700; font-size: 14px; color: #fff;
+    flex-shrink: 0;
+  }
+  .site-header h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 16px; font-weight: 600;
+    color: var(--text);
+  }
+  .site-header small {
+    font-size: 11px; color: var(--muted);
+    display: block; margin-top: 1px;
+  }
+  .header-badge {
+    margin-left: auto;
+    background: rgba(79,142,247,0.12);
+    border: 1px solid rgba(79,142,247,0.3);
+    color: var(--accent);
+    font-size: 11px; font-weight: 500;
+    padding: 3px 10px; border-radius: 20px;
+  }
+
+  /* ── MAIN STATES ── */
+  .state {
+    display: none;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 32px 16px 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .state.active { display: block; }
+
+  /* Loading */
+  .spinner-wrap {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    min-height: 40vh; gap: 20px;
+  }
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner-label { color: var(--muted); font-size: 14px; }
+
+  /* Error / Submitted */
+  .status-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 48px 32px;
+    text-align: center;
+    margin-top: 40px;
+  }
+  .status-icon {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    margin: 0 auto 20px;
+  }
+  .status-icon.success { background: rgba(63,185,80,.12); }
+  .status-icon.error   { background: rgba(248,81,73,.12); }
+  .status-card h2 { font-family: 'Outfit',sans-serif; font-size: 22px; font-weight: 600; margin-bottom: 10px; }
+  .status-card p  { color: var(--muted); font-size: 14px; line-height: 1.6; max-width: 360px; margin: 0 auto; }
+
+  /* ── FORM ── */
+  .reviewee-card {
+    background: linear-gradient(135deg, rgba(79,142,247,.08), rgba(124,92,191,.06));
+    border: 1px solid rgba(79,142,247,.25);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 28px;
+    display: flex; gap: 16px; align-items: center;
+  }
+  .reviewee-avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Outfit',sans-serif; font-size: 20px;
+    font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .reviewee-info label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .reviewee-info h2 { font-family: 'Outfit',sans-serif; font-size: 20px; font-weight: 600; margin: 2px 0 4px; }
+  .reviewee-info span { font-size: 13px; color: var(--muted); }
+
+  .conf-notice {
+    background: rgba(79,142,247,.06);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 12px 16px;
+    font-size: 13px; color: var(--muted);
+    line-height: 1.5; margin-bottom: 32px;
+  }
+  .conf-notice strong { color: var(--text); }
+
+  /* Rating scale legend */
+  .scale-legend {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin-bottom: 32px;
+  }
+  .scale-pip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 8px 6px;
+    text-align: center;
+  }
+  .scale-pip .num { font-family:'Outfit',sans-serif; font-size: 18px; font-weight: 700; color: var(--accent); }
+  .scale-pip .lbl { font-size: 10px; color: var(--muted); margin-top: 2px; line-height: 1.2; }
+
+  /* Section blocks */
+  .section-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: border-color .2s;
+  }
+  .section-block.has-score { border-color: var(--accent); }
+
+  .section-head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-code {
+    width: 32px; height: 32px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Outfit',sans-serif; font-weight: 700; font-size: 14px;
+    color: #fff; flex-shrink: 0;
+  }
+  .section-title { font-family:'Outfit',sans-serif; font-size: 15px; font-weight: 600; }
+  .section-desc  { font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+
+  .section-body { padding: 16px 20px; }
+
+  /* Score buttons */
+  .score-prompt { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .score-buttons {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .score-btn {
+    width: 52px; height: 52px;
+    border: 2px solid var(--border);
+    border-radius: var(--r);
+    background: var(--surface2);
+    color: var(--muted);
+    font-family: 'Outfit',sans-serif;
+    font-size: 20px; font-weight: 700;
+    cursor: pointer;
+    transition: all .15s;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    line-height: 1;
+    position: relative;
+  }
+  .score-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .score-btn.selected {
+    border-color: var(--accent);
+    background: rgba(79,142,247,.15);
+    color: var(--accent);
+  }
+  .score-btn .score-label {
+    font-size: 8px; font-family: 'DM Sans',sans-serif;
+    font-weight: 400; color: inherit; margin-top: 2px;
+  }
+  .score-selected-badge {
+    font-size: 11px; color: var(--accent);
+    font-weight: 500; margin-top: 0;
+    display: none;
+  }
+  .section-block.has-score .score-selected-badge { display: block; }
+
+  /* Open text */
+  .open-text-group { margin-top: 4px; }
+  .open-text-group label {
+    font-size: 12px; color: var(--muted);
+    display: block; margin-bottom: 6px;
+  }
+  textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 10px 12px;
+    resize: vertical;
+    min-height: 72px;
+    transition: border-color .2s;
+    line-height: 1.5;
+  }
+  textarea:focus { outline: none; border-color: var(--accent); }
+  textarea::placeholder { color: var(--muted); }
+
+  /* Open text sections */
+  .open-sections {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .open-sections h3 {
+    font-family: 'Outfit',sans-serif;
+    font-size: 15px; font-weight: 600;
+    margin-bottom: 16px;
+  }
+  .open-field { margin-bottom: 16px; }
+  .open-field:last-child { margin-bottom: 0; }
+  .open-field label {
+    font-size: 12px; font-weight: 500;
+    color: var(--muted); display: block; margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: .4px;
+  }
+
+  /* Progress bar */
+  .progress-strip {
+    position: sticky; top: 65px; z-index: 90;
+    background: var(--bg);
+    padding: 10px 0 8px;
+    margin-bottom: 24px;
+  }
+  .progress-bar-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    height: 6px; overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 20px;
+    width: 0%;
+    transition: width .3s ease;
+  }
+  .progress-label {
+    font-size: 11px; color: var(--muted);
+    text-align: right; margin-top: 4px;
+  }
+
+  /* Submit */
+  .submit-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 20px;
+    margin-bottom: 20px;
+  }
+  .submit-section p {
+    font-size: 13px; color: var(--muted);
+    line-height: 1.5; margin-bottom: 16px;
+  }
+  .responder-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 500px) { .responder-fields { grid-template-columns: 1fr; } }
+
+  .field-group label {
+    font-size: 11px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .4px;
+    display: block; margin-bottom: 5px;
+  }
+  input[type="text"] {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 9px 12px;
+    transition: border-color .2s;
+  }
+  input:focus { outline: none; border-color: var(--accent); }
+  input::placeholder { color: var(--muted); }
+
+  .btn-submit {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    border-radius: var(--r);
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    font-size: 16px; font-weight: 600;
+    cursor: pointer;
+    transition: opacity .2s, transform .1s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-submit:hover { opacity: .9; }
+  .btn-submit:active { transform: scale(.99); }
+  .btn-submit:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-submit.submitting { opacity: .7; cursor: not-allowed; }
+
+  .validation-msg {
+    font-size: 12px; color: var(--danger);
+    margin-bottom: 12px; display: none;
+  }
+  .validation-msg.visible { display: block; }
+
+  /* Section colours */
+  .col-a { background: #1a6b5f; }
+  .col-b { background: #7a5a10; }
+  .col-c { background: #8b3a10; }
+  .col-d { background: #1b2a4a; }
+  .col-e { background: #4a2a7a; }
+
+  .section-block[data-section="A"] .score-btn.selected { border-color: #2dd4b0; background: rgba(45,212,176,.12); color: #2dd4b0; }
+  .section-block[data-section="B"] .score-btn.selected { border-color: #e5b94e; background: rgba(229,185,78,.12); color: #e5b94e; }
+  .section-block[data-section="C"] .score-btn.selected { border-color: #f87240; background: rgba(248,114,64,.12); color: #f87240; }
+  .section-block[data-section="D"] .score-btn.selected { border-color: #7eb3f7; background: rgba(126,179,247,.12); color: #7eb3f7; }
+  .section-block[data-section="E"] .score-btn.selected { border-color: #c084fc; background: rgba(192,132,252,.12); color: #c084fc; }
+
+  .section-block[data-section="A"].has-score { border-color: #2dd4b0; }
+  .section-block[data-section="B"].has-score { border-color: #e5b94e; }
+  .section-block[data-section="C"].has-score { border-color: #f87240; }
+  .section-block[data-section="D"].has-score { border-color: #7eb3f7; }
+  .section-block[data-section="E"].has-score { border-color: #c084fc; }
+
+  @media (max-width: 480px) {
+    .score-btn { width: 44px; height: 44px; font-size: 17px; }
+    .reviewee-card { flex-direction: column; text-align: center; }
+    .scale-legend { grid-template-columns: repeat(5,1fr); gap: 4px; }
+    .scale-pip .lbl { font-size: 9px; }
+  }
+
+/* ── MOBILE & TABLET GUARANTEE ───────────────────────────────────────────── */
+/* iOS Safari zooms in on inputs < 16px — prevent this universally */
+@media (max-width: 768px) {
+  input, select, textarea, .inline-edit, .task-row input, .comp-item-row input,
+  .auth-input, .search-input, .search, .fg input, .fg select, .fg textarea,
+  .training-cert, .obj-table input, input[type="text"], input[type="date"],
+  input[type="email"], input[type="tel"], input[type="number"], input[type="password"] {
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .site-header h1 { font-size: 14px; }
+  .site-header small { display: none; }
+  .score-btn { width: 48px; height: 48px; font-size: 16px; }
+  .scale-legend { grid-template-columns: repeat(5,1fr); gap: 3px; }
+  .scale-pip .lbl { font-size: 9px; }
+  .scale-pip .num { font-size: 16px; }
+  .responder-fields { grid-template-columns: 1fr; }
+  .submit-section { padding: 16px 14px; }
+  .btn-submit { font-size: 15px; padding: 13px; }
+  .conf-notice { font-size: 12px; }
+  .section-head { padding: 12px 14px; gap: 8px; }
+  .section-body { padding: 12px 14px; }
+  .header-badge { display: none; }
+}
+@media (max-width: 380px) {
+  .score-btn { width: 44px; height: 44px; font-size: 14px; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="logo-mark">HH</div>
+  <div>
+    <h1>SafeSystems.PRO</h1>
+    <small>360° Peer Review — Highland Holidays</small>
+  </div>
+  <span class="header-badge">Confidential</span>
+  <button onclick="if(window.history.length>1){window.history.back()}else{window.close()}" style="margin-left:8px;background:transparent;border:1px solid rgba(255,255,255,0.15);color:#7d8590;font-family:'DM Sans',sans-serif;font-size:11px;padding:3px 10px;border-radius:6px;cursor:pointer;">Close</button>
+</header>
+
+<!-- STATE: LOADING -->
+<div id="stateLoading" class="state active">
+  <div class="spinner-wrap">
+    <div class="spinner"></div>
+    <span class="spinner-label">Loading your review form…</span>
+  </div>
+</div>
+
+<!-- STATE: INVALID TOKEN -->
+<div id="stateInvalid" class="state">
+  <div class="status-card">
+    <div class="status-icon error">⚠</div>
+    <h2>Link Not Found</h2>
+    <p>This review link is invalid or has expired. Please contact the Director or HR if you believe this is an error.</p>
+  </div>
+</div>
+
+<!-- STATE: ALREADY SUBMITTED -->
+<div id="stateSubmitted" class="state">
+  <div class="status-card">
+    <div class="status-icon success">✓</div>
+    <h2>Already Submitted</h2>
+    <p>Your feedback for this review has already been received. Thank you — your input is appreciated and will be kept confidential.</p>
+  </div>
+</div>
+
+<!-- STATE: SUCCESS (just submitted) -->
+<div id="stateSuccess" class="state">
+  <div class="status-card">
+    <div class="status-icon success">✓</div>
+    <h2>Feedback Submitted</h2>
+    <p>Thank you. Your responses have been recorded confidentially. Individual feedback forms are not shared with the person being reviewed — only a summary of themes is used.</p>
+  </div>
+</div>
+
+<!-- STATE: FORM -->
+<div id="stateForm" class="state">
+
+  <!-- Reviewee info -->
+  <div class="reviewee-card">
+    <div class="reviewee-avatar" id="revieweeInitials">?</div>
+    <div class="reviewee-info">
+      <label>You are providing feedback on</label>
+      <h2 id="revieweeName">—</h2>
+      <span id="revieweeRole">—</span>
+    </div>
+  </div>
+
+  <div class="conf-notice">
+    <strong>Confidential.</strong> Your responses are seen by the Director only and will not be shared with the person being reviewed. Please be honest, specific, and fair. This form takes around 5–8 minutes to complete.
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-strip">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-label" id="progressLabel">0 of 5 sections scored</div>
+  </div>
+
+  <!-- Rating scale -->
+  <div class="scale-legend">
+    <div class="scale-pip"><div class="num">1</div><div class="lbl">Below Expectations</div></div>
+    <div class="scale-pip"><div class="num">2</div><div class="lbl">Developing</div></div>
+    <div class="scale-pip"><div class="num">3</div><div class="lbl">Meets Expectations</div></div>
+    <div class="scale-pip"><div class="num">4</div><div class="lbl">Exceeds Expectations</div></div>
+    <div class="scale-pip"><div class="num">5</div><div class="lbl">Outstanding</div></div>
+  </div>
+
+  <!-- Section blocks -->
+  <div id="sectionsContainer"></div>
+
+  <!-- Open text -->
+  <div class="open-sections">
+    <h3>Overall Feedback</h3>
+    <div class="open-field">
+      <label>Key Strengths — what does this person do particularly well?</label>
+      <textarea id="txtStrengths" placeholder="Be as specific as you can — give examples where possible…" rows="4"></textarea>
+    </div>
+    <div class="open-field">
+      <label>Development Areas — where could they improve or grow?</label>
+      <textarea id="txtDevelopment" placeholder="Think about what would make them more effective in the role…" rows="4"></textarea>
+    </div>
+    <div class="open-field">
+      <label>Any other comments? (optional)</label>
+      <textarea id="txtOther" placeholder="Anything else you'd like the Director to be aware of…" rows="3"></textarea>
+    </div>
+  </div>
+
+  <!-- Responder details + submit -->
+  <div class="submit-section">
+    <div class="responder-fields">
+      <div class="field-group">
+        <label>Your Job Title / Role</label>
+        <input type="text" id="inpRole" placeholder="e.g. Head Chef, Park Manager…">
+      </div>
+      <div class="field-group">
+        <label>Your Department / Park</label>
+        <input type="text" id="inpDept" placeholder="e.g. Ben Nevis, Oban…">
+      </div>
+    </div>
+    <div class="validation-msg" id="validationMsg">Please score all five sections before submitting.</div>
+    <button class="btn-submit" id="btnSubmit" onclick="handleSubmit()">
+      <span>Submit Feedback</span>
+    </button>
+  </div>
+
+</div><!-- /stateForm -->
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getFirestore, doc, getDoc, updateDoc, serverTimestamp }
+  from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getAuth, signInAnonymously }
+  from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+const app = initializeApp({
+  apiKey:            "AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+  authDomain:        "safepark-pro.firebaseapp.com",
+  projectId:         "safepark-pro",
+  storageBucket:     "safepark-pro.appspot.com",
+  messagingSenderId: "511221743341",
+  appId:             "1:511221743341:web:95bcc7e83d4861578016e4"
+});
+
+const db   = getFirestore(app);
+const auth = getAuth(app);
+
+// ── Sections config ────────────────────────────────────────────────────────
+const SECTIONS = [
+  { code: 'A', col: 'col-a', title: 'Leadership & Direction',
+    desc: 'Sets direction, leads by example, makes sound decisions, motivates the team',
+    items: [
+      'Sets a clear direction and communicates priorities well',
+      'Leads by example — maintains high standards and professional conduct',
+      'Makes sound decisions under pressure and takes accountability',
+      'Supports and motivates their team, especially during challenges',
+      'Contributes positively to the leadership culture across Highland Holidays',
+    ]},
+  { code: 'B', col: 'col-b', title: 'Communication & Collaboration',
+    desc: 'Keeps peers informed, listens, collaborates across departments, responds promptly',
+    items: [
+      'Keeps peers and other departments appropriately informed',
+      'Listens to and acts on input from colleagues',
+      'Communicates professionally, including in difficult situations',
+      'Collaborates well on cross-departmental tasks and cover arrangements',
+      'Responds to requests from other departments in a timely manner',
+    ]},
+  { code: 'C', col: 'col-c', title: 'Health, Safety & Compliance',
+    desc: 'Visible H&S commitment, SafeSystems.PRO engagement, supports safety culture',
+    items: [
+      'Demonstrates visible commitment to health, safety and guest wellbeing',
+      'Ensures their team follows SafeSystems.PRO processes and records',
+      'Raises H&S concerns promptly rather than ignoring or delaying',
+      'Supports H&S audits, inspections and action close-out',
+      'Contributes to a positive safety culture within and beyond their department',
+    ]},
+  { code: 'D', col: 'col-d', title: 'Operational Delivery',
+    desc: 'Meets commitments, manages resources, problem-solves, maintains consistent standards',
+    items: [
+      'Meets deadlines and delivers on commitments made to peers and the Director',
+      'Manages people, budget and equipment effectively',
+      'Identifies and resolves problems proactively rather than waiting',
+      'Maintains standards consistently, not just during inspections',
+      'Adapts well when priorities change or unexpected situations arise',
+    ]},
+  { code: 'E', col: 'col-e', title: 'People Management & Culture',
+    desc: 'Treats team fairly, develops staff, handles performance, contributes to morale',
+    items: [
+      'Treats team members fairly and with respect',
+      'Supports the development and training of their staff',
+      'Handles performance or conduct issues constructively',
+      'Contributes positively to staff morale across the business',
+      'Encourages staff to use SafeSystems.PRO and follow company procedures',
+    ]},
+];
+
+// ── Score state ────────────────────────────────────────────────────────────
+const scores = { A: null, B: null, C: null, D: null, E: null };
+let tokenData = null;
+
+// ── Build sections ─────────────────────────────────────────────────────────
+function buildSections() {
+  const container = document.getElementById('sectionsContainer');
+  SECTIONS.forEach(sec => {
+    const block = document.createElement('div');
+    block.className = 'section-block';
+    block.dataset.section = sec.code;
+
+    const labels = ['Below','Developing','Meets','Exceeds','Outstanding'];
+    const buttonsHtml = [1,2,3,4,5].map(n => `
+      <button class="score-btn" data-section="${sec.code}" data-score="${n}"
+              onclick="setScore('${sec.code}', ${n}, this)">
+        ${n}<span class="score-label">${labels[n-1]}</span>
+      </button>`).join('');
+
+    block.innerHTML = `
+      <div class="section-head">
+        <div class="section-code ${sec.col}">${sec.code}</div>
+        <div>
+          <div class="section-title">${sec.title}</div>
+          <div class="section-desc">${sec.desc}</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="score-prompt">Rate this person 1–5 across this competency area:</div>
+        <div class="score-buttons">${buttonsHtml}</div>
+        <div class="score-selected-badge" id="badge-${sec.code}">✓ Scored</div>
+        <div class="open-text-group" style="margin-top:12px">
+          <label>Supporting observations for Section ${sec.code} (optional)</label>
+          <textarea id="obs-${sec.code}" placeholder="Examples or specific situations that support your rating…" rows="2"></textarea>
+        </div>
+      </div>`;
+    container.appendChild(block);
+  });
+}
+
+// ── Score setter ───────────────────────────────────────────────────────────
+window.setScore = function(section, score, btn) {
+  scores[section] = score;
+  const block = document.querySelector(`.section-block[data-section="${section}"]`);
+  block.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  block.classList.add('has-score');
+
+  const labels = { 1:'Below Expectations', 2:'Developing', 3:'Meets Expectations',
+                   4:'Exceeds Expectations', 5:'Outstanding' };
+  document.getElementById(`badge-${section}`).textContent =
+    `✓ Score recorded: ${score} — ${labels[score]}`;
+
+  updateProgress();
+  document.getElementById('validationMsg').classList.remove('visible');
+};
+
+function updateProgress() {
+  const done = Object.values(scores).filter(v => v !== null).length;
+  const pct  = (done / 5) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = `${done} of 5 sections scored`;
+}
+
+// ── Submit ─────────────────────────────────────────────────────────────────
+window.handleSubmit = async function() {
+  // Validate all sections scored
+  const missing = Object.values(scores).some(v => v === null);
+  if (missing) {
+    document.getElementById('validationMsg').classList.add('visible');
+    document.querySelector('.section-block:not(.has-score)')?.scrollIntoView({ behavior:'smooth', block:'center' });
+    return;
+  }
+
+  const btn = document.getElementById('btnSubmit');
+  btn.disabled = true;
+  btn.classList.add('submitting');
+  btn.querySelector('span').textContent = 'Submitting…';
+
+  try {
+    const token = new URLSearchParams(window.location.search).get('token');
+
+    const observations = {};
+    SECTIONS.forEach(s => {
+      const val = document.getElementById(`obs-${s.code}`)?.value.trim();
+      if (val) observations[s.code] = val;
+    });
+
+    await updateDoc(doc(db, 'peerFeedbackTokens', token), {
+      status:      'submitted',
+      submittedAt: serverTimestamp(),
+      reviewerRole: document.getElementById('inpRole').value.trim(),
+      reviewerDept: document.getElementById('inpDept').value.trim(),
+      scores,
+      observations,
+      openText: {
+        strengths:   document.getElementById('txtStrengths').value.trim(),
+        development: document.getElementById('txtDevelopment').value.trim(),
+        other:       document.getElementById('txtOther').value.trim(),
+      }
+    });
+
+    setState('stateSuccess');
+  } catch(err) {
+    console.error(err);
+    btn.disabled = false;
+    btn.classList.remove('submitting');
+    btn.querySelector('span').textContent = 'Submit Feedback';
+    alert('There was a problem submitting your feedback. Please try again or contact the Director.');
+  }
+};
+
+// ── State helper ───────────────────────────────────────────────────────────
+function setState(id) {
+  document.querySelectorAll('.state').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+async function init() {
+  const token = new URLSearchParams(window.location.search).get('token');
+
+  if (!token) { setState('stateInvalid'); return; }
+
+  try {
+    await signInAnonymously(auth);
+
+    const tokenSnap = await getDoc(doc(db, 'peerFeedbackTokens', token));
+    if (!tokenSnap.exists()) { setState('stateInvalid'); return; }
+
+    tokenData = tokenSnap.data();
+
+    if (tokenData.status === 'submitted') { setState('stateSubmitted'); return; }
+
+    // Fetch cycle for reviewee details
+    const cycleSnap = await getDoc(doc(db, 'reviewCycles', tokenData.cycleId));
+    const cycle = cycleSnap.exists() ? cycleSnap.data() : {};
+
+    // Populate reviewee
+    const name = cycle.revieweeName || 'Unknown';
+    const role = cycle.revieweeRole || '';
+    const park = cycle.park || '';
+
+    document.getElementById('revieweeName').textContent = name;
+    document.getElementById('revieweeRole').textContent =
+      [role, park].filter(Boolean).join(' — ');
+    document.getElementById('revieweeInitials').textContent =
+      name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+
+    buildSections();
+    setState('stateForm');
+  } catch(err) {
+    console.error(err);
+    setState('stateInvalid');
+  }
+}
+
+init();
+
+        // ── PHONE BACK-BUTTON SENTINEL ────────────────────────────────────────────
+        // Catches hardware back button on all devices (iOS, Android, desktop).
+        // Navigates within the page first; only exits when at the top-level view.
+        (function() {
+            function pushSentinel() { history.pushState({ safesp: true }, ''); }
+            pushSentinel();
+            window.addEventListener('popstate', function() {
+                // Check if we are inside a detail/secondary view
+                var detail = document.getElementById('view-detail');
+                var hasDetail = detail && detail.classList.contains('active');
+                if (typeof handleBackButton === 'function') {
+                    handleBackButton();
+                } else if (hasDetail && typeof showView === 'function') {
+                    showView('dashboard');
+                }
+                // Always re-push so the next back press is also caught
+                pushSentinel();
+            });
+        })();
+
+        function handleBackButton() {
+            // Peer form is a single page — allow natural back navigation
+            // (do nothing — let the popstate re-push handle it)
+        }
+</script>
+</body>
+</html>
