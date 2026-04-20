@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeMaint Frequency Analyser — Highland Holidays</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0c0f18; --ink-2: #151a26; --ink-3: #1e2432; --line: #2a3142;
+    --orange: #FE7F2D; --text: #e8ecf4; --muted: #8a93a6;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ink); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+  header {
+    background: var(--ink-2); border-bottom: 1px solid var(--line);
+    padding: 18px 28px; display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+  }
+  header h1 { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 20px; margin: 0; letter-spacing: -0.01em; }
+  header h1 span { color: var(--orange); }
+  header .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  main { padding: 24px 28px; max-width: 1400px; margin: 0 auto; }
+
+  .panel { background: var(--ink-2); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+  .panel h2 { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 16px; margin: 0 0 14px 0; letter-spacing: -0.01em; }
+
+  .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) auto; gap: 12px; align-items: end; }
+  .field label { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; font-weight: 700; }
+  .field input, .field select {
+    width: 100%; background: var(--ink-3); color: var(--text); border: 1px solid var(--line);
+    border-radius: 8px; padding: 10px 12px; font-family: inherit; font-size: 14px;
+  }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--orange); }
+
+  button {
+    background: var(--orange); color: var(--ink); border: none; border-radius: 8px;
+    padding: 11px 20px; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 14px;
+    cursor: pointer; letter-spacing: 0.01em;
+  }
+  button:hover { filter: brightness(1.08); }
+  button.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .stat { background: var(--ink-2); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+  .stat .num { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 28px; color: var(--orange); line-height: 1; }
+  .stat .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 6px; font-weight: 700; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  td { padding: 12px; border-bottom: 1px solid var(--line); font-size: 14px; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover { background: var(--ink-3); }
+
+  .bar { display: inline-block; height: 8px; background: var(--orange); border-radius: 4px; vertical-align: middle; margin-right: 8px; }
+  .count { font-weight: 700; color: var(--orange); font-family: 'Outfit', sans-serif; }
+  .pct { color: var(--muted); font-size: 12px; margin-left: 8px; }
+
+  .pill { display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; }
+  .pill.bn { background: rgba(59,130,246,0.18); color: #93c5fd; }
+  .pill.ob { background: rgba(34,197,94,0.18); color: #86efac; }
+  .pill.ty { background: rgba(234,88,12,0.18); color: #fdba74; }
+  .pill.hh { background: rgba(168,85,247,0.18); color: #d8b4fe; }
+  .src-pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; background: var(--ink-3); color: var(--muted); margin-left: 6px; }
+
+  .status { padding: 10px 14px; border-radius: 8px; font-size: 14px; margin-top: 12px; }
+  .status.info { background: rgba(59,130,246,0.12); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
+  .status.ok { background: rgba(34,197,94,0.12); color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
+  .status.err { background: rgba(239,68,68,0.12); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+
+  .footer-note { text-align: center; color: var(--muted); font-size: 12px; margin-top: 30px; padding-bottom: 20px; }
+  .empty { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 14px; }
+  .loader { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--orange); border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: -2px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .tab { background: transparent; color: var(--muted); border: none; border-bottom: 2px solid transparent; padding: 10px 16px; cursor: pointer; font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 14px; }
+  .tab.active { color: var(--orange); border-bottom-color: var(--orange); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .source-breakdown { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .source-card { background: var(--ink-3); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+  .source-card .n { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 22px; color: var(--orange); }
+  .source-card .l { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>SafeMaint<span> Frequency Analyser</span></h1>
+    <div class="sub">Highland Holidays · Maintenance tasks + flagged inspection items</div>
+  </div>
+  <div><button class="ghost" id="exportBtn" disabled>Export CSV</button></div>
+</header>
+
+<main>
+
+  <div class="panel">
+    <h2>Filters</h2>
+    <div class="controls">
+      <div class="field">
+        <label>Park</label>
+        <select id="filterPark">
+          <option value="all">All parks</option>
+          <option value="ben-nevis">Ben Nevis</option>
+          <option value="oban">Oban</option>
+          <option value="tyndrum">Tyndrum</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>From</label>
+        <input type="date" id="filterFrom" value="2025-01-01">
+      </div>
+      <div class="field">
+        <label>To</label>
+        <input type="date" id="filterTo">
+      </div>
+      <div class="field">
+        <label>Source</label>
+        <select id="filterSource">
+          <option value="all">All sources</option>
+          <option value="maintenance">Maintenance requests</option>
+          <option value="hot-tub">Hot Tub flagged</option>
+          <option value="accommodation">Accommodation flagged</option>
+          <option value="play-park">Play Park flagged</option>
+          <option value="vehicle">Vehicle flagged</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <select id="filterStatus">
+          <option value="all">All statuses</option>
+          <option value="open">Open / pending / in-progress</option>
+          <option value="completed">Completed / closed / addressed</option>
+        </select>
+      </div>
+      <div><button id="runBtn">Connect &amp; Analyse</button></div>
+    </div>
+    <div id="status" class="status info" style="display:none;"></div>
+  </div>
+
+  <div class="stats" id="stats" style="display:none;">
+    <div class="stat"><div class="num" id="statTotal">—</div><div class="lbl">Total Items</div></div>
+    <div class="stat"><div class="num" id="statOpen">—</div><div class="lbl">Open</div></div>
+    <div class="stat"><div class="num" id="statDone">—</div><div class="lbl">Completed</div></div>
+    <div class="stat"><div class="num" id="statMR">—</div><div class="lbl">Maint Requests</div></div>
+    <div class="stat"><div class="num" id="statFlagged">—</div><div class="lbl">Flagged Items</div></div>
+    <div class="stat"><div class="num" id="statBN">—</div><div class="lbl">Ben Nevis</div></div>
+    <div class="stat"><div class="num" id="statOB">—</div><div class="lbl">Oban</div></div>
+    <div class="stat"><div class="num" id="statTY">—</div><div class="lbl">Tyndrum</div></div>
+  </div>
+
+  <div class="panel" id="resultsPanel" style="display:none;">
+    <h2>Source breakdown</h2>
+    <div class="source-breakdown" id="sourceBreakdown"></div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="categories">By Category</button>
+      <button class="tab" data-tab="titles">By Issue/Title</button>
+      <button class="tab" data-tab="parks">By Park</button>
+      <button class="tab" data-tab="sources">By Source</button>
+    </div>
+
+    <div class="tab-content active" id="tab-categories"><div id="categoriesTable"></div></div>
+    <div class="tab-content" id="tab-titles"><div id="titlesTable"></div></div>
+    <div class="tab-content" id="tab-parks"><div id="parksTable"></div></div>
+    <div class="tab-content" id="tab-sources"><div id="sourcesTable"></div></div>
+  </div>
+
+  <div class="footer-note">
+    Project: safepark-pro · Sources: maintenanceRecords + flagged items from hot_tub_inspections, accommodation_inspections, playParkInspections, playgroundInspections, vehicle_inspections
+  </div>
+
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+    authDomain: "safepark-pro.firebaseapp.com",
+    projectId: "safepark-pro",
+    storageBucket: "safepark-pro.firebasestorage.app",
+    messagingSenderId: "511221743341",
+    appId: "1:511221743341:web:95bec7e83d4861578016e4"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const auth = firebase.auth();
+
+  document.getElementById('filterTo').value = new Date().toISOString().split('T')[0];
+
+  const statusEl = document.getElementById('status');
+  function showStatus(msg, kind='info') {
+    statusEl.style.display = 'block';
+    statusEl.className = 'status ' + kind;
+    statusEl.innerHTML = msg;
+  }
+  function hideStatus() { statusEl.style.display = 'none'; }
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  let allItems = [];
+
+  document.getElementById('runBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('runBtn');
+    btn.disabled = true;
+    showStatus('<span class="loader"></span>Signing in anonymously…', 'info');
+
+    try {
+      await auth.signInAnonymously();
+      allItems = [];
+
+      // 1. Maintenance Requests
+      showStatus('<span class="loader"></span>Loading maintenance requests…', 'info');
+      try {
+        const snap = await db.collection('maintenanceRecords').get();
+        snap.forEach(doc => {
+          const d = doc.data();
+          allItems.push({
+            _id: doc.id,
+            _src: 'maintenance',
+            _srcLabel: 'Maintenance Request',
+            park: d.parkLocation || (d.submittedBy && d.submittedBy.park) || null,
+            category: d.category || 'Uncategorised',
+            title: d.title || d.description || '',
+            status: d.status || '',
+            date: d.dateSubmitted || d.createdAt || d.dateReported || null,
+            priority: d.priority || null
+          });
+        });
+        console.log('maintenanceRecords:', snap.size);
+      } catch (e) { console.warn('maintenanceRecords failed:', e.message); }
+
+      // 2. Hot Tub flagged (explode entries)
+      showStatus('<span class="loader"></span>Loading flagged hot tub items…', 'info');
+      try {
+        const snap = await db.collection('hot_tub_inspections').where('actionRequired', '==', true).get();
+        snap.forEach(doc => {
+          const d = doc.data();
+          const park = d.location || d.parkLocation || null;
+          const dateRaw = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().toISOString() : (d.timestamp ? new Date(d.timestamp).toISOString() : null);
+          const addressed = d.addressedEntries || [];
+          if (d.flaggedIssueEntries && d.flaggedIssueEntries.length > 0) {
+            d.flaggedIssueEntries.forEach((entry, idx) => {
+              const isAddressed = addressed.includes(idx);
+              allItems.push({
+                _id: doc.id + ':' + idx,
+                _src: 'hot-tub',
+                _srcLabel: 'Hot Tub',
+                park: park,
+                category: 'Hot Tub',
+                title: entry.issue || entry.description || 'Flagged hot tub issue',
+                status: isAddressed ? 'completed' : 'open',
+                date: dateRaw
+              });
+            });
+          } else {
+            allItems.push({
+              _id: doc.id, _src: 'hot-tub', _srcLabel: 'Hot Tub',
+              park: park, category: 'Hot Tub',
+              title: d.actionNotes || 'Flagged hot tub issue',
+              status: d.resolved ? 'completed' : 'open', date: dateRaw
+            });
+          }
+        });
+        console.log('hot_tub_inspections flagged:', snap.size);
+      } catch (e) { console.warn('hot_tub_inspections failed:', e.message); }
+
+      // 3. Accommodation flagged
+      showStatus('<span class="loader"></span>Loading flagged accommodation items…', 'info');
+      try {
+        const snap = await db.collection('accommodation_inspections').where('actionRequired', '==', true).get();
+        snap.forEach(doc => {
+          const d = doc.data();
+          allItems.push({
+            _id: doc.id, _src: 'accommodation', _srcLabel: 'Accommodation',
+            park: d.parkName || d.parkLocation || d.location || null,
+            category: 'Accommodation',
+            title: d.actionNotes || (d.accommodationUnit ? 'Accommodation: ' + d.accommodationUnit : 'Flagged accommodation issue'),
+            status: d.resolved || d.addressed ? 'completed' : 'open',
+            date: d.submittedAt && d.submittedAt.toDate ? d.submittedAt.toDate().toISOString() : (d.timestamp ? new Date(d.timestamp).toISOString() : null)
+          });
+        });
+        console.log('accommodation_inspections flagged:', snap.size);
+      } catch (e) { console.warn('accommodation_inspections failed:', e.message); }
+
+      // 4. Play Park flagged (two collections for legacy compat)
+      showStatus('<span class="loader"></span>Loading flagged play park items…', 'info');
+      for (const col of ['playParkInspections', 'playgroundInspections']) {
+        try {
+          const snap = await db.collection(col).where('actionRequired', '==', true).get();
+          snap.forEach(doc => {
+            const d = doc.data();
+            allItems.push({
+              _id: doc.id, _src: 'play-park', _srcLabel: 'Play Park',
+              park: d.parkName || d.location || null,
+              category: 'Play Park',
+              title: d.actionNotes || 'Flagged play park issue',
+              status: d.resolved || d.addressed ? 'completed' : 'open',
+              date: d.timestamp ? new Date(d.timestamp).toISOString() : null
+            });
+          });
+          console.log(col + ' flagged:', snap.size);
+        } catch (e) { console.warn(col + ' failed:', e.message); }
+      }
+
+      // 5. Vehicle flagged (explode entries)
+      showStatus('<span class="loader"></span>Loading flagged vehicle items…', 'info');
+      try {
+        const snap = await db.collection('vehicle_inspections').where('actionRequired', '==', true).get();
+        snap.forEach(doc => {
+          const d = doc.data();
+          const park = d.location || d.parkName || null;
+          const dateRaw = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().toISOString() : (d.timestamp ? new Date(d.timestamp).toISOString() : null);
+          const addressed = d.addressedEntries || [];
+          if (d.flaggedIssueEntries && d.flaggedIssueEntries.length > 0) {
+            d.flaggedIssueEntries.forEach((entry, idx) => {
+              const isAddressed = addressed.includes(idx);
+              allItems.push({
+                _id: doc.id + ':' + idx,
+                _src: 'vehicle', _srcLabel: 'Vehicle',
+                park: park, category: 'Vehicle',
+                title: entry.issue || entry.description || 'Flagged vehicle issue',
+                status: isAddressed ? 'completed' : 'open', date: dateRaw
+              });
+            });
+          } else {
+            allItems.push({
+              _id: doc.id, _src: 'vehicle', _srcLabel: 'Vehicle',
+              park: park, category: 'Vehicle',
+              title: d.actionNotes || 'Flagged vehicle issue',
+              status: d.resolved ? 'completed' : 'open', date: dateRaw
+            });
+          }
+        });
+        console.log('vehicle_inspections flagged:', snap.size);
+      } catch (e) { console.warn('vehicle_inspections failed:', e.message); }
+
+      if (allItems.length === 0) {
+        showStatus('No data found. Check Firestore rules allow authenticated reads on the inspection collections.', 'err');
+        btn.disabled = false;
+        return;
+      }
+
+      const mrCount = allItems.filter(i => i._src === 'maintenance').length;
+      const flagCount = allItems.length - mrCount;
+      showStatus(`Loaded ${allItems.length} items — ${mrCount} maintenance requests + ${flagCount} flagged inspection items.`, 'ok');
+      analyse();
+      document.getElementById('exportBtn').disabled = false;
+      btn.disabled = false;
+      setTimeout(hideStatus, 4000);
+    } catch (e) {
+      console.error(e);
+      showStatus('Error: ' + e.message, 'err');
+      btn.disabled = false;
+    }
+  });
+
+  function normalisePark(p) {
+    if (!p) return 'unknown';
+    const s = String(p).toLowerCase().trim();
+    if (s.includes('ben') || s === 'bn' || s.includes('nevis')) return 'ben-nevis';
+    if (s.includes('oban') || s === 'ob') return 'oban';
+    if (s.includes('tyndrum') || s === 'ty') return 'tyndrum';
+    return s;
+  }
+  function parkPill(p) {
+    const map = {
+      'ben-nevis': { lbl: 'Ben Nevis', cls: 'bn' },
+      'oban': { lbl: 'Oban', cls: 'ob' },
+      'tyndrum': { lbl: 'Tyndrum', cls: 'ty' }
+    };
+    const m = map[p] || { lbl: p || 'Unknown', cls: 'hh' };
+    return `<span class="pill ${m.cls}">${m.lbl}</span>`;
+  }
+  function normaliseTitle(t) {
+    if (!t) return '';
+    return String(t).toLowerCase()
+      .replace(/\b(lodge|unit|pod|room|van|plot|pitch|tub)\s*#?\d+/g, '$1 [n]')
+      .replace(/\b\d+\b/g, '')
+      .replace(/[^\w\s-]/g, ' ')
+      .replace(/\s+/g, ' ').trim();
+  }
+  function getDate(i) {
+    if (!i.date) return null;
+    if (i.date.toDate) return i.date.toDate();
+    const d = new Date(i.date);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  function applyFilters(items) {
+    const park = document.getElementById('filterPark').value;
+    const from = document.getElementById('filterFrom').value;
+    const to = document.getElementById('filterTo').value;
+    const src = document.getElementById('filterSource').value;
+    const stat = document.getElementById('filterStatus').value;
+    const fromD = from ? new Date(from + 'T00:00:00') : null;
+    const toD = to ? new Date(to + 'T23:59:59') : null;
+
+    const openStatuses = ['open','pending','in-progress','in progress','new','assigned','flagged'];
+    const doneStatuses = ['completed','closed','done','resolved','addressed'];
+
+    return items.filter(i => {
+      if (park !== 'all' && normalisePark(i.park) !== park) return false;
+      if (src !== 'all' && i._src !== src) return false;
+      if (stat !== 'all') {
+        const s = String(i.status || '').toLowerCase();
+        if (stat === 'open' && !openStatuses.includes(s)) return false;
+        if (stat === 'completed' && !doneStatuses.includes(s)) return false;
+      }
+      const d = getDate(i);
+      if (fromD && (!d || d < fromD)) return false;
+      if (toD && (!d || d > toD)) return false;
+      return true;
+    });
+  }
+
+  function analyse() {
+    const items = applyFilters(allItems);
+
+    document.getElementById('stats').style.display = 'grid';
+    document.getElementById('resultsPanel').style.display = 'block';
+    document.getElementById('statTotal').textContent = items.length;
+    const openStat = ['open','pending','in-progress','in progress','new','assigned','flagged'];
+    const doneStat = ['completed','closed','done','resolved','addressed'];
+    document.getElementById('statOpen').textContent = items.filter(i => openStat.includes(String(i.status||'').toLowerCase())).length;
+    document.getElementById('statDone').textContent = items.filter(i => doneStat.includes(String(i.status||'').toLowerCase())).length;
+    document.getElementById('statMR').textContent = items.filter(i => i._src === 'maintenance').length;
+    document.getElementById('statFlagged').textContent = items.filter(i => i._src !== 'maintenance').length;
+
+    const byPark = { 'ben-nevis': 0, 'oban': 0, 'tyndrum': 0 };
+    items.forEach(i => {
+      const p = normalisePark(i.park);
+      if (byPark[p] !== undefined) byPark[p]++;
+    });
+    document.getElementById('statBN').textContent = byPark['ben-nevis'];
+    document.getElementById('statOB').textContent = byPark['oban'];
+    document.getElementById('statTY').textContent = byPark['tyndrum'];
+
+    // Source breakdown cards
+    const srcCounts = {};
+    items.forEach(i => { srcCounts[i._srcLabel] = (srcCounts[i._srcLabel] || 0) + 1; });
+    document.getElementById('sourceBreakdown').innerHTML = Object.entries(srcCounts)
+      .sort((a,b) => b[1]-a[1])
+      .map(([k,v]) => `<div class="source-card"><div class="n">${v}</div><div class="l">${escapeHtml(k)}</div></div>`)
+      .join('');
+
+    // Categories
+    const catCounts = {};
+    items.forEach(i => {
+      const c = String(i.category || 'Uncategorised').trim() || 'Uncategorised';
+      catCounts[c] = (catCounts[c] || 0) + 1;
+    });
+    renderFreq('categoriesTable', Object.entries(catCounts).sort((a,b)=>b[1]-a[1]), items.length, 'Category');
+
+    // Titles (normalised)
+    const titleCounts = {};
+    const titleExamples = {};
+    const titleSources = {};
+    items.forEach(i => {
+      const norm = normaliseTitle(i.title);
+      if (!norm) return;
+      titleCounts[norm] = (titleCounts[norm] || 0) + 1;
+      if (!titleExamples[norm]) titleExamples[norm] = i.title;
+      if (!titleSources[norm]) titleSources[norm] = new Set();
+      titleSources[norm].add(i._srcLabel);
+    });
+    const titleArr = Object.entries(titleCounts)
+      .sort((a,b)=>b[1]-a[1]).slice(0,30)
+      .map(([k,v]) => [titleExamples[k] || k, v, Array.from(titleSources[k]).join(', ')]);
+    renderFreq('titlesTable', titleArr, items.length, 'Issue / Task', true);
+
+    // Per-park top categories
+    const parks = ['ben-nevis','oban','tyndrum'];
+    let parkHtml = '<table><thead><tr><th>Park</th><th>Top Category</th><th>Count</th><th>2nd</th><th>3rd</th></tr></thead><tbody>';
+    parks.forEach(p => {
+      const pi = items.filter(i => normalisePark(i.park) === p);
+      const cc = {};
+      pi.forEach(i => {
+        const c = String(i.category || 'Uncategorised').trim() || 'Uncategorised';
+        cc[c] = (cc[c] || 0) + 1;
+      });
+      const sorted = Object.entries(cc).sort((a,b)=>b[1]-a[1]);
+      const t1 = sorted[0] || ['—', 0];
+      const t2 = sorted[1] || ['—', 0];
+      const t3 = sorted[2] || ['—', 0];
+      parkHtml += `<tr><td>${parkPill(p)}</td><td>${escapeHtml(t1[0])}</td><td><span class="count">${t1[1]}</span></td><td>${escapeHtml(t2[0])} <span class="pct">${t2[1]}</span></td><td>${escapeHtml(t3[0])} <span class="pct">${t3[1]}</span></td></tr>`;
+    });
+    parkHtml += '</tbody></table>';
+    document.getElementById('parksTable').innerHTML = parkHtml;
+
+    // By source
+    const srcArr = Object.entries(srcCounts).sort((a,b)=>b[1]-a[1]);
+    renderFreq('sourcesTable', srcArr, items.length, 'Source');
+  }
+
+  function renderFreq(containerId, arr, total, label, showSource) {
+    if (arr.length === 0) {
+      document.getElementById(containerId).innerHTML = '<div class="empty">No data for current filters.</div>';
+      return;
+    }
+    const max = arr[0][1];
+    const srcCol = showSource ? '<th>Source(s)</th>' : '';
+    let html = `<table><thead><tr><th>#</th><th>${label}</th>${srcCol}<th style="width:30%;">Frequency</th><th style="text-align:right;">Count</th><th style="text-align:right;">Share</th></tr></thead><tbody>`;
+    arr.forEach(([k, v, src], i) => {
+      const pct = total > 0 ? (v/total*100).toFixed(1) : '0.0';
+      const barW = max > 0 ? (v/max*100).toFixed(0) : 0;
+      const srcCell = showSource ? `<td><span class="src-pill">${escapeHtml(src || '—')}</span></td>` : '';
+      html += `<tr>
+        <td style="color:var(--muted);">${i+1}</td>
+        <td>${escapeHtml(k)}</td>
+        ${srcCell}
+        <td><span class="bar" style="width:${barW}%;"></span></td>
+        <td style="text-align:right;"><span class="count">${v}</span></td>
+        <td style="text-align:right; color:var(--muted);">${pct}%</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    document.getElementById(containerId).innerHTML = html;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  ['filterPark','filterFrom','filterTo','filterSource','filterStatus'].forEach(id => {
+    document.getElementById(id).addEventListener('change', () => {
+      if (allItems.length > 0) analyse();
+    });
+  });
+
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    const items = applyFilters(allItems);
+    const cats = {};
+    items.forEach(i => {
+      const c = String(i.category || 'Uncategorised').trim() || 'Uncategorised';
+      cats[c] = (cats[c] || 0) + 1;
+    });
+    const rows = [['Rank','Category','Count','Share (%)']];
+    Object.entries(cats).sort((a,b)=>b[1]-a[1]).forEach(([k,v], i) => {
+      rows.push([i+1, k, v, items.length > 0 ? (v/items.length*100).toFixed(1) : '0.0']);
+    });
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `maint-frequency-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+</script>
+</body>
+</html>
