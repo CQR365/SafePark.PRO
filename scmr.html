@@ -18,27 +18,27 @@
     <style>
         :root {
             color-scheme: light;
-            --bg-primary: #f4f6fa;           /* page background — soft grey */
-            --bg-secondary: #ffffff;          /* card background — white */
-            --bg-tertiary: #f8fafc;           /* subtle fills (block headers, hover) */
-            --bg-elevated: #eef2f7;           /* chips, disabled states */
-            --border: #d9dee5;                /* crisp card borders */
-            --border-soft: #e8ecf1;           /* dividers between items */
-            --text-primary: #0c0f18;          /* headings, strong copy — near-black */
-            --text-secondary: #3e4656;        /* body copy — dark slate */
-            --text-muted: #6b7280;            /* labels, meta — medium grey */
-            --accent: #FE7F2D;                /* Omnibosh burnt orange — unchanged */
+            --bg-primary: #e6eaf1;           /* page — visibly grey, paper-like */
+            --bg-secondary: #ffffff;          /* cards — pure white to stand out */
+            --bg-tertiary: #f5f7fb;           /* subtle fills (hover, banded rows) */
+            --bg-elevated: #eef2f7;           /* chips, inactive states */
+            --border: #c2cad6;                /* visible card borders */
+            --border-soft: #dce1ea;           /* item dividers — visible but soft */
+            --text-primary: #0c0f18;          /* near-black headings */
+            --text-secondary: #3e4656;        /* dark slate body */
+            --text-muted: #5b6475;            /* slightly darker labels for readability */
+            --accent: #FE7F2D;                /* Omnibosh burnt orange */
             --accent-hover: #e66a15;
             --accent-soft: rgba(254, 127, 45, 0.10);
-            --success: #15803d;               /* darker greens for contrast on white */
+            --success: #15803d;
             --success-soft: rgba(21, 128, 61, 0.10);
             --warning: #b45309;
             --warning-soft: rgba(180, 83, 9, 0.10);
             --danger: #b91c1c;
             --danger-soft: rgba(185, 28, 28, 0.10);
-            --shadow-sm: 0 1px 2px rgba(12, 15, 24, 0.04), 0 1px 3px rgba(12, 15, 24, 0.06);
-            --shadow-md: 0 4px 8px rgba(12, 15, 24, 0.05), 0 8px 24px rgba(12, 15, 24, 0.06);
-            --shadow-lg: 0 10px 30px rgba(12, 15, 24, 0.08), 0 20px 50px rgba(12, 15, 24, 0.08);
+            --shadow-sm: 0 1px 2px rgba(12, 15, 24, 0.06), 0 2px 6px rgba(12, 15, 24, 0.08);
+            --shadow-md: 0 4px 12px rgba(12, 15, 24, 0.08), 0 12px 28px rgba(12, 15, 24, 0.08);
+            --shadow-lg: 0 10px 30px rgba(12, 15, 24, 0.10), 0 20px 50px rgba(12, 15, 24, 0.10);
             --font-display: 'Outfit', -apple-system, sans-serif;
             --font-body: 'DM Sans', -apple-system, sans-serif;
         }
@@ -56,7 +56,7 @@
         }
 
         body {
-            background: radial-gradient(ellipse at top, #ffffff 0%, #f4f6fa 60%);
+            background: radial-gradient(ellipse at top, #f4f7fc 0%, #e6eaf1 65%);
             min-height: 100vh;
             padding-bottom: 80px;
         }
@@ -517,27 +517,37 @@
 
         /* ==== ITEM ==== */
         .item {
-            padding: 14px 16px;
+            padding: 18px 20px;
             border-bottom: 1px solid var(--border-soft);
+            transition: background 0.15s;
         }
 
         .item:last-child { border-bottom: none; }
+        .item:hover { background: var(--bg-tertiary); }
+        .item.answered-yes { border-left: 3px solid var(--success); padding-left: 17px; }
+        .item.answered-partial { border-left: 3px solid var(--warning); padding-left: 17px; }
+        .item.answered-no { border-left: 3px solid var(--danger); padding-left: 17px; }
 
         .item-num {
             display: inline-block;
             font-size: 11px;
-            font-weight: 700;
-            color: var(--text-muted);
+            font-weight: 800;
+            color: var(--accent);
+            background: var(--accent-soft);
             font-variant-numeric: tabular-nums;
-            margin-bottom: 4px;
-            letter-spacing: 0.04em;
+            margin-bottom: 8px;
+            letter-spacing: 0.08em;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-family: var(--font-display);
         }
 
         .item-text {
-            font-size: 14px;
+            font-size: 15px;
             color: var(--text-primary);
-            line-height: 1.45;
-            margin-bottom: 12px;
+            line-height: 1.5;
+            margin-bottom: 14px;
+            font-weight: 500;
         }
 
         .answer-row {
@@ -1731,6 +1741,10 @@ function setAnswer(itemId, value) {
         row.querySelectorAll('.answer-btn').forEach(b => b.classList.remove('active'));
         row.querySelector(`.answer-btn.${value}`).classList.add('active');
 
+        // Apply left accent stripe based on answer
+        row.classList.remove('answered-yes', 'answered-partial', 'answered-no');
+        row.classList.add(`answered-${value}`);
+
         const commentBlock = row.querySelector('.comment-block');
         if (value === 'partial' || value === 'no') {
             commentBlock.classList.add('visible');
@@ -1929,6 +1943,7 @@ async function loadReturn() {
                 const row = document.querySelector(`[data-item-id="${itemId}"]`);
                 if (row && a.value) {
                     row.querySelector(`.answer-btn.${a.value}`)?.classList.add('active');
+                    row.classList.add(`answered-${a.value}`);
                     if (a.value === 'partial' || a.value === 'no') {
                         row.querySelector('.comment-block').classList.add('visible');
                         if (a.reason) row.querySelector('select').value = a.reason;
