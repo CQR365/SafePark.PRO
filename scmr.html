@@ -1,0 +1,2217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#FE7F2D">
+    <title>SCMR — Safety & Compliance Monthly Return | SafeSystems.PRO</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap">
+
+    <!-- Firebase (inline init pattern — hot-tub style) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg-primary: #0c0f18;
+            --bg-secondary: #141824;
+            --bg-tertiary: #1c2132;
+            --bg-elevated: #242a3d;
+            --border: #2d344a;
+            --border-soft: #242a3d;
+            --text-primary: #f5f7fa;
+            --text-secondary: #b8bfd1;
+            --text-muted: #7a8399;
+            --accent: #FE7F2D;
+            --accent-hover: #ff9147;
+            --accent-soft: rgba(254, 127, 45, 0.12);
+            --success: #22c55e;
+            --success-soft: rgba(34, 197, 94, 0.12);
+            --warning: #f59e0b;
+            --warning-soft: rgba(245, 158, 11, 0.12);
+            --danger: #ef4444;
+            --danger-soft: rgba(239, 68, 68, 0.12);
+            --font-display: 'Outfit', -apple-system, sans-serif;
+            --font-body: 'DM Sans', -apple-system, sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        html, body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 15px;
+            line-height: 1.5;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body {
+            background: radial-gradient(ellipse at top, #141824 0%, #0c0f18 55%);
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        /* ==== LOGIN SCREEN ==== */
+        .login-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            z-index: 1000;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px 32px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+        }
+
+        .login-brand {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .login-brand .mark {
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 28px;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+        }
+
+        .login-brand .mark span {
+            color: var(--accent);
+        }
+
+        .login-brand .tag {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .login-title {
+            font-family: var(--font-display);
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .login-sub {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 28px;
+        }
+
+        .login-field {
+            margin-bottom: 16px;
+        }
+
+        .login-field label {
+            display: block;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .login-field input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 16px;
+            font-family: var(--font-body);
+            letter-spacing: 0.04em;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .login-field input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px 20px;
+            background: var(--accent);
+            color: #0c0f18;
+            border: none;
+            border-radius: 10px;
+            font-family: var(--font-display);
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 8px;
+        }
+
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-primary:active { transform: translateY(1px); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .login-error {
+            margin-top: 14px;
+            padding: 12px 14px;
+            background: var(--danger-soft);
+            border: 1px solid var(--danger);
+            border-radius: 8px;
+            color: #fca5a5;
+            font-size: 13px;
+            display: none;
+        }
+
+        .login-error.visible { display: block; }
+
+        .login-help {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+            line-height: 1.7;
+        }
+
+        /* ==== MAIN APP ==== */
+        .app { display: none; }
+        .app.visible { display: block; }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(12, 15, 24, 0.92);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 16px;
+        }
+
+        .topbar-inner {
+            max-width: 760px;
+            margin: 0 auto;
+            transition: max-width 0.3s ease;
+        }
+
+        .topbar-inner.wide {
+            max-width: 1280px;
+        }
+
+        .topbar-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .brand {
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 16px;
+            letter-spacing: -0.01em;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-chip {
+            background: var(--accent);
+            color: #0c0f18;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .site-pill {
+            padding: 6px 12px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: var(--font-body);
+        }
+
+        .logout-btn:hover { color: var(--text-primary); border-color: var(--text-muted); }
+
+        .controls {
+            margin-top: 14px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .control-field {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+
+        .control-field label {
+            display: block;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .control-field select {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 600;
+            font-family: var(--font-body);
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23FE7F2D' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 2px center;
+            padding-right: 20px;
+            cursor: pointer;
+        }
+
+        /* Fix native dropdown option readability — Chrome/Windows renders white-on-white otherwise */
+        select option {
+            background: #1c2132 !important;
+            color: #f5f7fa !important;
+            padding: 8px;
+        }
+        select option:checked {
+            background: #FE7F2D !important;
+            color: #0c0f18 !important;
+        }
+
+        .progress-row {
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 8px;
+            background: var(--bg-elevated);
+            border-radius: 999px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent) 0%, #ff9147 100%);
+            border-radius: 999px;
+            transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            width: 0%;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+            min-width: 56px;
+            text-align: right;
+        }
+
+        /* ==== MAIN CONTENT ==== */
+        .container {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 20px 16px;
+            transition: max-width 0.3s ease;
+        }
+
+        .container.wide {
+            max-width: 1280px;
+        }
+
+        .hero {
+            padding: 20px 20px 24px;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            right: -40px;
+            top: -40px;
+            width: 160px;
+            height: 160px;
+            background: radial-gradient(circle, var(--accent-soft) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-eyebrow {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--accent);
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+            margin-bottom: 8px;
+        }
+
+        .hero p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.55;
+            max-width: 540px;
+        }
+
+        .status-banner {
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status-banner.draft { background: var(--accent-soft); color: var(--accent); border: 1px solid rgba(254,127,45,0.3); }
+        .status-banner.submitted { background: var(--success-soft); color: var(--success); border: 1px solid rgba(34,197,94,0.3); }
+        .status-banner.locked { background: var(--danger-soft); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+        .status-banner .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+
+        /* ==== BLOCKS ==== */
+        .block {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            margin-bottom: 14px;
+            overflow: hidden;
+        }
+
+        .block-header {
+            padding: 16px 18px;
+            background: linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .block-header-main {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .block-letter {
+            width: 32px;
+            height: 32px;
+            background: var(--accent-soft);
+            color: var(--accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .block-title {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: -0.01em;
+        }
+
+        .block-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .block-count {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .block-chevron {
+            width: 18px;
+            height: 18px;
+            color: var(--text-muted);
+            transition: transform 0.25s;
+        }
+
+        .block.collapsed .block-chevron { transform: rotate(-90deg); }
+        .block.collapsed .block-body { display: none; }
+
+        .block-body { padding: 6px 4px 10px; }
+
+        /* ==== ITEM ==== */
+        .item {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-soft);
+        }
+
+        .item:last-child { border-bottom: none; }
+
+        .item-num {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+            margin-bottom: 4px;
+            letter-spacing: 0.04em;
+        }
+
+        .item-text {
+            font-size: 14px;
+            color: var(--text-primary);
+            line-height: 1.45;
+            margin-bottom: 12px;
+        }
+
+        .answer-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .answer-btn {
+            padding: 10px 8px;
+            background: var(--bg-primary);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 12px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .answer-btn:hover:not(.active) { border-color: var(--text-muted); color: var(--text-primary); }
+        .answer-btn.active.yes { background: var(--success); color: #0c0f18; border-color: var(--success); }
+        .answer-btn.active.partial { background: var(--warning); color: #0c0f18; border-color: var(--warning); }
+        .answer-btn.active.no { background: var(--danger); color: #0c0f18; border-color: var(--danger); }
+
+        .comment-block {
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            display: none;
+        }
+
+        .comment-block.visible { display: block; }
+
+        .comment-block label {
+            display: block;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .comment-block select,
+        .comment-block textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 13px;
+            font-family: var(--font-body);
+            margin-bottom: 8px;
+        }
+
+        .comment-block select:focus,
+        .comment-block textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .comment-block textarea { resize: vertical; min-height: 64px; }
+
+        .comment-block .required-note {
+            font-size: 11px;
+            color: var(--warning);
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        /* ==== SUMMARY BLOCK ==== */
+        .summary-block {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 14px;
+        }
+
+        .summary-block h3 {
+            font-family: var(--font-display);
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .summary-block .sub {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 18px;
+        }
+
+        .summary-field {
+            margin-bottom: 14px;
+        }
+
+        .summary-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .summary-field textarea {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: var(--font-body);
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .summary-field textarea:focus { outline: none; border-color: var(--accent); }
+
+        /* ==== SIGN-OFF ==== */
+        .signoff-block {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            border: 1px solid var(--accent);
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 14px;
+        }
+
+        .signoff-block h3 {
+            font-family: var(--font-display);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .signoff-block .sub {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 18px;
+        }
+
+        .signoff-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .signoff-field input {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: var(--font-body);
+        }
+
+        .signoff-field input:focus { outline: none; border-color: var(--accent); }
+
+        .signoff-field label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 6px;
+        }
+
+        .declaration {
+            padding: 14px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .declaration input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            accent-color: var(--accent);
+            flex-shrink: 0;
+        }
+
+        .declaration-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .declaration-text strong { color: var(--text-primary); }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent);
+            color: #0c0f18;
+            border: none;
+            border-radius: 12px;
+            font-family: var(--font-display);
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .submit-btn:hover:not(:disabled) { background: var(--accent-hover); transform: translateY(-1px); }
+        .submit-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+        .save-draft-btn {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-family: var(--font-body);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .save-draft-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+        /* ==== TOAST ==== */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 200;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        .toast.visible { transform: translateX(-50%) translateY(0); }
+        .toast.success { border-color: var(--success); color: var(--success); }
+        .toast.error { border-color: var(--danger); color: #fca5a5; }
+        .toast.warning { border-color: var(--warning); color: var(--warning); }
+
+        /* ==== READ-ONLY MODE ==== */
+        .readonly-notice {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.55;
+        }
+
+        .readonly-notice strong { color: var(--text-primary); }
+
+        body.readonly .answer-btn:not(.active),
+        body.readonly .comment-block select,
+        body.readonly .comment-block textarea,
+        body.readonly .summary-field textarea,
+        body.readonly .signoff-field input,
+        body.readonly .declaration input { pointer-events: none; opacity: 0.6; }
+
+        body.readonly .submit-btn,
+        body.readonly .save-draft-btn { display: none; }
+
+        /* ==== ADMIN DASHBOARD ==== */
+        .admin-callout {
+            background: var(--accent-soft);
+            border: 1px solid rgba(254, 127, 45, 0.3);
+            border-left: 4px solid var(--accent);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-top: 16px;
+            margin-bottom: 18px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .admin-callout-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--accent);
+            color: #0c0f18;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .admin-callout-body {
+            font-size: 13px;
+            line-height: 1.55;
+            color: var(--text-secondary);
+        }
+
+        .admin-callout-body strong { color: var(--text-primary); }
+        .admin-callout-body em { color: var(--accent); font-style: normal; font-weight: 600; }
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 140px repeat(12, minmax(64px, 1fr));
+            gap: 4px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            overflow-x: auto;
+            min-width: 860px;
+        }
+
+        #adminGridContainer {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .admin-grid-header,
+        .admin-grid-site,
+        .admin-grid-cell {
+            padding: 10px 4px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 6px;
+        }
+
+        .admin-grid-header {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .admin-grid-site {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            text-align: left;
+            padding-left: 12px;
+        }
+
+        .admin-grid-cell {
+            background: var(--bg-tertiary);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: transform 0.15s;
+            font-size: 14px;
+        }
+
+        .admin-grid-cell:hover { transform: scale(1.05); }
+        .admin-grid-cell.submitted { background: var(--success-soft); color: var(--success); }
+        .admin-grid-cell.amber { background: var(--warning-soft); color: var(--warning); }
+        .admin-grid-cell.overdue { background: var(--danger-soft); color: #fca5a5; }
+        .admin-grid-cell.future { background: transparent; color: var(--text-muted); cursor: default; }
+        .admin-grid-cell.open { background: var(--accent-soft); color: var(--accent); border: 1px dashed var(--accent); }
+
+        .view-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .view-toggle button {
+            flex: 1;
+            padding: 10px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 12px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        .view-toggle button.active { background: var(--accent); color: #0c0f18; border-color: var(--accent); }
+
+        /* ==== RESPONSIVE ==== */
+        @media (max-width: 540px) {
+            .hero h1 { font-size: 20px; }
+            .signoff-grid { grid-template-columns: 1fr; }
+            .answer-btn { font-size: 11px; padding: 10px 4px; }
+            .controls { grid-template-columns: 1fr; }
+        }
+
+        @media (min-width: 768px) {
+            body { font-size: 16px; }
+            .container { padding: 28px 24px; }
+            .hero h1 { font-size: 28px; }
+            .block-title { font-size: 16px; }
+            .item-text { font-size: 15px; }
+        }
+
+        /* ==== UTILITIES ==== */
+        .hidden { display: none !important; }
+        .flex { display: flex; }
+        .mt-12 { margin-top: 12px; }
+        .legend {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 10px;
+        }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<!-- ==== LOGIN SCREEN ==== -->
+<div class="login-screen" id="loginScreen">
+    <div class="login-card">
+        <div class="login-brand">
+            <div class="mark">safe<span>systems</span>.pro</div>
+            <div class="tag">by omnibosh</div>
+        </div>
+        <div class="login-title">Safety &amp; Compliance Monthly Return</div>
+        <div class="login-sub">Sign in with your park or admin access code.</div>
+
+        <div class="login-field">
+            <label for="accessCode">Access Code</label>
+            <input type="password" id="accessCode" autocomplete="off" placeholder="••••••••••" inputmode="text">
+        </div>
+
+        <button class="btn-primary" onclick="attemptLogin()">Sign In</button>
+
+        <div class="login-error" id="loginError">Invalid access code. Please check and try again.</div>
+
+        <div class="login-help">
+            Issues signing in? Contact Omnibosh Support.<br>
+            SCMR v1.0 · SafeSystems.PRO by Omnibosh
+        </div>
+    </div>
+</div>
+
+<!-- ==== MAIN APP ==== -->
+<div class="app" id="app">
+
+    <div class="topbar">
+      <div class="topbar-inner" id="topbarInner">
+        <div class="topbar-row">
+            <div class="brand">
+                <span class="brand-chip">SCMR</span>
+                <span class="brand-text">Monthly Return</span>
+            </div>
+            <div class="topbar-right">
+                <div class="site-pill" id="sitePill">—</div>
+                <button class="logout-btn" onclick="logout()">Sign Out</button>
+            </div>
+        </div>
+
+        <!-- Manager view controls -->
+        <div class="controls" id="managerControls">
+            <div class="control-field">
+                <label>Reporting Month</label>
+                <select id="monthSelect" onchange="onMonthChange()"></select>
+            </div>
+            <div class="control-field">
+                <label>Status</label>
+                <select id="statusIndicator" disabled>
+                    <option>—</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Admin view controls -->
+        <div class="controls hidden" id="adminControls">
+            <div class="control-field">
+                <label>Park</label>
+                <select id="adminSiteSelect" onchange="onAdminSiteChange()">
+                    <option value="">All Parks (Dashboard)</option>
+                    <option value="BN">Ben Nevis</option>
+                    <option value="OB">Oban</option>
+                    <option value="TY">Tyndrum</option>
+                </select>
+            </div>
+            <div class="control-field">
+                <label>Reporting Month</label>
+                <select id="adminMonthSelect" onchange="onAdminMonthChange()"></select>
+            </div>
+        </div>
+
+        <div class="progress-row" id="progressRow">
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            <div class="progress-text" id="progressText">0 / 0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container" id="mainContainer">
+
+        <!-- ADMIN DASHBOARD VIEW -->
+        <div id="adminDashboard" class="hidden">
+            <div class="hero">
+                <div class="hero-eyebrow">Admin · Compliance Overview</div>
+                <h1>Safety &amp; Compliance Monthly Returns</h1>
+                <p>Live status across all parks. Green = submitted on time. Amber = submitted with non-conformances. Red = overdue. Grey = not yet due.</p>
+            </div>
+
+            <div class="admin-callout">
+                <div class="admin-callout-icon">!</div>
+                <div class="admin-callout-body">
+                    <strong>You are in oversight mode.</strong> The grid below tracks all park submissions live.
+                    To <em>preview or complete a return on behalf of a park</em>, select a park from the <strong>Park</strong> dropdown above.
+                    The first reporting month is <strong>April 2026</strong> (due 5 May 2026) — grids will light up as managers submit.
+                </div>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div> Submitted</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--warning)"></div> Submitted with issues</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div> Overdue</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div> Open / current</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--bg-tertiary)"></div> Not yet due / no data</div>
+            </div>
+
+            <div style="margin-top:16px;" id="adminGridContainer">
+                <div class="admin-grid" id="adminGrid"></div>
+            </div>
+
+            <p style="margin-top:16px; color:var(--text-muted); font-size:12px;">
+                Tap any orange or green cell to open that return (read-only for submitted months, editable for open months).
+            </p>
+        </div>
+
+        <!-- MANAGER / SUBMISSION VIEW -->
+        <div id="submissionView">
+            <div class="hero">
+                <div class="hero-eyebrow" id="heroEyebrow">April 2026 Return</div>
+                <h1 id="heroTitle">Safety &amp; Compliance Monthly Return</h1>
+                <p id="heroSub">Complete every item. This return is your monthly certification that your park's safety and compliance is under control. Once submitted it locks.</p>
+                <div class="status-banner draft" id="statusBanner">
+                    <div class="dot"></div>
+                    <span id="statusText">Draft — not yet submitted</span>
+                </div>
+            </div>
+
+            <div id="readonlyNotice" class="readonly-notice hidden">
+                <strong>Read-only:</strong> This return has been submitted and locked. To amend, contact Omnibosh.
+            </div>
+
+            <!-- Blocks rendered here -->
+            <div id="blocksContainer"></div>
+
+            <!-- Summary block -->
+            <div class="summary-block">
+                <h3>Monthly Summary</h3>
+                <div class="sub">Brief narrative from the manager — supplements the checklist above.</div>
+
+                <div class="summary-field">
+                    <label for="summaryRisks">Top three risks or issues this month</label>
+                    <textarea id="summaryRisks" placeholder="Top risks, open issues, anything that needs SMT visibility."></textarea>
+                </div>
+
+                <div class="summary-field">
+                    <label for="summaryPipeline">Pipeline for next month</label>
+                    <textarea id="summaryPipeline" placeholder="Planned works, audits, visits, key activities next month."></textarea>
+                </div>
+
+                <div class="summary-field">
+                    <label for="summarySupport">Support / resource needed from SMT or Omnibosh</label>
+                    <textarea id="summarySupport" placeholder="What do you need from the centre to run your park better?"></textarea>
+                </div>
+            </div>
+
+            <!-- Sign-off block -->
+            <div class="signoff-block">
+                <h3>Manager Sign-Off</h3>
+                <div class="sub">By submitting, you are certifying this return is accurate and you accept responsibility for the items declared.</div>
+
+                <div class="signoff-grid">
+                    <div class="signoff-field">
+                        <label for="managerName">Your Name</label>
+                        <input type="text" id="managerName" placeholder="e.g. Lesleyanne Sheppard">
+                    </div>
+                    <div class="signoff-field">
+                        <label for="managerRole">Your Role</label>
+                        <input type="text" id="managerRole" placeholder="e.g. General Manager">
+                    </div>
+                </div>
+
+                <label class="declaration">
+                    <input type="checkbox" id="declaration">
+                    <span class="declaration-text">
+                        I certify that the information in this return is <strong>accurate and complete</strong> to the best of my knowledge. I understand that once submitted, this return is <strong>locked</strong> and forms part of the park's compliance record.
+                    </span>
+                </label>
+
+                <button class="submit-btn" id="submitBtn" onclick="submitReturn()">Submit &amp; Lock Return</button>
+                <button class="save-draft-btn" onclick="saveDraft(true)">Save Draft</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ==========================================================
+// FIREBASE INIT (inline, hot-tub pattern)
+// ==========================================================
+const firebaseConfig = {
+    apiKey: "AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+    authDomain: "safepark-pro.firebaseapp.com",
+    projectId: "safepark-pro",
+    storageBucket: "safepark-pro.firebasestorage.app",
+    messagingSenderId: "511221743341",
+    appId: "1:511221743341:web:95bec7e83d4861578016e4"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ==========================================================
+// CONFIG
+// ==========================================================
+// Access code mapping — matches hot-tub / register.html / SafeSystems.PRO SSO pattern
+// so a single login at the hub carries into every module including SCMR.
+const ACCESS_CODES = {
+    'CQR365SPP25': { role: 'admin',   site: null, parkName: 'All Parks',              level: 'master_admin', name: 'Stephen — Omnibosh Safety' },
+    'BN2025HH':    { role: 'manager', site: 'BN', parkName: 'Ben Nevis Holiday Park', level: 'admin',        name: 'Ben Nevis Manager' },
+    'OB2025HH':    { role: 'manager', site: 'OB', parkName: 'Oban Holiday Park',      level: 'admin',        name: 'Oban Manager' },
+    'TY2025HH':    { role: 'manager', site: 'TY', parkName: 'Tyndrum Holiday Park',   level: 'admin',        name: 'Tyndrum Manager' }
+};
+
+// Map park name (as stored in sessionStorage by other modules) back to our 2-letter site code.
+// This lets SCMR pick up SSO sessions from hub / hot-tub / other modules.
+const PARK_TO_SITE = {
+    'Ben Nevis Holiday Park': 'BN',
+    'Oban Holiday Park':      'OB',
+    'Tyndrum Holiday Park':   'TY',
+    'All Parks':              null  // admin
+};
+
+const SITES = {
+    BN: { name: 'Ben Nevis',  location: 'Fort William',  foodOps: true,  pws: false },
+    OB: { name: 'Oban',       location: 'Argyll',        foodOps: true,  pws: true  },
+    TY: { name: 'Tyndrum',    location: 'Stirling',      foodOps: true,  pws: false }
+};
+
+// The firstMonth scmrs are required for — earlier months not expected to be submitted.
+const FIRST_REPORTING_MONTH = '2026-04';  // April 2026 onwards
+
+const COMMENT_REASONS = [
+    'Team capacity shortfall / insufficient cover',
+    'Key personnel absent (sickness / leave / vacancy)',
+    'Equipment failure — repair scheduled',
+    'Equipment failure — repair in progress',
+    'Awaiting contractor attendance',
+    'Awaiting parts / materials / supplier delivery',
+    'Budget approval pending',
+    'Weather / seasonal disruption',
+    'Guest occupancy prevented access',
+    'New requirement — implementation underway',
+    'Training gap identified — booking made',
+    'Documentation being updated',
+    'Referred to Omnibosh for guidance',
+    'Referred to HR (Yvonne Love)',
+    'Escalated to SMT / Director level',
+    'Action carried forward to next month',
+    'Other (see free text)'
+];
+
+// ==========================================================
+// THE LIST — 17 blocks
+// ==========================================================
+const BLOCKS = [
+    {
+        id: 'A', title: 'Fire Safety', items: [
+            'Weekly fire alarm tests completed (all zones)',
+            'Monthly emergency lighting test completed and logged',
+            'Fire extinguisher visual checks completed',
+            'Fire doors inspected — all closing, sealing and unobstructed',
+            'Escape routes clear, signage visible and illuminated',
+            'Fire log book up to date and available for inspection',
+            'Fire risk assessment reviewed / outstanding actions progressed'
+        ]
+    },
+    {
+        id: 'B', title: 'Water Safety', items: [
+            'Hot tub daily chemical checks logged for every operational day',
+            'Weekly hot tub microbiological sampling completed',
+            'Legionella monthly temperature checks on sentinel outlets',
+            'Water tank visual inspections completed',
+            'Swimming pool daily tests logged (where applicable)'
+        ]
+    },
+    {
+        id: 'C', title: 'Gas & LPG', items: [
+            'LPG bulk tank monthly reading submitted (JGAS)',
+            'Gas appliance visual checks completed',
+            'Gas isolation valves accessible, labelled and operational',
+            'All gas safety certificates current (no expiries in month)'
+        ]
+    },
+    {
+        id: 'D', title: 'Electrical', items: [
+            'Monthly EET visual inspections on appliances',
+            'Distribution boards accessible, labelled, no heat/damage signs',
+            'External weatherproof installations intact',
+            'Visual appliance checks logged for all portable equipment'
+        ]
+    },
+    {
+        id: 'E', title: 'Play, Lifting & Work Equipment', items: [
+            'Weekly play park inspections complete on SafePlay.PRO',
+            'Monthly operational play inspection completed',
+            'LOLER visual checks completed on lifting equipment',
+            'PUWER equipment visual checks completed'
+        ]
+    },
+    {
+        id: 'F', title: 'Accommodation', items: [
+            'Pre-letting safety checks completed on every let unit',
+            'Smoke alarms tested in all let units this month',
+            'CO detectors tested in all let units this month',
+            'Any accommodation off-hired for H&S reasons — documented'
+        ]
+    },
+    {
+        id: 'G', title: 'Incidents, Hazards & Actions', items: [
+            'All incidents on SafeReport.PRO investigated and closed (or actioned)',
+            'RIDDOR reportable events escalated within statutory timeframe',
+            'Near misses logged and reviewed for trends',
+            'Action items from previous SCMR closed or progressed',
+            'SMT action items progressed',
+            '202FIX actions on track'
+        ]
+    },
+    {
+        id: 'H', title: 'People, Training & Competence', items: [
+            'New starter inductions completed via SafeTeam',
+            'Training matrix 100% green — no expired certifications',
+            'Minimum 2 Tool Box Talks delivered and recorded',
+            'Performance review 1:1s on schedule for direct reports',
+            'Protected Time used (≥ 2 hours weekly)',
+            'No overdue competency assessments'
+        ]
+    },
+    {
+        id: 'I', title: 'Contractors, Chemicals & Vehicles', items: [
+            'Contractor RAMS on file for every contractor who attended site',
+            'Permit-to-work system used where required',
+            'Contractor insurance certificates current',
+            'Chemical stock reconciled on SafeChem.PRO',
+            'SDS accessible and current for all chemicals held',
+            'PPE stock adequate for the month ahead',
+            'Vehicle pre-use inspections logged on SafeVehicle.PRO',
+            'Fleet MOT / tax / insurance all current'
+        ]
+    },
+    {
+        id: 'J', title: 'Governance & Standards', items: [
+            'Monthly management walk-around completed and documented',
+            'Internal audit actions progressed',
+            'Risk register reviewed',
+            'All park SOPs current and accessible to team',
+            'Guest complaints with H&S element investigated and closed',
+            'Statutory correspondence (EHO, fire officer, HSE) logged and actioned'
+        ]
+    },
+    {
+        id: 'K', title: 'Food Safety (SafeChef.PRO)', condition: 'foodOps', items: [
+            'Daily fridge, freezer, hot-hold and cold-hold temperatures logged (no missed days)',
+            'Probe calibration completed this month',
+            'Allergen matrix current and accessible to all food handlers',
+            'HACCP / food safety management system reviewed — critical limits within range',
+            'All food handlers hold current Level 2 Food Hygiene certification (minimum)',
+            'Cleaning schedule signed off daily — no gaps',
+            'Pest control contract visits completed and report actioned',
+            'Supplier approval list current — all deliveries from approved suppliers only',
+            'Traceability records complete (batch/lot numbers, delivery dates)',
+            'Food Hygiene Rating maintained / any re-inspection actions progressed',
+            'Opening and closing checks completed every operational day',
+            'No food safety complaints outstanding from guests or team'
+        ]
+    },
+    {
+        id: 'L', title: 'Private Water Supply', condition: 'pws', items: [
+            'Daily monitoring readings completed on existing supply',
+            'Monthly regulatory sampling submitted to Argyll & Bute Council',
+            'Treatment plant inspection/service records current',
+            'Borehole project milestones progressed per Condition 7 (Mark Parry / Dr Garret Macfarlane)',
+            'UV lamp hours / filter media within service life',
+            'Incident reporting to DWQR compliant (where required)'
+        ]
+    },
+    {
+        id: 'M', title: 'Environmental & Waste', items: [
+            'Waste transfer notes current, duty-of-care compliant (all streams)',
+            'Hazardous waste consignment notes filed',
+            'Oil and fuel storage bunds inspected, 110% containment intact',
+            'SEPA licence conditions reviewed — no breaches',
+            'Spill kits stocked, accessible, checked',
+            'Drainage inspections — no pollution risk identified',
+            'Recycling rates monitored and reported'
+        ]
+    },
+    {
+        id: 'N', title: 'Security, Lone Working & Emergency Response', items: [
+            'Lone working procedures followed — check-ins logged',
+            'Out-of-hours emergency response plan tested / reviewed',
+            'CCTV operational, recordings retained per policy',
+            'Access control reviewed (gates, keys, codes, master key accountability)',
+            'Cash handling procedures followed (where applicable)',
+            'Team personal safety concerns reviewed and addressed'
+        ]
+    },
+    {
+        id: 'O', title: 'Safeguarding', items: [
+            'Safeguarding lead identified and available to team',
+            'Team trained on safeguarding basics (children and vulnerable adults)',
+            'Any safeguarding concerns referred and escalated appropriately',
+            'Age-appropriate supervision in place (play areas, pools, hot tubs)',
+            'Guest disclosures logged and escalated properly',
+            'No open unresolved safeguarding matters'
+        ]
+    },
+    {
+        id: 'P', title: 'Clothing & PPE', items: [
+            'All team members issued with correct uniform / workwear',
+            'Task-specific PPE available, in date and fit-for-purpose (gloves, goggles, hi-vis, harnesses, respirators)',
+            'PPE inspection schedule followed — damaged items replaced',
+            'PPE register updated for new starters and leavers',
+            'Observed team compliance — PPE worn when required',
+            'Weather-appropriate outdoor clothing issued (outdoor team)',
+            'Footwear appropriate and compliant (safety boots where required)'
+        ]
+    },
+    {
+        id: 'Q', title: 'Team Welfare & HR', items: [
+            'Team welfare concerns identified this month — all addressed at park level',
+            'Welfare matters beyond manager scope referred to HR (Yvonne Love) — documented',
+            'Return-to-work interviews completed after every absence',
+            'Sickness absence trends reviewed — no unreported patterns',
+            'Stress or mental health concerns identified and supported appropriately',
+            'Grievance / whistleblowing matters addressed or escalated',
+            'Exit interviews completed for any leavers',
+            'Any performance-management matters being handled per established employment law guidance'
+        ]
+    }
+];
+
+// ==========================================================
+// STATE
+// ==========================================================
+let currentUser = null;     // { role, site, name }
+let currentSite = null;     // 'BN' | 'OB' | 'TY'
+let currentMonth = null;    // 'YYYY-MM'
+let answers = {};           // { 'A-1': { value: 'yes'|'partial'|'no', reason, comment } }
+let summary = { risks: '', pipeline: '', support: '' };
+let signoff = { name: '', role: '', declared: false };
+let returnStatus = 'draft'; // 'draft' | 'submitted' | 'locked'
+let autoSaveTimer = null;
+
+// ==========================================================
+// LOGIN
+// ==========================================================
+function attemptLogin() {
+    const code = (document.getElementById('accessCode').value || '').trim().toUpperCase();
+    const errEl = document.getElementById('loginError');
+
+    if (!ACCESS_CODES[code]) {
+        errEl.classList.add('visible');
+        return;
+    }
+
+    errEl.classList.remove('visible');
+    authorizeWithCode(code);
+    initAppForUser();
+}
+
+// Write the shared SafeSystems.PRO session keys so SCMR interoperates with
+// hub / register.html / hot-tub / every other module (single sign-on).
+function authorizeWithCode(code) {
+    const info = ACCESS_CODES[code];
+    currentUser = { ...info, accessCode: code };
+
+    sessionStorage.setItem('currentAccessCode', code);
+    sessionStorage.setItem('currentUser', info.name);
+    sessionStorage.setItem('currentPark', info.parkName);
+    sessionStorage.setItem('userAccessLevel', info.level);
+}
+
+function logout() {
+    sessionStorage.removeItem('currentAccessCode');
+    sessionStorage.removeItem('currentUser');
+    sessionStorage.removeItem('currentPark');
+    sessionStorage.removeItem('userAccessLevel');
+    currentUser = null;
+    currentSite = null;
+    currentMonth = null;
+    answers = {};
+    // Reset view state so next sign-in starts from a clean slate
+    document.getElementById('submissionView').classList.remove('hidden');
+    document.getElementById('adminDashboard').classList.add('hidden');
+    document.body.classList.remove('readonly');
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('app').classList.remove('visible');
+    document.getElementById('accessCode').value = '';
+}
+
+// Resolve existing session — in priority order:
+// 1. URL parameter ?code=XXXXXXX (iframe load from hub)
+// 2. sessionStorage.currentAccessCode (already signed in via another module)
+// 3. nothing — show login form
+function checkExistingSession() {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlCode = (urlParams.get('code') || '').trim().toUpperCase();
+        if (urlCode && ACCESS_CODES[urlCode]) {
+            authorizeWithCode(urlCode);
+            initAppForUser();
+            return;
+        }
+
+        const sessionCode = (sessionStorage.getItem('currentAccessCode') || '').trim().toUpperCase();
+        if (sessionCode && ACCESS_CODES[sessionCode]) {
+            authorizeWithCode(sessionCode);
+            initAppForUser();
+            return;
+        }
+
+        // Fallback: user signed in via hub with a code SCMR doesn't recognise
+        // (e.g. staff code 1010). Deny access cleanly with a helpful message.
+        const rawSessionCode = sessionStorage.getItem('currentAccessCode');
+        if (rawSessionCode) {
+            showAccessDenied(rawSessionCode);
+        }
+    } catch (e) {
+        console.error('Session restore error', e);
+    }
+}
+
+function showAccessDenied(code) {
+    const card = document.querySelector('.login-card');
+    if (!card) return;
+    card.innerHTML = `
+        <div class="login-brand">
+            <div class="mark">safe<span>systems</span>.pro</div>
+            <div class="tag">by omnibosh</div>
+        </div>
+        <div class="login-title">Access Restricted</div>
+        <div class="login-sub">
+            The SCMR is for <strong>park managers and administrators</strong> only.
+            Your access code (<code>${escapeHtml(code)}</code>) is valid on SafeSystems.PRO but does not have manager privileges.
+        </div>
+        <button class="btn-primary" onclick="logout()">Sign In With Another Code</button>
+        <div class="login-help">
+            If you need visibility of your park's SCMR, speak to your park manager.<br>
+            SCMR v1.0 · SafeSystems.PRO by Omnibosh
+        </div>
+    `;
+}
+
+function initAppForUser() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').classList.add('visible');
+
+    // Reset all view visibility — prevents stale `hidden` classes carrying over
+    // between sessions (e.g. admin → sign out → manager sign in).
+    document.getElementById('submissionView').classList.remove('hidden');
+    document.getElementById('adminDashboard').classList.add('hidden');
+    document.getElementById('progressRow').classList.remove('hidden');
+    document.getElementById('mainContainer').classList.remove('wide');
+    document.getElementById('topbarInner').classList.remove('wide');
+    document.getElementById('managerControls').classList.remove('hidden');
+    document.getElementById('adminControls').classList.add('hidden');
+    document.body.classList.remove('readonly');
+    document.getElementById('readonlyNotice').classList.add('hidden');
+
+    populateMonths();
+
+    if (currentUser.role === 'admin') {
+        document.getElementById('managerControls').classList.add('hidden');
+        document.getElementById('adminControls').classList.remove('hidden');
+        document.getElementById('sitePill').textContent = 'ADMIN';
+        document.getElementById('progressRow').classList.add('hidden');
+        showAdminDashboard();
+    } else {
+        currentSite = currentUser.site;
+        document.getElementById('sitePill').textContent = SITES[currentSite].name.toUpperCase();
+        // Default reporting month = latest available month in the dropdown
+        const sel = document.getElementById('monthSelect');
+        currentMonth = sel.value;
+        renderBlocks();
+        loadReturn();
+    }
+}
+
+// ==========================================================
+// MONTH HANDLING
+// ==========================================================
+function getPreviousMonth() {
+    const now = new Date();
+    const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    return monthKey(prev);
+}
+
+function monthKey(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+function monthLabel(key) {
+    const [y, m] = key.split('-').map(Number);
+    const d = new Date(y, m - 1, 1);
+    return d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+}
+
+function populateMonths() {
+    const sel = document.getElementById('monthSelect');
+    const adminSel = document.getElementById('adminMonthSelect');
+    sel.innerHTML = '';
+    adminSel.innerHTML = '';
+
+    // Build list from FIRST_REPORTING_MONTH up to current calendar month (inclusive)
+    const [fy, fm] = FIRST_REPORTING_MONTH.split('-').map(Number);
+    const start = new Date(fy, fm - 1, 1);
+    const now = new Date();
+    const end = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const months = [];
+    let cursor = new Date(end);
+    while (cursor >= start) {
+        months.push(monthKey(cursor));
+        cursor = new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1);
+    }
+
+    // If no months qualify yet (current month is before FIRST_REPORTING_MONTH),
+    // still show FIRST_REPORTING_MONTH so managers can see what's coming
+    if (months.length === 0) months.push(FIRST_REPORTING_MONTH);
+
+    months.forEach(mk => {
+        const opt = document.createElement('option');
+        opt.value = mk;
+        opt.textContent = monthLabel(mk);
+        sel.appendChild(opt);
+
+        const opt2 = opt.cloneNode(true);
+        adminSel.appendChild(opt2);
+    });
+
+    // Default selection logic:
+    // - Previous calendar month if it's in the list (e.g. submitting March on 3rd April)
+    // - Otherwise the latest available month
+    const prev = getPreviousMonth();
+    const defaultMonth = months.includes(prev) ? prev : months[0];
+    sel.value = defaultMonth;
+    adminSel.value = defaultMonth;
+}
+
+// A month is "locked" (submissions window closed) if today > 5th of the month AFTER it.
+function isMonthLocked(mk) {
+    const [y, m] = mk.split('-').map(Number);
+    const cutoff = new Date(y, m, 5, 23, 59, 59); // 5th of following month, end-of-day
+    return new Date() > cutoff;
+}
+
+// A month is "due" (i.e. submissions are expected) if today >= 1st of the month after it.
+function isMonthDue(mk) {
+    const [y, m] = mk.split('-').map(Number);
+    const dueDate = new Date(y, m, 1); // 1st of following month
+    return new Date() >= dueDate;
+}
+
+function onMonthChange() {
+    currentMonth = document.getElementById('monthSelect').value;
+    loadReturn();
+}
+
+// ==========================================================
+// RENDER BLOCKS
+// ==========================================================
+function renderBlocks() {
+    const container = document.getElementById('blocksContainer');
+    container.innerHTML = '';
+
+    const siteMeta = SITES[currentSite];
+
+    BLOCKS.forEach(block => {
+        // Conditional block?
+        if (block.condition && !siteMeta[block.condition]) return;
+
+        const blockEl = document.createElement('div');
+        blockEl.className = 'block';
+        blockEl.dataset.blockId = block.id;
+
+        blockEl.innerHTML = `
+            <div class="block-header" onclick="toggleBlock('${block.id}')">
+                <div class="block-header-main">
+                    <div class="block-letter">${block.id}</div>
+                    <div class="block-title">${escapeHtml(block.title)}</div>
+                </div>
+                <div class="block-meta">
+                    <span class="block-count" id="count-${block.id}">0 / ${block.items.length}</span>
+                    <svg class="block-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+            </div>
+            <div class="block-body">
+                ${block.items.map((text, i) => renderItem(block.id, i + 1, text)).join('')}
+            </div>
+        `;
+
+        container.appendChild(blockEl);
+    });
+
+    updateAllProgress();
+}
+
+function renderItem(blockId, num, text) {
+    const itemId = `${blockId}-${num}`;
+    const reasonOpts = COMMENT_REASONS.map(r => `<option value="${escapeAttr(r)}">${escapeHtml(r)}</option>`).join('');
+    return `
+        <div class="item" data-item-id="${itemId}">
+            <div class="item-num">${itemId}</div>
+            <div class="item-text">${escapeHtml(text)}</div>
+            <div class="answer-row">
+                <button class="answer-btn yes" onclick="setAnswer('${itemId}','yes')">Yes</button>
+                <button class="answer-btn partial" onclick="setAnswer('${itemId}','partial')">Partial</button>
+                <button class="answer-btn no" onclick="setAnswer('${itemId}','no')">No</button>
+            </div>
+            <div class="comment-block" id="comment-${itemId}">
+                <label>Reason (required)</label>
+                <select onchange="setReason('${itemId}', this.value)">
+                    <option value="">-- Select reason --</option>
+                    ${reasonOpts}
+                </select>
+                <label>Additional detail</label>
+                <textarea placeholder="Add context, dates, who's actioning, timeline…" oninput="setComment('${itemId}', this.value)"></textarea>
+                <div class="required-note" id="req-${itemId}"></div>
+            </div>
+        </div>
+    `;
+}
+
+function toggleBlock(blockId) {
+    const el = document.querySelector(`[data-block-id="${blockId}"]`);
+    if (el) el.classList.toggle('collapsed');
+}
+
+function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+function escapeAttr(s) { return escapeHtml(s); }
+
+// ==========================================================
+// ANSWERS
+// ==========================================================
+function setAnswer(itemId, value) {
+    if (returnStatus === 'submitted' || returnStatus === 'locked') return;
+
+    const existing = answers[itemId] || {};
+    answers[itemId] = { ...existing, value };
+
+    // Update UI
+    const row = document.querySelector(`[data-item-id="${itemId}"]`);
+    if (row) {
+        row.querySelectorAll('.answer-btn').forEach(b => b.classList.remove('active'));
+        row.querySelector(`.answer-btn.${value}`).classList.add('active');
+
+        const commentBlock = row.querySelector('.comment-block');
+        if (value === 'partial' || value === 'no') {
+            commentBlock.classList.add('visible');
+        } else {
+            commentBlock.classList.remove('visible');
+            // Clear reason/comment when YES
+            if (answers[itemId]) { answers[itemId].reason = ''; answers[itemId].comment = ''; }
+        }
+    }
+
+    updateAllProgress();
+    triggerAutoSave();
+}
+
+function setReason(itemId, reason) {
+    if (!answers[itemId]) answers[itemId] = {};
+    answers[itemId].reason = reason;
+    updateAllProgress();
+    triggerAutoSave();
+}
+
+function setComment(itemId, comment) {
+    if (!answers[itemId]) answers[itemId] = {};
+    answers[itemId].comment = comment;
+    triggerAutoSave();
+}
+
+// ==========================================================
+// PROGRESS
+// ==========================================================
+function getVisibleBlocks() {
+    const siteMeta = SITES[currentSite];
+    return BLOCKS.filter(b => !b.condition || siteMeta[b.condition]);
+}
+
+function updateAllProgress() {
+    let total = 0;
+    let answered = 0;
+
+    getVisibleBlocks().forEach(block => {
+        let blockAnswered = 0;
+        block.items.forEach((_, i) => {
+            total++;
+            const a = answers[`${block.id}-${i + 1}`];
+            if (a && a.value) {
+                answered++;
+                blockAnswered++;
+            }
+        });
+        const countEl = document.getElementById(`count-${block.id}`);
+        if (countEl) countEl.textContent = `${blockAnswered} / ${block.items.length}`;
+    });
+
+    const pct = total > 0 ? Math.round((answered / total) * 100) : 0;
+    const fill = document.getElementById('progressFill');
+    const txt = document.getElementById('progressText');
+    if (fill) fill.style.width = pct + '%';
+    if (txt) txt.textContent = `${answered} / ${total}`;
+
+    return { answered, total, pct };
+}
+
+// ==========================================================
+// SAVE / SUBMIT
+// ==========================================================
+function triggerAutoSave() {
+    if (returnStatus !== 'draft') return;
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => saveDraft(false), 1200);
+}
+
+function collectState() {
+    return {
+        site: currentSite,
+        siteName: SITES[currentSite].name,
+        month: currentMonth,
+        answers,
+        summary: {
+            risks: document.getElementById('summaryRisks')?.value || '',
+            pipeline: document.getElementById('summaryPipeline')?.value || '',
+            support: document.getElementById('summarySupport')?.value || ''
+        },
+        signoff: {
+            name: document.getElementById('managerName')?.value || '',
+            role: document.getElementById('managerRole')?.value || '',
+            declared: document.getElementById('declaration')?.checked || false
+        },
+        status: returnStatus,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+}
+
+async function saveDraft(showToastMsg) {
+    if (!currentSite || !currentMonth) return;
+    if (returnStatus === 'submitted' || returnStatus === 'locked') return;
+
+    try {
+        const docId = `${currentSite}_${currentMonth}`;
+        const data = collectState();
+        data.status = 'draft';
+        await db.collection('scmrReturns').doc(docId).set(data, { merge: true });
+        if (showToastMsg) toast('Draft saved', 'success');
+    } catch (e) {
+        console.error('Save draft error', e);
+        if (showToastMsg) toast('Save failed — check connection', 'error');
+    }
+}
+
+async function submitReturn() {
+    if (!validateForSubmit()) return;
+
+    try {
+        const docId = `${currentSite}_${currentMonth}`;
+        const data = collectState();
+        data.status = 'submitted';
+        data.submittedAt = firebase.firestore.FieldValue.serverTimestamp();
+        data.submittedBy = data.signoff.name;
+        data.submittedRole = data.signoff.role;
+
+        await db.collection('scmrReturns').doc(docId).set(data, { merge: true });
+
+        returnStatus = 'submitted';
+        applyReadOnly('Submitted and locked.');
+        toast('Return submitted and locked', 'success');
+    } catch (e) {
+        console.error('Submit error', e);
+        toast('Submit failed — check connection', 'error');
+    }
+}
+
+function validateForSubmit() {
+    const { answered, total } = updateAllProgress();
+    if (answered < total) {
+        toast(`Please answer all items (${total - answered} remaining)`, 'warning');
+        return false;
+    }
+
+    // Check all PARTIAL/NO have a reason
+    for (const itemId in answers) {
+        const a = answers[itemId];
+        if ((a.value === 'partial' || a.value === 'no') && !a.reason) {
+            toast(`Reason required for item ${itemId}`, 'warning');
+            return false;
+        }
+    }
+
+    if (!document.getElementById('managerName').value.trim()) {
+        toast('Please enter your name', 'warning'); return false;
+    }
+    if (!document.getElementById('managerRole').value.trim()) {
+        toast('Please enter your role', 'warning'); return false;
+    }
+    if (!document.getElementById('declaration').checked) {
+        toast('Please tick the declaration', 'warning'); return false;
+    }
+    return true;
+}
+
+async function loadReturn() {
+    if (!currentSite || !currentMonth) return;
+
+    // Reset state
+    answers = {};
+    document.querySelectorAll('.answer-btn.active').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.comment-block.visible').forEach(b => b.classList.remove('visible'));
+    document.querySelectorAll('.item select').forEach(s => s.value = '');
+    document.querySelectorAll('.item textarea').forEach(t => t.value = '');
+    document.getElementById('summaryRisks').value = '';
+    document.getElementById('summaryPipeline').value = '';
+    document.getElementById('summarySupport').value = '';
+    document.getElementById('managerName').value = '';
+    document.getElementById('managerRole').value = '';
+    document.getElementById('declaration').checked = false;
+
+    // Update hero
+    document.getElementById('heroEyebrow').textContent = `${monthLabel(currentMonth)} · ${SITES[currentSite].name}`;
+
+    try {
+        const docId = `${currentSite}_${currentMonth}`;
+        const doc = await db.collection('scmrReturns').doc(docId).get();
+
+        if (doc.exists) {
+            const d = doc.data();
+            answers = d.answers || {};
+            // Populate fields
+            document.getElementById('summaryRisks').value = d.summary?.risks || '';
+            document.getElementById('summaryPipeline').value = d.summary?.pipeline || '';
+            document.getElementById('summarySupport').value = d.summary?.support || '';
+            document.getElementById('managerName').value = d.signoff?.name || '';
+            document.getElementById('managerRole').value = d.signoff?.role || '';
+            document.getElementById('declaration').checked = d.signoff?.declared || false;
+
+            // Re-apply answers to UI
+            for (const itemId in answers) {
+                const a = answers[itemId];
+                const row = document.querySelector(`[data-item-id="${itemId}"]`);
+                if (row && a.value) {
+                    row.querySelector(`.answer-btn.${a.value}`)?.classList.add('active');
+                    if (a.value === 'partial' || a.value === 'no') {
+                        row.querySelector('.comment-block').classList.add('visible');
+                        if (a.reason) row.querySelector('select').value = a.reason;
+                        if (a.comment) row.querySelector('textarea').value = a.comment;
+                    }
+                }
+            }
+
+            returnStatus = d.status || 'draft';
+        } else {
+            returnStatus = 'draft';
+        }
+    } catch (e) {
+        console.error('Load error', e);
+        returnStatus = 'draft';
+    }
+
+    // Apply lock state
+    if (returnStatus === 'submitted' || isMonthLocked(currentMonth)) {
+        if (returnStatus !== 'submitted') returnStatus = 'locked';
+        applyReadOnly(returnStatus === 'submitted' ? 'Submitted and locked.' : 'This month has closed. Read-only.');
+    } else {
+        applyEditable();
+    }
+
+    updateStatusBanner();
+    updateAllProgress();
+}
+
+function applyReadOnly(msg) {
+    document.body.classList.add('readonly');
+    const notice = document.getElementById('readonlyNotice');
+    notice.classList.remove('hidden');
+    notice.innerHTML = `<strong>Read-only:</strong> ${escapeHtml(msg)}`;
+}
+
+function applyEditable() {
+    document.body.classList.remove('readonly');
+    document.getElementById('readonlyNotice').classList.add('hidden');
+}
+
+function updateStatusBanner() {
+    const banner = document.getElementById('statusBanner');
+    const txt = document.getElementById('statusText');
+    banner.classList.remove('draft', 'submitted', 'locked');
+
+    if (returnStatus === 'submitted') {
+        banner.classList.add('submitted');
+        txt.textContent = 'Submitted and locked';
+    } else if (returnStatus === 'locked') {
+        banner.classList.add('locked');
+        txt.textContent = 'Closed — submission window passed';
+    } else {
+        banner.classList.add('draft');
+        const deadline = getSubmissionDeadline(currentMonth);
+        txt.textContent = `Draft — due by ${deadline}`;
+    }
+}
+
+function getSubmissionDeadline(mk) {
+    const [y, m] = mk.split('-').map(Number);
+    const d = new Date(y, m, 5); // 5th of following month
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+}
+
+// ==========================================================
+// ADMIN DASHBOARD
+// ==========================================================
+async function showAdminDashboard() {
+    document.getElementById('submissionView').classList.add('hidden');
+    document.getElementById('adminDashboard').classList.remove('hidden');
+    document.getElementById('progressRow').classList.add('hidden');
+    // Widen container for dashboard
+    document.getElementById('mainContainer').classList.add('wide');
+    document.getElementById('topbarInner').classList.add('wide');
+    // Reset admin UI state
+    const siteSel = document.getElementById('adminSiteSelect');
+    if (siteSel) siteSel.value = '';
+    document.getElementById('sitePill').textContent = 'ADMIN';
+    currentSite = null;
+    await renderAdminGrid();
+}
+
+function hideAdminDashboard() {
+    document.getElementById('submissionView').classList.remove('hidden');
+    document.getElementById('adminDashboard').classList.add('hidden');
+    document.getElementById('progressRow').classList.remove('hidden');
+    // Narrow container for form readability
+    document.getElementById('mainContainer').classList.remove('wide');
+    document.getElementById('topbarInner').classList.remove('wide');
+}
+
+async function renderAdminGrid() {
+    const grid = document.getElementById('adminGrid');
+    grid.innerHTML = '';
+
+    // Build 12 months ending at current month
+    const now = new Date();
+    const nowKey = monthKey(now);
+    const months = [];
+    for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        months.push(monthKey(d));
+    }
+
+    // Header row
+    grid.appendChild(cell('admin-grid-header', ''));
+    months.forEach(mk => {
+        const [, m] = mk.split('-');
+        const short = new Date(2000, Number(m) - 1, 1).toLocaleDateString('en-GB', { month: 'short' });
+        const y = mk.split('-')[0].slice(2);
+        grid.appendChild(cell('admin-grid-header', `${short} '${y}`));
+    });
+
+    // Fetch all returns
+    let allReturns = {};
+    try {
+        const snap = await db.collection('scmrReturns').get();
+        snap.forEach(doc => { allReturns[doc.id] = doc.data(); });
+    } catch (e) {
+        console.error('Admin load error', e);
+    }
+
+    Object.entries(SITES).forEach(([siteCode, siteMeta]) => {
+        grid.appendChild(cell('admin-grid-site', siteMeta.name));
+        months.forEach(mk => {
+            // Before first reporting month — nothing expected
+            if (mk < FIRST_REPORTING_MONTH) {
+                grid.appendChild(cell('admin-grid-cell future', '—'));
+                return;
+            }
+
+            const docId = `${siteCode}_${mk}`;
+            const r = allReturns[docId];
+
+            if (r && r.status === 'submitted') {
+                const hasIssues = Object.values(r.answers || {}).some(a => a.value === 'no' || a.value === 'partial');
+                const c = cell(
+                    hasIssues ? 'admin-grid-cell amber' : 'admin-grid-cell submitted',
+                    hasIssues ? '⚠' : '✓'
+                );
+                c.onclick = () => openReturnForAdmin(siteCode, mk);
+                c.title = `${siteMeta.name} · ${monthLabel(mk)} — ${hasIssues ? 'Submitted with non-conformances' : 'Submitted, all clear'}`;
+                grid.appendChild(c);
+            } else if (isMonthDue(mk) && isMonthLocked(mk)) {
+                // Past the submission window with no submission
+                const c = cell('admin-grid-cell overdue', '✗');
+                c.onclick = () => openReturnForAdmin(siteCode, mk);
+                c.title = `${siteMeta.name} · ${monthLabel(mk)} — OVERDUE / NOT SUBMITTED`;
+                grid.appendChild(c);
+            } else if (isMonthDue(mk) && !isMonthLocked(mk)) {
+                // In submission window, not yet submitted
+                const c = cell('admin-grid-cell open', '…');
+                c.onclick = () => openReturnForAdmin(siteCode, mk);
+                c.title = `${siteMeta.name} · ${monthLabel(mk)} — Open, not yet submitted`;
+                grid.appendChild(c);
+            } else if (mk === nowKey) {
+                // Current calendar month, not yet due (submissions open on 1st of next month)
+                // Make it clickable so admin can preview the form shell
+                const c = cell('admin-grid-cell open', '◦');
+                c.onclick = () => openReturnForAdmin(siteCode, mk);
+                c.title = `${siteMeta.name} · ${monthLabel(mk)} — Current month (preview only, submissions open ${getSubmissionWindowOpens(mk)})`;
+                grid.appendChild(c);
+            } else {
+                grid.appendChild(cell('admin-grid-cell future', '·'));
+            }
+        });
+    });
+}
+
+function getSubmissionWindowOpens(mk) {
+    const [y, m] = mk.split('-').map(Number);
+    const d = new Date(y, m, 1); // 1st of following month
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+}
+
+function cell(cls, txt) {
+    const d = document.createElement('div');
+    d.className = cls;
+    d.textContent = txt;
+    return d;
+}
+
+function openReturnForAdmin(siteCode, mk) {
+    currentSite = siteCode;
+    currentMonth = mk;
+    hideAdminDashboard();
+    document.getElementById('sitePill').textContent = SITES[siteCode].name.toUpperCase() + ' · ADMIN VIEW';
+    // Keep admin controls visible; sync the dropdowns
+    document.getElementById('adminSiteSelect').value = siteCode;
+    document.getElementById('adminMonthSelect').value = mk;
+    document.getElementById('progressRow').classList.remove('hidden');
+    renderBlocks();
+    loadReturn();
+
+    // Push a history entry so the hardware/browser Back button returns to
+    // the admin dashboard rather than exiting the page entirely.
+    if (!window._scmrSuppressPush) {
+        try {
+            history.pushState(
+                { view: 'park', site: siteCode, month: mk },
+                '',
+                '#park/' + siteCode + '/' + mk
+            );
+        } catch (e) { /* ignore pushState failures (e.g. file://) */ }
+    }
+}
+
+function onAdminSiteChange() {
+    const site = document.getElementById('adminSiteSelect').value;
+    if (!site) {
+        // Back to dashboard overview — use history.back if we previously pushed a state
+        // so the history stack stays clean for the hardware back button
+        if (history.state && history.state.view === 'park') {
+            history.back();
+        } else {
+            showAdminDashboard();
+        }
+    } else {
+        // Open the selected park for the currently-selected admin month
+        const mk = document.getElementById('adminMonthSelect').value || FIRST_REPORTING_MONTH;
+        openReturnForAdmin(site, mk);
+    }
+}
+
+function onAdminMonthChange() {
+    const site = document.getElementById('adminSiteSelect').value;
+    const mk = document.getElementById('adminMonthSelect').value;
+    // Only reload the form if a specific park is being viewed
+    if (site && mk) {
+        currentMonth = mk;
+        loadReturn();
+    }
+}
+
+// ==========================================================
+// TOAST
+// ==========================================================
+function toast(msg, type) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast';
+    if (type) el.classList.add(type);
+    setTimeout(() => el.classList.add('visible'), 10);
+    setTimeout(() => el.classList.remove('visible'), 3200);
+}
+
+// ==========================================================
+// INIT
+// ==========================================================
+document.addEventListener('DOMContentLoaded', () => {
+    // Enter key submits login
+    document.getElementById('accessCode').addEventListener('keypress', e => {
+        if (e.key === 'Enter') attemptLogin();
+    });
+
+    // Auto-save summary & sign-off fields
+    ['summaryRisks', 'summaryPipeline', 'summarySupport', 'managerName', 'managerRole'].forEach(id => {
+        document.getElementById(id).addEventListener('input', triggerAutoSave);
+    });
+    document.getElementById('declaration').addEventListener('change', triggerAutoSave);
+
+    // Hardware / browser Back button handling
+    //  • Admin viewing a park → back returns to the admin dashboard
+    //  • Admin on the dashboard → back exits to previous page (hub, etc.)
+    //  • Manager on their return → back exits (standard browser behaviour)
+    window.addEventListener('popstate', (e) => {
+        if (!currentUser) return;
+        if (currentUser.role === 'admin' && currentSite) {
+            // We're on a park view — return to dashboard without re-pushing history
+            window._scmrSuppressPush = true;
+            showAdminDashboard();
+            window._scmrSuppressPush = false;
+        }
+    });
+
+    checkExistingSession();
+});
+
+// Expose for inline handlers
+window.attemptLogin = attemptLogin;
+window.logout = logout;
+window.setAnswer = setAnswer;
+window.setReason = setReason;
+window.setComment = setComment;
+window.toggleBlock = toggleBlock;
+window.saveDraft = saveDraft;
+window.submitReturn = submitReturn;
+window.onMonthChange = onMonthChange;
+window.onAdminSiteChange = onAdminSiteChange;
+window.onAdminMonthChange = onAdminMonthChange;
+</script>
+
+</body>
+</html>
