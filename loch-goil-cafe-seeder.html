@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Boatshed — One-Time Seeder (SafeCafe.PRO)</title>
+
+    <!-- IMPORTANT: identical SDK + config to food-safety.html so we hit the SAME project -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background:#15151a; color:#eee; max-width:900px; margin:0 auto; padding:24px; }
+        h1 { color:#CC5500; font-size:1.4rem; }
+        .meta { color:#9a9aa5; font-size:0.85rem; margin-bottom:18px; line-height:1.5; }
+        .meta strong { color:#eee; }
+        .warn { background:rgba(204,85,0,0.12); border:1px solid rgba(204,85,0,0.4); border-radius:8px; padding:12px 16px; font-size:0.85rem; margin:14px 0; }
+        button { background:#CC5500; color:#000; border:none; padding:14px 28px; border-radius:8px; font-weight:700; font-size:1rem; cursor:pointer; }
+        button:disabled { opacity:0.5; cursor:not-allowed; }
+        #log { background:#0d0d10; border:1px solid #2a2a32; border-radius:8px; padding:14px; margin-top:18px; font-family:'Consolas',monospace; font-size:0.8rem; white-space:pre-wrap; min-height:140px; max-height:480px; overflow:auto; }
+        .ok { color:#4ade80; } .skip { color:#fbbf24; } .err { color:#f87171; } .hdr { color:#60a5fa; font-weight:700; }
+    </style>
+</head>
+<body>
+    <h1>The Boatshed — One-Time Seeder</h1>
+    <div class="meta">
+        Writes starter data into <strong>The Boatshed</strong>'s own collections only —
+        <strong>foodSafety_loch_goil_cafe_*</strong>. No other location is touched.<br>
+        Stamps every record exactly like the module does (parkId, locationName, savedAt).
+        Re-running is safe: existing records are detected and skipped.
+    </div>
+    <div class="warn">
+        <strong>Run once, then delete this file from the repo.</strong> It must sit in the repo root
+        next to <code>firebase-config.js</code> and <code>food-safety.html</code> so it uses the live config.
+    </div>
+
+    <button id="seedBtn" onclick="runSeed()">Seed The Boatshed data</button>
+    <div id="log">Ready. Click the button to begin.</div>
+
+<script>
+    const PARK_ID       = 'loch_goil_cafe';
+    const LOCATION_NAME = 'The Boatshed — Loch Goil Cafe';
+    const PREFIX        = 'foodSafety_' + PARK_ID + '_';
+
+    const logEl = document.getElementById('log');
+    function log(msg, cls){ logEl.innerHTML += '\n' + (cls ? `<span class="${cls}">${msg}</span>` : msg); logEl.scrollTop = logEl.scrollHeight; }
+    function slug(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,''); }
+
+    // ── Temperature monitoring points (from Critical Limits – Equipment + Hot Holding sheets) ──
+    // Each is written to BOTH tempPoints AND temperatures, exactly like addTempPoint().
+    const FRIDGE = { type:'fridge',   min:0,   max:8   };   // their sheet: fridge < 8c (ideally < 5)
+    const FREEZE = { type:'freezer',  min:-25, max:-18 };   // freezer < -18c
+    const HOT    = { type:'hot_hold', min:63,  max:100 };   // hot hold >= 63c (soup policy target 70c)
+
+    const TEMP_POINTS = [
+        // Café – FOH
+        { name:'FOH Bar Fridge',  ...FRIDGE },
+        { name:'FOH Milk Fridge', ...FRIDGE },
+        { name:'FOH Freezer 1',   ...FREEZE },
+        // Café – Kitchen
+        { name:'Kitchen Fridge 1', ...FRIDGE },
+        { name:'Kitchen Fridge 2', ...FRIDGE },
+        { name:'Kitchen Fridge 3', ...FRIDGE },
+        { name:'Kitchen Fridge 4', ...FRIDGE },
+        { name:'Kitchen Freezer',  ...FREEZE },
+        // Store
+        { name:'Store Fridge 1', ...FRIDGE },
+        { name:'Store Fridge 2', ...FRIDGE },
+        { name:'Store Fridge 3', ...FRIDGE },
+        { name:'Store Fridge 4', ...FRIDGE },
+        { name:'Store Freezer 1', ...FREEZE },
+        { name:'Store Freezer 2', ...FREEZE },
+        { name:'Store Freezer 3', ...FREEZE },
+        { name:'Store Freezer 4', ...FREEZE },
+        { name:'Store Freezer 5', ...FREEZE },
+        // Hot holding
+        { name:'Soup Kettle', ...HOT },
+    ];
+
+    // ── Equipment asset register (refrigeration from temp sheets + named cooking/prep kit from cleaning schedule) ──
+    const EQUIPMENT = [
+        // Refrigeration
+        { name:'FOH Bar Fridge',  type:'refrigeration', location:'Café – FOH' },
+        { name:'FOH Milk Fridge', type:'refrigeration', location:'Café – FOH' },
+        { name:'FOH Freezer 1',   type:'refrigeration', location:'Café – FOH' },
+        { name:'Kitchen Fridge 1', type:'refrigeration', location:'Café – Kitchen' },
+        { name:'Kitchen Fridge 2', type:'refrigeration', location:'Café – Kitchen' },
+        { name:'Kitchen Fridge 3', type:'refrigeration', location:'Café – Kitchen' },
+        { name:'Kitchen Fridge 4', type:'refrigeration', location:'Café – Kitchen' },
+        { name:'Kitchen Freezer',  type:'refrigeration', location:'Café – Kitchen' },
+        { name:'Store Fridge 1', type:'refrigeration', location:'Store' },
+        { name:'Store Fridge 2', type:'refrigeration', location:'Store' },
+        { name:'Store Fridge 3', type:'refrigeration', location:'Store' },
+        { name:'Store Fridge 4', type:'refrigeration', location:'Store' },
+        { name:'Store Freezer 1', type:'refrigeration', location:'Store' },
+        { name:'Store Freezer 2', type:'refrigeration', location:'Store' },
+        { name:'Store Freezer 3', type:'refrigeration', location:'Store' },
+        { name:'Store Freezer 4', type:'refrigeration', location:'Store' },
+        { name:'Store Freezer 5', type:'refrigeration', location:'Store' },
+        // Cooking / prep (named in End-of-Night + Weekly/Monthly cleaning schedules)
+        { name:'Soup Kettle',    type:'cooking', location:'Café – Kitchen' },
+        { name:'Panini Grill 1', type:'cooking', location:'Café – Kitchen' },
+        { name:'Panini Grill 2', type:'cooking', location:'Café – Kitchen' },
+        { name:'Induction Hob',  type:'cooking', location:'Café – Kitchen' },
+        { name:'Oven',           type:'cooking', location:'Café – Kitchen' },
+        { name:'Microwave 1',    type:'cooking', location:'Café – Kitchen' },
+        { name:'Microwave 2',    type:'cooking', location:'Café – Kitchen' },
+        { name:'Toaster',        type:'cooking', location:'Café – Kitchen' },
+        // Beverage / other
+        { name:'Coffee Machine', type:'other',       location:'Café – FOH' },
+        { name:'Coffee Grinder', type:'other',       location:'Café – FOH' },
+        { name:'Dishwasher',     type:'dishwashing', location:'Café – Kitchen' },
+    ];
+
+    // ── Cleaning areas (appear in the Cleaning Log dropdown) ──
+    const CLEANING_AREAS = [
+        { name:'FOH' },
+        { name:'Café Kitchen' },
+        { name:'Store' },
+        { name:'Toilets' },
+        { name:'Deck / Outside' },
+    ];
+
+    // ── Temperature critical-limit settings (their documented limits) ──
+    const TEMP_SETTINGS = {
+        fridgeMin: 0,  fridgeMax: 8,
+        freezerMin: -25, freezerMax: -18,
+        hotMin: 63, hotMax: 100,
+    };
+
+    let db;
+    function ensureFirebase(){
+        if (typeof firebase === 'undefined' || !firebase.firestore)
+            throw new Error('Firebase SDK failed to load (check network / the gstatic script tags).');
+        // firebase-config.js usually initialises the app itself. Only init here if it didn't.
+        if (!firebase.apps.length) {
+            if (typeof firebaseConfig !== 'undefined') {
+                firebase.initializeApp(firebaseConfig);
+            } else {
+                throw new Error('No Firebase app initialised and no firebaseConfig found — is firebase-config.js loaded?');
+            }
+        }
+        db = firebase.firestore();
+    }
+
+    function stamp(data){
+        return Object.assign({}, data, {
+            parkId: PARK_ID,
+            locationName: LOCATION_NAME,
+            savedAt: new Date().toISOString(),
+        });
+    }
+
+    // Write only if the doc doesn't already exist (idempotent).
+    async function seedDoc(baseCollection, docId, data){
+        const ref = db.collection(PREFIX + baseCollection).doc(docId);
+        const snap = await ref.get();
+        if (snap.exists){ log('  ⏭  exists, skipped: ' + baseCollection + '/' + docId, 'skip'); return 'skip'; }
+        await ref.set(stamp(data));
+        log('  ✅ wrote: ' + baseCollection + '/' + docId, 'ok');
+        return 'ok';
+    }
+
+    async function runSeed(){
+        const btn = document.getElementById('seedBtn');
+        btn.disabled = true;
+        logEl.innerHTML = '';
+        let wrote = 0, skipped = 0, failed = 0;
+        const tally = r => { if(r==='ok') wrote++; else if(r==='skip') skipped++; };
+
+        try {
+            ensureFirebase();
+            log('Connected to project: ' + ((firebase.app().options && firebase.app().options.projectId) || '(unknown)'), 'hdr');
+            log('Target prefix: ' + PREFIX, 'hdr');
+
+            log('\n── Temperature monitoring points (tempPoints + temperatures) ──', 'hdr');
+            for (const p of TEMP_POINTS){
+                const id = slug(p.name);
+                const point = { name:p.name, type:p.type, min:p.min, max:p.max, status:'safe', value:null, lastCheck:null, createdAt:new Date().toISOString() };
+                tally(await seedDoc('tempPoints', id, point));
+                tally(await seedDoc('temperatures', id, Object.assign({}, point, { id })));
+            }
+
+            log('\n── Equipment register ──', 'hdr');
+            for (const e of EQUIPMENT){
+                const id = slug(e.name) + '_eq';
+                tally(await seedDoc('equipment', id, { name:e.name, type:e.type, location:e.location, status:'good', addedAt:new Date().toISOString() }));
+            }
+
+            log('\n── Cleaning areas ──', 'hdr');
+            for (const a of CLEANING_AREAS){
+                const id = slug(a.name);
+                tally(await seedDoc('cleaningAreas', id, { name:a.name, createdAt:new Date().toISOString() }));
+            }
+
+            log('\n── Temperature critical-limit settings ──', 'hdr');
+            tally(await seedDoc('settings', 'temperatureSettings', Object.assign({}, TEMP_SETTINGS, { updatedAt:new Date().toISOString() })));
+
+            log('\n════════════════════════════════════════', 'hdr');
+            log('DONE — ' + wrote + ' written, ' + skipped + ' skipped, ' + failed + ' failed.', 'hdr');
+            log('You can now log in as BOATSHEDSAFETY26 and check. Then DELETE this seeder.', 'hdr');
+        } catch (err){
+            failed++;
+            log('\n❌ ERROR: ' + (err && err.message ? err.message : err), 'err');
+            log('Nothing further written. Fix and re-run (already-written records will be skipped).', 'err');
+        } finally {
+            btn.disabled = false;
+        }
+    }
+</script>
+</body>
+</html>
