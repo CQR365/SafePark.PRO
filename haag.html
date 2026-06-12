@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>HAAG — Health At A Glance</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--bg:#1a1a20;--card:#222228;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--accent:#cc5500;--asoft:rgba(204,85,0,0.14);--atxt:#e8741e;--green:#22c55e;--gsoft:rgba(34,197,94,0.12);--amber:#eab308;--asoft2:rgba(234,179,8,0.12);--red:#ef4444;--rsoft:rgba(239,68,68,0.12);--blue:#3b82f6;--bsoft:rgba(59,130,246,0.12);--cyan:#0dcaf0;--text:#f0f0f2;--ts:#b0b0b8;--td:#70707a;--tf:#56565e}
+        body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;overflow-x:hidden}
+        .wrap{max-width:1440px;margin:0 auto;padding:24px 28px}
+
+        /* HEADER */
+        .hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+        .hdr-l{display:flex;align-items:center;gap:14px}
+        .hdr-logo{width:40px;height:40px;background:linear-gradient(145deg,var(--accent),#e8741e);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.7rem;color:#fff;letter-spacing:.5px;flex-shrink:0}
+        .hdr h1{font-size:1.1rem;font-weight:700;letter-spacing:-.3px}
+        .hdr .sub{font-size:.72rem;color:var(--td);margin-top:1px}
+        .hdr-r{display:flex;align-items:center;gap:12px}
+        .hdr-r select{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--ts);font-family:inherit;font-size:.78rem;cursor:pointer}
+        .hdr-r select:focus{outline:none;border-color:var(--accent)}
+        .live{display:flex;align-items:center;gap:6px;font-size:.7rem;color:var(--green);font-weight:600}
+        .live::before{content:'';width:7px;height:7px;background:var(--green);border-radius:50%;animation:plive 2s infinite}
+        @keyframes plive{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94,.4)}50%{opacity:.7;box-shadow:0 0 0 4px rgba(34,197,94,0)}}
+        @keyframes qlpulse{0%,100%{opacity:1;box-shadow:0 0 8px 3px rgba(255,50,50,0.7),0 0 16px 5px rgba(255,50,50,0.3)}50%{opacity:.5;box-shadow:0 0 14px 6px rgba(255,50,50,0.5),0 0 24px 8px rgba(255,50,50,0.15)}}
+        .ptog{display:flex;background:linear-gradient(165deg,#2a2a32,#222228);border:1px solid var(--border);border-top:1px solid rgba(255,255,255,0.08);border-bottom:1px solid rgba(0,0,0,0.3);border-radius:8px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.25)}
+        .pbtn{padding:7px 14px;border:none;background:0 0;color:var(--td);font-family:inherit;font-size:.7rem;font-weight:700;cursor:pointer;transition:.2s;text-transform:uppercase;letter-spacing:.5px}
+        .pbtn:hover{color:var(--ts)}.pbtn.active{background:var(--accent);color:#fff}
+
+        /* QUICK LINKS */
+        .ql{display:flex;gap:5px;margin-bottom:14px;overflow-x:auto;padding-bottom:3px;scrollbar-width:thin;scrollbar-color:var(--tf) transparent}
+        .ql::-webkit-scrollbar{height:3px}.ql::-webkit-scrollbar-thumb{background:var(--tf);border-radius:3px}
+        .qlb{background:linear-gradient(165deg,#2a2a32,#242428);border:1px solid var(--border);border-top:1px solid rgba(255,255,255,0.08);border-bottom:1px solid rgba(0,0,0,0.3);border-radius:6px;padding:7px 12px;color:var(--ts);font-family:inherit;font-size:.75rem;font-weight:600;cursor:pointer;transition:.2s;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,0.25)}
+        .qlb:hover{border-color:var(--accent);color:var(--ts)}.qlb:active{background:var(--asoft)}
+        .qlb .a{color:var(--atxt);font-weight:700}.qlb .p{color:#f492f0;font-weight:700}.qlb .m{color:var(--cyan);font-weight:700}.qlb .d{color:#795548;font-weight:700}
+        .qlb.alert{border-color:rgba(255,60,60,.5)}.qlb.alert::after{content:'';display:inline-block;width:9px;height:9px;background:#ff3333;border-radius:50%;margin-left:5px;vertical-align:middle;box-shadow:0 0 8px 3px rgba(255,50,50,0.7),0 0 16px 5px rgba(255,50,50,0.3);animation:qlpulse 1.2s infinite}
+
+        /* SAFEMISS */
+        .sm{background:linear-gradient(165deg,#2e2e38 0%,#26262e 35%,#1e1e24 100%);border:1px solid rgba(255,255,255,.06);border-top:1px solid rgba(255,255,255,.14);border-bottom:1px solid rgba(0,0,0,.5);border-radius:12px;padding:0;margin-bottom:12px;position:relative;overflow:hidden;box-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 4px 8px rgba(0,0,0,.25),0 10px 30px rgba(0,0,0,.35)}
+        .sm-top{display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:background .2s}
+        .sm-top:hover{background:rgba(255,255,255,.02)}
+        .sm-chevron{color:var(--td);font-size:.6rem;flex-shrink:0;transition:transform .3s;margin-left:4px}
+        .sm-chevron.open{transform:rotate(180deg)}
+        .sm-detail{max-height:0;overflow:hidden;transition:max-height .4s ease}
+        .sm-detail.open{max-height:600px}
+        .sm-detail-inner{padding:0 18px 16px 18px;border-top:1px solid rgba(255,255,255,.06)}
+        .sm-period-label{display:inline-block;background:var(--asoft);color:var(--atxt);font-size:.58rem;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 10px 0}
+        .sm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+        .sm-cell{background:rgba(255,255,255,.02);border-radius:6px;padding:8px 10px}
+        .sm-cell-lbl{font-size:.56rem;color:var(--td);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px;font-weight:600}
+        .sm-cell-val{font-size:.82rem;font-weight:700;color:var(--text)}
+        .sm-cell-note{font-size:.56rem;color:var(--td);margin-top:2px}
+        .sm-breakdown{margin-top:8px}
+        .sm-breakdown-title{font-size:.58rem;color:var(--td);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:6px}
+        .sm-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:.68rem}
+        .sm-row:last-child{border-bottom:none}
+        .sm-row-cat{color:var(--ts);font-weight:500}
+        .sm-row-val{color:var(--text);font-weight:700}
+        .sm-row-mult{color:var(--td);font-size:.56rem;margin-left:6px}
+        .sm-formula{margin-top:10px;background:rgba(255,255,255,.02);border-radius:6px;padding:10px;font-size:.6rem;color:var(--td);line-height:1.6}
+        .sm-formula strong{color:var(--ts);font-weight:600}
+        .sm::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--green),#06b6d4)}
+        .sm-ic{width:36px;height:36px;background:var(--gsoft);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .sm-ic svg{width:18px;height:18px}
+        .sm-info{flex:1;min-width:0}.sm-info h3{font-size:.72rem;font-weight:700;color:var(--green);margin-bottom:1px}.sm-info p{font-size:.68rem;color:var(--td)}.sm-info p strong{color:var(--ts)}
+        .sm-stats{display:flex;gap:22px;flex-shrink:0}
+        .sms{text-align:center}.sms .v{font-size:1.2rem;font-weight:800;color:var(--text);line-height:1}.sms .l{font-size:.52rem;color:var(--td);text-transform:uppercase;letter-spacing:.8px;margin-top:2px}
+
+        /* REELS */
+        .reels{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+        .reel{background:linear-gradient(165deg,#2e2e38 0%,#26262e 35%,#1e1e24 100%);border:1px solid rgba(255,255,255,.06);border-top:1px solid rgba(255,255,255,.14);border-bottom:1px solid rgba(0,0,0,.5);border-radius:12px;padding:16px;transition:.25s;box-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 4px 8px rgba(0,0,0,.25),0 10px 30px rgba(0,0,0,.35)}.reel:hover{border-color:var(--border2);box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 6px 12px rgba(0,0,0,.3),0 14px 40px rgba(0,0,0,.4);transform:translateY(-1px)}
+        .reel-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+        .reel-lbl{font-size:.7rem;color:var(--ts);font-weight:600}
+        .reel-tr{font-size:.58rem;font-weight:700;padding:2px 6px;border-radius:6px}
+        .reel-tr.up{background:var(--gsoft);color:var(--green)}.reel-tr.down{background:var(--rsoft);color:var(--red)}.reel-tr.flat{background:rgba(255,255,255,.07);color:var(--td)}
+        .reel-num{font-size:2.2rem;font-weight:800;line-height:1;letter-spacing:-2px;margin-bottom:8px}
+        .reel:nth-child(1) .reel-num{color:var(--atxt)}.reel:nth-child(2) .reel-num{color:var(--blue)}.reel:nth-child(3) .reel-num{color:var(--green)}.reel:nth-child(4) .reel-num{color:var(--cyan)}
+        .reel-num span{font-size:.95rem;color:var(--td);font-weight:600}
+        .reel-bar{height:3px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;margin-bottom:5px}
+        .reel-bf{height:100%;border-radius:3px;transition:width .8s ease}
+        .reel:nth-child(1) .reel-bf{background:var(--atxt)}.reel:nth-child(2) .reel-bf{background:var(--blue)}.reel:nth-child(3) .reel-bf{background:var(--green)}.reel:nth-child(4) .reel-bf{background:var(--cyan)}
+        .reel-sub{font-size:.62rem;color:var(--td)}
+
+        /* CARDS + GRID */
+        .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+        .card{background:linear-gradient(165deg,#2e2e38 0%,#26262e 35%,#1e1e24 100%);border:1px solid rgba(255,255,255,.06);border-top:1px solid rgba(255,255,255,.14);border-bottom:1px solid rgba(0,0,0,.5);border-radius:12px;padding:16px;box-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 4px 8px rgba(0,0,0,.25),0 10px 30px rgba(0,0,0,.35)}
+        .ct{font-size:.62rem;color:var(--td);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+        .ct .bdg{padding:2px 7px;border-radius:8px;font-size:.58rem;font-weight:700;letter-spacing:0;text-transform:none}
+        .ct .bdg.r{background:var(--rsoft);color:var(--red)}.ct .bdg.g{background:var(--gsoft);color:var(--green)}
+
+        /* WHEELS */
+        .whs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+        .whi{text-align:center}
+        .whw{position:relative;width:96px;height:96px;margin:0 auto}
+        .whsvg{width:96px;height:96px;transform:rotate(-90deg)}
+        .whbg{fill:none;stroke:rgba(255,255,255,.08);stroke-width:8}
+        .whfill{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1s ease}
+        .whc{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.1rem;font-weight:800}
+        .whn{font-size:.62rem;color:var(--td);margin-top:7px;font-weight:600}
+        .whi{cursor:pointer;transition:transform .2s}.whi:hover{transform:scale(1.05)}
+        .wh-detail{max-height:0;overflow:hidden;transition:max-height .4s ease;grid-column:1/-1}
+        .wh-detail.open{max-height:600px}
+        .wh-detail-inner{padding:12px 0 0 0;border-top:1px solid rgba(255,255,255,.06);margin-top:12px}
+        .wh-detail-title{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+        .wh-row{display:flex;justify-content:space-between;align-items:center;padding:5px 8px;border-radius:4px;font-size:.68rem;margin-bottom:3px;background:rgba(255,255,255,.02)}
+        .wh-row-lbl{color:var(--ts);font-weight:500;display:flex;align-items:center;gap:6px}
+        .wh-row-val{font-weight:700;color:var(--text)}
+        .wh-row-bar{flex:1;height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin:0 10px;max-width:80px}
+        .wh-row-bf{height:100%;border-radius:2px;transition:width .5s}
+        .wh-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+        .wh-note{font-size:.54rem;color:var(--td);margin-top:6px;padding:0 8px;line-height:1.5}
+
+        /* OUTSTANDING */
+        .iss{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--border)}.iss:last-child{border-bottom:none}
+        .iss-p{width:3px;height:22px;border-radius:2px;flex-shrink:0}.iss-p.c{background:var(--red)}.iss-p.w{background:var(--amber)}.iss-p.i{background:var(--blue)}
+        .iss-b{flex:1;min-width:0}.iss-t{font-size:.72rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.iss-m{font-size:.6rem;color:var(--td);margin-top:1px}
+        .iss-tm{font-size:.6rem;color:var(--td);font-weight:600;white-space:nowrap;flex-shrink:0}
+        .iss-go{font-size:.56rem;background:var(--asoft);color:var(--atxt);border:none;border-radius:4px;padding:3px 5px;cursor:pointer;font-weight:700;font-family:inherit;flex-shrink:0;transition:.2s}.iss-go:hover{background:var(--accent);color:#fff}
+        .iss-click{cursor:pointer;transition:background .15s}.iss-click:hover{background:rgba(255,255,255,.05)}.iss-click:hover .iss-go{background:var(--accent);color:#fff}
+        .no-iss{text-align:center;padding:18px 0;color:var(--td);font-size:.72rem}
+
+        /* BOTTOM */
+        .bot{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+        .trend{padding-top:8px}
+        .tr-leg{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+        .tr-leg-i{display:flex;align-items:center;gap:4px;font-size:.52rem;color:var(--td);font-weight:600}
+        .tr-leg-d{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+        .tr-bars{display:flex;align-items:flex-end;gap:4px;height:110px}
+        .tr-grp{flex:1;display:flex;flex-direction:column;align-items:center;gap:0}
+        .tr-stk{width:100%;display:flex;flex-direction:column-reverse;gap:1px;flex:1;justify-content:flex-start}
+        .tr-seg{border-radius:2px;min-height:0;transition:height .5s;position:relative}
+        .tr-seg:hover{filter:brightness(1.3)}
+        .tr-lbl{font-size:.5rem;color:var(--td);font-weight:600;margin-top:3px;text-align:center}
+        .tr-val{font-size:.52rem;color:var(--ts);font-weight:700;text-align:center;margin-bottom:2px}
+        .tr-summary{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.04)}
+        .tr-sum-i{display:flex;justify-content:space-between;font-size:.56rem;padding:3px 6px;border-radius:3px;background:rgba(255,255,255,.02)}
+        .tr-sum-l{color:var(--td)}.tr-sum-v{font-weight:700;color:var(--ts)}
+        .hm{padding-top:4px}
+        .hm-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+        .hc{aspect-ratio:1;border-radius:3px;position:relative;cursor:default;display:flex;align-items:center;justify-content:center;font-size:.48rem;font-weight:600;color:rgba(255,255,255,.4);transition:transform .15s}
+        .hc:hover{transform:scale(1.15);z-index:2}
+        .hc.lo{background:rgba(34,197,94,.18)}.hc.md{background:rgba(234,179,8,.25)}.hc.hi{background:rgba(239,68,68,.28)}.hc.no{background:rgba(255,255,255,.06)}
+        .hc.future{background:rgba(255,255,255,.02);color:rgba(255,255,255,.12)}
+        .hc.today{outline:2px solid var(--atxt);outline-offset:-1px}
+        .hc-tip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#1e1e24;border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:6px 8px;font-size:.54rem;color:var(--ts);white-space:nowrap;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,.4);pointer-events:none;font-weight:500}
+        .hc:hover .hc-tip{display:block}
+        .hm-leg{display:flex;gap:10px;margin-top:8px;align-items:center;flex-wrap:wrap}
+        .hm-leg-i{display:flex;align-items:center;gap:4px;font-size:.48rem;color:var(--td);font-weight:600}
+        .hm-leg-d{width:10px;height:10px;border-radius:2px}
+        .hl{display:flex;justify-content:space-between;margin-top:5px;font-size:.48rem;color:var(--tf);text-transform:uppercase;letter-spacing:1px;font-weight:600}
+        .fi{display:flex;gap:7px;padding:7px 0;border-bottom:1px solid var(--border);align-items:flex-start}.fi:last-child{border-bottom:none}
+        .ft{font-size:.56rem;color:var(--tf);width:38px;flex-shrink:0;padding-top:2px;font-weight:700;font-family:'Geist Mono',monospace}
+        .fd{width:5px;height:5px;border-radius:50%;margin-top:4px;flex-shrink:0}
+        .fx{font-size:.68rem;color:var(--td);flex:1;line-height:1.3}.fx strong{color:var(--ts);font-weight:600}
+
+        /* LOADING */
+        .lo-ov{position:fixed;top:0;left:0;right:0;bottom:0;background:#1a1a20;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .4s}
+        .lo-ov.hid{opacity:0;pointer-events:none}
+        .lo-sp{width:40px;height:40px;border:3px solid rgba(204,85,0,.15);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .lo-tx{margin-top:14px;color:var(--td);font-size:.78rem;font-weight:600}
+
+        /* RESPONSIVE */
+        @media(max-width:1024px){.wrap{padding:18px}.bot{grid-template-columns:1fr 1fr}.bot .card:nth-child(3){grid-column:1/-1}.sm-stats{gap:14px}.reels{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:768px){.wrap{padding:14px}.hdr{flex-wrap:wrap;gap:10px}.hdr-r{width:100%;justify-content:space-between}.reels{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.bot{grid-template-columns:1fr}.bot .card:nth-child(3){grid-column:auto}.sm{flex-wrap:wrap}.sm-top{flex-wrap:wrap;padding:12px 14px}.sm-stats{width:100%;justify-content:space-around}.reel-num{font-size:1.8rem}.sm-grid{grid-template-columns:1fr}}
+        @media(max-width:480px){.wrap{padding:10px}.hdr h1{font-size:.95rem}.reel{padding:12px}.reels{grid-template-columns:1fr}.card{padding:12px}.sms .v{font-size:1rem}.whs{gap:4px}.whw{width:76px;height:76px}.whsvg{width:76px;height:76px}.whc{font-size:.9rem}.whn{font-size:.56rem}.qlb{font-size:.69rem;padding:5px 9px}}
+    </style>
+</head>
+<body>
+<div class="lo-ov" id="loadOv"><div class="lo-sp"></div><div class="lo-tx">Loading HAAG Dashboard...</div></div>
+
+<div class="wrap">
+    <!-- HEADER -->
+    <div class="hdr">
+        <div class="hdr-l">
+            <div class="hdr-logo">HAAG</div>
+            <div><h1>Health At A Glance</h1><div class="sub">SafeSystems.PRO — Real-time compliance dashboard</div></div>
+        </div>
+        <div class="hdr-r">
+            <div class="live">Live</div>
+            <div class="ptog">
+                <button class="pbtn active" onclick="setP('daily')" id="btnDaily">Day</button>
+                <button class="pbtn" onclick="setP('weekly')" id="btnWeekly">Week</button>
+                <button class="pbtn" onclick="setP('monthly')" id="btnMonthly">Month</button>
+            </div>
+            <select id="parkF" onchange="currentPark=this.value;loadAll()"><option value="all">All Parks</option></select>
+        </div>
+    </div>
+
+    <!-- QUICK LINKS -->
+    <div class="ql" id="ql">
+        <button class="qlb" onclick="go('maintenance.html','Maintenance')">safe<span class="a">maint</span>.pro</button>
+        <button class="qlb" onclick="go('incidents.html','SafeReport.PRO')">safe<span class="a">report</span>.pro</button>
+        <button class="qlb" onclick="go('safeaction.html','SafeAction.PRO')">safe<span class="a">action</span>.pro</button>
+        <button class="qlb" onclick="goHT()">safe<span class="a">water</span>.pro</button>
+        <button class="qlb" onclick="go('accommodation.html','cozzZstays.pro')">cozzZ<span class="a">stays</span>.pro</button>
+        <button class="qlb" onclick="go('play-parks.html','SafePark.PRO')">safe<span class="a">park</span>.pro</button>
+        <button class="qlb" onclick="go('safefire.html','SafeFire.PRO+')">safe<span class="p">fire</span>.pro+</button>
+        <button class="qlb" onclick="go('gas.html','SafeGas.PRO')">safe<span class="m">gas</span>.pro</button>
+        <button class="qlb" onclick="go('coshh.html','SafeChem.PRO')">safe<span class="p">chem</span>.pro+</button>
+        <button class="qlb" onclick="go('vehicles.html','SafeVehicle.PRO')">safe<span class="p">vehicle</span>.pro+</button>
+        <button class="qlb" onclick="go('safeteam.html','SafeTeams.PRO')">safe<span class="p">teams</span>.pro+</button>
+        <button class="qlb" onclick="go('safecare.html','SafeCare.PRO')">safe<span class="m">care</span>.pro</button>
+        <button class="qlb" onclick="go('safelearn.html','SafeLearn.PRO')">safe<span class="p">learn</span>.pro</button>
+        <button class="qlb" onclick="go('docsafe.html','DocSafe.PRO')"><span class="d">doc</span>safe.pro</button>
+        <button class="qlb" onclick="go('property-passport.html','property-passport.pro')">property-<span class="a">passport</span>.pro</button>
+    </div>
+
+    <!-- SAFEMISS -->
+    <div class="sm">
+        <div class="sm-top" onclick="toggleSMDetail()">
+            <div class="sm-ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#22c55e" stroke-width="2"/><path d="M9 12l2 2 4-4" stroke="#22c55e" stroke-width="2"/></svg></div>
+            <div class="sm-info"><h3>SafeMiss — Proactive Safety Catches</h3><p>Your team caught <strong id="smCT">0 issues</strong> <span id="smPeriodTxt">today</span>. Est. <strong id="smSV">£0</strong> saved.</p></div>
+            <div class="sm-stats">
+                <div class="sms"><div class="v" id="smP">0</div><div class="l">Period</div></div>
+                <div class="sms"><div class="v" id="smY">0</div><div class="l">Year</div></div>
+                <div class="sms"><div class="v" id="smF">—</div><div class="l">Avg Fix</div></div>
+                <div class="sms"><div class="v" id="smS">0d</div><div class="l">Streak</div></div>
+            </div>
+            <div class="sm-chevron" id="smChev">▼</div>
+        </div>
+        <div class="sm-detail" id="smDetail">
+            <div class="sm-detail-inner">
+                <div class="sm-period-label" id="smPeriodBadge">Today</div>
+                <div class="sm-grid">
+                    <div class="sm-cell"><div class="sm-cell-lbl">Period Catches</div><div class="sm-cell-val" id="smdPC">0</div><div class="sm-cell-note">High/urgent/critical tasks completed <span id="smdPeriodNote">today</span></div></div>
+                    <div class="sm-cell"><div class="sm-cell-lbl">Year To Date</div><div class="sm-cell-val" id="smdYC">0</div><div class="sm-cell-note">Since 1 January <span id="smdYear">2026</span></div></div>
+                    <div class="sm-cell"><div class="sm-cell-lbl">Period Savings</div><div class="sm-cell-val" id="smdSV">£0</div><div class="sm-cell-note">Estimated cost avoidance <span id="smdPeriodNote">today</span></div></div>
+                    <div class="sm-cell"><div class="sm-cell-lbl">Year To Date Savings</div><div class="sm-cell-val" id="smdYSV">£0</div><div class="sm-cell-note">Since 1 January <span id="smdYear">2026</span></div></div>
+                    <div class="sm-cell"><div class="sm-cell-lbl">All-Time Savings</div><div class="sm-cell-val" id="smdASV">£0</div><div class="sm-cell-note">Cumulative across all records</div></div>
+                    <div class="sm-cell"><div class="sm-cell-lbl">Average Fix Time</div><div class="sm-cell-val" id="smdFT">—</div><div class="sm-cell-note">Time from raised to completed</div></div>
+                    <div class="sm-cell"><div class="sm-cell-lbl">Incident-Free Streak</div><div class="sm-cell-val" id="smdStrk">—</div><div class="sm-cell-note">Days since last reported incident</div></div>
+                    <div class="sm-cell"><div class="sm-cell-lbl">Total Catches Assessed</div><div class="sm-cell-val" id="smdTotal">0</div><div class="sm-cell-note">All high/urgent/critical completions (all time)</div></div>
+                </div>
+                <div class="sm-breakdown" style="margin-top:12px">
+                    <div class="sm-breakdown-title" style="color:#3b82f6">⚖ HSE Benchmark Comparison</div>
+                    <div style="background:rgba(59,130,246,.06);border-radius:6px;padding:10px;margin-bottom:10px">
+                        <div class="sm-row"><span class="sm-row-cat">HSE equivalent (period)</span><span class="sm-row-val" id="smdHSEP">£0</span></div>
+                        <div class="sm-row"><span class="sm-row-cat">HSE equivalent (YTD)</span><span class="sm-row-val" id="smdHSEY">£0</span></div>
+                        <div style="font-size:.54rem;color:var(--td);margin-top:6px;line-height:1.5">Based on HSE 2024 unit cost: <strong style="color:var(--ts)">£7,500</strong> per non-fatal injury (7+ days absence, employer cost). Source: <em>HSE Appraisal Values 2023/24</em></div>
+                    </div>
+                </div>
+                <div class="sm-breakdown">
+                    <div class="sm-breakdown-title">Savings Breakdown by Category</div>
+                    <div id="smdBreakdown"><div class="sm-row"><span class="sm-row-cat" style="color:var(--td)">No data yet</span></div></div>
+                </div>
+                <div class="sm-formula">
+                    <strong>How SafeMiss is calculated:</strong><br>
+                    Completed maintenance tasks rated <strong>high</strong>, <strong>urgent</strong>, or <strong>critical</strong> are counted as proactive safety catches. Each catch represents a hazard identified and resolved before it could cause injury.<br><br>
+                    <strong>SafeSystems.PRO model:</strong> Category base cost × Priority multiplier (critical 3×, urgent 2.5×, high 2×).<br>
+                    <strong>Category costs:</strong> Structural/Building £4,000 · Gas £3,500 · Fire/Safety £3,000 · Electrical £2,500 · Heating £2,000 · Water £2,000 · Playground £2,000 · Plumbing £1,500 · Equipment £1,200 · General/Other £800 · Grounds £600 · Cleaning £400<br><br>
+                    <strong>HSE benchmark:</strong> The UK Health & Safety Executive estimates each non-fatal workplace injury (7+ days absence) costs employers <strong>£7,500</strong> on average, or <strong>£44,300</strong> total cost to society (2024 prices). Our model is intentionally conservative, estimating disruption and repair costs rather than full injury costs. If any catch prevented a RIDDOR-reportable injury, the true saving would be significantly higher.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REELS -->
+    <div class="reels">
+        <div class="reel"><div class="reel-top"><div class="reel-lbl">Maintenance</div><div class="reel-tr flat" id="mTr">—</div></div><div class="reel-num" id="mP">0<span>%</span></div><div class="reel-bar"><div class="reel-bf" id="mB" style="width:0%"></div></div><div class="reel-sub" id="mS">Loading...</div></div>
+        <div class="reel"><div class="reel-top"><div class="reel-lbl">Compliance</div><div class="reel-tr flat" id="cTr">—</div></div><div class="reel-num" id="cP">0<span>%</span></div><div class="reel-bar"><div class="reel-bf" id="cB" style="width:0%"></div></div><div class="reel-sub" id="cS">Loading...</div></div>
+        <div class="reel"><div class="reel-top"><div class="reel-lbl">Continual Training</div><div class="reel-tr flat" id="tTr">—</div></div><div class="reel-num" id="tP">0<span>%</span></div><div class="reel-bar"><div class="reel-bf" id="tB" style="width:0%"></div></div><div class="reel-sub" id="tS">Loading...</div></div>
+        <div class="reel" onclick="go('property-passport.html','property-passport.pro')" style="cursor:pointer">
+            <div class="reel-top"><div class="reel-lbl">Safe Stays</div><div class="reel-tr flat" id="ocTr">—</div></div>
+            <div class="reel-num" id="ocP">0<span>%</span></div>
+            <div class="reel-bar"><div class="reel-bf" id="ocB" style="width:0%"></div></div>
+            <div class="reel-sub" id="ocS">Loading...</div>
+        </div>
+    </div>
+
+    <!-- WHEELS + OUTSTANDING -->
+    <div class="grid">
+        <div class="card">
+            <div class="ct">Category Breakdown</div>
+            <div class="whs">
+                <div class="whi" onclick="toggleWD('wdS')"><div class="whw"><svg class="whsvg" viewBox="0 0 140 140"><circle class="whbg" cx="70" cy="70" r="54"/><circle class="whfill" id="wS" cx="70" cy="70" r="54" stroke="#3b82f6" stroke-dasharray="339.3" stroke-dashoffset="339.3"/></svg><div class="whc" id="wSP" style="color:#3b82f6">0%</div></div><div class="whn">Safety</div></div>
+                <div class="whi" onclick="toggleWD('wdO')"><div class="whw"><svg class="whsvg" viewBox="0 0 140 140"><circle class="whbg" cx="70" cy="70" r="54"/><circle class="whfill" id="wO" cx="70" cy="70" r="54" stroke="#22c55e" stroke-dasharray="339.3" stroke-dashoffset="339.3"/></svg><div class="whc" id="wOP" style="color:#22c55e">0%</div></div><div class="whn">Operations</div></div>
+                <div class="whi" onclick="toggleWD('wdC')"><div class="whw"><svg class="whsvg" viewBox="0 0 140 140"><circle class="whbg" cx="70" cy="70" r="54"/><circle class="whfill" id="wC" cx="70" cy="70" r="54" stroke="#cc5500" stroke-dasharray="339.3" stroke-dashoffset="339.3"/></svg><div class="whc" id="wCP" style="color:#cc5500">0%</div></div><div class="whn">Compliance</div></div>
+                <div class="whi" onclick="toggleWD('wdPP')"><div class="whw"><svg class="whsvg" viewBox="0 0 140 140"><circle class="whbg" cx="70" cy="70" r="54"/><circle class="whfill" id="wPP" cx="70" cy="70" r="54" stroke="#0dcaf0" stroke-dasharray="339.3" stroke-dashoffset="339.3"/></svg><div class="whc" id="wPPP" style="color:#0dcaf0">0%</div></div><div class="whn">Passport</div></div>
+                <!-- Safety detail -->
+                <div class="wh-detail" id="wdS"><div class="wh-detail-inner"><div class="wh-detail-title" style="color:#3b82f6">🛡 Safety Breakdown</div><div id="wdSC">Loading...</div></div></div>
+                <!-- Operations detail -->
+                <div class="wh-detail" id="wdO"><div class="wh-detail-inner"><div class="wh-detail-title" style="color:#22c55e">⚙ Operations Breakdown</div><div id="wdOC">Loading...</div></div></div>
+                <!-- Compliance detail -->
+                <div class="wh-detail" id="wdC"><div class="wh-detail-inner"><div class="wh-detail-title" style="color:#cc5500">📋 Compliance Breakdown</div><div id="wdCC">Loading...</div></div></div>
+                <!-- Passport detail -->
+                <div class="wh-detail" id="wdPP"><div class="wh-detail-inner"><div class="wh-detail-title" style="color:#0dcaf0">🏠 Property Passport Breakdown</div><div id="wdPPC">Loading...</div></div></div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="ct">Outstanding Items <span class="bdg r" id="oBdg">0</span></div>
+            <div id="oList" style="max-height:250px;overflow-y:auto"><div class="no-iss">Loading...</div></div>
+        </div>
+    </div>
+
+    <!-- BOTTOM ROW -->
+    <div class="bot">
+        <div class="card"><div class="ct">6-Month Trend</div><div class="trend"><div class="tr-leg" id="trLeg"></div><div class="tr-bars" id="trnd"></div><div class="tr-summary" id="trSum"></div></div></div>
+        <div class="card"><div class="ct">Risk Heatmap <span style="color:var(--tf);font-weight:400;letter-spacing:0;text-transform:none">28d</span></div><div class="hm"><div class="hl"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div><div class="hm-grid" id="hmG"></div><div class="hm-leg" id="hmLeg"></div></div></div>
+        <div class="card"><div class="ct">Activity Feed</div><div id="aFeed" style="max-height:170px;overflow-y:auto"><div class="no-iss">Loading...</div></div></div>
+    </div>
+</div>
+
+<script>
+const FBC={apiKey:"AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",authDomain:"safepark-pro.firebaseapp.com",projectId:"safepark-pro",storageBucket:"safepark-pro.firebasestorage.app",messagingSenderId:"511221743341",appId:"1:511221743341:web:95bcc7e83d4861578016e4"};
+const BU='https://cqr365.github.io/SafePark.PRO/',AC=['CQR365SPP25','HRALL2025','9999'],PKS=['Ben Nevis Holiday Park','Oban Holiday Park','Tyndrum Holiday Park','Overburns Farm'];
+let db,per='daily',currentPark='all',isAdm=false,uPark='',aCode='';
+
+function initFB(){try{if(!firebase.apps.length)firebase.initializeApp(FBC);db=firebase.firestore();return true}catch(e){return false}}
+function initAuth(){const p=new URLSearchParams(location.search);aCode=(p.get('access_code')||'').toUpperCase();uPark=sessionStorage.getItem('currentPark')||'';isAdm=AC.includes(aCode);const s=document.getElementById('parkF');if(isAdm)PKS.forEach(pk=>{const o=document.createElement('option');o.value=pk;o.textContent=pk;s.appendChild(o)});else{s.innerHTML='';const o=document.createElement('option');o.value=uPark||'all';o.textContent=uPark||'My Park';s.appendChild(o);s.disabled=true;currentPark=uPark}window.addEventListener('message',e=>{if(e.data&&e.data.type==='safecore-auth-success'){aCode=(e.data.accessCode||'').toUpperCase();isAdm=AC.includes(aCode)}})}
+
+// Navigation
+function go(pg,ti){try{if(window.parent&&window.parent!==window){window.parent.postMessage({type:'haag-navigate',url:BU+pg,title:ti},'*');setTimeout(()=>{window.location.href=BU+pg+'?access_code='+encodeURIComponent(aCode)},400);return}}catch(e){}window.location.href=BU+pg+'?access_code='+encodeURIComponent(aCode)}
+function goHT(){try{if(window.parent&&window.parent!==window){window.parent.postMessage({type:'haag-navigate-hottub'},'*');return}}catch(e){}go('hot-tub.html','SafeWater.PRO')}
+
+// Helpers
+function mp(v){if(currentPark==='all'&&isAdm)return true;const f=currentPark||uPark;if(!f||f==='all')return true;const i=(v||'').toLowerCase(),fl=f.toLowerCase();if(i==='safepark.pro')return true;return i.includes(fl.split(' ')[0])||fl.includes(i.split(' ')[0])}
+function mpm(r){if(currentPark==='all'&&isAdm)return true;return[r.park,r.location,r.parkName,r.parkLocation,r.site,r.holiday_park,r.holidayPark].filter(Boolean).some(v=>mp(v))}
+function gpr(){const n=new Date();let s,e;if(per==='daily'){s=new Date(n.getFullYear(),n.getMonth(),n.getDate());e=new Date(s);e.setDate(e.getDate()+1)}else if(per==='weekly'){const d=n.getDay(),df=n.getDate()-d+(d===0?-6:1);s=new Date(n.getFullYear(),n.getMonth(),df);e=new Date(s);e.setDate(e.getDate()+7)}else{s=new Date(n.getFullYear(),n.getMonth(),1);e=new Date(n.getFullYear(),n.getMonth()+1,0,23,59,59)}return{start:s,end:e}}
+function td(v){if(!v)return null;if(v.toDate)return v.toDate();if(v.seconds)return new Date(v.seconds*1000);if(typeof v==='string')return new Date(v);if(v instanceof Date)return v;return null}
+function ta(v){const d=td(v);if(!d)return '';const dy=Math.floor((Date.now()-d.getTime())/864e5);if(dy===0)return'Today';if(dy===1)return'Yesterday';if(dy<7)return dy+'d ago';if(dy<30)return Math.floor(dy/7)+'w ago';return Math.floor(dy/30)+'mo ago'}
+function sw(id,p){const el=document.getElementById(id);if(el)el.setAttribute('stroke-dashoffset',339.3-(339.3*Math.min(p,100)/100))}
+const isDone=s=>['completed','closed','resolved','done'].includes((s||'').toLowerCase());
+
+// === DATA LOADERS ===
+
+async function loadMaint(){try{const sn=await db.collection('maintenanceRecords').get();let t=0,c=0;sn.forEach(d=>{const r=d.data();if(!mpm(r))return;t++;if(isDone(r.status))c++});const p=t>0?Math.round(c/t*100):0;document.getElementById('mP').innerHTML=p+'<span>%</span>';document.getElementById('mB').style.width=p+'%';document.getElementById('mS').textContent=c+' of '+t+' complete'}catch(e){document.getElementById('mS').textContent='Error'}}
+
+async function loadComp(){let sc=[];const now=new Date();try{
+const a=await db.collection('actions').get();let at=0,ac=0;a.forEach(d=>{const r=d.data();if(!mpm(r))return;at++;if(isDone(r.status))ac++});sc.push(at>0?ac/at*100:100);
+const i=await db.collection('incidents').get();let it=0,ic=0;i.forEach(d=>{const r=d.data();if(!mpm(r))return;it++;if((r.status||'').toLowerCase().includes('closed')||r.currentStage===5)ic++});sc.push(it>0?ic/it*100:100);
+const co=await db.collection('coshh').get();let ct=0,cc=0;co.forEach(d=>{const r=d.data();if(!mpm(r))return;ct++;const rd=r.reviewDate||r.nextReview;if(!rd||new Date(rd)>=now)cc++});sc.push(ct>0?cc/ct*100:100);
+let st=0,scr=0;
+try{const g=await db.collection('gasAppliances').get();g.forEach(d=>{const r=d.data();if(!mpm(r))return;st++;if(!r.nextInspectionDue||new Date(r.nextInspectionDue)>=now)scr++})}catch(e){}
+try{const v=await db.collection('vehicles').get();v.forEach(d=>{const r=d.data();if(!mpm(r))return;['mot_expiry','tax_expiry','insurance_expiry'].forEach(f=>{if(r[f]){st++;if(new Date(r[f])>=now)scr++}})})}catch(e){}
+try{const fe=await db.collection('fireExtinguishers').get();fe.forEach(d=>{const r=d.data();if(!mpm(r))return;if(r.nextServiceDue){st++;if(new Date(r.nextServiceDue)>=now)scr++}if(r.runOutDate){st++;if(new Date(r.runOutDate)>=now)scr++}})}catch(e){}
+sc.push(st>0?scr/st*100:100)
+}catch(e){}const p=sc.length>0?Math.round(sc.reduce((a,b)=>a+b,0)/sc.length):0;document.getElementById('cP').innerHTML=p+'<span>%</span>';document.getElementById('cB').style.width=p+'%';document.getElementById('cS').textContent=sc.length+' areas assessed'}
+
+async function loadTrain(){try{const es=await db.collection('employees').get();let ts=0;es.forEach(d=>{const r=d.data();if(!r.firstName||!r.lastName)return;if(!mp(r.park||r.location))return;ts++});const is=await db.collection('trainingItems').get();let ti=is.size;const as=await db.collection('trainingAcknowledgments').get();let ac=0;const{start,end}=gpr();const uniqueTBTs=new Set();as.forEach(d=>{const r=d.data();if(!r.confirmed)return;if(!mp(r.park||r.location||r.userPark||''))return;if(r.trainingTitle||r.trainingId)uniqueTBTs.add(r.trainingTitle||r.trainingId);const ad=r.date?new Date(r.date):r.completedAt?new Date(r.completedAt):null;if(ad&&ad>=start&&ad<end)ac++});if(ti===0&&uniqueTBTs.size>0)ti=uniqueTBTs.size;const dn=ts*ti;const p=dn>0?Math.round(ac/dn*100):0;document.getElementById('tP').innerHTML=Math.min(p,100)+'<span>%</span>';document.getElementById('tB').style.width=Math.min(p,100)+'%';document.getElementById('tS').textContent=ac+' completions ('+ts+' staff × '+ti+' TBTs)'}catch(e){document.getElementById('tS').textContent='Error'}}
+
+async function loadOccupancy(){try{
+    const now=new Date();
+    const mStart=new Date(now.getFullYear(),now.getMonth(),1);
+    const mEnd=new Date(now.getFullYear(),now.getMonth()+1,0,23,59,59,999);
+    const pmStart=new Date(now.getFullYear(),now.getMonth()-1,1);
+    const pmEnd=new Date(now.getFullYear(),now.getMonth(),0,23,59,59,999);
+    // Total accommodation units for the park (same source as index.html / SafeNotify)
+    let totalUnits=0;
+    try{const cfg=await db.collection('accommodation_config').get();cfg.forEach(d=>{const r=d.data();if(!mp(r.parkName||r.park||''))return;const u=(r.units||[]).length;totalUnits+=u>0?u:(typeof r.totalUnits==='number'?r.totalUnits:0)})}catch(e){}
+    // Units with a safety check this month / last month
+    const sn=await db.collection('accommodation_inspections').get();
+    const cur=new Set(),prev=new Set();
+    sn.forEach(d=>{const r=d.data();if(!mpm(r))return;const dt=td(r.submittedAt||r.date||r.createdAt);if(!dt)return;
+        const add=set=>{if(r.accommodationUnits&&Array.isArray(r.accommodationUnits))r.accommodationUnits.forEach(u=>{if(u)set.add(u)});else if(r.accommodationUnit)r.accommodationUnit.split(',').map(u=>u.trim()).forEach(u=>{if(u)set.add(u)})};
+        if(dt>=mStart&&dt<=mEnd)add(cur);else if(dt>=pmStart&&dt<=pmEnd)add(prev);});
+    const p=totalUnits>0?Math.min(100,Math.round(cur.size/totalUnits*100)):0;
+    const pp=totalUnits>0?Math.min(100,Math.round(prev.size/totalUnits*100)):0;
+    document.getElementById('ocP').innerHTML=p+'<span>%</span>';
+    document.getElementById('ocB').style.width=p+'%';
+    const mName=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][now.getMonth()];
+    document.getElementById('ocS').textContent=cur.size+' of '+totalUnits+' units checked, '+mName;
+    // Trend arrow vs last month coverage
+    const tr=document.getElementById('ocTr');
+    if(prev.size===0){tr.textContent='—';tr.className='reel-tr flat';}
+    else{const delta=p-pp;if(delta>0){tr.textContent='↑'+delta+'%';tr.className='reel-tr up';}else if(delta<0){tr.textContent='↓'+Math.abs(delta)+'%';tr.className='reel-tr down';}else{tr.textContent='→';tr.className='reel-tr flat';}}
+}catch(e){document.getElementById('ocS').textContent='Error'}}
+
+async function loadWSafety(){try{const s=await db.collection('maintenanceRecords').get();let t=0,c=0,op=0;const byCat={};s.forEach(d=>{const r=d.data();if(!mpm(r))return;if(r.safetyImplication!=='yes'&&!r.isSafetyIssue)return;t++;const cat=(r.category||'general').toLowerCase();if(!byCat[cat])byCat[cat]={t:0,c:0};byCat[cat].t++;if(isDone(r.status)){c++;byCat[cat].c++}else{op++}});const p=t>0?Math.round(c/t*100):0;sw('wS',p);document.getElementById('wSP').textContent=p+'%';
+// Detail panel
+let h=wdRow('Completed',c+' of '+t,t>0?c/t*100:0,'#3b82f6')+wdRow('Open / Outstanding',op+'',(t>0?op/t*100:0),'#ef4444');
+const sorted=Object.entries(byCat).sort((a,b)=>b[1].t-a[1].t);sorted.forEach(([cat,d])=>{const cp=d.t>0?Math.round(d.c/d.t*100):0;h+=wdRow(cat.charAt(0).toUpperCase()+cat.slice(1),d.c+'/'+d.t+' ('+cp+'%)',cp,'rgba(59,130,246,.6)')});
+h+='<div class="wh-note">Safety-flagged maintenance records where safetyImplication = "yes". Completed ÷ total = '+p+'%</div>';
+document.getElementById('wdSC').innerHTML=h}catch(e){}}
+
+async function loadWOps(){let sc=[];const ts=new Date().toISOString().split('T')[0];let htChecked=0,htTotal=0,ppChecked=0,ppTotal=0,mtDone=0,mtTotal=0;try{
+const h=await db.collection('hot_tub_inspections').orderBy('createdAt','desc').get();const at=new Set(),ct=new Set();h.forEach(d=>{const r=d.data();if(!mp(r.location))return;(r.hotTubs||[r.hotTub||'']).forEach(tb=>{if(!tb)return;const k=(r.location||'')+'|'+tb;at.add(k);let dt='';if(r.createdAt&&r.createdAt.toDate)dt=r.createdAt.toDate().toISOString().split('T')[0];else if(r.inspectionDate)dt=r.inspectionDate.split('T')[0];if(dt===ts){const tp=(r.type||'').toLowerCase();if(tp!=='changeover'&&tp!=='daily2')ct.add(k)}})});htTotal=at.size;htChecked=ct.size;if(at.size>0)sc.push(ct.size/at.size*100);
+const pp=await db.collection('playParkInspections').get();const ap=new Set(),cp=new Set();pp.forEach(d=>{const r=d.data();const l=r.location||r.park||'';if(!mp(l))return;const pid=l+'|'+(r.playParkName||r.parkName||r.area||'');ap.add(pid);let dt='';if(r.createdAt&&r.createdAt.toDate)dt=r.createdAt.toDate().toISOString().split('T')[0];else if(r.inspectionDate)dt=r.inspectionDate.split('T')[0];else if(r.date)dt=r.date.split('T')[0];if(dt===ts)cp.add(pid)});ppTotal=ap.size;ppChecked=cp.size;if(ap.size>0)sc.push(cp.size/ap.size*100);
+const m=await db.collection('maintenanceRecords').get();m.forEach(d=>{const r=d.data();if(!mpm(r))return;if(r.safetyImplication==='yes'||r.isSafetyIssue)return;mtTotal++;if(isDone(r.status))mtDone++});if(mtTotal>0)sc.push(mtDone/mtTotal*100)
+}catch(e){}const p=sc.length>0?Math.round(sc.reduce((a,b)=>a+b,0)/sc.length):0;sw('wO',p);document.getElementById('wOP').textContent=p+'%';
+// Detail panel
+const htp=htTotal>0?Math.round(htChecked/htTotal*100):0;const ppp=ppTotal>0?Math.round(ppChecked/ppTotal*100):0;const mtp=mtTotal>0?Math.round(mtDone/mtTotal*100):0;
+let oh=wdRow('Hot Tubs Checked Today',htChecked+' of '+htTotal,htp,'#06b6d4')+wdRow('Play Parks Checked Today',ppChecked+' of '+ppTotal,ppp,'#eab308')+wdRow('General Maintenance',mtDone+' of '+mtTotal+' ('+mtp+'%)',mtp,'#22c55e');
+oh+='<div class="wh-note">Equal average of above areas. Hot tubs & play parks = daily checks. General maintenance excludes safety-flagged items.</div>';
+document.getElementById('wdOC').innerHTML=oh}
+
+async function loadWComp(){let t=0,c=0;const now=new Date();const rows=[];
+try{const s=await db.collection('gasAppliances').get();let gt=0,gc=0;s.forEach(d=>{const r=d.data();if(!mpm(r))return;gt++;t++;if(!r.nextInspectionDue||new Date(r.nextInspectionDue)>=now){gc++;c++}});rows.push({l:'Gas Appliances',t:gt,c:gc,clr:'#f59e0b'})}catch(e){}
+try{const s=await db.collection('vehicles').get();let vt={mot:0,tax:0,ins:0},vc={mot:0,tax:0,ins:0};s.forEach(d=>{const r=d.data();if(!mpm(r))return;if(r.mot_expiry){vt.mot++;t++;if(new Date(r.mot_expiry)>=now){vc.mot++;c++}}if(r.tax_expiry){vt.tax++;t++;if(new Date(r.tax_expiry)>=now){vc.tax++;c++}}if(r.insurance_expiry){vt.ins++;t++;if(new Date(r.insurance_expiry)>=now){vc.ins++;c++}}});rows.push({l:'Vehicle MOT',t:vt.mot,c:vc.mot,clr:'#a855f7'});rows.push({l:'Vehicle Tax',t:vt.tax,c:vc.tax,clr:'#a855f7'});rows.push({l:'Vehicle Insurance',t:vt.ins,c:vc.ins,clr:'#a855f7'})}catch(e){}
+try{const s=await db.collection('fireExtinguishers').get();let ft=0,fc=0,rt=0,rc=0;s.forEach(d=>{const r=d.data();if(!mpm(r))return;if(r.nextServiceDue){ft++;t++;if(new Date(r.nextServiceDue)>=now){fc++;c++}}if(r.runOutDate){rt++;t++;if(new Date(r.runOutDate)>=now){rc++;c++}}});rows.push({l:'Fire Ext. Service',t:ft,c:fc,clr:'#ef4444'});rows.push({l:'Fire Ext. Run-Out',t:rt,c:rc,clr:'#ef4444'})}catch(e){}
+try{const s=await db.collection('coshh').get();let ct2=0,cc2=0;s.forEach(d=>{const r=d.data();if(!mpm(r))return;ct2++;t++;const rd=r.reviewDate||r.nextReview;if(!rd||new Date(rd)>=now){cc2++;c++}});rows.push({l:'COSHH Assessments',t:ct2,c:cc2,clr:'#06b6d4'})}catch(e){}
+const hooks=[{col:'fireRiskAssessments',f:'nextReviewDate',l:'Fire Risk Assessments'},{col:'eicrCertificates',f:'nextTestDate',l:'EICR Certificates'},{col:'lolerInspections',f:'nextInspectionDue',l:'LOLER Inspections'},{col:'puwerAssessments',f:'nextReviewDate',l:'PUWER Assessments'},{col:'rpiiInspections',f:'nextInspectionDue',l:'RPII Inspections'}];
+for(const h of hooks){try{const s=await db.collection(h.col).get();let ht=0,hc=0;s.forEach(d=>{const r=d.data();if(!mpm(r))return;ht++;t++;if(!r[h.f]||new Date(r[h.f])>=now){hc++;c++}});rows.push({l:h.l,t:ht,c:hc,clr:'#64748b'})}catch(e){rows.push({l:h.l,t:0,c:0,clr:'#64748b'})}}
+const p=t>0?Math.round(c/t*100):0;sw('wC',p);document.getElementById('wCP').textContent=p+'%';
+// Detail panel
+let oh='';rows.forEach(r=>{const rp=r.t>0?Math.round(r.c/r.t*100):0;const lbl=r.t>0?r.c+' of '+r.t+' current ('+rp+'%)':'No data';oh+=wdRow(r.l,lbl,rp,r.clr)});
+oh+='<div class="wh-note">Items with valid (non-expired) dates ÷ total items. Covers all statutory certificates, inspections, and review dates. Collections with no data show as hooks for future use.</div>';
+document.getElementById('wdCC').innerHTML=oh}
+
+async function loadWPassport(){try{
+    const sn=await db.collection('property_profiles').get();
+    let t=0,done=0,partial=0,none=0;
+    const parkRows=[];const byPark={};
+    sn.forEach(d=>{
+        const r=d.data();
+        if(currentPark!=='all'&&r.parkName!==currentPark&&!mp(r.parkName))return;
+        t++;
+        const sc=r.completionScore||0,tot=r.completionTotal||1;
+        const pct=Math.round(sc/tot*100);
+        if(pct>=80)done++;
+        else if(pct>=40)partial++;
+        else none++;
+        if(!byPark[r.parkName])byPark[r.parkName]={t:0,done:0};
+        byPark[r.parkName].t++;
+        if(pct>=80)byPark[r.parkName].done++;
+    });
+    const p=t>0?Math.round(done/t*100):0;
+    sw('wPP',p);document.getElementById('wPPP').textContent=p+'%';
+    let oh=wdRow('Fully onboarded (≥80%)',done+' of '+t,(t>0?done/t*100:0),'#0dcaf0');
+    oh+=wdRow('Partial (40–79%)',partial+' units',(t>0?partial/t*100:0),'#eab308');
+    oh+=wdRow('Low / Not started (<40%)',none+' units',(t>0?none/t*100:0),'#ef4444');
+    Object.entries(byPark).forEach(([pk,d])=>{const pp=d.t>0?Math.round(d.done/d.t*100):0;oh+=wdRow(pk,d.done+' of '+d.t+' complete ('+pp+'%)',pp,'#22c55e')});
+    oh+='<div class="wh-note">Based on passport completion scores stored in property_profiles. ≥80% = fully onboarded. Click to open property-passport.pro.</div>';
+    document.getElementById('wdPPC').innerHTML=oh;
+}catch(e){document.getElementById('wdPPC').innerHTML='<div class="wh-note">No passport data</div>'}}
+
+async function loadSM(){try{const s=await db.collection('maintenanceRecords').get();const{start,end}=gpr();const ys=new Date(new Date().getFullYear(),0,1);let pc=0,yc=0,psv=0,ysv=0,asv=0,ft=[],totalAll=0;const cm={electrical:2500,fire:3000,structural:4000,plumbing:1500,gas:3500,water:2000,equipment:1200,playground:2000,general:800,cleaning:400,grounds:600,building:4000,heating:2000,safety:3000,other:800};const pm={critical:3,urgent:2.5,high:2,medium:1.5,low:1};const catBreak={};const catBreakP={};
+// HSE 2024 unit costs (cost to employer per non-fatal injury, 7+ days absence = £7,500; up to 6 days = £140; all non-fatal avg = £1,600)
+const hsePerCase=7500;
+s.forEach(d=>{const r=d.data();if(!mpm(r))return;if(!isDone(r.status))return;const p=(r.priority||'').toLowerCase();if(!['high','urgent','critical'].includes(p))return;totalAll++;const cd=td(r.createdAt||r.dateSubmitted||r.dateCreated);const cat=(r.category||'general').toLowerCase();const cost=(cm[cat]||800)*(pm[p]||1);asv+=cost;if(!catBreak[cat])catBreak[cat]={count:0,cost:0};catBreak[cat].count++;catBreak[cat].cost+=cost;if(cd){if(cd>=ys){yc++;ysv+=cost}if(cd>=start&&cd<end){pc++;psv+=cost;if(!catBreakP[cat])catBreakP[cat]={count:0,cost:0};catBreakP[cat].count++;catBreakP[cat].cost+=cost}}const c1=td(r.createdAt||r.dateSubmitted||r.dateCreated),c2=td(r.completedAt||r.dateCompleted||r.completionDate);if(c1&&c2){const h=(c2-c1)/36e5;if(h>0&&h<720)ft.push(h)}});
+let li=null;try{const ic=await db.collection('incidents').get();ic.forEach(d=>{const r=d.data();if(!mpm(r))return;const dt=td(r.createdAt||r.dateReported||r.date);if(dt&&(!li||dt>li))li=dt})}catch(e){}
+const pLabel=getPeriodLabel(),pNote=getPeriodNote();
+document.getElementById('smP').textContent=pc;document.getElementById('smY').textContent=yc;document.getElementById('smCT').textContent=pc+' issue'+(pc!==1?'s':'');document.getElementById('smSV').textContent='£'+psv.toLocaleString();document.getElementById('smPeriodTxt').textContent=pNote;
+const af=ft.length>0?ft.reduce((a,b)=>a+b,0)/ft.length:0;const afStr=ft.length>0?(af<24?af.toFixed(1)+'h':(af/24).toFixed(1)+'d'):'—';document.getElementById('smF').textContent=afStr;const streakDays=li?Math.floor((Date.now()-li.getTime())/864e5):null;document.getElementById('smS').textContent=streakDays!==null?streakDays+'d':'—';
+// Detail panel
+document.getElementById('smPeriodBadge').textContent=pLabel;document.getElementById('smdPeriodNote').textContent=pNote;document.getElementById('smdYear').textContent=new Date().getFullYear();
+document.getElementById('smdPC').textContent=pc;document.getElementById('smdYC').textContent=yc;document.getElementById('smdSV').textContent='£'+psv.toLocaleString();document.getElementById('smdFT').textContent=afStr;document.getElementById('smdStrk').textContent=streakDays!==null?streakDays+' days'+(li?' (since '+li.toLocaleDateString('en-GB')+')':''):'No incidents recorded';document.getElementById('smdTotal').textContent=totalAll;
+// Year + all-time savings
+document.getElementById('smdYSV').textContent='£'+ysv.toLocaleString();document.getElementById('smdASV').textContent='£'+asv.toLocaleString();
+// HSE benchmark comparison
+const hseYearEq=yc*hsePerCase;const hsePeriodEq=pc*hsePerCase;
+document.getElementById('smdHSEP').textContent='£'+hsePeriodEq.toLocaleString();document.getElementById('smdHSEY').textContent='£'+hseYearEq.toLocaleString();
+// Category breakdown (period-filtered)
+const useCats=Object.keys(catBreakP).length>0?catBreakP:catBreak;const isPeriod=Object.keys(catBreakP).length>0;
+const sorted=Object.entries(useCats).sort((a,b)=>b[1].cost-a[1].cost);const bEl=document.getElementById('smdBreakdown');if(sorted.length>0){bEl.innerHTML=sorted.map(([cat,d])=>`<div class="sm-row"><span class="sm-row-cat">${cat.charAt(0).toUpperCase()+cat.slice(1)}</span><span><span class="sm-row-val">£${d.cost.toLocaleString()}</span><span class="sm-row-mult">(${d.count} catch${d.count!==1?'es':''})</span></span></div>`).join('')+(isPeriod?'<div style="font-size:.54rem;color:var(--td);margin-top:6px;text-align:right">Showing '+pNote+' only</div>':'')}else{bEl.innerHTML='<div class="sm-row"><span class="sm-row-cat" style="color:var(--td)">No catches '+pNote+'</span></div>'}
+}catch(e){console.error('[HAAG] SafeMiss error:',e)}}
+
+async function loadOut(){const items=[];const now=new Date();const s60=new Date(now.getTime()+60*864e5);try{
+// Actions
+const a=await db.collection('actions').get();a.forEach(d=>{const r=d.data();if(!mpm(r))return;if(isDone(r.status))return;const ov=r.targetDate&&new Date(r.targetDate)<now;items.push({t:r.title||r.description||r.reference||'Action',m:(r.location||'')+' · SafeAction'+(ov?' · OVERDUE':''),p:ov?'c':'w',d:r.createdAt||r.dateSubmitted||r.dateCreated,mod:'safeaction.html',mt:'SafeAction.PRO'})});
+// Incidents
+const i=await db.collection('incidents').get();i.forEach(d=>{const r=d.data();if(!mpm(r))return;if((r.status||'').toLowerCase().includes('closed')||r.currentStage===5)return;items.push({t:r.incident_type||r.description||'Incident',m:(r.holiday_park||'')+' · SafeReport',p:'c',d:r.createdAt||r.dateReported,mod:'incidents.html',mt:'SafeReport.PRO'})});
+// High-priority maint
+const mt=await db.collection('maintenanceRecords').get();mt.forEach(d=>{const r=d.data();if(!mpm(r)||isDone(r.status))return;const pr=(r.priority||'').toLowerCase();if(['high','urgent','critical'].includes(pr))items.push({t:r.title||r.description||'Maintenance',m:(r.location||'')+' · SafeMaint · '+pr,p:pr==='critical'?'c':'w',d:r.createdAt||r.dateSubmitted||r.dateCreated,mod:'maintenance.html',mt:'Maintenance'})});
+// Hot tub issues
+try{const h=await db.collection('hot_tub_inspections').get();h.forEach(d=>{const r=d.data();if(!mpm(r))return;if((r.overallStatus||'').toLowerCase().includes('issue')||r.actionRequired)items.push({t:'HT issue — '+(r.hotTubs||[r.hotTub||''])[0],m:(r.location||'')+' · SafeWater',p:'w',d:r.createdAt})})}catch(e){}
+// Accommodation
+try{const ac=await db.collection('accommodation_inspections').get();ac.forEach(d=>{const r=d.data();if(!mpm(r)||r.actionRequired!==true)return;items.push({t:(r.accommodationUnit||'Unit')+' — action required',m:(r.parkName||'')+' · cozzZstays',p:'w',d:r.submittedAt||r.createdAt,mod:'accommodation.html',mt:'cozzZstays.pro'})})}catch(e){}
+// Playground
+try{const pl=await db.collection('playParkInspections').get();pl.forEach(d=>{const r=d.data();if(!mpm(r)||r.actionRequired!==true)return;items.push({t:(r.playParkName||'Play park')+' — action required',m:(r.location||r.parkName||'')+' · SafePark',p:'w',d:r.createdAt,mod:'play-parks.html',mt:'SafePark.PRO'})})}catch(e){}
+// SafeCare
+try{const sc=await db.collection('safeCareRecords').get();sc.forEach(d=>{const r=d.data();if(!mpm(r))return;const st=(r.status||'').toLowerCase();if(st==='closed'||r.currentStage===5)return;items.push({t:r.subject||r.description||'SafeCare case',m:(r.location||'')+' · SafeCare'+(r.complaint_priority==='high'?' · HIGH':''),p:r.complaint_priority==='high'?'c':'i',d:r.createdAt||r.date,mod:'safecare.html',mt:'SafeCare.PRO'})})}catch(e){}
+// COSHH overdue
+try{const co=await db.collection('coshh').get();co.forEach(d=>{const r=d.data();if(!mpm(r))return;const rd=r.reviewDate||r.nextReview;if(rd&&new Date(rd)<now)items.push({t:(r.productName||r.substance||'COSHH')+' overdue',m:(r.location||'')+' · SafeChem',p:'w',d:rd,mod:'coshh.html',mt:'SafeChem.PRO'})})}catch(e){}
+// Gas overdue
+try{const g=await db.collection('gasAppliances').get();g.forEach(d=>{const r=d.data();if(!mpm(r)||!r.nextInspectionDue)return;const dd=new Date(r.nextInspectionDue);if(dd<now)items.push({t:(r.applianceName||r.type||'Gas')+' overdue',m:(r.park||r.location||'')+' · SafeGas',p:'c',d:r.nextInspectionDue,mod:'gas.html',mt:'SafeGas.PRO'});else if(dd<=s60)items.push({t:(r.applianceName||r.type||'Gas')+' due soon',m:(r.park||r.location||'')+' · SafeGas',p:'w',d:r.nextInspectionDue,mod:'gas.html',mt:'SafeGas.PRO'})})}catch(e){}
+// Fire overdue
+try{const fe=await db.collection('fireExtinguishers').get();fe.forEach(d=>{const r=d.data();if(!mpm(r))return;if(r.nextServiceDue&&new Date(r.nextServiceDue)<now)items.push({t:(r.type||'Extinguisher')+' svc overdue',m:(r.park||r.location||'')+' · SafeFire',p:'c',d:r.nextServiceDue,mod:'safefire.html',mt:'SafeFire.PRO+'});if(r.runOutDate&&new Date(r.runOutDate)<now)items.push({t:(r.type||'Extinguisher')+' run-out',m:(r.park||r.location||'')+' · SafeFire',p:'c',d:r.runOutDate,mod:'safefire.html',mt:'SafeFire.PRO+'})})}catch(e){}
+// Fire inspection failures
+try{const fi=await db.collection('fireInspections').get();fi.forEach(d=>{const r=d.data();if(!mpm(r)||!r.hasFailures)return;items.push({t:'Fire inspection failure',m:(r.park||r.location||'')+' · SafeFire',p:'c',d:r.createdAt||r.date,mod:'safefire.html',mt:'SafeFire.PRO+'})})}catch(e){}
+// Overdue scheduled works (property-passport)
+try{
+    const ppSnap=await db.collection('property_profiles').get();
+    for(const ppDoc of ppSnap.docs){
+        const ppData=ppDoc.data();
+        if(!mpm(ppData))continue;
+        const swSnap=await db.collection('property_profiles').doc(ppDoc.id).collection('scheduled_works').get();
+        swSnap.forEach(d=>{
+            const r=d.data();
+            if(!r.nextDue||r.nextDue==='')return;
+            const nd=new Date(r.nextDue+'T12:00:00');
+            if(nd<now){
+                const wlbl=r.workType==='other'?(r.otherType||'Other'):(r.workType||'Work').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+                items.push({t:ppData.unitCode+' — '+wlbl+' overdue',m:(ppData.parkName||'')+' · property-passport',p:'w',d:r.nextDue,mod:'property-passport.html',mt:'property-passport.pro'});
+            }
+        });
+    }
+}catch(e){}
+// Changeover-flagged open maintenance
+try{
+    const coMaint=await db.collection('maintenanceRecords').get();
+    coMaint.forEach(d=>{
+        const r=d.data();
+        if(!mpm(r)||isDone(r.status))return;
+        if(r.sourceTab==='cozzZ.pro (Change-Over)'){
+            const pr=(r.priority||'medium').toLowerCase();
+            items.push({t:(r.unitRef||'Unit')+' — '+( r.title||'Changeover flag'),m:(r.location||'')+' · CO → SafeMaint',p:pr==='critical'?'c':'w',d:r.createdAt||r.dateSubmitted,mod:'maintenance.html',mt:'SafeMaint.PRO'});
+        }
+    });
+}catch(e){}
+}catch(e){}
+const po={c:0,w:1,i:2};items.sort((a,b)=>(po[a.p]||2)-(po[b.p]||2));
+const el=document.getElementById('oList'),bg=document.getElementById('oBdg');bg.textContent=items.length;bg.className='bdg '+(items.length>0?'r':'g');
+if(!items.length){el.innerHTML='<div class="no-iss">✓ No outstanding items</div>';return}
+el.innerHTML=items.slice(0,8).map(i=>`<div class="iss${i.mod?' iss-click':''}"${i.mod?` onclick="go('${i.mod}','${i.mt}')"`:''}><div class="iss-p ${i.p}"></div><div class="iss-b"><div class="iss-t">${i.t}</div><div class="iss-m">${i.m}</div></div><div class="iss-tm">${ta(i.d)}</div>${i.mod?`<button class="iss-go" onclick="event.stopPropagation();go('${i.mod}','${i.mt}')">Open</button>`:''}</div>`).join('')+(items.length>8?`<div style="text-align:center;padding:5px 0;font-size:.58rem;color:var(--td)">+ ${items.length-8} more</div>`:'');
+// Flag quick-link alerts
+const am=new Set(items.map(i=>i.mod).filter(Boolean));document.querySelectorAll('.qlb').forEach(b=>{const oc=b.getAttribute('onclick')||'';b.classList.toggle('alert',[...am].some(m=>oc.includes(m)))})}
+
+async function loadTrend(){try{const now=new Date();const ms=[];for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);ms.push({l:d.toLocaleDateString('en-GB',{month:'short'}),s:d,e:new Date(d.getFullYear(),d.getMonth()+1,0,23,59,59),raised:0,done:0,inc:0,act:0,co:0})}
+const mr=await db.collection('maintenanceRecords').get();mr.forEach(d=>{const r=d.data();if(!mpm(r))return;const cd=td(r.createdAt||r.dateSubmitted||r.dateCreated);if(!cd)return;ms.forEach(m=>{if(cd>=m.s&&cd<=m.e){m.raised++;if(isDone(r.status))m.done++}})});
+try{const ic=await db.collection('incidents').get();ic.forEach(d=>{const r=d.data();if(!mpm(r))return;const cd=td(r.createdAt||r.dateReported||r.date);if(cd)ms.forEach(m=>{if(cd>=m.s&&cd<=m.e)m.inc++})})}catch(e){}
+try{const ac=await db.collection('actions').get();ac.forEach(d=>{const r=d.data();if(!mpm(r))return;const cd=td(r.createdAt||r.dateSubmitted||r.dateCreated);if(cd)ms.forEach(m=>{if(cd>=m.s&&cd<=m.e)m.act++})})}catch(e){}
+try{const co=await db.collection('changeover_records').get();co.forEach(d=>{const r=d.data();if(!mpm(r))return;const cd=td(r.createdAt||r.date);if(cd)ms.forEach(m=>{if(cd>=m.s&&cd<=m.e)m.co++})})}catch(e){}
+// Legend
+document.getElementById('trLeg').innerHTML='<div class="tr-leg-i"><div class="tr-leg-d" style="background:#cc5500"></div>Raised</div><div class="tr-leg-i"><div class="tr-leg-d" style="background:#22c55e"></div>Completed</div><div class="tr-leg-i"><div class="tr-leg-d" style="background:#ef4444"></div>Incidents</div><div class="tr-leg-i"><div class="tr-leg-d" style="background:#eab308"></div>Actions</div><div class="tr-leg-i"><div class="tr-leg-d" style="background:#0dcaf0"></div>Changeovers</div>';
+// Bars
+const mx=Math.max(...ms.map(m=>m.raised+m.inc+m.act),1);document.getElementById('trnd').innerHTML=ms.map(m=>{const tot=m.raised+m.inc+m.act;const h=Math.max(8,tot/mx*100);const rh=tot>0?m.raised/tot*h:0;const ih=tot>0?m.inc/tot*h:0;const ah=tot>0?m.act/tot*h:0;const cp=m.raised>0?Math.round(m.done/m.raised*100):0;
+return`<div class="tr-grp"><div class="tr-val">${tot}${m.co>0?'<span style="color:#0dcaf0;font-size:.44rem;display:block">'+m.co+'co</span>':''}</div><div class="tr-stk" style="height:${h}%"><div class="tr-seg" style="height:${rh>0?rh/h*100:0}%;background:#cc5500" title="Maintenance: ${m.raised} raised, ${m.done} done (${cp}%)"></div><div class="tr-seg" style="height:${ih>0?ih/h*100:0}%;background:#ef4444" title="Incidents: ${m.inc}"></div><div class="tr-seg" style="height:${ah>0?ah/h*100:0}%;background:#eab308" title="Actions: ${m.act}"></div></div><div class="tr-lbl">${m.l}</div></div>`}).join('');
+// Summary
+const cur=ms[5]||ms[ms.length-1];const prev=ms[4]||ms[ms.length-2];const rDelta=prev.raised>0?Math.round((cur.raised-prev.raised)/prev.raised*100):0;const iDelta=prev.inc>0?Math.round((cur.inc-prev.inc)/prev.inc*100):0;const coDelta=prev.co>0?Math.round((cur.co-prev.co)/prev.co*100):0;const totR=ms.reduce((a,m)=>a+m.raised,0);const totD=ms.reduce((a,m)=>a+m.done,0);const totI=ms.reduce((a,m)=>a+m.inc,0);const totA=ms.reduce((a,m)=>a+m.act,0);const totCo=ms.reduce((a,m)=>a+m.co,0);
+document.getElementById('trSum').innerHTML=`<div class="tr-sum-i"><span class="tr-sum-l">6m Raised</span><span class="tr-sum-v">${totR}</span></div><div class="tr-sum-i"><span class="tr-sum-l">6m Completed</span><span class="tr-sum-v" style="color:#22c55e">${totD} (${totR>0?Math.round(totD/totR*100):0}%)</span></div><div class="tr-sum-i"><span class="tr-sum-l">6m Incidents</span><span class="tr-sum-v" style="color:#ef4444">${totI}</span></div><div class="tr-sum-i"><span class="tr-sum-l">6m Actions</span><span class="tr-sum-v" style="color:#eab308">${totA}</span></div><div class="tr-sum-i"><span class="tr-sum-l">6m Changeovers</span><span class="tr-sum-v" style="color:#0dcaf0">${totCo}${coDelta!==0?' ('+(coDelta>0?'+':'')+coDelta+'% MoM)':''}</span></div><div class="tr-sum-i"><span class="tr-sum-l">MoM Maint</span><span class="tr-sum-v">${rDelta>=0?'+':''}${rDelta}%</span></div>`
+}catch(e){}}
+
+async function loadHM(){try{const dc={};const addE=(v,type)=>{const d=td(v);if(d){const k=d.toISOString().split('T')[0];if(!dc[k])dc[k]={total:0,inc:0,maint:0,co:0};dc[k].total++;dc[k][type]++}};
+const ic=await db.collection('incidents').get();ic.forEach(d=>{const r=d.data();if(mpm(r))addE(r.createdAt||r.dateReported||r.date,'inc')});
+const m=await db.collection('maintenanceRecords').get();m.forEach(d=>{const r=d.data();if(!mpm(r)||isDone(r.status))return;if(['critical','urgent'].includes((r.priority||'').toLowerCase()))addE(r.createdAt||r.dateSubmitted||r.dateCreated,'maint')});
+try{const co=await db.collection('changeover_records').get();co.forEach(d=>{const r=d.data();if(!mpm(r))return;if((r.flaggedCount||0)>0)addE(r.createdAt||r.date,'co')})}catch(e){}
+const today=new Date();today.setHours(0,0,0,0);const dow=today.getDay();const mo=dow===0?6:dow-1;const tm=new Date(today);tm.setDate(today.getDate()-mo);const sd=new Date(tm);sd.setDate(tm.getDate()-21);
+const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];const cells=[];let totInc=0,totMaint=0,totCo=0,hotDays=0;
+for(let i=0;i<28;i++){const day=new Date(sd);day.setDate(sd.getDate()+i);const k=day.toISOString().split('T')[0];const dd=dc[k]||{total:0,inc:0,maint:0,co:0};const c=dd.total;const isToday=day.getTime()===today.getTime();const isFuture=day>today;const dayNum=day.getDate();
+totInc+=dd.inc;totMaint+=dd.maint;totCo+=dd.co;if(c>=3)hotDays++;
+let lv='no';if(isFuture)lv='future';else if(c>=3)lv='hi';else if(c>=1)lv='md';else lv='lo';
+const tipDate=day.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});let tipText=tipDate;if(!isFuture){if(c===0)tipText+=' — No events';else{const parts=[];if(dd.inc>0)parts.push(dd.inc+' incident'+(dd.inc>1?'s':''));if(dd.maint>0)parts.push(dd.maint+' critical maint');if(dd.co>0)parts.push(dd.co+' CO flag'+(dd.co>1?'s':''));tipText+=' — '+parts.join(', ')}}else{tipText+=' — Future'}
+cells.push(`<div class="hc ${lv}${isToday?' today':''}">${dayNum}<div class="hc-tip">${tipText}</div></div>`)}
+document.getElementById('hmG').innerHTML=cells.join('');
+document.getElementById('hmLeg').innerHTML=`<div class="hm-leg-i"><div class="hm-leg-d" style="background:rgba(34,197,94,.18)"></div>Clear</div><div class="hm-leg-i"><div class="hm-leg-d" style="background:rgba(234,179,8,.25)"></div>1-2 events</div><div class="hm-leg-i"><div class="hm-leg-d" style="background:rgba(239,68,68,.28)"></div>3+ events</div><div style="flex:1"></div><div class="hm-leg-i" style="color:var(--ts)">28d: ${totInc} incident${totInc!==1?'s':''}, ${totMaint} critical maint, ${totCo} CO flag${totCo!==1?'s':''}${hotDays>0?', '+hotDays+' hot day'+(hotDays!==1?'s':''):''}</div>`
+}catch(e){}}
+
+async function loadFeed(){const ev=[];try{
+const m=await db.collection('maintenanceRecords').orderBy('createdAt','desc').limit(25).get();m.forEach(d=>{const r=d.data();if(!mpm(r))return;ev.push({x:'<strong>'+(r.title||'Maint')+'</strong> '+(isDone(r.status)?'completed':'raised'),c:isDone(r.status)?'#22c55e':'#eab308',d:r.completedAt||r.createdAt||r.dateSubmitted||r.dateCreated})});
+const i=await db.collection('incidents').orderBy('createdAt','desc').limit(10).get();i.forEach(d=>{const r=d.data();if(!mpm(r))return;ev.push({x:'<strong>Incident</strong> — '+(r.incident_type||'Logged'),c:'#ef4444',d:r.createdAt||r.dateReported})});
+const h=await db.collection('hot_tub_inspections').orderBy('createdAt','desc').limit(10).get();h.forEach(d=>{const r=d.data();if(!mp(r.location))return;ev.push({x:'<strong>HT</strong> '+(r.type||'daily')+' — '+(r.hotTubs||[r.hotTub||''])[0],c:'#38bdf8',d:r.createdAt})});
+try{const a=await db.collection('accommodation_inspections').orderBy('submittedAt','desc').limit(8).get();a.forEach(d=>{const r=d.data();if(!mpm(r))return;ev.push({x:'<strong>Accom</strong> — '+(r.accommodationUnit||'Unit'),c:'#a78bfa',d:r.submittedAt||r.createdAt})})}catch(e){}
+try{const sc=await db.collection('safeCareRecords').orderBy('createdAt','desc').limit(8).get();sc.forEach(d=>{const r=d.data();if(!mpm(r))return;ev.push({x:'<strong>SafeCare</strong> — '+(r.subject||'Case'),c:'#0dcaf0',d:r.createdAt||r.date})})}catch(e){}
+try{const co=await db.collection('changeover_records').orderBy('createdAt','desc').limit(15).get();co.forEach(d=>{const r=d.data();if(!mpm(r))return;const flags=r.flaggedCount>0?' · '+r.flaggedCount+' flag'+(r.flaggedCount>1?'s':''):'';ev.push({x:'<strong>Changeover</strong> — '+(r.unitCode||'Unit')+flags,c:'#0dcaf0',d:r.createdAt||r.date})})}catch(e){}
+}catch(e){}ev.sort((a,b)=>(td(b.d)||new Date(0))-(td(a.d)||new Date(0)));const el=document.getElementById('aFeed');if(!ev.length){el.innerHTML='<div class="no-iss">No activity</div>';return}el.innerHTML=ev.slice(0,8).map(e=>{const d=td(e.d);const t=d?(d.toDateString()===new Date().toDateString()?d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):ta(e.d)):'';return`<div class="fi"><div class="ft">${t}</div><div class="fd" style="background:${e.c}"></div><div class="fx">${e.x}</div></div>`}).join('')}
+
+// Controls
+// SafeMiss detail toggle
+function toggleSMDetail(){const d=document.getElementById('smDetail'),c=document.getElementById('smChev');d.classList.toggle('open');c.classList.toggle('open')}
+function toggleWD(id){document.querySelectorAll('.wh-detail').forEach(d=>{if(d.id!==id)d.classList.remove('open')});document.getElementById(id).classList.toggle('open')}
+function wdRow(lbl,val,pct,color){return`<div class="wh-row"><span class="wh-row-lbl"><span class="wh-dot" style="background:${color}"></span>${lbl}</span><div class="wh-row-bar"><div class="wh-row-bf" style="width:${pct}%;background:${color}"></div></div><span class="wh-row-val">${val}</span></div>`}
+function getPeriodLabel(){return per==='daily'?'Today':per==='weekly'?'This Week':'This Month'}
+function getPeriodNote(){return per==='daily'?'today':per==='weekly'?'this week':'this month'}
+
+function setP(p){per=p;document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('active'));document.getElementById('btn'+p.charAt(0).toUpperCase()+p.slice(1)).classList.add('active');loadAll()}
+
+async function loadAll(){console.log('[HAAG] Loading: '+per+'/'+currentPark);try{await Promise.all([loadMaint(),loadComp(),loadTrain(),loadOccupancy(),loadWSafety(),loadWOps(),loadWComp(),loadWPassport(),loadSM(),loadOut(),loadTrend(),loadHM(),loadFeed()])}catch(e){}const o=document.getElementById('loadOv');if(o)o.classList.add('hid')}
+
+document.addEventListener('DOMContentLoaded',async()=>{initAuth();if(initFB())await loadAll();else document.getElementById('loadOv').innerHTML='<div style="color:var(--red);text-align:center;padding:40px"><h3>Firebase error</h3><p style="color:var(--td);margin-top:10px">Please refresh</p></div>'});
+</script>
+</body>
+</html>
