@@ -4487,6 +4487,15 @@
                     timestamp: new Date().toISOString()
                 };
                 
+                // Mandatory flag detail: Action Required cannot be submitted without
+                // at least one fully specified flagged issue (hot tub + issue).
+                if (inspection.actionRequired && inspection.flaggedIssueEntries.length === 0) {
+                    alert('You have marked this inspection as Action Required, but no issue has been logged.\n\nYou must record at least one issue before submitting: either mark the relevant checklist item as Fail and tick the affected hot tub(s), or add a manual flag with the hot tub selected and the fault described.');
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                    return;
+                }
+
                 // Save to Firebase — with duplicate flag suppression
                 let docId;
                 if (inspection.actionRequired && inspection.hotTubs && inspection.hotTubs.length > 0 && db) {
