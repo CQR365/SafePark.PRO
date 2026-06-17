@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Safety and the Holiday Park Awards | Omnibosh</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1b1d1c;--ink-soft:#4a4d49;--paper:#f5f2ea;--card:#fffdf8;
+    --accent:#1f6f5c;--accent-deep:#175547;--accent-soft:#1f6f5c14;
+    --gold:#9a6418;--gold-soft:#9a641812;--line:#dcd6c8;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:'IBM Plex Sans',sans-serif;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  a{color:var(--accent-deep);text-decoration:underline;text-underline-offset:2px;}
+  a:hover{color:var(--accent);}
+  .wrap{max-width:840px;margin:0 auto;padding:0 28px;}
+
+  .hero{background:var(--ink);color:#f3f1e8;padding:56px 0 30px;}
+  .hero .eyebrow{color:#8fd3c2;}
+  .eyebrow{font-size:12px;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;margin:0 0 14px;color:var(--accent);}
+  .hero h1{font-family:'Fraunces',serif;font-weight:600;font-size:42px;line-height:1.05;letter-spacing:-0.015em;margin:0 0 14px;color:#fff;}
+  .hero p{font-size:18px;color:#cfd4cb;margin:0;max-width:58ch;}
+  .hero .from{margin-top:22px;font-size:13px;color:#9aa39a;}
+
+  /* Tabs */
+  .tabbar{background:var(--ink);}
+  .tabbar .wrap{display:flex;gap:6px;padding-top:10px;}
+  .tab{
+    appearance:none;border:none;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;
+    font-size:14.5px;font-weight:600;letter-spacing:0.01em;
+    background:transparent;color:#9aa39a;padding:13px 20px;border-radius:8px 8px 0 0;
+  }
+  .tab:hover{color:#d7ddd5;}
+  .tab.active{background:var(--paper);color:var(--ink);}
+
+  .panel{display:none;padding:8px 0 0;}
+  .panel.active{display:block;}
+
+  section{padding:40px 0;border-bottom:1px solid var(--line);}
+  section:last-child{border-bottom:none;}
+  h2{font-family:'Fraunces',serif;font-weight:600;font-size:26px;line-height:1.12;letter-spacing:-0.01em;margin:0 0 16px;}
+  h3{font-family:'Fraunces',serif;font-weight:600;font-size:18px;margin:0 0 8px;}
+  p{margin:0 0 15px;}
+  .lead{font-size:17.5px;}
+  strong{font-weight:600;}
+  em{font-style:italic;}
+
+  .stat-band{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);
+    border:1px solid var(--line);border-radius:6px;overflow:hidden;margin:22px 0 8px;}
+  .stat{background:var(--card);padding:20px 18px;text-align:center;}
+  .stat .big{font-family:'Fraunces',serif;font-size:29px;font-weight:600;color:var(--accent-deep);line-height:1;margin:0 0 6px;}
+  .stat .lab{font-size:13px;color:var(--ink-soft);margin:0;line-height:1.35;}
+
+  .links{display:flex;flex-direction:column;gap:10px;margin:18px 0 4px;}
+  .linkrow{background:var(--card);border:1px solid var(--line);border-radius:5px;padding:13px 18px;font-size:15px;}
+  .linkrow .tag{font-weight:600;color:var(--ink);}
+
+  ul.clean{margin:0 0 15px;padding-left:20px;}
+  ul.clean li{margin-bottom:9px;}
+
+  .ladder{display:flex;flex-direction:column;gap:10px;margin:8px 0 4px;}
+  .rung{display:flex;align-items:center;gap:16px;background:var(--card);border:1px solid var(--line);
+    border-left:4px solid var(--accent);border-radius:5px;padding:16px 20px;}
+  .rung .step{font-family:'Fraunces',serif;font-weight:600;color:var(--accent);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;min-width:62px;}
+  .rung .body h3{margin:0 0 3px;font-size:17px;}
+  .rung .body p{margin:0;font-size:14.5px;color:var(--ink-soft);}
+  .rung.gold{border-left-color:var(--gold);}
+  .rung.gold .step{color:var(--gold);}
+
+  .panel-box{background:var(--accent-soft);border:1px solid #bfe0d6;border-radius:6px;padding:22px 24px;margin:20px 0 4px;}
+  .panel-box.gold{background:var(--gold-soft);border-color:#e6cfa6;}
+  .panel-box h3{margin-top:0;}
+
+  .cta{background:var(--accent-deep);color:#eef3f0;border-radius:8px;padding:28px 30px;margin-top:8px;}
+  .cta h2{color:#fff;margin-top:0;}
+  .cta p{color:#cfe0d9;}
+  .cta a{color:#bfe9dc;}
+  .cta .btn{display:inline-block;background:#fff;color:var(--accent-deep);font-weight:600;text-decoration:none;padding:12px 22px;border-radius:6px;margin-top:6px;font-size:15px;}
+
+  /* Tab 2 offer cards */
+  .offer{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);
+    border-radius:5px;padding:18px 22px;margin-bottom:14px;}
+  .offer.opt{border-left-color:var(--gold);}
+  .offer h3{margin:0 0 7px;}
+  .offer p{margin:0;font-size:15.5px;}
+  .reassure{background:var(--paper);border:1px dashed #c9c2b0;border-radius:6px;padding:20px 24px;margin:18px 0 4px;}
+  .reassure h3{margin-top:0;}
+  .reassure p{margin:0;}
+
+  footer{padding:34px 0 56px;}
+  .sign{font-family:'Fraunces',serif;font-weight:600;font-size:17px;margin:0 0 4px;}
+  .foot-meta{font-size:13px;color:var(--ink-soft);margin:0;}
+
+  @media (max-width:640px){
+    .hero h1{font-size:31px;}
+    h2{font-size:22px;}
+    .stat-band{grid-template-columns:1fr;}
+    .rung{flex-direction:column;align-items:flex-start;gap:6px;}
+    .tabbar .wrap{padding-left:14px;padding-right:14px;}
+    .tab{padding:11px 14px;font-size:13.5px;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="wrap">
+      <p class="eyebrow">Omnibosh &times; Holiday Park Awards</p>
+      <h1>Bringing safety into the celebration</h1>
+      <p>A simple, positive way to recognise the parks that keep their guests, owners and teams safe, built to lift the awards rather than weigh them down.</p>
+      <p class="from">Prepared for Melanie Brook, Founder, Holiday Park Awards &middot; June 2026</p>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="wrap">
+      <button class="tab active" onclick="showTab('p1', this)">The safety opportunity</button>
+      <button class="tab" onclick="showTab('p2', this)">How Omnibosh could help</button>
+    </div>
+  </div>
+
+  <!-- TAB 1 -->
+  <div id="p1" class="panel active">
+    <div class="wrap">
+
+      <section>
+        <p class="lead">Melanie, thank you for your time. It was a genuine pleasure to talk it through, and I came away certain there is something worth exploring here.</p>
+        <p>The thought is simple: safety could sit naturally within Holiday Park of the Year, done in a way that celebrates and encourages rather than catches people out. This tab sets out why that idea matters now, how it connects to RoSPA and a much bigger national conversation, and what it could mean for the parks who take part. The whole point is credibility without the fear.</p>
+      </section>
+
+      <section>
+        <h2>Why safety belongs in the awards, and why now</h2>
+        <p>Safety in the UK is having a national moment. RoSPA, the Royal Society for the Prevention of Accidents, has published <a href="https://www.rospa.com/safety-campaigns/national-accident-prevention-strategy" target="_blank" rel="noopener"><em>Safer Lives, Stronger Nation</em></a>, its call for a National Accident Prevention Strategy, built on research bringing together twenty years of accident data from all four UK nations. The numbers are stark.</p>
+        <div class="stat-band">
+          <div class="stat"><p class="big">20,000+</p><p class="lab">accidental deaths in the UK every year, more than the capacity of the O2 Arena</p></div>
+          <div class="stat"><p class="big">42%</p><p class="lab">rise in the rate of accidental deaths over the last decade</p></div>
+          <div class="stat"><p class="big">&pound;12bn</p><p class="lab">annual cost of preventable accidents to the UK economy</p></div>
+        </div>
+        <p>Crucially, the strategy names <strong>leisure</strong> as one of the core sectors it must cover, alongside home, work, product and transport. Holiday parks sit squarely in that space: open water, play areas, pools and hot tubs, vehicles and grounds, all enjoyed by families on holiday. This is exactly the territory the national conversation is now focused on, and our sector is rarely at the table.</p>
+        <p>That conversation is live in Parliament, debated and backed across party lines:</p>
+        <div class="links">
+          <div class="linkrow"><span class="tag">House of Lords</span>, 17 July 2025, tabled by Baroness Crawley. <a href="https://hansard.parliament.uk/lords/2025-07-17/debates/EE5CC49B-467A-4FDC-A17B-30B7127018B4/NationalAccidentPreventionStrategy" target="_blank" rel="noopener">Read the Hansard transcript</a></div>
+          <div class="linkrow"><span class="tag">House of Commons</span>, most recent debate 28 April 2026. <a href="https://hansard.parliament.uk/commons/2026-04-28/debates/2669A584-BD6D-4D7B-A906-72780E9FAFAE/NationalAccidentPreventionStrategy" target="_blank" rel="noopener">Read the Hansard transcript</a></div>
+          <div class="linkrow"><span class="tag">Background briefing</span> from the House of Lords Library. <a href="https://lordslibrary.parliament.uk/creating-a-national-accident-prevention-strategy/" target="_blank" rel="noopener">Read the briefing</a></div>
+        </div>
+        <p style="margin-top:15px;">An earlier Westminster Hall debate, led by Sir Andrew Mitchell MP, drew cross party support after figures showed accidental deaths had risen by 8 per cent in a single year. RoSPA has also launched <em>Towards a Safer Scotland</em>, its manifesto for the 2026 Scottish Parliamentary election. The momentum is real, and the Holiday Park Awards could be one of the first places the sector steps into it.</p>
+      </section>
+
+      <section>
+        <h2>How the safety assessment would work</h2>
+        <p>It would be kept deliberately simple and encouraging. A park answers a short, guided set of questions about how it keeps people safe, adding a little supporting evidence as it goes. That is reviewed against a holiday park safety matrix, a slimmed down version of the respected RoSPA approach, tailored to parks. The park then receives a clear result and warm, constructive feedback: what it is doing well, and a gentle steer on where it could go further. That score feeds the safety dimension of <strong>Holiday Park of the Year</strong>, giving the headline award a credible backbone.</p>
+        <div class="panel-box">
+          <h3>Positive, never exposing</h3>
+          <p style="margin:0;">This is the part that matters most. People tense up the moment they hear "safety" or "compliance", and the last thing we want is a park worrying that entering means being picked apart. The whole approach is built the other way round: it celebrates good practice, frames everything as a path forward, and keeps a park's detail confidential. All of the credibility, none of the fear, and nobody scared off entering.</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>How it links with RoSPA</h2>
+        <p>The same effort a park puts in does not have to stop at your ceremony. It can carry on, with support, into a full entry for the <a href="https://www.rospa.com/health-and-safety-awards" target="_blank" rel="noopener">RoSPA Health and Safety Awards</a>, the world's longest running and most respected safety awards, now in their 70th year and drawing around 2,000 entries from nearly 50 countries each year. The natural fit is the RoSPA Achievement Award, which recognises an organisation's own safety management at Gold, Silver, Bronze or Merit level. So a single piece of work can climb three rungs:</p>
+        <div class="ladder">
+          <div class="rung"><span class="step">Rung 1</span><div class="body"><h3>Recognition in the Holiday Park Awards</h3><p>Feeding Holiday Park of the Year.</p></div></div>
+          <div class="rung"><span class="step">Rung 2</span><div class="body"><h3>A ready made evidence pack</h3><p>The hard part is done, and reusable.</p></div></div>
+          <div class="rung gold"><span class="step">Rung 3</span><div class="body"><h3>A full RoSPA Award</h3><p>Internationally recognised recognition the park earns in its own right.</p></div></div>
+        </div>
+        <p style="margin-top:16px;">RoSPA also runs Sector Awards, Fleet Safety Awards for parks running vehicles, and Inspiration Awards for outstanding teams and individuals, so there is somewhere meaningful for every park to aim.</p>
+      </section>
+
+      <section>
+        <h2>What it could mean for the parks</h2>
+        <p>You were clear the awards need to stay accessible, exciting and commercially valuable for parks to enter. A safety strand can strengthen all three, because it gives a park something tangible to take away.</p>
+        <div class="panel-box gold">
+          <h3>A real commercial return: insurance</h3>
+          <p>Insurers price on risk. A park that can show documented, independently recognised safety management, with a clear audit trail, is a better risk, and that is rewarded at renewal. Industry guidance points to premium reductions in the order of 5 to 15 per cent for businesses that demonstrate proactive, well evidenced risk management, and public liability is a significant cost for any holiday park. Entering can help a park's bottom line, not just its trophy cabinet.</p>
+        </div>
+        <ul class="clean" style="margin-top:18px;">
+          <li><strong>A credible mark</strong> that means something, because it is independently assessed rather than self declared.</li>
+          <li><strong>A clear route to world recognised RoSPA accreditation</strong>, with the hard part already done.</li>
+          <li><strong>A confidential, encouraging health check</strong> of their safety, with a steer on where to improve.</li>
+          <li><strong>A reason to be proud</strong>, and a story to tell their guests and owners.</li>
+        </ul>
+      </section>
+
+      <section>
+        <div class="cta">
+          <h2>The standard we would align to</h2>
+          <p>For reference, here is the RoSPA Awards entry point again, so you can see exactly the standard this idea is built around:</p>
+          <p><a class="btn" href="https://www.rospa.com/awards" target="_blank" rel="noopener">Visit the RoSPA Awards</a></p>
+          <p style="margin-bottom:0;margin-top:18px;">If the idea appeals, the second tab sets out the simple ways Omnibosh could help make it happen.</p>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- TAB 2 -->
+  <div id="p2" class="panel">
+    <div class="wrap">
+
+      <section>
+        <h2>How Omnibosh could help</h2>
+        <p class="lead">Nothing here needs deciding now, and there is nothing to sign. If the safety idea appeals, these are simply the ways Omnibosh could lend a hand. All of it is optional, and entirely yours to shape or to set aside.</p>
+      </section>
+
+      <section>
+        <div class="offer">
+          <h3>A ready made platform, fully your brand</h3>
+          <p>You mentioned the submission platform was still on the to do list. If that is a job you would rather not take on, you would be very welcome to use ours. It would carry the Holiday Park Awards name and be branded entirely as your own, the platform parks see and use from start to finish. Behind the scenes it runs on our proven SafeAwards engine, but to you and to every entrant it is simply the Holiday Park Awards: one place to receive, review and assess each entry, with your own access and full control. It would be offered as a genuine gift to the awards, at no cost and with no catch. And if you would rather build your own, that is completely fine too.</p>
+          <p style="margin-top:13px;font-size:15px;color:var(--ink-soft);"><strong style="color:var(--ink);">All we would need from you:</strong> the award sectors and categories, the question sets, any evidence you would like entrants to provide, and how you would like it delivered for assessment. With that, we build the rest, and you could send a single link to all your entrants, with every submission flowing back into one place, ready to review.</p>
+        </div>
+
+        <div class="offer">
+          <h3>The safety side, at whatever pace feels right</h3>
+          <p>The safety assessment itself stays positive and never exposing, and would feed Holiday Park of the Year. It opens a door for parks to genuine RoSPA recognition and the insurance benefits that come with strong, evidenced safety. It can be introduced gently, whenever the time feels right for you and for the parks.</p>
+        </div>
+
+        <div class="offer opt">
+          <h3>Sponsorship, quite separately</h3>
+          <p>And entirely separately, I would be glad to come on board as a sponsor at whatever level suits. I simply did not want that to overshadow the rest, because the platform and the safety help are offered freely either way.</p>
+        </div>
+      </section>
+
+      <section>
+        <div class="reassure">
+          <h3>So there are no surprises</h3>
+          <p>You would keep your brand, your categories and every final decision. Anything we set up would be yours to control and held securely. The safety assessment is ours to run, so it is no extra work on your plate. And nothing is locked in at any stage. This is help offered openly, in the spirit of supporting what you have built, not a deal to be tied into.</p>
+        </div>
+      </section>
+
+      <section>
+        <p>Have a read of the safety overview in the first tab whenever you have a moment. If any of this feels useful, we can talk it through on a call, at your pace. And if the timing is not right just now, that is absolutely fine too.</p>
+      </section>
+
+    </div>
+  </div>
+
+  <footer>
+    <div class="wrap">
+      <p class="sign">Omnibosh Safety &amp; SafeSystems.PRO</p>
+      <p class="foot-meta">Motivating, guiding and celebrating holiday parks to be safer for all. &middot; omnibosh.com &middot; safepark.pro &middot; June 2026</p>
+    </div>
+  </footer>
+
+<script>
+  function showTab(id, btn){
+    document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+    document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+</script>
+</body>
+</html>
