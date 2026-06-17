@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SafeAwards.PRO — RoSPA-aligned Safety Excellence Assessment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+
+<!-- ============================================================
+     SafeAwards.PRO  —  module on SafeSystems.PRO
+     System-agnostic submission & assessment layer.
+     v1.0  •  surgical/additive standalone module
+     IP NOTE: criteria are Omnibosh's own park-specific wording,
+              modelled on (not copied from) the RoSPA Achievement
+              Award framework.
+     INDEPENDENCE: automated score is INDICATIVE only until a named
+              human sign-off is recorded; conflicts must be declared.
+     ============================================================ -->
+
+<style>
+:root{
+  /* Midnight Pro */
+  --bg:#0c0f18;
+  --surface:#141926;
+  --surface-2:#1a2030;
+  --line:#26304a;
+  --text:#e8ecf4;
+  --text-dim:#9aa6c0;
+  --text-faint:#5e6a86;
+
+  --primary:#d96c33;        /* platform burnt orange */
+  --primary-soft:rgba(217,108,51,.14);
+
+  --accent:#e0a83a;         /* SafeAwards module accent — gold */
+  --accent-soft:rgba(224,168,58,.12);
+  --accent-line:rgba(224,168,58,.45);
+
+  --ok:#3fae7a;
+  --warn:#e0a83a;
+  --bad:#d65b54;
+
+  --radius:6px;             /* sharp technical */
+  --rail:74px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:'DM Sans',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(900px 500px at 88% -8%, rgba(217,108,51,.07), transparent 60%),
+    radial-gradient(800px 500px at -6% 6%, rgba(224,168,58,.05), transparent 55%);
+}
+h1,h2,h3,h4,.brand,.btn,.tier-name,.score{font-family:'Outfit',sans-serif}
+button{font-family:inherit;cursor:pointer}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px}
+
+/* ---------- layout ---------- */
+.app{display:flex;min-height:100vh}
+
+/* Icon Rail Sidebar */
+.rail{
+  width:var(--rail);flex:0 0 var(--rail);
+  background:var(--surface);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;align-items:center;
+  padding:14px 0;gap:6px;position:sticky;top:0;height:100vh;z-index:40;
+}
+.rail .logo{
+  width:42px;height:42px;border-radius:8px;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Outfit';font-weight:800;color:#0c0f18;font-size:20px;margin-bottom:10px;
+}
+.rail .nav-btn{
+  width:48px;height:48px;border:none;border-radius:var(--radius);
+  background:transparent;color:var(--text-faint);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;font-size:10px;font-weight:600;transition:.15s;
+}
+.rail .nav-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7}
+.rail .nav-btn:hover{color:var(--text-dim);background:var(--surface-2)}
+.rail .nav-btn.active{color:var(--accent);background:var(--accent-soft)}
+
+/* main */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{
+  display:flex;align-items:center;gap:16px;
+  padding:16px 26px;border-bottom:1px solid var(--line);
+  background:rgba(20,25,38,.6);backdrop-filter:blur(8px);position:sticky;top:0;z-index:30;
+}
+.topbar .crumb{font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.topbar h1{font-size:21.5px;font-weight:700;letter-spacing:-.01em}
+.topbar .park-tag{margin-left:auto;font-size:14.5px;color:var(--text-dim)}
+.topbar .park-tag b{color:var(--text)}
+
+.content{padding:26px;max-width:1080px;width:100%;margin:0 auto;flex:1}
+.view{display:none;animation:fade .25s ease}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* cards: glass + full accent border */
+.card{
+  background:linear-gradient(180deg,rgba(26,32,48,.85),rgba(20,25,38,.85));
+  border:1px solid var(--accent-line);
+  border-radius:var(--radius);
+  padding:20px 22px;margin-bottom:16px;
+  box-shadow:0 1px 0 rgba(255,255,255,.02) inset, 0 10px 30px -18px rgba(0,0,0,.7);
+}
+.card h2{font-size:18px;margin-bottom:4px}
+.card .sub{color:var(--text-dim);font-size:14.5px;margin-bottom:14px}
+
+/* buttons */
+.btn{
+  border:1px solid var(--line);background:var(--surface-2);color:var(--text);
+  padding:10px 16px;border-radius:var(--radius);font-size:14.5px;font-weight:600;
+  display:inline-flex;align-items:center;gap:8px;transition:.15s;
+}
+.btn:hover{border-color:var(--accent-line)}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:#10131c;font-weight:700}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn.gold{background:var(--accent);border-color:var(--accent);color:#1a130a;font-weight:700}
+.btn.ghost{background:transparent}
+.btn.sm{padding:7px 12px;font-size:13.5px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+label{display:block;font-size:13.5px;color:var(--text-dim);margin-bottom:6px;font-weight:600}
+input[type=text],input[type=number],input[type=date],textarea,select{
+  width:100%;background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);
+  color:var(--text);padding:10px 12px;font:inherit;font-size:14.5px;
+}
+textarea{min-height:84px;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent-line)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+
+/* banner */
+.banner{border-radius:var(--radius);padding:12px 16px;font-size:14.5px;margin-bottom:16px;display:flex;gap:10px;align-items:flex-start}
+.banner.info{background:var(--primary-soft);border:1px solid rgba(217,108,51,.4)}
+.banner.warn{background:rgba(224,168,58,.10);border:1px solid var(--accent-line);color:#f0d79a}
+.banner.bad{background:rgba(214,91,84,.12);border:1px solid rgba(214,91,84,.5);color:#f2b3ae}
+.banner b{color:var(--text)}
+
+/* dashboard gauge */
+.dash-grid{display:grid;grid-template-columns:300px 1fr;gap:16px}
+.gauge-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.gauge{position:relative;width:200px;height:200px}
+.gauge svg{transform:rotate(-90deg)}
+.gauge .pct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gauge .pct .num{font-family:'Outfit';font-size:51.5px;font-weight:800;line-height:1}
+.gauge .pct .lbl{font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-faint)}
+.tier-name{font-size:24.5px;font-weight:800;margin-top:12px}
+.tier-map{font-size:13.5px;color:var(--text-dim);margin-top:2px}
+
+.domain-bars{display:flex;flex-direction:column;gap:9px}
+.dbar{display:grid;grid-template-columns:1fr 130px 30px;gap:10px;align-items:center;font-size:14.5px}
+.dbar .track{height:8px;background:var(--bg);border-radius:6px;overflow:hidden}
+.dbar .fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:6px;transition:width .4s}
+.dbar .v{text-align:right;font-family:'Outfit';font-weight:700;color:var(--text-dim)}
+
+/* domain cards */
+.domain{border:1px solid var(--line);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;background:var(--surface)}
+.domain.touched{border-color:var(--accent-line)}
+.domain .head{display:flex;align-items:center;gap:14px;padding:15px 18px;cursor:pointer}
+.domain .num{width:30px;height:30px;flex:0 0 30px;border-radius:var(--radius);background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-family:'Outfit';font-weight:700;font-size:15.5px;color:var(--accent)}
+.domain .head .t{flex:1}
+.domain .head .t h3{font-size:15.5px;font-weight:600}
+.domain .head .t .q{font-size:13.5px;color:var(--text-faint)}
+.domain .head .chip{font-size:12.5px;padding:4px 9px;border-radius:20px;border:1px solid var(--line);color:var(--text-dim);white-space:nowrap}
+.domain .head .chevron{color:var(--text-faint);transition:.2s}
+.domain.open .chevron{transform:rotate(180deg)}
+.domain .body{display:none;padding:0 18px 18px 62px;border-top:1px solid var(--line)}
+.domain.open .body{display:block}
+.guide{font-size:13.5px;color:var(--text-dim);background:var(--bg);border-left:2px solid var(--accent);padding:9px 12px;border-radius:0 var(--radius) var(--radius) 0;margin:14px 0}
+.maturity{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.mat-opt{flex:1;min-width:120px;border:1px solid var(--line);border-radius:var(--radius);padding:9px 10px;font-size:13.5px;text-align:center;transition:.15s;background:var(--bg)}
+.mat-opt b{display:block;font-family:'Outfit';font-size:14.5px;margin-bottom:2px}
+.mat-opt.sel{border-color:var(--accent);background:var(--accent-soft);color:#f0d79a}
+.evidence-list{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.ev{display:flex;align-items:center;gap:8px;font-size:13.5px;background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:7px 10px}
+.ev a{color:var(--accent);text-decoration:none}
+.ev .x{margin-left:auto;color:var(--text-faint);cursor:pointer}
+.ev-wrap{margin-bottom:6px}
+.aibox{background:var(--bg);border:1px solid var(--accent-line);border-radius:0 0 var(--radius) var(--radius);border-top:none;padding:11px 13px;margin-top:-2px;font-size:13.5px}
+.aihd{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.aiscore{font-family:'Outfit';font-weight:800;font-size:20px;color:var(--accent)}
+.airat{color:var(--text-dim);margin-bottom:8px}
+.aiseg{margin-bottom:6px}
+.aiseg b{display:block;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-faint);margin-bottom:3px}
+.aiseg ul{margin:0;padding-left:18px;color:var(--text-dim)}
+.aiseg li{margin-bottom:2px}
+.airef{font-size:12.5px;color:var(--text-faint);margin-top:4px}
+.tier{padding:3px 9px;border-radius:20px;font-size:12.5px;font-weight:700;font-family:'Outfit'}
+.tier.gold,.tier.exemplar{background:rgba(224,168,58,.18);color:#e9c468}
+.tier.silver,.tier.established{background:rgba(190,200,220,.16);color:#cdd6e6}
+.tier.bronze,.tier.progressing{background:rgba(190,120,70,.18);color:#d79a72}
+.tier.merit,.tier.foundation{background:rgba(120,140,170,.16);color:#aeb9cc}
+
+/* data tables */
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}
+th{font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-faint);font-weight:700}
+td input{padding:6px 8px}
+.pop-tag{font-weight:600;color:var(--text)}
+
+/* submission */
+.signoff{background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.toggle{display:flex;align-items:center;gap:10px;font-size:14.5px;cursor:pointer;color:var(--text-dim)}
+.toggle input{width:auto}
+
+/* save bar */
+.savebar{position:sticky;bottom:0;background:rgba(12,15,24,.92);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:12px 26px;display:flex;align-items:center;gap:12px;z-index:25}
+.savebar .status{font-size:13.5px;color:var(--text-faint);margin-right:auto}
+
+@media(max-width:820px){
+  :root{--rail:0px}
+  .rail{position:fixed;bottom:0;top:auto;left:0;right:0;width:100%;height:60px;flex-direction:row;justify-content:space-around;border-right:none;border-top:1px solid var(--line);padding:0}
+  .rail .logo{display:none}
+  .rail .nav-btn{width:auto;flex:1;height:60px;border-radius:0}
+  .main{padding-bottom:60px}
+  .dash-grid{grid-template-columns:1fr}
+  .row,.row3{grid-template-columns:1fr}
+  .content{padding:18px}
+  .domain .body{padding-left:18px}
+}
+.entry-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:10px;background:var(--surface-2)}
+.entry-row .ed{flex:1;min-width:200px}
+.entry-row .ep{font-family:'Outfit';font-weight:700;font-size:17px}
+.entry-row .em{font-size:13.5px;color:var(--text-faint);margin-top:2px}
+.entry-row .badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px;align-items:center}
+.st{font-size:12.5px;font-weight:700;font-family:'Outfit';padding:3px 9px;border-radius:20px;letter-spacing:.02em}
+.st.pending{background:rgba(224,168,58,.16);color:#e9c468}
+.st.signed-off{background:rgba(63,174,122,.18);color:#5fcf9b}
+.st.submitted{background:rgba(120,140,170,.18);color:#aeb9cc}
+.bdg{font-size:12.5px;color:var(--text-dim);background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:2px 9px}
+.entries-empty{color:var(--text-faint);font-size:14.5px;padding:8px 2px}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ICON RAIL -->
+  <nav class="rail">
+    <div class="logo">SA</div>
+    <button class="nav-btn active" data-view="dash">
+      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3zM13 21h8V8h-8zM3 21h8v-6H3z"/></svg>Home</button>
+    <button class="nav-btn" data-view="entries">
+      <svg viewBox="0 0 24 24"><path d="M3 5h13M3 12h13M3 19h9M19 5l2 2-2 2M19 12l2 2-2 2"/></svg>Entries</button>
+    <button class="nav-btn" data-view="assess">
+      <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Assess</button>
+    <button class="nav-btn" data-view="data">
+      <svg viewBox="0 0 24 24"><path d="M3 3v18h18M7 16l4-6 3 4 5-8"/></svg>Data</button>
+    <button class="nav-btn" data-view="submit">
+      <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg>Submit</button>
+    <button class="nav-btn" data-view="setup">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-2.7 1.1V21a2 2 0 01-4 0v-.1A1.6 1.6 0 005 19.4l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00-1.1-2.7H1a2 2 0 010-4h.1A1.6 1.6 0 002.6 5l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 001.8.3H9a1.6 1.6 0 001-1.5V1a2 2 0 014 0v.1A1.6 1.6 0 0019 2.6l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 00-.3 1.8V9a1.6 1.6 0 001.5 1H23a2 2 0 010 4h-.1a1.6 1.6 0 00-1.5 1z"/></svg>Setup</button>
+  </nav>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="crumb">SafeAwards.PRO</div>
+        <h1 id="viewTitle">Readiness Overview</h1>
+      </div>
+      <div class="park-tag">Entrant: <b id="parkTag">—</b></div>
+    </div>
+
+    <div class="content">
+
+      <!-- ============ DASHBOARD ============ -->
+      <section class="view active" id="view-dash">
+        <div id="conflictBanner"></div>
+        <div id="gateBanner"></div>
+        <div class="card">
+          <div class="dash-grid">
+            <div class="gauge-wrap">
+              <div class="gauge">
+                <svg width="200" height="200" viewBox="0 0 200 200">
+                  <circle cx="100" cy="100" r="86" stroke="#1a2030" stroke-width="16" fill="none"/>
+                  <circle id="gaugeArc" cx="100" cy="100" r="86" stroke="url(#g)" stroke-width="16" fill="none" stroke-linecap="round" stroke-dasharray="540" stroke-dashoffset="540"/>
+                  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d96c33"/><stop offset="1" stop-color="#e0a83a"/></linearGradient></defs>
+                </svg>
+                <div class="pct"><span class="num" id="gaugePct">0</span><span class="lbl">% readiness</span></div>
+              </div>
+              <div class="tier-name" id="tierName">Not started</div>
+              <div class="tier-map" id="tierMap">Indicative RoSPA Award readiness</div>
+              <div id="aiReadout" style="margin-top:12px"></div>
+            </div>
+            <div>
+              <h2>Domain readiness</h2>
+              <p class="sub">Self-assessed maturity across the eleven safety-management themes.</p>
+              <div class="domain-bars" id="domainBars"></div>
+            </div>
+          </div>
+        </div>
+        <div class="banner info">
+          <b>How this works:&nbsp;</b> SafeAwards is system-agnostic — any park, on any platform, can complete it. Your score here is <b>indicative readiness only</b>. A named human sign-off (Submit tab) and an independent awarding decision turn readiness into recognition.
+        </div>
+      </section>
+
+      <!-- ============ ENTRIES ============ -->
+      <section class="view" id="view-entries">
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div>
+              <h2>Holiday Park Awards entries</h2>
+              <p class="sub" style="margin:0">Safety entries submitted through the applicant link. Open one to review it, run the engine, and record sign-off.</p>
+            </div>
+            <button class="btn" id="entriesRefresh" style="margin-left:auto">↻ Refresh</button>
+          </div>
+          <div id="entriesList" style="margin-top:16px"><p class="entries-empty">Loading entries…</p></div>
+        </div>
+        <div class="banner info">
+          <b>Independence:&nbsp;</b> the applicant only describes and evidences their practice. Scoring and the named sign-off happen here, by the reviewer, never by the entrant.
+        </div>
+      </section>
+
+      <!-- ============ ASSESSMENT ============ -->
+      <section class="view" id="view-assess">
+        <div class="card">
+          <h2>Safety management assessment</h2>
+          <p class="sub">Eleven themes modelled on the RoSPA Achievement framework, written for the holiday-park sector. Answer each, set a maturity level, and attach evidence. Drafts autosave.</p>
+        </div>
+        <div id="domainContainer"></div>
+        <div class="card" id="beyondCard">
+          <label class="toggle" style="margin-bottom:10px"><input type="checkbox" id="beyondToggle"/> Include the optional <b style="color:var(--text)">&nbsp;Safe @ Home&nbsp;</b> strand (health &amp; safety beyond the workplace)</label>
+          <div id="beyondBody" style="display:none">
+            <label>Describe work, initiatives or campaigns protecting team members' health and safety during their non-work time.</label>
+            <textarea id="beyondText" placeholder="e.g. seasonal road-safety campaign for staff commuting on rural roads, home water-safety guidance for live-in staff…"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ DATA ============ -->
+      <section class="view" id="view-data">
+        <div class="card">
+          <h2>Accident, ill-health &amp; enforcement data</h2>
+          <p class="sub">Reference period: the full prior calendar year. Captured across the three populations RoSPA requires — and the backbone of the sector dataset.</p>
+          <table>
+            <thead><tr><th>Measure</th><th>Team members</th><th>Contractors / sub-contractors</th><th>Members of the public</th></tr></thead>
+            <tbody id="dataBody"></tbody>
+          </table>
+        </div>
+        <div class="banner warn" id="gateNote">
+          <b>Note on higher tiers:&nbsp;</b> any fatal or major injury due to employer negligence, or significant enforcement (prosecution / notice), caps indicative readiness — exactly as RoSPA's judging treats it. Record honestly; the cap is a feature, not a penalty.
+        </div>
+      </section>
+
+      <!-- ============ SUBMIT ============ -->
+      <section class="view" id="view-submit">
+        <div class="card">
+          <h2>Independence &amp; sign-off</h2>
+          <p class="sub">The score is automated and consistent; recognition requires a named person to stand behind it, and any conflict declared.</p>
+          <label class="toggle" style="margin:6px 0 14px"><input type="checkbox" id="conflictChk"/> Omnibosh (or the assessor) has provided paid consultancy to this park</label>
+          <div id="conflictNotesWrap" style="display:none;margin-bottom:14px">
+            <label>Declared conflict — how independence is preserved (e.g. independent reviewer, recusal)</label>
+            <textarea id="conflictNotes" placeholder="Describe the safeguard applied so the assessment cannot be called a self-marked fix."></textarea>
+          </div>
+          <div class="signoff">
+            <div class="row3">
+              <div><label>Assessor name</label><input type="text" id="soName" placeholder="Full name"/></div>
+              <div><label>Role</label><input type="text" id="soRole" placeholder="e.g. Independent reviewer"/></div>
+              <div><label>Date</label><input type="date" id="soDate"/></div>
+            </div>
+            <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn gold" id="signBtn">Record sign-off</button>
+              <span id="soStatus" style="font-size:13.5px;color:var(--text-faint);align-self:center"></span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Submission pack</h2>
+          <p class="sub">Compiles every response, score and evidence reference into a structured pack mapped to the RoSPA criteria headings — a copy-across into a full RoSPA Award entry, not a fresh start.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn primary" id="genPackBtn">Generate submission pack</button>
+            <button class="btn" id="markSubmittedBtn">Mark as submitted</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SETUP ============ -->
+      <section class="view" id="view-setup">
+        <div class="card">
+          <h2>Entrant details</h2>
+          <p class="sub">Who is being assessed, and on which system — so the express lane and the sector dataset are tagged correctly.</p>
+          <div class="row">
+            <div><label>Park / site name</label><input type="text" id="fPark" placeholder="Park name"/></div>
+            <div><label>Operator</label><input type="text" id="fOperator" placeholder="Operating company"/></div>
+          </div>
+          <div class="row" style="margin-top:14px">
+            <div><label>Contact name</label><input type="text" id="fContact" placeholder="Lead contact"/></div>
+            <div><label>Contact email</label><input type="text" id="fEmail" placeholder="email@…"/></div>
+          </div>
+          <div class="row" style="margin-top:14px">
+            <div><label>Reference (calendar) year</label><input type="number" id="fYear" placeholder="2025"/></div>
+            <div><label>Platform the park runs on</label>
+              <select id="fSystem">
+                <option value="">Select…</option>
+                <option>SafeSystems.PRO (express lane)</option>
+                <option>Other compliance platform</option>
+                <option>Spreadsheets / manual</option>
+                <option>No formal system</option>
+              </select>
+            </div>
+          </div>
+          <div id="expressNote" style="display:none;margin-top:14px" class="banner info">
+            <b>Express lane:&nbsp;</b> this park is on SafeSystems.PRO — once connected, evidence can be pulled through automatically rather than re-uploaded. (Auto-pull wiring is a later step; manual upload works now.)
+          </div>
+        </div>
+        <div class="card">
+          <h2>AI assessment engine</h2>
+          <p class="sub">The engine analyses each piece of evidence against OSH good practice and proposes an indicative score. It runs through your Cloud Function — the API key never touches this page. Paste the function URL to switch it on.</p>
+          <label>Cloud Function endpoint (analyzeEvidence)</label>
+          <input type="text" id="fAiEndpoint" placeholder="https://&lt;region&gt;-safepark-pro.cloudfunctions.net/analyzeEvidence"/>
+          <div class="banner warn" style="margin-top:14px">
+            <b>Indicative only.&nbsp;</b> The AI score sits alongside the self-assessment. The named human sign-off remains the gate, and the awarding decision stays with RoSPA / the Holiday Park Awards.
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /content -->
+
+    <div class="savebar">
+      <span class="status" id="saveStatus">Working locally — connect Firebase to persist.</span>
+      <button class="btn sm ghost" id="newBtn">New submission</button>
+      <button class="btn sm primary" id="saveBtn">Save to cloud</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase (compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<script>
+/* ============================================================
+   FIREBASE CONFIG
+   ⚠️  Replace this whole object with the firebaseConfig block
+       copied verbatim from maintenance.html (or any live module)
+       so the apiKey / storageBucket match exactly.
+       Known-good values are pre-filled below.
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+  authDomain: "safepark-pro.firebaseapp.com",
+  projectId: "safepark-pro",
+  storageBucket: "safepark-pro.firebasestorage.app", // confirm: .appspot.com on older projects
+  messagingSenderId: "511221743341",
+  appId: "1:511221743341:web:95bec7e83d4861578016e4"
+};
+
+let db=null, storage=null, fbReady=false, authReady=Promise.resolve();
+try{
+  if(firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith("PASTE")){
+    firebase.initializeApp(firebaseConfig);
+    db=firebase.firestore();
+    storage=firebase.storage();
+    fbReady=true;
+    authReady=firebase.auth().signInAnonymously().catch(e=>console.warn('Auth:',e&&e.message));
+    setStatus("Connected to SafeSystems.PRO cloud.");
+  } else {
+    setStatus("Preview mode — paste the apiKey to enable cloud save.");
+  }
+}catch(e){ console.warn("Firebase init skipped:",e); setStatus("Preview mode — Firebase not connected."); }
+
+/* ============================================================
+   DOMAIN DEFINITIONS — Omnibosh's own wording (IP-clean),
+   modelled on the RoSPA Achievement Award themes.
+   ============================================================ */
+const DOMAINS=[
+ {id:"d1", t:"Leadership & direction",
+  q:"How do owners, directors and senior managers visibly lead on safety?",
+  guide:"Look for genuine ownership at the top: time spent, decisions made, resources committed, and the tone set for the whole park."},
+ {id:"d2", t:"Competent support",
+  q:"How does the park secure competent health, safety and occupational-health advice?",
+  guide:"Internal competence, external advisers, and access to occupational health — and how that advice actually reaches operations."},
+ {id:"d3", t:"Team engagement",
+  q:"How are team members and their representatives involved, and what difference has it made?",
+  guide:"Two-way involvement, not just briefings. Evidence of changes that came from the team itself."},
+ {id:"d4", t:"Competence & contractors",
+  q:"How do you ensure team members and contractors are competent? How are contractors selected and monitored?",
+  guide:"Induction, training records, and a clear approach to choosing, approving and checking contractors on site."},
+ {id:"d5", t:"Risk assessment & planning",
+  q:"How does risk assessment identify controls for your significant hazards, and shape planning?",
+  guide:"Significant park hazards — water, gas, vehicles, play areas, public access — and how assessments drive both day-to-day and longer-term plans."},
+ {id:"d6", t:"Communication",
+  q:"How is safety information shared across the park, with guests and contractors, and beyond?",
+  guide:"Internal flow plus the public-facing dimension unique to parks: guests unfamiliar with site risks."},
+ {id:"d7", t:"Slips, trips & falls",
+  q:"What are you doing to prevent slips, trips and falls across the site?",
+  guide:"The single most common harm in the sector. Surfaces, lighting, steps, wet areas, seasonal conditions. (Feeds the Fall Prevention strand.)"},
+ {id:"d8", t:"Active monitoring",
+  q:"How do you actively monitor and measure safety performance, and how is that evolving?",
+  guide:"Leading indicators, inspections, audits — proactive checks rather than only counting what has already gone wrong."},
+ {id:"d9", t:"Investigation & wellbeing",
+  q:"How do you investigate incidents and apply lessons learnt? How is sickness absence managed?",
+  guide:"Root-cause focus, evidence of change after events, and a humane, structured approach to absence and health."},
+ {id:"d10", t:"Review & improvement",
+  q:"How is performance reviewed against targets, and how do results feed business planning?",
+  guide:"Periodic review, fresh priorities, and a visible loop back into how the business is run and resourced."},
+ {id:"d11", t:"Standout learning",
+  q:"Reflecting on the year, what one learning point stands out above all others?",
+  guide:"A single, honest reflection — the thing that genuinely shifted thinking this year."}
+];
+
+const MATURITY=[
+ {v:0,name:"Not in place",d:"Little or nothing yet"},
+ {v:1,name:"Developing",d:"Started, informal"},
+ {v:2,name:"Established",d:"In place, documented"},
+ {v:3,name:"Embedded",d:"Consistent, evidenced"},
+ {v:4,name:"Leading",d:"Drives improvement"}
+];
+
+const DATA_ROWS=[
+ {id:"exposure", label:"Exposure (hours worked / headcount)"},
+ {id:"riddor", label:"RIDDOR-reportable injuries"},
+ {id:"minor", label:"Other (non-reportable) injuries"},
+ {id:"illhealth", label:"Work-related ill-health cases"},
+ {id:"nearmiss", label:"Near misses recorded"},
+ {id:"major_negligent", label:"Fatal / major injuries — employer culpable"},
+ {id:"notices", label:"Enforcement notices"},
+ {id:"prosecutions", label:"Prosecutions"}
+];
+
+const POPS=["team","contractor","public"];
+
+/* ---------- state ---------- */
+let S = blankState();
+function blankState(){
+  const responses={}; DOMAINS.forEach(d=>responses[d.id]={text:"",score:null,evidence:[]});
+  const data={}; DATA_ROWS.forEach(r=>{data[r.id]={};POPS.forEach(p=>data[r.id][p]="")});
+  return {
+    id:null, park:"", operator:"", contact:"", email:"", year:"", system:"", aiEndpoint:"",
+    responses, data, beyond:{on:false,text:""},
+    conflict:{declared:false,notes:""},
+    signoff:{name:"",role:"",date:""},
+    status:"draft", createdAt:Date.now(), updatedAt:Date.now()
+  };
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function setStatus(t){ const el=document.getElementById('saveStatus'); if(el) el.textContent=t; }
+
+function renderDomains(){
+  const c=document.getElementById('domainContainer'); c.innerHTML='';
+  DOMAINS.forEach((d,i)=>{
+    const r=S.responses[d.id];
+    const touched = r.text || r.score!==null || r.evidence.length;
+    const chip = r.score!==null ? MATURITY[r.score].name : 'Not answered';
+    const el=document.createElement('div');
+    el.className='domain'+(touched?' touched':'');
+    el.innerHTML=`
+      <div class="head" onclick="this.parentNode.classList.toggle('open')">
+        <div class="num">${i+1}</div>
+        <div class="t"><h3>${d.t}</h3><div class="q">${d.q}</div></div>
+        <div class="chip">${chip}</div>
+        <div class="chevron">▾</div>
+      </div>
+      <div class="body">
+        <div class="guide">${d.guide}</div>
+        <label>Your response</label>
+        <textarea data-d="${d.id}" class="d-text" placeholder="Describe your approach and the difference it makes…">${r.text}</textarea>
+        <div style="margin-top:8px"><button class="btn sm ghost d-analyse-answer" data-d="${d.id}">${r.answerAnalysis?'Re-analyse answer':'✨ Analyse answer'}</button></div>
+        <div class="answer-ai" data-d="${d.id}">${aiPanel(r.answerAnalysis,r.answerAnalysing)}</div>
+        <label style="margin-top:12px">Maturity</label>
+        <div class="maturity">
+          ${MATURITY.map(m=>`<div class="mat-opt${r.score===m.v?' sel':''}" data-d="${d.id}" data-v="${m.v}"><b>${m.name}</b>${m.d}</div>`).join('')}
+        </div>
+        <label>Evidence</label>
+        <div class="evidence-list" id="ev-${d.id}">${r.evidence.map((e,idx)=>evRow(d.id,e,idx)).join('')}</div>
+        <button class="btn sm ghost" style="margin-top:8px" onclick="document.getElementById('file-${d.id}').click()">+ Attach evidence</button>
+        <input type="file" id="file-${d.id}" style="display:none" data-d="${d.id}" class="d-file" multiple/>
+      </div>`;
+    c.appendChild(el);
+  });
+  bindDomainEvents();
+  renderDashboard();
+}
+function aiPanel(a,analysing){
+  if(analysing) return `<div class="aibox"><i style="color:var(--text-dim)">Analysing against OSH good practice…</i></div>`;
+  if(!a) return '';
+  const tier=(a.tier||'').toLowerCase();
+  return `<div class="aibox">
+      <div class="aihd"><span class="aiscore">${a.score??'–'}%</span><span class="tier ${tier}">${a.tier||''}</span>
+        <span style="color:var(--text-dim);font-size:13.5px">${a.standardMet?'Standard met':'Below standard'}</span></div>
+      ${a.rationale?`<p class="airat">${a.rationale}</p>`:''}
+      ${a.gaps&&a.gaps.length?`<div class="aiseg"><b>Gaps</b><ul>${a.gaps.map(g=>`<li>${g}</li>`).join('')}</ul></div>`:''}
+      ${a.solutions&&a.solutions.length?`<div class="aiseg"><b>Suggested fixes</b><ul>${a.solutions.map(s=>`<li>${s}</li>`).join('')}</ul></div>`:''}
+      ${a.standardsReferenced&&a.standardsReferenced.length?`<div class="airef">Ref: ${a.standardsReferenced.join(' · ')}</div>`:''}
+    </div>`;
+}
+function evRow(did,e,idx){
+  const link=e.url?`<a href="${e.url}" target="_blank">${e.name}</a>`:`<span>${e.name} <i style="color:var(--text-faint)">(local — upload to cloud to analyse)</i></span>`;
+  const a=e.analysis;
+  const panel=aiPanel(a,e.analysing);
+  return `<div class="ev-wrap"><div class="ev">📎 ${link}
+    <button class="btn sm ghost d-analyse" data-d="${did}" data-i="${idx}" style="margin-left:auto">${a?'Re-analyse':'Analyse'}</button>
+    <span class="x" data-d="${did}" data-i="${idx}">✕</span></div>${panel}</div>`;
+}
+
+function bindDomainEvents(){
+  document.querySelectorAll('.d-text').forEach(t=>t.oninput=e=>{S.responses[e.target.dataset.d].text=e.target.value;touch();});
+  document.querySelectorAll('.mat-opt').forEach(o=>o.onclick=e=>{
+    const t=e.currentTarget; S.responses[t.dataset.d].score=+t.dataset.v; touch(); renderDomains();
+  });
+  document.querySelectorAll('.d-file').forEach(f=>f.onchange=e=>handleUpload(e.target.dataset.d,e.target.files));
+  document.querySelectorAll('.ev .x').forEach(x=>x.onclick=e=>{
+    const{d,i}=e.target.dataset; S.responses[d].evidence.splice(+i,1); touch(); renderDomains();
+  });
+  document.querySelectorAll('.d-analyse').forEach(b=>b.onclick=e=>analyzeEvidence(e.target.dataset.d,+e.target.dataset.i));
+  document.querySelectorAll('.d-analyse-answer').forEach(b=>b.onclick=e=>analyzeAnswer(e.currentTarget.dataset.d));
+}
+
+async function analyzeEvidence(did,idx){
+  const ev=S.responses[did].evidence[idx];
+  if(!S.aiEndpoint){ alert('Add the AI Cloud Function endpoint on the Setup tab first.'); return; }
+  const dom=DOMAINS.find(d=>d.id===did);
+  ev.analysing=true; renderDomains();
+  try{
+    const payload={
+      submissionId:S.id, domainId:did, domainTitle:dom.t, domainQuestion:dom.q,
+      selfScore:S.responses[did].score,
+      evidence: ev.storagePath ? {storagePath:ev.storagePath,name:ev.name}
+                : {text:S.responses[did].text||ev.name, name:ev.name}
+    };
+    const res=await fetch(S.aiEndpoint,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
+    const data=await res.json();
+    if(data.error){ throw new Error(data.error); }
+    ev.analysis=data; ev.analysing=false; touch(); renderDomains();
+  }catch(err){
+    ev.analysing=false; ev.analysis=null; renderDomains();
+    alert('Analysis failed: '+(err.message||err));
+  }
+}
+
+async function analyzeAnswer(did){
+  if(!S.aiEndpoint){ alert('Add the AI Cloud Function endpoint on the Setup tab first.'); return; }
+  const r=S.responses[did];
+  if(!r.text||!r.text.trim()){ alert('There is no written answer to analyse for this question yet.'); return; }
+  const dom=DOMAINS.find(d=>d.id===did);
+  r.answerAnalysing=true; renderDomains();
+  try{
+    const payload={
+      submissionId:S.id, domainId:did, domainTitle:dom.t, domainQuestion:dom.q,
+      selfScore:r.score, evidence:{text:r.text,name:'Written answer'}
+    };
+    const res=await fetch(S.aiEndpoint,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
+    const data=await res.json();
+    if(data.error){ throw new Error(data.error); }
+    r.answerAnalysis=data; r.answerAnalysing=false; touch(); renderDomains();
+  }catch(err){
+    r.answerAnalysing=false; renderDomains();
+    alert('Analysis failed: '+(err.message||err));
+  }
+}
+
+async function handleUpload(did,files){
+  await authReady;
+  for(const file of files){
+    if(fbReady && S.id){
+      try{
+        const path=`safeawards/${S.id}/${did}/${Date.now()}_${file.name}`;
+        const ref=storage.ref(path);
+        await ref.put(file);
+        const url=await ref.getDownloadURL();
+        S.responses[did].evidence.push({name:file.name,url,storagePath:path});
+      }catch(err){ console.warn(err); S.responses[did].evidence.push({name:file.name,url:null}); }
+    } else {
+      S.responses[did].evidence.push({name:file.name,url:null});
+    }
+  }
+  touch(); renderDomains();
+}
+
+function renderDataTable(){
+  const b=document.getElementById('dataBody'); b.innerHTML='';
+  DATA_ROWS.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="pop-tag">${r.label}</td>`+
+      POPS.map(p=>`<td><input type="number" min="0" data-r="${r.id}" data-p="${p}" value="${S.data[r.id][p]}"/></td>`).join('');
+    b.appendChild(tr);
+  });
+  b.querySelectorAll('input').forEach(i=>i.oninput=e=>{S.data[e.target.dataset.r][e.target.dataset.p]=e.target.value;touch();renderDashboard();});
+}
+
+/* ---------- scoring ---------- */
+function computeScore(){
+  let sum=0,answered=0;
+  DOMAINS.forEach(d=>{const s=S.responses[d.id].score; if(s!==null){sum+=s;answered++;}});
+  const pct=Math.round((sum/(DOMAINS.length*4))*100);
+  return {pct,answered};
+}
+function aiScore(){
+  let sum=0,scored=0;
+  DOMAINS.forEach(d=>{
+    const a=S.responses[d.id].evidence.filter(e=>e.analysis&&typeof e.analysis.score==='number');
+    if(a.length){ sum += a.reduce((t,e)=>t+e.analysis.score,0)/a.length; scored++; }
+  });
+  if(!scored) return null;
+  return {pct:Math.round(sum/scored), scored};
+}
+function gate(){
+  // higher-tier cap, mirroring RoSPA judging
+  let culpable=0,pros=0,notices=0;
+  POPS.forEach(p=>{
+    culpable+=(+S.data.major_negligent[p]||0);
+    pros+=(+S.data.prosecutions[p]||0);
+    notices+=(+S.data.notices[p]||0);
+  });
+  if(culpable>0||pros>0) return {cap:1,reason:"a culpable major injury and/or a prosecution"};
+  if(notices>0) return {cap:2,reason:"an enforcement notice"};
+  return {cap:4,reason:null};
+}
+const TIERS=[
+ {min:0,  name:"Foundation",  map:"Building the essentials (≈ Merit)"},
+ {min:40, name:"Progressing", map:"Controls taking hold (≈ Bronze)"},
+ {min:62, name:"Established", map:"Sound, evidenced system (≈ Silver)"},
+ {min:82, name:"Exemplar",    map:"Sector-leading practice (≈ Gold-readiness)"}
+];
+function tierFor(pct,capLevel){
+  let t=TIERS[0];
+  for(const x of TIERS) if(pct>=x.min) t=x;
+  // apply gate cap: capLevel is 1=Progressing max, 2=Established max
+  if(capLevel===1 && TIERS.indexOf(t)>1) t=TIERS[1];
+  if(capLevel===2 && TIERS.indexOf(t)>2) t=TIERS[2];
+  return t;
+}
+
+function renderDashboard(){
+  const {pct,answered}=computeScore();
+  const g=gate();
+  const tier=answered?tierFor(pct,g.cap):{name:"Not started",map:"Indicative RoSPA Award readiness"};
+  document.getElementById('gaugePct').textContent=pct;
+  const arc=document.getElementById('gaugeArc');
+  const circ=540; arc.style.strokeDashoffset=circ-(circ*pct/100);
+  document.getElementById('tierName').textContent=tier.name;
+  document.getElementById('tierMap').textContent=tier.map;
+
+  const ai=aiScore();
+  const aiEl=document.getElementById('aiReadout');
+  if(ai){
+    const aiTier=tierFor(ai.pct,g.cap);
+    aiEl.innerHTML=`<div style="font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-faint)">AI assessment</div>
+      <div style="font-family:'Outfit';font-weight:800;font-size:27px;color:var(--accent)">${ai.pct}% <span style="font-size:14.5px;font-weight:600;color:var(--text-dim)">${aiTier.name}</span></div>
+      <div style="font-size:12.5px;color:var(--text-faint)">across ${ai.scored} of ${DOMAINS.length} domains · indicative</div>`;
+  } else { aiEl.innerHTML=''; }
+
+  const bars=document.getElementById('domainBars'); bars.innerHTML='';
+  DOMAINS.forEach((d,i)=>{
+    const s=S.responses[d.id].score;
+    const w=s===null?0:(s/4*100);
+    bars.innerHTML+=`<div class="dbar"><span>${i+1}. ${d.t}</span>
+      <div class="track"><div class="fill" style="width:${w}%"></div></div>
+      <span class="v">${s===null?'–':s}</span></div>`;
+  });
+
+  // conflict + gate banners
+  const cb=document.getElementById('conflictBanner');
+  cb.innerHTML = S.conflict.declared
+    ? `<div class="banner warn"><b>Conflict declared.&nbsp;</b> This park has a consultancy relationship with the assessor — independence safeguard recorded on the Submit tab.</div>` : '';
+  const gb=document.getElementById('gateBanner');
+  gb.innerHTML = g.reason
+    ? `<div class="banner bad"><b>Readiness capped.&nbsp;</b> Recorded data includes ${g.reason}. Indicative readiness is held below the top tiers, consistent with how RoSPA judges higher awards.</div>` : '';
+}
+
+/* ---------- generic field bindings ---------- */
+function bind(id,key,sub){
+  const el=document.getElementById(id);
+  el.oninput=()=>{ if(sub){S[key][sub]=el.value;} else {S[key]=el.value;} touch(); syncTags(); };
+}
+function syncTags(){
+  document.getElementById('parkTag').textContent=S.park||'—';
+  document.getElementById('expressNote').style.display = /SafeSystems\.PRO/.test(S.system)?'flex':'none';
+}
+
+function touch(){ S.updatedAt=Date.now(); draftSave(); }
+
+/* ---------- draft cache (deployment env, guarded) ---------- */
+function draftSave(){ try{ localStorage.setItem('safeawards_draft',JSON.stringify(S)); }catch(e){} }
+function draftLoad(){ try{ const d=localStorage.getItem('safeawards_draft'); if(d) S=Object.assign(blankState(),JSON.parse(d)); }catch(e){} }
+
+/* ---------- cloud save ---------- */
+async function cloudSave(){
+  if(!fbReady){ setStatus("Cannot save — Firebase not connected (paste apiKey)."); return; }
+  try{
+    setStatus("Saving…");
+    if(!S.id){ const ref=db.collection('safeawards_submissions').doc(); S.id=ref.id; }
+    await db.collection('safeawards_submissions').doc(S.id).set(S,{merge:true});
+    setStatus("Saved to cloud · "+new Date().toLocaleTimeString());
+  }catch(e){ console.warn(e); setStatus("Save failed — check Firestore rules for safeawards_submissions."); }
+}
+
+/* ============================================================
+   SUBMISSION PACK  — copy-across mapped to RoSPA criteria
+   ============================================================ */
+function generatePack(){
+  const win=window.open('','_blank');
+  const {pct}=computeScore(); const g=gate(); const tier=tierFor(pct,g.cap);
+  const dom=DOMAINS.map((d,i)=>`
+    <h3>${i+1}. ${d.t}</h3>
+    <p class="qy">${d.q}</p>
+    <p>${(S.responses[d.id].text||'<i>Not yet answered.</i>').replace(/\n/g,'<br>')}</p>
+    <p class="meta">Maturity: <b>${S.responses[d.id].score!==null?MATURITY[S.responses[d.id].score].name:'–'}</b>
+       · Evidence: ${S.responses[d.id].evidence.map(e=>e.name).join(', ')||'none attached'}</p>`).join('');
+  const dataTable=`<table><tr><th>Measure</th><th>Team</th><th>Contractors</th><th>Public</th></tr>`+
+    DATA_ROWS.map(r=>`<tr><td>${r.label}</td><td>${S.data[r.id].team||0}</td><td>${S.data[r.id].contractor||0}</td><td>${S.data[r.id].public||0}</td></tr>`).join('')+`</table>`;
+  win.document.write(`<html><head><title>SafeAwards submission pack — ${S.park||'Park'}</title>
+    <style>body{font-family:Georgia,serif;max-width:780px;margin:30px auto;color:#1a1a1a;padding:0 20px}
+    h1{font-size:27px}h2{border-bottom:2px solid #d96c33;padding-bottom:4px;margin-top:28px}
+    h3{margin-top:20px;color:#b1551f}.qy{font-style:italic;color:#555;margin:2px 0 8px}
+    .meta{font-size:13.5px;color:#777}table{border-collapse:collapse;width:100%;font-size:14.5px}
+    td,th{border:1px solid #ccc;padding:6px 8px;text-align:left}
+    .head{background:#0c0f18;color:#fff;padding:18px;border-radius:6px}
+    .tier{font-size:22.5px;color:#d96c33}.fl{font-size:12.5px;color:#888;margin-top:30px;border-top:1px solid #ddd;padding-top:10px}</style></head>
+    <body>
+    <div class="head"><div style="letter-spacing:.15em;font-size:12.5px;color:#e0a83a">SAFEAWARDS.PRO · SUBMISSION PACK</div>
+    <h1 style="color:#fff">${S.park||'—'} <span style="font-weight:400;font-size:18px">(${S.operator||'operator'})</span></h1>
+    <div>Reference year ${S.year||'—'} · System: ${S.system||'—'}</div>
+    <div class="tier">Indicative readiness: ${pct}% — ${tier.name}</div></div>
+    ${g.reason?`<p style="background:#fdeceb;border:1px solid #d65b54;padding:10px;border-radius:4px"><b>Readiness capped:</b> recorded data includes ${g.reason}.</p>`:''}
+    <h2>Safety management responses</h2>${dom}
+    ${S.beyond.on?`<h2>Health &amp; safety beyond the workplace</h2><p>${(S.beyond.text||'').replace(/\n/g,'<br>')}</p>`:''}
+    <h2>Accident, ill-health &amp; enforcement data</h2>${dataTable}
+    <h2>Independence &amp; sign-off</h2>
+    <p>Conflict declared: <b>${S.conflict.declared?'Yes — '+(S.conflict.notes||'safeguard recorded'):'No'}</b></p>
+    <p>Signed off by: <b>${S.signoff.name||'— not yet signed —'}</b> ${S.signoff.role?'('+S.signoff.role+')':''} ${S.signoff.date||''}</p>
+    <p class="fl">Prepared via SafeAwards.PRO. Indicative readiness only; awarding decisions rest with the independent body (RoSPA / Holiday Park Awards). Criteria are Omnibosh's own, modelled on the RoSPA Achievement framework.</p>
+    </body></html>`);
+  win.document.close();
+}
+
+/* ============================================================
+   HOLIDAY PARK AWARDS ENTRIES — public submissions review
+   ============================================================ */
+let _entries=[];
+async function loadEntriesList(){
+  const host=document.getElementById('entriesList');
+  if(!fbReady){ host.innerHTML='<p class="entries-empty">Firebase not connected. Add the apiKey to load entries.</p>'; return; }
+  host.innerHTML='<p class="entries-empty">Loading entries…</p>';
+  try{
+    const snap=await db.collection('safeawards_submissions').get();
+    _entries=[];
+    snap.forEach(doc=>{ const d=doc.data(); if(d && d.source==='awards-public' && d.status!=='in-progress') _entries.push(Object.assign({id:doc.id}, d)); });
+    _entries.sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+    if(!_entries.length){ host.innerHTML='<p class="entries-empty">No awards entries yet. They appear here as parks submit through the applicant link.</p>'; return; }
+    host.innerHTML=_entries.map(e=>{
+      const st=(e.status||'pending');
+      const when=e.submittedAt?new Date(e.submittedAt).toLocaleDateString('en-GB'):'';
+      const full=e.fullReportRequested?'<span class="bdg">Full report requested</span>':'';
+      const awards=(e.awardsHeld&&e.awardsHeld.trim())?'<span class="bdg">Awards listed</span>':'';
+      const who=e.reviewedBy||(e.signoff&&e.signoff.name)||'';
+      return `<div class="entry-row">
+        <div class="ed">
+          <div class="ep">${e.parkName||'Unnamed park'}</div>
+          <div class="em">${e.ref||''}${e.submitterName?' · '+e.submitterName:''}${e.contactPhone?' · '+e.contactPhone:''}${when?' · '+when:''}</div>
+          ${(e.teamCount!=null||e.guestCount!=null||e.incidentsReported!=null)?`<div class="em">Team ${e.teamCount||0} · Guests ~${(e.guestCount||0).toLocaleString()} · Incidents ${e.incidentsReported||0}${e.seasonLabel?' ('+e.seasonLabel+')':''}${(e.incidentPctTeam!=null||e.incidentPctGuest!=null)?` · split team ${e.incidentPctTeam!=null?e.incidentPctTeam+'%':'–'} / guests ${e.incidentPctGuest!=null?e.incidentPctGuest+'%':'–'}`:''}</div>`:''}
+          <div class="badges"><span class="st ${st}">${st.replace('-',' ')}</span>${full}${awards}${who?'<span class="bdg">Reviewer: '+who+'</span>':''}</div>
+        </div>
+        <button class="btn gold" data-open="${e.id}">Review</button>
+      </div>`;
+    }).join('');
+    host.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openEntry(b.dataset.open));
+  }catch(err){ console.warn(err); host.innerHTML='<p class="entries-empty">Could not load entries. Check the Firestore rules for safeawards_submissions.</p>'; }
+}
+
+function mapEntryToState(d,id){
+  const S2=blankState();
+  S2.id=id;
+  S2.park=d.parkName||'';
+  S2.operator=d.submitterName||'';
+  S2.contact=[d.submitterName,d.contactPhone].filter(Boolean).join(' · ');
+  S2.email=d.contactEmail||'';
+  S2.year=d.year||'';
+  S2.system=d.system||'';
+  S2.aiEndpoint=S.aiEndpoint||'';          // keep the console's configured engine endpoint
+  S2.source=d.source||'';
+  S2.ref=d.ref||'';
+  S2.awardsHeld=d.awardsHeld||'';
+  S2.contactPhone=d.contactPhone||'';
+  S2.eligibilityConfirmed=!!d.eligibilityConfirmed;
+  S2.status=d.status||'pending';
+  const merged=Object.assign({}, d.responses||{}, d.extendedResponses||{});
+  DOMAINS.forEach(dom=>{
+    const r=merged[dom.id];
+    if(r){
+      S2.responses[dom.id].text=r.text||'';
+      S2.responses[dom.id].score=(typeof r.score==='number')?r.score:null;
+      const ev=Array.isArray(r.evidence)?r.evidence.map(x=>Object.assign({},x)):[];
+      (r.links||[]).forEach(u=>ev.push({name:u,url:u}));
+      S2.responses[dom.id].evidence=ev;
+    }
+  });
+  if(d.signoff) S2.signoff=Object.assign({name:'',role:'',date:''}, d.signoff);
+  if(!S2.signoff.name){ S2.signoff.name='Scott Norman'; S2.signoff.role='Safety Director, Omnibosh'; }
+  if(d.conflict) S2.conflict=Object.assign({declared:false,notes:''}, d.conflict);
+  return S2;
+}
+
+function openEntry(id){
+  const e=_entries.find(x=>x.id===id);
+  if(!e) return;
+  S=mapEntryToState(e,id);
+  try{ localStorage.setItem('safeawards_draft',JSON.stringify(S)); }catch(_){}
+  hydrateFromState();
+  go('assess');
+}
+
+/* repopulate the editable fields from S (used after opening an entry) */
+function hydrateFromState(){
+  const set=(id,v)=>{const el=document.getElementById(id); if(el) el.value=(v==null?'':v);};
+  set('fPark',S.park); set('fOperator',S.operator); set('fContact',S.contact);
+  set('fEmail',S.email); set('fYear',S.year);
+  const sys=document.getElementById('fSystem'); if(sys) sys.value=S.system||'';
+  set('fAiEndpoint',S.aiEndpoint);
+  const bt=document.getElementById('beyondToggle'); if(bt){ bt.checked=!!S.beyond.on; document.getElementById('beyondBody').style.display=S.beyond.on?'block':'none'; }
+  set('beyondText',S.beyond.text);
+  const cc=document.getElementById('conflictChk'); if(cc){ cc.checked=!!S.conflict.declared; document.getElementById('conflictNotesWrap').style.display=S.conflict.declared?'block':'none'; }
+  set('conflictNotes',S.conflict.notes);
+  set('soName',S.signoff.name); set('soRole',S.signoff.role); set('soDate',S.signoff.date);
+  renderDomains(); renderDataTable(); syncTags(); renderDashboard();
+}
+
+/* ============================================================
+   NAV + INIT
+   ============================================================ */
+const TITLES={dash:"Readiness Overview",entries:"Holiday Park Awards Entries",assess:"Assessment",data:"Accident & Enforcement Data",submit:"Independence & Submission",setup:"Entrant Setup"};
+function go(view){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+  document.getElementById('viewTitle').textContent=TITLES[view];
+  if(view==='entries') loadEntriesList();
+  window.scrollTo(0,0);
+  // history sentinel for mobile back button
+  history.pushState({view},'', '#'+view);
+}
+document.querySelectorAll('.nav-btn').forEach(b=>b.onclick=()=>go(b.dataset.view));
+window.onpopstate=e=>{ const v=(e.state&&e.state.view)|| 'dash'; 
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
+  document.getElementById('viewTitle').textContent=TITLES[v]||'';
+};
+
+function init(){
+  draftLoad();
+  // setup fields
+  document.getElementById('fPark').value=S.park; bind('fPark','park');
+  document.getElementById('fOperator').value=S.operator; bind('fOperator','operator');
+  document.getElementById('fContact').value=S.contact; bind('fContact','contact');
+  document.getElementById('fEmail').value=S.email; bind('fEmail','email');
+  document.getElementById('fYear').value=S.year; bind('fYear','year');
+  const sys=document.getElementById('fSystem'); sys.value=S.system; sys.onchange=()=>{S.system=sys.value;touch();syncTags();};
+  document.getElementById('fAiEndpoint').value=S.aiEndpoint||''; bind('fAiEndpoint','aiEndpoint');
+
+  // beyond
+  const bt=document.getElementById('beyondToggle'); bt.checked=S.beyond.on;
+  document.getElementById('beyondBody').style.display=S.beyond.on?'block':'none';
+  bt.onchange=()=>{S.beyond.on=bt.checked;document.getElementById('beyondBody').style.display=bt.checked?'block':'none';touch();};
+  const btx=document.getElementById('beyondText'); btx.value=S.beyond.text; btx.oninput=()=>{S.beyond.text=btx.value;touch();};
+
+  // conflict + signoff
+  const cc=document.getElementById('conflictChk'); cc.checked=S.conflict.declared;
+  document.getElementById('conflictNotesWrap').style.display=S.conflict.declared?'block':'none';
+  cc.onchange=()=>{S.conflict.declared=cc.checked;document.getElementById('conflictNotesWrap').style.display=cc.checked?'block':'none';touch();renderDashboard();};
+  const cn=document.getElementById('conflictNotes'); cn.value=S.conflict.notes; cn.oninput=()=>{S.conflict.notes=cn.value;touch();};
+  ['soName','soRole','soDate'].forEach(id=>{const k=id.replace('so','').toLowerCase();document.getElementById(id).value=S.signoff[k]||'';});
+  document.getElementById('signBtn').onclick=()=>{
+    S.signoff={name:soName.value,role:soRole.value,date:soDate.value};
+    if(!S.signoff.name){soStatus.textContent="Name required.";return;}
+    S.status='signed-off'; S.reviewedBy=S.signoff.name; S.reviewedAt=new Date().toISOString(); touch();
+    document.getElementById('soStatus').textContent="Signed off — "+S.signoff.name;
+    cloudSave();
+  };
+
+  document.getElementById('saveBtn').onclick=cloudSave;
+  document.getElementById('genPackBtn').onclick=generatePack;
+  document.getElementById('markSubmittedBtn').onclick=()=>{S.status='submitted';touch();cloudSave();alert('Marked as submitted.');};
+  document.getElementById('newBtn').onclick=()=>{ if(confirm('Start a new submission? Unsaved local draft will be cleared.')){S=blankState();try{localStorage.removeItem('safeawards_draft')}catch(e){}; location.reload();} };
+  const er=document.getElementById('entriesRefresh'); if(er) er.onclick=loadEntriesList;
+
+  renderDomains(); renderDataTable(); syncTags(); renderDashboard();
+  history.replaceState({view:'dash'},'','#dash');
+}
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SafeAwards.PRO — Holiday Park Awards Safety Entry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --primary-orange:#CC5500; --dark-orange:#b34a00; --light-orange:#e06d1a;
+  --black:#3a3a42; --white:#FFFFFF; --medium-grey:#6C757D;
+  --bg:#0c0f18; --surface:#141926; --surface-2:#1a2030; --line:#26304a;
+  --text:#e8ecf4; --text-dim:#9aa6c0; --text-faint:#5e6a86; --gold:#e0a83a;
+  --good:#10b981; --radius:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.55;
+  background-image:radial-gradient(900px 520px at 88% -10%,rgba(224,168,58,.06),transparent 60%)}
+h1,h2,h3{font-family:'Outfit',sans-serif}
+body.loading{overflow:hidden}
+
+/* ===== LIVE SITE LOADER (verbatim) + gold-star payoff ===== */
+.loading-overlay{position:fixed;inset:0;width:100%;height:100%;padding-top:env(safe-area-inset-top);background:radial-gradient(circle at center,#3a3a42 0%,#000000 100%);z-index:50000;display:flex;align-items:center;justify-content:center;transition:opacity .8s ease,visibility .8s ease;overflow:hidden}
+.loading-overlay.fade-out{opacity:0;visibility:hidden}
+.loading-container{position:relative;width:min(500px,90vw);height:min(350px,60vh);display:flex;align-items:center;justify-content:center}
+.particles{position:absolute;width:100%;height:100%;pointer-events:none}
+.particle{position:absolute;width:4px;height:4px;background:var(--primary-orange);border-radius:50%;animation:floatParticles 4s infinite ease-in-out}
+.particle:nth-child(1){left:10%;top:20%;animation-delay:0s}
+.particle:nth-child(2){left:80%;top:30%;animation-delay:.5s}
+.particle:nth-child(3){left:60%;top:70%;animation-delay:1s}
+.particle:nth-child(4){left:20%;top:80%;animation-delay:1.5s}
+.particle:nth-child(5){left:90%;top:60%;animation-delay:2s}
+.particle:nth-child(6){left:40%;top:10%;animation-delay:2.5s}
+@keyframes floatParticles{0%,100%{transform:translateY(0) scale(.8);opacity:.6}50%{transform:translateY(-20px) scale(1.2);opacity:1;box-shadow:0 0 20px var(--primary-orange)}}
+.main-circle{position:absolute;width:min(280px,50vw);height:min(280px,50vw);border-radius:50%;background:radial-gradient(circle at 30% 30%,var(--light-orange),var(--primary-orange),var(--dark-orange));box-shadow:0 0 60px rgba(204,85,0,.8),0 0 120px rgba(204,85,0,.6),0 0 180px rgba(204,85,0,.4),inset 0 0 40px rgba(255,255,255,.2);animation:pulseMainCircle 2s ease-in-out,fadeOutOrangeCircle 1s ease-in-out;animation-delay:0s,3.5s;animation-fill-mode:forwards,forwards;transform:scale(0)}
+@keyframes pulseMainCircle{0%{transform:scale(0);filter:brightness(1)}50%{transform:scale(1.1);filter:brightness(1.5);box-shadow:0 0 80px rgba(204,85,0,1),0 0 160px rgba(204,85,0,.8),0 0 240px rgba(204,85,0,.6)}100%{transform:scale(1);filter:brightness(1.2);opacity:1}}
+@keyframes fadeOutOrangeCircle{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.8)}}
+.accent-circle{position:absolute;width:min(200px,35vw);height:min(200px,35vw);border-radius:50%;background:linear-gradient(135deg,#000000,#3a3a42);border:3px solid var(--primary-orange);box-shadow:inset 0 0 30px rgba(204,85,0,.3),0 0 40px rgba(0,0,0,.8);animation:slideInAccent 1.5s ease-out;animation-delay:2.2s;transform:translateX(-300px);animation-fill-mode:forwards}
+@keyframes slideInAccent{0%{transform:translateX(-300px) rotate(-180deg);opacity:0}70%{transform:translateX(0) rotate(0);opacity:.9}100%{transform:translateX(0) rotate(0);opacity:1}}
+.trail{position:absolute;width:220px;height:220px;border:2px solid transparent;border-top:2px solid var(--primary-orange);border-radius:50%;animation:rotateTrail 3s linear infinite;animation-delay:4s;opacity:0;animation-fill-mode:forwards}
+.trail:nth-child(2){width:240px;height:240px;border-top:2px solid var(--light-orange);animation-delay:4.2s;animation-duration:2.5s}
+.trail:nth-child(3){width:180px;height:180px;border-top:2px solid var(--dark-orange);animation-delay:4.4s;animation-duration:3.5s;animation-direction:reverse}
+.trail:nth-child(4){width:260px;height:260px;border-top:2px solid rgba(204,85,0,.6);animation-delay:4.6s;animation-duration:3s}
+.trail:nth-child(5){width:160px;height:160px;border-top:2px solid rgba(230,103,46,.8);animation-delay:4.8s;animation-duration:4s;animation-direction:reverse}
+.trail:nth-child(6){width:280px;height:280px;border-top:2px solid rgba(184,70,12,.5);animation-delay:5s;animation-duration:2.8s}
+@keyframes rotateTrail{0%{transform:rotate(0);opacity:0}10%{opacity:.8}90%{opacity:.6}100%{transform:rotate(360deg);opacity:0}}
+.pro-text{position:absolute;font-family:'Orbitron',monospace;font-size:clamp(2.02rem,5.5vw,3.36rem);font-weight:700;letter-spacing:.06em;transform:scale(0) rotateY(180deg);background:linear-gradient(135deg,#fff 0%,#f0f2f5 10%,#fff 20%,#e8eaed 30%,#fff 40%,#f8f9fa 50%,#fff 60%,#e5e7eb 70%,#fff 80%,#f1f3f4 90%,#fff 100%);background-size:300% 300%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:brightness(1.3) contrast(1.1);text-shadow:0 0 10px rgba(255,255,255,.5);animation:proTextEntrance 1.6s ease-out,shimmer 3s ease-in-out infinite;animation-delay:4.4s,6s;animation-fill-mode:forwards,forwards;white-space:nowrap;text-align:center;line-height:1}
+@keyframes proTextEntrance{0%{transform:scale(0) rotateY(180deg);opacity:0;filter:blur(20px)}60%{transform:scale(1.25) rotateY(0);opacity:.85;filter:blur(4px)}80%{transform:scale(.94) rotateY(0);opacity:1;filter:blur(0)}100%{transform:scale(1) rotateY(0);opacity:1;filter:blur(0) brightness(1.3) contrast(1.1)}}
+@keyframes shimmer{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.brand-subtitle{position:absolute;bottom:-78px;left:50%;transform:translateX(-50%);font-family:'Neue Frutiger World','Outfit',sans-serif;font-size:clamp(0.95rem,2vw,1.18rem);color:var(--medium-grey);font-weight:400;letter-spacing:2px;animation:fadeInSubtitle 1s ease-out;animation-delay:5.3s;opacity:0;animation-fill-mode:forwards}
+.brand-subtitle .pro{color:var(--primary-orange)}
+@keyframes fadeInSubtitle{0%{opacity:0;transform:translateX(-50%) translateY(20px)}100%{opacity:.8;transform:translateX(-50%) translateY(0)}}
+.loading-progress{position:absolute;bottom:50px;left:50%;transform:translateX(-50%);width:min(200px,60vw);height:3px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden;animation:showProgress 1s ease-out;animation-delay:5.5s;opacity:0;animation-fill-mode:forwards}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--primary-orange),var(--light-orange));border-radius:2px;animation:loadProgress 1.5s ease-out;animation-delay:5.5s;transform:translateX(-100%);animation-fill-mode:forwards;box-shadow:0 0 10px var(--primary-orange)}
+@keyframes showProgress{to{opacity:1}}
+@keyframes loadProgress{to{transform:translateX(0)}}
+.starwrap{position:absolute;width:min(280px,50vw);height:min(280px,50vw);display:grid;place-items:center;pointer-events:none}
+.starwrap svg{width:100%;height:100%;overflow:visible}
+#starPath{fill:none;stroke:var(--gold);stroke-width:3.4;stroke-linejoin:round;stroke-linecap:round;filter:drop-shadow(0 0 12px rgba(224,168,58,.6));opacity:0}
+
+/* ===== shell ===== */
+.shell{max-width:680px;margin:0 auto;padding:30px 18px 80px}
+.brandbar{display:flex;align-items:center;gap:11px;margin-bottom:22px}
+.brandbar .mark{width:34px;height:34px;flex:none}
+.brandbar .mark svg{width:100%;height:100%;overflow:visible}
+.brandbar .mark path{fill:none;stroke:var(--gold);stroke-width:7;stroke-linejoin:round;stroke-linecap:round}
+.brandbar .name{font-family:'Outfit';font-weight:800;font-size:19px}
+.brandbar .name span{color:var(--gold)}
+.brandbar .by{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-faint);margin-top:1px}
+
+/* ===== intro ===== */
+.intro{opacity:0;visibility:hidden;transition:opacity .6s ease,transform .6s ease,visibility .6s;transform:translateY(14px)}
+.intro.show{opacity:1;visibility:visible;transform:none}
+.intro-card{background:linear-gradient(180deg,rgba(26,32,48,.92),rgba(20,25,38,.92));border:1px solid rgba(224,168,58,.4);border-radius:14px;padding:32px 28px 28px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.intro-card .minimark{width:46px;height:46px;margin:0 auto 14px;display:block}
+.intro-card .minimark svg{width:100%;height:100%;overflow:visible}
+.intro-card .minimark path{fill:none;stroke:var(--gold);stroke-width:5;stroke-linejoin:round;stroke-linecap:round}
+.intro-card h1{font-size:clamp(24.5px,5vw,31.5px)}
+.intro-card h1 span{color:var(--gold)}
+.intro-card .by{font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-faint);margin:6px 0 18px}
+.intro-card .lead{color:var(--text);font-size:17px;max-width:46ch;margin:0 auto 18px}
+.why{text-align:left;background:rgba(224,168,58,.07);border:1px solid rgba(224,168,58,.28);border-radius:10px;padding:15px 17px;margin:0 0 18px}
+.why h3{font-size:14.5px;letter-spacing:.04em;color:var(--gold);margin-bottom:7px}
+.why p{font-size:15px;color:var(--text-dim);line-height:1.6}
+.why a{color:var(--gold);text-decoration:underline;text-underline-offset:2px}
+.need{font-size:14px;color:var(--text-faint);margin-bottom:22px;text-align:left}
+.need b{color:var(--text-dim);font-weight:600}
+.reviewer{display:flex;gap:13px;align-items:flex-start;text-align:left;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:10px;padding:14px 15px;margin:0 0 18px}
+.reviewer .rv-mark{flex:none;width:46px;height:46px;border-radius:10px;background:#0c0f18;border:1px solid var(--line);display:grid;place-items:center;overflow:hidden}
+.reviewer .rv-mark img{width:100%;height:100%;object-fit:contain;padding:3px}
+.reviewer .rv-mark a{display:grid;place-items:center;width:100%;height:100%}
+.reviewer .rv-contact{font-size:13.5px;margin-top:7px}
+.reviewer .rv-contact a{color:var(--gold);text-decoration:none}
+.reviewer .rv-contact a:hover{text-decoration:underline}
+.reviewer .rv-name{font-family:'Outfit';font-weight:700;font-size:15.5px}
+.reviewer .rv-name span{color:var(--gold);font-size:12.5px;letter-spacing:.05em;margin-left:6px}
+.reviewer .rv-role{font-size:13.5px;color:var(--text-dim);margin:1px 0 6px}
+.reviewer .rv-cred{font-size:13.5px;color:var(--text-faint);line-height:1.5}
+
+/* ===== form ===== */
+.form{display:none}
+.form.show{display:block;animation:rise .5s ease}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.section{background:linear-gradient(180deg,rgba(26,32,48,.7),rgba(20,25,38,.7));border:1px solid var(--line);border-radius:12px;padding:20px 20px 8px;margin-bottom:16px}
+.section > .stitle{font-family:'Outfit';font-weight:700;font-size:17px;margin-bottom:3px;display:flex;align-items:center;gap:9px}
+.section > .sdesc{font-size:14px;color:var(--text-faint);margin-bottom:16px}
+.qnum{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:rgba(224,168,58,.14);color:var(--gold);font-family:'Outfit';font-weight:700;font-size:13.5px;flex:none}
+.field{margin-bottom:15px}
+.field label{display:block;font-size:14px;color:var(--text-dim);margin-bottom:6px;font-weight:600}
+.field label .req{color:var(--gold)}
+.field input[type=text],.field input[type=tel],.field input[type=email],.field input[type=url],.field input[type=number],.field textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:11px 12px;font:inherit;font-size:15.5px}
+.numrow{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:15px}
+.numrow .field{flex:1;min-width:150px;margin-bottom:0}
+.field textarea{min-height:96px;resize:vertical}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--gold)}
+.helper{font-size:13.5px;color:var(--text-faint);margin:-2px 0 8px;line-height:1.5}
+.q{border-top:1px solid var(--line);padding-top:16px;margin-top:4px}
+.q:first-of-type{border-top:0;padding-top:0}
+.q .qhead{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px}
+.q .qhead .qt{font-family:'Outfit';font-weight:600;font-size:15.5px;line-height:1.4}
+.qinfo{flex:none;width:22px;height:22px;border-radius:50%;border:1px solid var(--line);background:var(--surface-2);color:var(--gold);font:italic 700 12px 'Outfit',serif;cursor:pointer;display:grid;place-items:center;margin-left:auto;align-self:flex-start}
+.qinfo:hover{border-color:var(--gold)}
+.notes{display:none;margin:4px 0 10px;background:rgba(224,168,58,.06);border:1px solid rgba(224,168,58,.26);border-radius:9px;padding:13px 15px}
+.notes.open{display:block;animation:rise .3s ease}
+.notes h4{font-family:'Outfit';font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--gold);margin:11px 0 5px}
+.notes h4:first-child{margin-top:0}
+.notes p,.notes li{font-size:14px;color:var(--text-dim);line-height:1.55}
+.notes ul{margin:0;padding-left:17px}
+.notes .reassure{margin-top:11px;color:var(--text);font-weight:600;font-size:14px}
+.attachrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.btn{border:1px solid var(--line);background:var(--surface-2);color:var(--text);font:inherit;font-weight:600;font-size:14.5px;padding:9px 15px;border-radius:8px;cursor:pointer}
+.btn:hover{border-color:var(--gold)}
+.btn.sm{padding:6px 11px;font-size:13.5px}
+.btn.gold{background:linear-gradient(135deg,var(--primary-orange),var(--gold));border:0;color:#1a130a;font-weight:700}
+.btn.gold:hover{filter:brightness(1.06)}
+.btn.ghost{background:transparent}
+.attachlist{list-style:none;margin:8px 0 0;display:flex;flex-direction:column;gap:5px}
+.attachlist li{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text-dim);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:6px 10px}
+.attachlist li a{color:var(--gold);text-decoration:none}
+.attachlist li .rm{margin-left:auto;color:var(--text-faint);cursor:pointer;font-weight:700;border:0;background:none}
+.check{display:flex;gap:11px;align-items:flex-start;background:rgba(224,168,58,.06);border:1px solid rgba(224,168,58,.28);border-radius:10px;padding:14px 15px}
+.check input{margin-top:3px;width:17px;height:17px;flex:none;accent-color:var(--gold)}
+.check label{font-size:14.5px;color:var(--text-dim);line-height:1.55}
+.submitbar{display:flex;align-items:center;gap:14px;margin-top:8px;flex-wrap:wrap}
+.statusline{font-size:14px;color:var(--text-faint)}
+.statusline.err{color:#ef6a6a}
+.optnote{font-size:13.5px;color:var(--text-faint);margin-top:4px}
+.resume-toggle{margin-top:14px}
+.resume-toggle a{color:var(--text-dim);font-size:13px;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.resume-toggle a:hover{color:var(--gold)}
+.resume-panel{margin-top:14px;text-align:left;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:10px;padding:15px 16px}
+.resume-panel .rp-lead{font-size:13px;color:var(--text-dim);margin-bottom:11px}
+.resume-panel .rp-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:11px}
+.resume-panel .rp-row input{flex:1;min-width:160px;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:11px 12px;font:inherit;font-size:15.5px}
+.resume-panel .rp-row input:focus{outline:none;border-color:var(--gold)}
+.resume-panel .rp-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.savepanel{text-align:left;background:rgba(63,174,122,.08);border:1px solid rgba(16,185,129,.4);border-radius:10px;padding:16px 18px;margin-top:14px}
+.savepanel .sp-tick{font-family:'Outfit';font-weight:700;color:var(--good);font-size:15px;margin-bottom:8px}
+.savepanel p{font-size:13.5px;color:var(--text-dim);margin:6px 0}
+.savepanel .sp-code{font-family:'Outfit';font-weight:800;letter-spacing:.08em;font-size:22px;color:var(--gold);background:var(--bg);border:1px dashed rgba(224,168,58,.45);border-radius:8px;padding:10px 14px;display:inline-block;margin:6px 0}
+.savepanel .sp-note{color:var(--text-faint);font-size:12.5px}
+
+/* success */
+.success{display:none;text-align:center;background:linear-gradient(180deg,rgba(26,32,48,.92),rgba(20,25,38,.92));border:1px solid rgba(16,185,129,.4);border-radius:14px;padding:32px 28px}
+.success.show{display:block;animation:rise .5s ease}
+.success .tick{width:54px;height:54px;border-radius:50%;background:rgba(16,185,129,.15);color:var(--good);display:grid;place-items:center;margin:0 auto 14px;font-size:29px}
+.success h2{font-size:23.5px;margin-bottom:8px}
+.refchip{display:inline-block;font-family:'Outfit';font-weight:700;letter-spacing:.06em;background:rgba(224,168,58,.14);color:var(--gold);border-radius:20px;padding:6px 16px;margin:6px 0 16px}
+.success p{font-size:15px;color:var(--text-dim);max-width:48ch;margin:0 auto 10px}
+.extbox{margin-top:20px;border-top:1px solid var(--line);padding-top:20px}
+.extbox h3{font-size:17px;margin-bottom:6px}
+.extbox .sub{font-size:14.5px;color:var(--text-faint);margin-bottom:14px}
+.foot{text-align:center;color:var(--text-faint);font-size:12.5px;margin-top:26px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body class="loading">
+
+<!-- ===== opening ===== -->
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="particles"><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div></div>
+  <div class="loading-container">
+    <div class="main-circle"></div>
+    <div class="accent-circle"></div>
+    <div class="trail"></div><div class="trail"></div><div class="trail"></div><div class="trail"></div><div class="trail"></div><div class="trail"></div>
+    <div class="starwrap"><svg viewBox="0 0 200 200" aria-hidden="true"><path id="starPath" d="M100,20 L118.8,74.1 L176.1,75.3 L130.4,109.9 L147,164.7 L100,132 L52.96,164.7 L69.6,109.9 L23.9,75.3 L81.2,74.1 Z"/></svg></div>
+    <div class="pro-text">SafeAwards</div>
+    <div class="brand-subtitle">by safe<span class="pro">systems</span>.pro</div>
+  </div>
+  <div class="loading-progress"><div class="progress-bar"></div></div>
+</div>
+
+<div class="shell">
+  <!-- ===== intro ===== -->
+  <div class="intro" id="intro">
+    <div class="intro-card">
+      <span class="minimark" aria-hidden="true"><svg viewBox="0 0 200 200"><path d="M100,20 L118.8,74.1 L176.1,75.3 L130.4,109.9 L147,164.7 L100,132 L52.96,164.7 L69.6,109.9 L23.9,75.3 L81.2,74.1 Z"/></svg></span>
+      <h1>Safe<span>Awards</span></h1>
+      <div class="by">by Omnibosh &amp; SafeSystems.PRO</div>
+      <p class="lead">Your Holiday Park Awards safety entry. A short, positive set of questions that let your park be recognised for what it already does well.</p>
+      <div class="why">
+        <h3>Why these questions?</h3>
+        <p>Every question here is modelled on the <a href="https://www.rospa.com" target="_blank" rel="noopener">RoSPA</a> Achievement framework, the most widely recognised model for occupational safety excellence in the UK. We use it as our assessment model so your recognition stands on a respected, consistent national standard rather than an arbitrary checklist. It is built to be positive: it asks you to show your leadership, your team's involvement, your proactive checks and your standout achievement of the year, not to catch you out. Responses are assessed independently and the score is indicative only, every entry carries a named human sign-off, and the awarding decision rests with the Holiday Park Awards panel.</p>
+      </div>
+      <div class="reviewer">
+        <div class="rv-mark"><a href="https://www.omnibosh.com" target="_blank" rel="noopener"><img src="https://cqr365.github.io/SafePark.PRO/icon-192.png" alt="Omnibosh"></a></div>
+        <div>
+          <div class="rv-name">Reviewed by Scott Norman <span>CMIOSH, PISEP, REnvP, BA (Hons)</span></div>
+          <div class="rv-role">Safety Director, Omnibosh</div>
+          <div class="rv-cred">Every entry is reviewed and signed off by Scott, a chartered safety practitioner with a First Class honours degree in Risk Management. This is the named human sign-off behind your result.</div>
+          <div class="rv-contact"><a href="mailto:scott.norman@omnibosh.com">scott.norman@omnibosh.com</a> · <a href="https://www.omnibosh.com" target="_blank" rel="noopener">omnibosh.com</a></div>
+        </div>
+      </div>
+      <p class="need"><b>Before you start:</b> the name and contact number of the person submitting, and any supporting documents or links you would like to attach. Takes around 15 minutes.</p>
+      <button class="btn gold" id="begin" style="font-size:17px;padding:13px 34px;border-radius:30px">Begin entry</button>
+      <div class="resume-toggle"><a id="resumeToggle">Already started? Continue a saved entry</a></div>
+      <div class="resume-panel" id="resumePanel" style="display:none">
+        <p class="rp-lead">Enter the code you were given and the email you used, and we'll bring your entry back exactly as you left it.</p>
+        <div class="rp-row">
+          <input type="text" id="resumeCode" placeholder="Your code, e.g. HPA-AB12CD34" autocomplete="off">
+          <input type="email" id="resumeEmail" placeholder="The email you entered" autocomplete="email">
+        </div>
+        <div class="rp-actions"><button class="btn gold" id="resumeBtn" type="button">Continue</button><span class="statusline" id="resumeStatus"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== form ===== -->
+  <div class="form" id="form">
+    <div class="brandbar">
+      <span class="mark" aria-hidden="true"><svg viewBox="0 0 200 200"><path d="M100,20 L118.8,74.1 L176.1,75.3 L130.4,109.9 L147,164.7 L100,132 L52.96,164.7 L69.6,109.9 L23.9,75.3 L81.2,74.1 Z"/></svg></span>
+      <div><div class="name">Safe<span>Awards</span> entry</div><div class="by">Holiday Park Awards · safety</div></div>
+    </div>
+
+    <!-- park & contact -->
+    <div class="section">
+      <div class="stitle">Your park</div>
+      <div class="sdesc">Who is entering, and how we reach you with your result.</div>
+      <div class="field"><label>Park name <span class="req">*</span></label><input type="text" id="parkName" autocomplete="organization"></div>
+      <div class="field"><label>Location or region</label><input type="text" id="parkRegion" placeholder="e.g. Argyll, west coast of Scotland"></div>
+      <div class="field"><label>Name of person submitting <span class="req">*</span></label><input type="text" id="subName" autocomplete="name"></div>
+      <div class="field"><label>Their role</label><input type="text" id="subRole" placeholder="e.g. Park Manager"></div>
+      <div class="field"><label>Contact phone number <span class="req">*</span></label><input type="tel" id="subPhone" autocomplete="tel"></div>
+      <div class="field"><label>Contact email <span class="req">*</span></label><input type="email" id="subEmail" autocomplete="email"></div>
+    </div>
+
+    <!-- park in numbers -->
+    <div class="section" id="numbersSection">
+      <div class="stitle">Your park in numbers</div>
+      <div class="sdesc">A few approximate figures for the <b id="seasonLabel"></b> year. Best estimates are absolutely fine.</div>
+      <div class="numrow">
+        <div class="field"><label>Team members (employees) <span class="req">*</span></label><input type="number" min="0" id="teamCount" placeholder="e.g. 45"></div>
+        <div class="field"><label>Approx. guests this year <span class="req">*</span></label><input type="number" min="0" id="guestCount" placeholder="e.g. 30000"></div>
+      </div>
+      <div class="field"><label>Incidents reported this year <span class="req">*</span></label><input type="number" min="0" id="incidentsReported" placeholder="e.g. 3 (enter 0 if none)"></div>
+      <div class="numrow">
+        <div class="field"><label>Of those, approx. % involving team</label><input type="number" min="0" max="100" id="incidentPctTeam" placeholder="%"></div>
+        <div class="field"><label>Approx. % involving guests</label><input type="number" min="0" max="100" id="incidentPctGuest" placeholder="%"></div>
+      </div>
+      <p class="helper">The two percentages are a rough split of your reported incidents between team and guests, and should add up to about 100.</p>
+    </div>
+
+    <!-- eligibility -->
+    <div class="section">
+      <div class="stitle">Eligibility</div>
+      <div class="sdesc">One confirmation that keeps the award credible for every entrant.</div>
+      <div class="check"><input type="checkbox" id="elig"><label for="elig">I confirm the park has no live enforcement notices and no current or pending prosecutions for health and safety in the entry period.</label></div>
+    </div>
+
+    <!-- awards held -->
+    <div class="section" id="awardsSection">
+      <div class="stitle">Awards and accreditations held</div>
+      <div class="sdesc">Any current recognition your park already holds from outside organisations. Health, safety and environmental ones are especially welcome. Attach a certificate if you have one, or just list them.</div>
+      <div id="awardsBox"></div>
+    </div>
+
+    <!-- core 5 -->
+    <div class="section" id="coreSection">
+      <div class="stitle">Your safety positives</div>
+      <div class="sdesc">Five short questions. Tap the i on any question for what we mean, examples, and the kind of evidence that fits. Attaching anything is optional: if you have nothing to upload, just explain it in your own words. There is no self-marking here, our assessors do that.</div>
+      <!-- questions injected -->
+    </div>
+
+    <div class="submitbar">
+      <button class="btn gold" id="submit" style="font-size:17px;padding:13px 30px">Submit entry</button>
+      <button class="btn ghost" id="saveDraftBtn" type="button">Save and come back later</button>
+      <span class="statusline" id="status"></span>
+    </div>
+    <div id="savePanel" class="savepanel" style="display:none"></div>
+    <p class="optnote">After you submit, you can optionally answer six more questions to receive a full Safety Excellence Report. Not required for the awards.</p>
+    <div class="foot">SafeAwards.PRO · Omnibosh &amp; SafeSystems.PRO</div>
+  </div>
+
+  <!-- ===== success + optional extended ===== -->
+  <div class="success" id="success">
+    <div class="tick">✓</div>
+    <h2>Entry received</h2>
+    <div class="refchip" id="refOut">HPA-XXXXXXXX</div>
+    <p>Thank you. Your Holiday Park Awards safety entry is in. It will be reviewed and signed off by Scott Norman CMIOSH, our Safety Director, and you will receive your Holiday Park Awards Submission Report after the awards.</p>
+    <div class="extbox" id="extbox">
+      <h3>Want your Full Safety Excellence Report too?</h3>
+      <p class="sub">Answer six more questions and we will also send you a complete, RoSPA-aligned report across all eleven themes. Optional, and not part of your awards entry.</p>
+      <div id="extQuestions" style="display:none;text-align:left;margin-top:8px"></div>
+      <button class="btn gold" id="addExt">Add the six extra questions</button>
+      <div class="submitbar" id="extSubmitBar" style="display:none;margin-top:16px">
+        <button class="btn gold" id="submitExt" style="padding:11px 26px">Submit full report answers</button>
+        <span class="statusline" id="extStatus"></span>
+      </div>
+    </div>
+    <div class="foot">SafeAwards.PRO · Omnibosh &amp; SafeSystems.PRO</div>
+  </div>
+</div>
+
+<!-- Firebase compat (same project / SDK as the live modules) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script>
+/* ---- Firebase (correct 'bec' appId) ---- */
+const firebaseConfig={
+  apiKey:"AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+  authDomain:"safepark-pro.firebaseapp.com",
+  projectId:"safepark-pro",
+  storageBucket:"safepark-pro.firebasestorage.app",
+  messagingSenderId:"511221743341",
+  appId:"1:511221743341:web:95bec7e83d4861578016e4"
+};
+let db=null,storage=null,fbReady=false,authReady=Promise.resolve();
+try{ firebase.initializeApp(firebaseConfig); db=firebase.firestore(); storage=firebase.storage(); fbReady=true; authReady=firebase.auth().signInAnonymously().catch(e=>console.warn('Auth:',e&&e.message)); }
+catch(e){ console.warn("Firebase init failed",e); }
+
+/* ---- opening sequence (locked) ---- */
+(function(){
+  const overlay=document.getElementById('loadingOverlay');
+  const starPath=document.getElementById('starPath');
+  const accent=document.querySelector('.accent-circle');
+  const intro=document.getElementById('intro');
+  const len=starPath.getTotalLength();
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function drawStar(){
+    starPath.style.transition='none';starPath.style.strokeDasharray=len;starPath.style.strokeDashoffset=len;starPath.style.opacity=0;
+    starPath.getBoundingClientRect();
+    starPath.style.transition='stroke-dashoffset 1.15s cubic-bezier(.4,.1,.2,1), opacity .3s ease';
+    starPath.style.opacity=1;starPath.style.strokeDashoffset=0;
+  }
+  function finish(){ overlay.classList.add('fade-out'); setTimeout(()=>{overlay.style.display='none';document.body.classList.remove('loading');intro.classList.add('show');},800); }
+  if(reduce){ drawStar(); finish(); return; }
+  setTimeout(drawStar,3500);
+  setTimeout(()=>{accent.style.transition='opacity .8s ease';accent.style.opacity='0';},3500);
+  setTimeout(finish,8100);
+})();
+
+/* ---- question definitions (own wording, RoSPA-modelled, positive) ---- */
+const CORE=[
+ {id:'d1',n:1,title:'Leadership',q:"How do your owners, directors or managers visibly lead on safety?",help:"Tell us about the time, decisions or example they set, not just a signed policy.",
+  notes:{about:"How the people at the top actually lead safety day to day, through their time, decisions, spending and example, not just a signed policy on the wall.",
+   examples:["A director who walks the park and acts on what they find","Safety as a standing item at management meetings","Budget approved for a safety fix","A manager who stops a job that is not safe to continue"],
+   evidence:["Management meeting minutes that mention safety","A signed health and safety policy with a leadership commitment","A photo of a manager-led safety walk","An email approving safety spend"]}},
+ {id:'d3',n:2,title:'Team involvement',q:"How is your team involved in safety, and what changed because of something they raised?",help:"Genuine two-way involvement, and a real change that came from the team.",
+  notes:{about:"Your team having a real say in safety, and a change that actually happened because someone raised it.",
+   examples:["A near miss reported by a team member that led to a new control","A toolbox talk where the team agreed an action","A safety suggestion that was adopted"],
+   evidence:["Toolbox talk or team meeting records","A near miss or suggestion log","Before and after photos of a change the team prompted"]}},
+ {id:'d6',n:3,title:'Communication',q:"How do you get safety messages across, to your team and to guests who do not know the site?",help:"Both the internal side and the guest-facing side count.",
+  notes:{about:"Getting safety messages to two audiences: your team, and guests who do not know the site's risks such as water, vehicles, play areas and uneven ground.",
+   examples:["A guest welcome pack or check-in briefing with safety info","Clear signage at hazards","An induction for seasonal team members","A team board or group chat for safety updates"],
+   evidence:["Photos of guest safety signage","A welcome pack or leaflet","Induction materials","A photo of a team communications board"]}},
+ {id:'d8',n:4,title:'Active monitoring',q:"How do you spot and fix issues before they become incidents?",help:"Walk-rounds, inspections, checks, the proactive things you do.",
+  notes:{about:"Catching and fixing issues before they cause harm, through routine checks, inspections and walk-rounds, rather than only reacting after something goes wrong.",
+   examples:["A daily play area check","A weekly hot tub or water testing log","A manager walk-round checklist","A planned maintenance schedule"],
+   evidence:["Completed inspection checklists","A play inspection log","Water or hot tub testing records","A walk-round form"]}},
+ {id:'d11',n:5,title:'Standout of the year',q:"What is the one safety thing you are proudest of this year, or the biggest lesson that changed how you work?",help:"Your headline. Be specific and proud.",
+  notes:{about:"The one safety thing you are proudest of this year, or the biggest lesson that changed how you work. This is your headline.",
+   examples:["A project that cut slips on a wet route","A new system put in after an incident","An accreditation earned this year","A real shift in safety culture"],
+   evidence:["A short before and after","A photo","A project note or certificate"]}}
+];
+const EXTENDED=[
+ {id:'d2',title:'Competent advice',q:"How do you get competent health and safety and occupational health advice, and how does it reach the ground?",
+  notes:{about:"Where your competent health and safety and occupational health advice comes from, and how it actually reaches the people on the ground.",
+   examples:["An external safety consultant or retained adviser","A suitably qualified person on the team","An occupational health provider","Membership of a recognised professional body"],
+   evidence:["A consultancy or adviser agreement","A relevant qualification certificate","An occupational health referral process","An advice note that was acted on"]}},
+ {id:'d4',title:'Competence and contractors',q:"How do you assure your team's competence, and how do you select and monitor contractors on site?",
+  notes:{about:"How you make sure your team is competent for what they do, and how you select, approve and monitor contractors working on site.",
+   examples:["A training matrix kept up to date","An induction for contractors","Checking insurance and method statements before work starts","A permit to work for higher risk jobs"],
+   evidence:["A training matrix","A contractor approval or onboarding record","A method statement you reviewed","A permit to work"]}},
+ {id:'d5',title:'Risk assessment',q:"How do your risk assessments drive real controls for your significant hazards, water, gas, vehicles, play, public access?",
+  notes:{about:"Risk assessments that lead to real controls for your significant hazards, water and hot tubs, gas and LPG, vehicles, play, public access, and that feed into how you plan.",
+   examples:["A hot tub assessment with its water treatment controls","A vehicle or buggy assessment","A play area assessment","An open water assessment"],
+   evidence:["A current risk assessment","An action plan that came from it","A photo of a control you put in place"]}},
+ {id:'d7',title:'Slips, trips and falls',q:"What do you do to prevent slips, trips and falls across surfaces, steps, lighting and seasonal conditions?",
+  notes:{about:"Preventing the most common cause of injury, across surfaces, steps, lighting, and wet or seasonal conditions.",
+   examples:["Anti slip treatment on a wet route","Better lighting on steps","A winter or leaf clearing routine","Handrails added where needed"],
+   evidence:["Photos of a control","An inspection finding that was fixed","A seasonal plan"]}},
+ {id:'d9',title:'Investigation and wellbeing',q:"How do you investigate events, apply the learning, and support your team's health and absence?",
+  notes:{about:"How you investigate events to find the real cause, apply the learning, and support your team's health and absence in a humane way.",
+   examples:["An investigation that found a root cause and changed something","A return to work conversation","A wellbeing initiative for the team"],
+   evidence:["An investigation report with names removed","A record of the action taken","Your absence or wellbeing process"]}},
+ {id:'d10',title:'Review and improvement',q:"How do you review safety against targets and feed fresh priorities back into how the park is run?",
+  notes:{about:"Reviewing safety against targets, and feeding fresh priorities back into how the park is run each year.",
+   examples:["An annual safety review","Tracking near miss trends or simple measures","Objectives set for the next season"],
+   evidence:["A review record","A trend or measures sheet","A plan for the year ahead"]}}
+];
+
+/* ---- state ---- */
+const state={ subId:null, ref:null, core:{}, ext:{}, awardsStore:{awards:{text:'',evidence:[],links:[]}} };
+CORE.forEach(c=>state.core[c.id]={text:'',evidence:[],links:[]});
+EXTENDED.forEach(c=>state.ext[c.id]={text:'',evidence:[],links:[]});
+
+function ensureId(){
+  if(!state.subId){
+    if(fbReady){ const r=db.collection('safeawards_submissions').doc(); state.subId=r.id; }
+    else { state.subId='local-'+Math.random().toString(36).slice(2,10); }
+    state.ref='HPA-'+state.subId.substring(0,8).toUpperCase();
+  }
+  return state.subId;
+}
+
+/* ---- render a question block (core or extended) ---- */
+function qBlock(def, store, prefix){
+  const wrap=document.createElement('div');
+  wrap.className='q';
+  const notesHtml = def.notes ? `
+    <div class="notes" data-notes="${def.id}">
+      <h4>What we're asking</h4><p>${def.notes.about}</p>
+      <h4>Examples</h4><ul>${def.notes.examples.map(x=>`<li>${x}</li>`).join('')}</ul>
+      <h4>Evidence you could attach (optional)</h4><ul>${def.notes.evidence.map(x=>`<li>${x}</li>`).join('')}</ul>
+      <p class="reassure">No document to attach? Just explain it in your own words, a clear written answer is exactly what we assess.</p>
+    </div>` : '';
+  wrap.innerHTML=`
+    <div class="qhead">${def.n?`<span class="qnum">${def.n}</span>`:''}<div class="qt">${def.q}</div>${def.notes?`<button type="button" class="qinfo" data-info="${def.id}" title="More about this question" aria-label="More about this question">i</button>`:''}</div>
+    ${def.help?`<p class="helper">${def.help}</p>`:''}
+    ${notesHtml}
+    <div class="field"><textarea data-k="${def.id}" placeholder="Your answer…">${esc(store[def.id].text||'')}</textarea></div>
+    <div class="attachrow">
+      <button type="button" class="btn sm ghost" data-act="file" data-k="${def.id}">+ Attach evidence (optional)</button>
+      <button type="button" class="btn sm ghost" data-act="link" data-k="${def.id}">+ Add a link</button>
+      <input type="file" data-file="${def.id}" style="display:none" accept=".pdf,.png,.jpg,.jpeg,.webp,.gif,.doc,.docx">
+    </div>
+    <ul class="attachlist" data-list="${def.id}"></ul>`;
+  if(def.notes){ wrap.querySelector(`[data-info="${def.id}"]`).addEventListener('click',()=>wrap.querySelector(`[data-notes="${def.id}"]`).classList.toggle('open')); }
+  wrap.querySelector('textarea').addEventListener('input',e=>store[def.id].text=e.target.value);
+  wrap.querySelector('[data-act="file"]').addEventListener('click',()=>wrap.querySelector(`[data-file="${def.id}"]`).click());
+  wrap.querySelector('[data-act="link"]').addEventListener('click',()=>{
+    const u=prompt('Paste a link to a document or page (https://…):');
+    if(u && /^https?:\/\//i.test(u)){ store[def.id].links.push(u); renderAttachList(def.id,store); }
+    else if(u){ alert('Please include https://'); }
+  });
+  wrap.querySelector(`[data-file="${def.id}"]`).addEventListener('change',async e=>{
+    const f=e.target.files[0]; if(!f) return;
+    if(f.size>15*1024*1024){ alert('Files must be under 15MB.'); e.target.value=''; return; }
+    store[def.id]._pending=store[def.id]._pending||[];
+    store[def.id]._pending.push(f);
+    renderAttachList(def.id,store);
+    e.target.value='';
+  });
+  return wrap;
+}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function renderAttachList(id,store){
+  const ul=document.querySelector(`[data-list="${id}"]`); if(!ul) return; ul.innerHTML='';
+  (store[id].evidence||[]).forEach((e,i)=>{
+    const li=document.createElement('li');
+    const label=e.url?`<a href="${e.url}" target="_blank" rel="noopener">📎 ${esc(e.name)}</a>`:`📎 ${esc(e.name)}`;
+    li.innerHTML=`${label} <i style="color:var(--good)">saved</i><button class="rm" title="Remove">✕</button>`;
+    li.querySelector('.rm').onclick=()=>{store[id].evidence.splice(i,1);renderAttachList(id,store);};
+    ul.appendChild(li);
+  });
+  (store[id]._pending||[]).forEach((f,i)=>{
+    const li=document.createElement('li');
+    li.innerHTML=`<span>📎 ${esc(f.name)} <i style="color:var(--text-faint)">(uploads on submit)</i></span><button class="rm" title="Remove">✕</button>`;
+    li.querySelector('.rm').onclick=()=>{store[id]._pending.splice(i,1);renderAttachList(id,store);};
+    ul.appendChild(li);
+  });
+  (store[id].links||[]).forEach((u,i)=>{
+    const li=document.createElement('li');
+    li.innerHTML=`<a href="${u}" target="_blank" rel="noopener">🔗 ${esc(u.length>46?u.slice(0,46)+'…':u)}</a><button class="rm" title="Remove">✕</button>`;
+    li.querySelector('.rm').onclick=()=>{store[id].links.splice(i,1);renderAttachList(id,store);};
+    ul.appendChild(li);
+  });
+}
+
+/* mount questions (re-runnable: first load and on resume) */
+const AWARDS_DEF={id:'awards',q:"List any current awards or accreditations held, with the awarding body and year if you can (e.g. RoSPA, David Bellamy or Green Tourism, ISO, industry or guest-experience awards).",help:"Optional. Health, safety and environmental recognition is especially welcome."};
+function mountQuestions(){
+  const coreSection=document.getElementById('coreSection');
+  coreSection.querySelectorAll('.q').forEach(e=>e.remove());
+  CORE.forEach(c=>coreSection.appendChild(qBlock(c,state.core,'core')));
+  const ab=document.getElementById('awardsBox'); ab.innerHTML='';
+  ab.appendChild(qBlock(AWARDS_DEF,state.awardsStore,'awards'));
+  CORE.forEach(c=>renderAttachList(c.id,state.core));
+  renderAttachList('awards',state.awardsStore);
+}
+/* dynamic split-year label, rolls over automatically each year */
+const SEASON=(new Date().getFullYear()-1)+'/'+(new Date().getFullYear());
+{const sl=document.getElementById('seasonLabel'); if(sl) sl.textContent=SEASON;}
+mountQuestions();
+
+/* ---- begin ---- */
+document.getElementById('begin').addEventListener('click',()=>{
+  document.getElementById('intro').classList.remove('show');
+  document.getElementById('intro').style.display='none';
+  document.getElementById('form').classList.add('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+
+/* ---- evidence upload ---- */
+async function uploadPending(store,id){
+  const out=[];
+  const pend=store[id]._pending||[];
+  for(const f of pend){
+    const path=`safeawards/${state.subId}/${id}/${Date.now()}_${f.name.replace(/[^\w.\-]+/g,'_')}`;
+    const ref=storage.ref().child(path);
+    await ref.put(f);
+    const url=await ref.getDownloadURL();
+    out.push({name:f.name,storagePath:path,url});
+  }
+  return out;
+}
+
+/* ---- build the responses object in the console's shape ---- */
+async function buildResponses(defs,store){
+  const responses={};
+  for(const def of defs){
+    const ev=await uploadPending(store,def.id);
+    responses[def.id]={
+      text:store[def.id].text||'',
+      score:null,
+      evidence:[...(store[def.id].evidence||[]),...ev],
+      links:store[def.id].links||[]
+    };
+    store[def.id].evidence=responses[def.id].evidence;
+    store[def.id]._pending=[];
+  }
+  return responses;
+}
+
+/* ---- submit core ---- */
+document.getElementById('submit').addEventListener('click',async()=>{
+  const status=document.getElementById('status');
+  const val=id=>document.getElementById(id).value.trim();
+  const missing=[];
+  if(!val('parkName'))missing.push('park name');
+  if(!val('subName'))missing.push('submitter name');
+  if(!val('subPhone'))missing.push('phone');
+  if(!val('subEmail'))missing.push('email');
+  if(!document.getElementById('elig').checked)missing.push('eligibility confirmation');
+  if(!val('teamCount'))missing.push('number of team members');
+  if(!val('guestCount'))missing.push('approximate guests');
+  if(!val('incidentsReported'))missing.push('incidents reported (enter 0 if none)');
+  const emptyCore=CORE.filter(c=>!state.core[c.id].text.trim()).length;
+  if(emptyCore)missing.push('all five questions');
+  if(missing.length){ status.className='statusline err'; status.textContent='Please add: '+missing.join(', ')+'.'; return; }
+  if(!fbReady){ status.className='statusline err'; status.textContent='Connection problem. Please refresh and try again.'; return; }
+
+  const btn=document.getElementById('submit'); btn.disabled=true; status.className='statusline'; status.textContent='Uploading and submitting…';
+  try{
+    await authReady;
+    ensureId();
+    const responses=await buildResponses(CORE,state.core);
+    const awardsResp=await buildResponses([{id:'awards'}],state.awardsStore);
+    const now=new Date().toISOString();
+    const data={
+      ref:state.ref,
+      parkName:val('parkName'), parkRegion:val('parkRegion'),
+      submitterName:val('subName'), submitterRole:val('subRole'),
+      contactPhone:val('subPhone'), contactEmail:val('subEmail'),
+      eligibilityConfirmed:true,
+      teamCount:Number(val('teamCount'))||0, guestCount:Number(val('guestCount'))||0,
+      incidentsReported:Number(val('incidentsReported'))||0, seasonLabel:SEASON,
+      incidentPctTeam: val('incidentPctTeam')!==''?Number(val('incidentPctTeam')):null,
+      incidentPctGuest: val('incidentPctGuest')!==''?Number(val('incidentPctGuest')):null,
+      awardsHeld:awardsResp.awards.text||'', awardsEvidence:awardsResp.awards.evidence||[], awardsLinks:awardsResp.awards.links||[],
+      responses, // keyed d1,d3,d6,d8,d11 — native to safeawards.html
+      stream:'holiday-park-awards', tier:'core', fullReportRequested:false,
+      status:'pending', source:'awards-public',
+      reviewedBy:null, reviewedAt:null,
+      submittedAt:now, createdAt:state._created||now, lastUpdated:now
+    };
+    await db.collection('safeawards_submissions').doc(state.subId).set(data,{merge:true});
+    document.getElementById('refOut').textContent=state.ref;
+    document.getElementById('form').classList.remove('show');
+    document.getElementById('success').classList.add('show');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }catch(e){
+    console.error(e); btn.disabled=false;
+    status.className='statusline err'; status.textContent='Something went wrong submitting. Please try again.';
+  }
+});
+
+/* ---- save and come back later ---- */
+function setVal(id,v){const el=document.getElementById(id); if(el) el.value=(v==null?'':v);}
+async function saveDraft(){
+  const status=document.getElementById('status');
+  const val=id=>document.getElementById(id).value.trim();
+  if(!val('subEmail')){ status.className='statusline err'; status.textContent='Add your contact email first, so you can return to this entry.'; const se=document.getElementById('subEmail'); se.scrollIntoView({behavior:'smooth',block:'center'}); se.focus(); return; }
+  if(!fbReady){ status.className='statusline err'; status.textContent='Connection problem. Please try again.'; return; }
+  const btn=document.getElementById('saveDraftBtn'); btn.disabled=true; status.className='statusline'; status.textContent='Saving your progress…';
+  try{
+    await authReady;
+    ensureId();
+    const responses=await buildResponses(CORE,state.core);
+    const awardsResp=await buildResponses([{id:'awards'}],state.awardsStore);
+    const now=new Date().toISOString(); state._created=state._created||now;
+    await db.collection('safeawards_submissions').doc(state.subId).set({
+      ref:state.ref,
+      parkName:val('parkName'), parkRegion:val('parkRegion'),
+      submitterName:val('subName'), submitterRole:val('subRole'),
+      contactPhone:val('subPhone'), contactEmail:val('subEmail'),
+      eligibilityConfirmed:document.getElementById('elig').checked,
+      teamCount:Number(val('teamCount'))||0, guestCount:Number(val('guestCount'))||0,
+      incidentsReported:Number(val('incidentsReported'))||0, seasonLabel:SEASON,
+      incidentPctTeam: val('incidentPctTeam')!==''?Number(val('incidentPctTeam')):null,
+      incidentPctGuest: val('incidentPctGuest')!==''?Number(val('incidentPctGuest')):null,
+      awardsHeld:awardsResp.awards.text||'', awardsEvidence:awardsResp.awards.evidence||[], awardsLinks:awardsResp.awards.links||[],
+      responses,
+      stream:'holiday-park-awards', tier:'core', fullReportRequested:false,
+      status:'in-progress', source:'awards-public',
+      createdAt:state._created, lastUpdated:now
+    },{merge:true});
+    CORE.forEach(c=>renderAttachList(c.id,state.core));
+    renderAttachList('awards',state.awardsStore);
+    status.textContent='';
+    const panel=document.getElementById('savePanel');
+    panel.style.display='block';
+    panel.innerHTML=`<div class="sp-tick">✓ Progress saved</div>
+      <p>To come back later, open this link again, choose <b>Continue a saved entry</b>, and enter:</p>
+      <div class="sp-code">${state.ref}</div>
+      <p class="sp-note">with the email <b>${esc(val('subEmail'))}</b>. You can keep going now, or close the page and return whenever you are ready.</p>`;
+    panel.scrollIntoView({behavior:'smooth',block:'center'});
+  }catch(e){ console.error(e); status.className='statusline err'; status.textContent='Could not save. Please try again.'; }
+  finally{ document.getElementById('saveDraftBtn').disabled=false; }
+}
+document.getElementById('saveDraftBtn').addEventListener('click',saveDraft);
+
+/* ---- resume a saved entry (code + email) ---- */
+document.getElementById('resumeToggle').addEventListener('click',e=>{
+  e.preventDefault();
+  const p=document.getElementById('resumePanel');
+  p.style.display=(p.style.display==='none'?'block':'none');
+});
+async function resumeEntry(){
+  const code=(document.getElementById('resumeCode').value||'').trim().toUpperCase();
+  const email=(document.getElementById('resumeEmail').value||'').trim().toLowerCase();
+  const st=document.getElementById('resumeStatus');
+  if(!code||!email){ st.className='statusline err'; st.textContent='Enter your code and email.'; return; }
+  if(!fbReady){ st.className='statusline err'; st.textContent='Connection problem. Please try again.'; return; }
+  const btn=document.getElementById('resumeBtn'); btn.disabled=true; st.className='statusline'; st.textContent='Finding your entry…';
+  try{
+    await authReady;
+    const snap=await db.collection('safeawards_submissions').where('ref','==',code).limit(1).get();
+    if(snap.empty){ st.className='statusline err'; st.textContent="We couldn't find an entry with that code."; btn.disabled=false; return; }
+    const doc=snap.docs[0], d=doc.data();
+    if(String(d.contactEmail||'').trim().toLowerCase()!==email){ st.className='statusline err'; st.textContent="That code and email don't match."; btn.disabled=false; return; }
+    if(d.status && d.status!=='in-progress'){ st.className='statusline err'; st.textContent='That entry has already been submitted, so it cannot be edited.'; btn.disabled=false; return; }
+    loadDraftIntoForm(doc.id,d);
+  }catch(e){ console.error(e); st.className='statusline err'; st.textContent='Could not load. Please try again.'; btn.disabled=false; }
+}
+document.getElementById('resumeBtn').addEventListener('click',resumeEntry);
+function loadDraftIntoForm(id,d){
+  state.subId=id; state.ref=d.ref||('HPA-'+id.substring(0,8).toUpperCase()); state._created=d.createdAt||null;
+  setVal('parkName',d.parkName); setVal('parkRegion',d.parkRegion);
+  setVal('subName',d.submitterName); setVal('subRole',d.submitterRole);
+  setVal('subPhone',d.contactPhone); setVal('subEmail',d.contactEmail);
+  document.getElementById('elig').checked=!!d.eligibilityConfirmed;
+  setVal('teamCount',d.teamCount); setVal('guestCount',d.guestCount);
+  setVal('incidentsReported',d.incidentsReported);
+  setVal('incidentPctTeam',d.incidentPctTeam); setVal('incidentPctGuest',d.incidentPctGuest);
+  CORE.forEach(c=>{ const r=(d.responses||{})[c.id]||{}; state.core[c.id]={text:r.text||'',evidence:Array.isArray(r.evidence)?r.evidence.slice():[],links:Array.isArray(r.links)?r.links.slice():[]}; });
+  state.awardsStore.awards={text:d.awardsHeld||'',evidence:Array.isArray(d.awardsEvidence)?d.awardsEvidence.slice():[],links:Array.isArray(d.awardsLinks)?d.awardsLinks.slice():[]};
+  mountQuestions();
+  document.getElementById('intro').classList.remove('show'); document.getElementById('intro').style.display='none';
+  document.getElementById('form').classList.add('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---- optional extended step ---- */
+document.getElementById('addExt').addEventListener('click',()=>{
+  const host=document.getElementById('extQuestions');
+  if(!host.childElementCount){ EXTENDED.forEach(c=>host.appendChild(qBlock(c,state.ext,'ext'))); }
+  host.style.display='block';
+  document.getElementById('addExt').style.display='none';
+  document.getElementById('extSubmitBar').style.display='flex';
+});
+document.getElementById('submitExt').addEventListener('click',async()=>{
+  const status=document.getElementById('extStatus');
+  if(!fbReady){ status.className='statusline err'; status.textContent='Connection problem. Please try again.'; return; }
+  const btn=document.getElementById('submitExt'); btn.disabled=true; status.className='statusline'; status.textContent='Uploading and saving…';
+  try{
+    await authReady;
+    const extendedResponses=await buildResponses(EXTENDED,state.ext);
+    await db.collection('safeawards_submissions').doc(state.subId).set({
+      extendedResponses, fullReportRequested:true, lastUpdated:new Date().toISOString()
+    },{merge:true});
+    document.getElementById('extbox').innerHTML='<h3>All done</h3><p class="sub">Your full report answers are saved. We will send your Full Safety Excellence Report alongside your awards result.</p>';
+  }catch(e){
+    console.error(e); btn.disabled=false;
+    status.className='statusline err'; status.textContent='Could not save. Please try again.';
+  }
+});
+</script>
+</body>
+</html>
