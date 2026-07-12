@@ -1,0 +1,27 @@
+name: Nightly Horizon Scan
+
+# Runs every night and can also be triggered by hand from the Actions tab.
+on:
+  schedule:
+    - cron: '0 6 * * *'      # 06:00 UTC daily (~06:00/07:00 UK)
+  workflow_dispatch: {}       # manual "Run workflow" button
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm init -y >/dev/null 2>&1 && npm install firebase-admin@12 >/dev/null 2>&1
+
+      - name: Run horizon scan
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}   # optional; defaults inside the script
+        run: node scripts/horizon-scan.mjs
