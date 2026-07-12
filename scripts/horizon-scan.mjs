@@ -12,8 +12,6 @@ const SA = process.env.FIREBASE_SERVICE_ACCOUNT;
 if (!ANTHROPIC_API_KEY) { console.error('Missing ANTHROPIC_API_KEY secret'); process.exit(1); }
 if (!SA) { console.error('Missing FIREBASE_SERVICE_ACCOUNT secret'); process.exit(1); }
 
-// The items to horizon-scan. Keep names identical to the module's Horizon tab
-// so findings line up. Add/remove freely.
 const ITEMS = [
   'ISO 9001 Quality', 'ISO 14001 Environmental', 'ISO 45001 OH&S',
   'Workboat Code (MCA, small workboats & pilot boats)',
@@ -33,64 +31,79 @@ const ITEMS = [
   'Terrorism (Protection of Premises) Act 2025 (Martyn\u2019s Law)'
 ];
 
-const PROMPT = `You are a UK QHSE compliance horizon-scanning assistant for a marine civils, commercial diving and boatyard business (GSS Marine Services & Silvers Marine).
-Today is ${new Date().toISOString().slice(0,10)}.
-For EACH item below, use web search to check for any recent update, amendment, revision, new edition, consultation outcome or replacement (focus on the last ~12 months and anything imminent).
+const SYSTEM = `You are a UK QHSE compliance horizon-scanning assistant. You research UK legislation and standards for a marine civils, commercial diving and boatyard business (GSS Marine Services & Silvers Marine). You have a web search tool; use it as needed. When you have finished researching, your FINAL message must contain ONLY a single JSON object and nothing else — no explanation, no preamble, no markdown, no code fences. Do not describe your plan; just do the research using the tool, then output the JSON.`;
 
-Return ONLY a JSON object (no prose before or after, no markdown, no code fences). Shape:
-{"summary":"one sentence overview of what needs attention","items":[{"name":"<exact item name>","status":"Current|Monitor|Update available|Action required|Superseded","finding":"one concise sentence; include dates"}]}
-Rules: use the EXACT item names given. Keep every string on one line (no line breaks inside a value). Escape any double-quotes inside text. status "Action required" only when the business must actively do something (e.g. transition a certificate, comply by a date). "Update available" when a change is published/imminent but not yet mandatory. "Monitor" when stable or only under consultation.
+const PROMPT = `Today is ${new Date().toISOString().slice(0,10)}.
+For EACH item below, check for any recent update, amendment, revision, new edition, consultation outcome or replacement (last ~12 months and anything imminent). Use web search as needed.
+
+When done, output ONLY this JSON object (exact shape):
+{"summary":"one sentence overview of what needs attention","items":[{"name":"<exact item name>","status":"Current|Monitor|Update available|Action required|Superseded","finding":"one concise sentence with dates"}]}
+
+Rules: use the EXACT item names. Keep every value on one line. Escape any double-quotes inside text. "Action required" = the business must actively do something (e.g. transition a certificate, comply by a date). "Update available" = a change is published/imminent but not yet mandatory. "Monitor" = stable or only under consultation.
 
 Items:
 ${ITEMS.map((x,i)=>`${i+1}. ${x}`).join('\n')}`;
 
-// Pull the first balanced {...} object out of a string, tolerating any
-// surrounding prose or code fences the model might add.
+// Find and return the LAST complete balanced {...} object in a string,
+// tolerating prose, code fences or tool chatter anywhere around it.
 function extractJsonObject(text) {
-  const start = text.indexOf('{');
-  if (start < 0) return null;
-  let depth = 0, inStr = false, esc = false;
-  for (let i = start; i < text.length; i++) {
-    const c = text[i];
-    if (inStr) {
-      if (esc) esc = false;
-      else if (c === '\\') esc = true;
-      else if (c === '"') inStr = false;
-    } else {
-      if (c === '"') inStr = true;
-      else if (c === '{') depth++;
-      else if (c === '}') { depth--; if (depth === 0) return text.slice(start, i + 1); }
+  let best = null;
+  for (let s = 0; s < text.length; s++) {
+    if (text[s] !== '{') continue;
+    let depth = 0, inStr = false, esc = false;
+    for (let i = s; i < text.length; i++) {
+      const c = text[i];
+      if (inStr) {
+        if (esc) esc = false;
+        else if (c === '\\') esc = true;
+        else if (c === '"') inStr = false;
+      } else {
+        if (c === '"') inStr = true;
+        else if (c === '{') depth++;
+        else if (c === '}') {
+          depth--;
+          if (depth === 0) {
+            const cand = text.slice(s, i + 1);
+            if (cand.includes('"items"')) best = cand; // prefer the findings object
+            break;
+          }
+        }
+      }
     }
   }
-  return null;
+  return best;
 }
 
+// Run a short tool-use conversation: keep replying to tool_use until the model
+// stops using tools, then return its final text.
 async function callClaude() {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01'
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 6000,
-      tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 10 }],
-      messages: [{ role: 'user', content: PROMPT }]
-    })
-  });
-  if (!res.ok) throw new Error('Anthropic API ' + res.status + ': ' + (await res.text()).slice(0, 800));
-  const data = await res.json();
-  const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
-  const json = extractJsonObject(text);
-  if (!json) throw new Error('No JSON object found in model response. First 500 chars:\n' + text.slice(0, 500));
-  try {
-    return JSON.parse(json);
-  } catch (e) {
-    console.error('JSON parse failed; raw JSON candidate was:\n' + json.slice(0, 1200));
-    throw e;
+  const tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: 12 }];
+  const messages = [{ role: 'user', content: PROMPT }];
+  let finalText = '';
+  for (let turn = 0; turn < 8; turn++) {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({ model: MODEL, max_tokens: 6000, system: SYSTEM, tools, messages })
+    });
+    if (!res.ok) throw new Error('Anthropic API ' + res.status + ': ' + (await res.text()).slice(0, 800));
+    const data = await res.json();
+    finalText = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+    if (data.stop_reason === 'tool_use') {
+      messages.push({ role: 'assistant', content: data.content });
+      messages.push({ role: 'user', content: 'Continue. When finished, reply with ONLY the JSON object.' });
+      continue;
+    }
+    break;
   }
+  const json = extractJsonObject(finalText);
+  if (!json) throw new Error('No JSON object found in model response. First 600 chars:\n' + finalText.slice(0, 600));
+  try { return JSON.parse(json); }
+  catch (e) { console.error('JSON parse failed; candidate:\n' + json.slice(0, 1500)); throw e; }
 }
 
 async function main() {
@@ -100,11 +113,9 @@ async function main() {
     summary: (parsed && parsed.summary) || '',
     items: (parsed && Array.isArray(parsed.items)) ? parsed.items : []
   };
-
   admin.initializeApp({ credential: admin.credential.cert(JSON.parse(SA)) });
   await admin.firestore().collection('gss_state').doc('horizon')
     .set({ payload: JSON.stringify(payload), scannedAt: payload.scannedAt });
-
   console.log('Horizon scan written:', payload.items.length, 'items @', payload.scannedAt);
   console.log('Summary:', payload.summary);
 }
