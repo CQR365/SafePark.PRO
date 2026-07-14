@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeInduct — The Boatshed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0d1117; --surface: #161b22; --surface2: #1e242d;
+  --border:   #2a3140; --accent:  #e05c1a; --accent2:  #fe7f2d;
+  --blue:     #4f8ef7; --teal:    #2dd4b0; --purple:   #c084fc;
+  --green:    #3fb950; --gold:    #e5b94e; --red:      #f85149;
+  --text:     #e6edf3; --muted:   #7d8590; --faint:    #3d4451;
+  --r: 6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── HEADER ── */
+.app-header{background:var(--surface);border-bottom:1px solid var(--border);
+  padding:12px 20px;display:flex;align-items:center;gap:12px;
+  position:sticky;top:0;z-index:200}
+.logo{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-family:'Outfit',sans-serif;font-weight:800;font-size:13px;color:#fff;flex-shrink:0}
+.app-header h1{font-family:'Outfit',sans-serif;font-size:15px;font-weight:700}
+.app-header small{font-size:11px;color:var(--muted);display:block;margin-top:1px}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.park-badge{background:rgba(224,92,26,.12);border:1px solid rgba(224,92,26,.3);
+  color:var(--accent);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+#authStatus{font-size:12px;color:var(--muted)}
+
+/* ── LAYOUT ── */
+.app-layout{display:flex;min-height:calc(100vh - 57px)}
+.sidebar{width:260px;background:var(--surface);border-right:1px solid var(--border);
+  flex-shrink:0;padding:16px 0;display:flex;flex-direction:column;gap:4px;
+  position:sticky;top:57px;height:calc(100vh - 57px);overflow-y:auto}
+.sidebar-section{padding:8px 16px 4px;font-size:10px;font-weight:600;
+  color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 16px;
+  border-radius:0;cursor:pointer;transition:background .15s;font-size:13px;
+  color:var(--muted);border-left:3px solid transparent;text-decoration:none}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:rgba(224,92,26,.08);color:var(--accent);
+  border-left-color:var(--accent)}
+.nav-item .icon{font-size:15px;width:20px;text-align:center}
+.nav-item .badge{margin-left:auto;background:var(--accent);color:#fff;
+  font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px}
+.sidebar-divider{border:none;border-top:1px solid var(--border);margin:8px 0}
+.main{flex:1;padding:24px;overflow-x:hidden;max-width:100%}
+
+/* ── VIEWS ── */
+.view{display:none}.view.active{display:block}
+
+/* ── DASHBOARD ── */
+.page-header{margin-bottom:24px}
+.page-header h2{font-family:'Outfit',sans-serif;font-size:22px;font-weight:700}
+.page-header p{color:var(--muted);font-size:13px;margin-top:4px}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:16px;display:flex;flex-direction:column;gap:4px}
+.stat-card .num{font-family:'Outfit',sans-serif;font-size:28px;font-weight:700}
+.stat-card .lbl{font-size:12px;color:var(--muted)}
+.stat-card.accent .num{color:var(--accent)}
+.stat-card.green  .num{color:var(--green)}
+.stat-card.blue   .num{color:var(--blue)}
+.stat-card.gold   .num{color:var(--gold)}
+
+.toolbar{display:flex;gap:10px;margin-bottom:16px;align-items:center;flex-wrap:wrap}
+.search-input{flex:1;min-width:200px;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;
+  padding:8px 12px;transition:border-color .2s}
+.search-input:focus{outline:none;border-color:var(--accent)}
+.search-input::placeholder{color:var(--muted)}
+.btn{padding:8px 16px;border-radius:var(--r);border:none;font-family:'Outfit',sans-serif;
+  font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s,transform .1s;display:inline-flex;align-items:center;gap:6px}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{opacity:.9}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-danger{background:rgba(248,81,73,.15);border:1px solid rgba(248,81,73,.3);color:var(--red)}
+
+.filter-tabs{display:flex;gap:6px}
+.filter-tab{padding:6px 12px;border-radius:20px;border:1px solid var(--border);
+  background:transparent;color:var(--muted);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.filter-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+.inductions-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.induction-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:18px;cursor:pointer;transition:border-color .2s,transform .15s;position:relative;overflow:hidden}
+.induction-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;
+  background:var(--accent);opacity:0;transition:opacity .2s}
+.induction-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.induction-card:hover::before{opacity:1}
+.induction-card.complete::before{opacity:1;background:var(--green)}
+.induction-card.complete{border-color:rgba(63,185,80,.3)}
+.card-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.card-avatar{width:40px;height:40px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;
+  font-weight:700;font-size:15px;color:#fff;flex-shrink:0}
+.card-name{font-family:'Outfit',sans-serif;font-size:15px;font-weight:600}
+.card-role{font-size:12px;color:var(--muted);margin-top:1px}
+.card-park{font-size:11px;color:var(--accent);margin-top:2px}
+.status-pill{margin-left:auto;padding:3px 8px;border-radius:10px;font-size:10px;font-weight:600}
+.status-pill.in_progress{background:rgba(79,142,247,.15);color:var(--blue)}
+.status-pill.complete{background:rgba(63,185,80,.15);color:var(--green)}
+.progress-bar{background:var(--faint);border-radius:10px;height:4px;margin-bottom:8px;overflow:hidden}
+.progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s}
+.progress-fill.complete{background:var(--green)}
+.card-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-state .icon{font-size:40px;margin-bottom:12px}
+.empty-state p{font-size:14px}
+
+/* ── DETAIL VIEW ── */
+.detail-header{display:flex;align-items:center;gap:16px;margin-bottom:24px;
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px}
+.detail-avatar{width:56px;height:56px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;
+  font-weight:800;font-size:22px;color:#fff}
+.detail-info h2{font-family:'Outfit',sans-serif;font-size:20px;font-weight:700}
+.detail-info span{font-size:13px;color:var(--muted)}
+.detail-info .detail-park{color:var(--accent);font-size:12px;font-weight:600;margin-top:2px}
+.detail-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+
+.overall-progress{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:16px}
+.overall-pct{font-family:'Outfit',sans-serif;font-size:32px;font-weight:800;
+  color:var(--accent);flex-shrink:0;min-width:70px}
+.overall-bar-wrap{flex:1}
+.overall-bar{height:8px;background:var(--faint);border-radius:10px;overflow:hidden;margin-bottom:6px}
+.overall-bar-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s}
+.overall-label{font-size:12px;color:var(--muted)}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px;overflow-x:auto}
+.tab{padding:10px 18px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;
+  border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s;background:none;border-top:none;border-left:none;border-right:none}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.tab .tab-badge{display:inline-block;background:var(--green);color:#fff;
+  font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;margin-left:5px}
+.tab-content{display:none}.tab-content.active{display:block}
+
+/* ── CHECKLIST ── */
+.section-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  margin-bottom:14px;overflow:hidden}
+.section-card-head{padding:14px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;background:var(--surface2)}
+.section-card-head h3{font-family:'Outfit',sans-serif;font-size:14px;font-weight:600}
+.section-card-head .sec-progress{margin-left:auto;font-size:12px;color:var(--muted)}
+.checklist-item{display:flex;align-items:center;gap:12px;padding:10px 18px;
+  border-bottom:1px solid var(--faint);transition:background .15s}
+.checklist-item:last-child{border-bottom:none}
+.checklist-item:hover{background:var(--surface2)}
+.checklist-item.done{opacity:.7}
+.check-box{width:20px;height:20px;border:2px solid var(--border);border-radius:4px;
+  flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .15s;background:transparent}
+.check-box:hover{border-color:var(--accent)}
+.check-box.checked{background:var(--green);border-color:var(--green)}
+.check-box.checked::after{content:'✓';font-size:12px;color:#fff;font-weight:700}
+.item-text{flex:1;font-size:13px}
+.item-method{font-size:11px;color:var(--muted);flex-shrink:0}
+.item-date{font-size:10px;color:var(--green);margin-top:1px}
+
+/* ── WEEK SECTION ── */
+.week-block{margin-bottom:20px}
+.week-header{display:flex;align-items:center;gap:12px;padding:14px 18px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px 10px 0 0;cursor:pointer}
+.week-header h3{font-family:'Outfit',sans-serif;font-size:14px;font-weight:600}
+.week-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.week-badge.done{background:rgba(63,185,80,.15);color:var(--green)}
+.week-badge.in_progress{background:rgba(79,142,247,.15);color:var(--blue)}
+.week-badge.pending{background:rgba(125,133,144,.15);color:var(--muted)}
+.week-signoff{background:var(--surface);border:1px solid var(--border);
+  border-top:none;border-radius:0 0 10px 10px;padding:14px 18px;
+  display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.signoff-btn{padding:7px 14px;border-radius:var(--r);border:1px solid var(--border);
+  background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.signoff-btn.signed{background:rgba(63,185,80,.15);border-color:rgba(63,185,80,.3);color:var(--green)}
+.signoff-btn:not(.signed):hover{border-color:var(--accent);color:var(--accent)}
+.signoff-label{font-size:11px;color:var(--muted)}
+
+/* ── ONLINE TRAINING ── */
+.training-item{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;
+  padding:12px 18px;border-bottom:1px solid var(--faint)}
+.training-item:last-child{border-bottom:none}
+.training-name{font-size:13px}
+.training-cert{background:var(--surface2);border:1px solid var(--border);border-radius:4px;
+  padding:5px 8px;font-size:11px;color:var(--muted);width:140px}
+.training-cert:focus{outline:none;border-color:var(--accent)}
+.training-cert::placeholder{color:var(--faint)}
+
+/* ── SIGN-OFF ── */
+.signoff-section{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:20px;margin-bottom:16px}
+.signoff-section h3{font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;margin-bottom:16px;
+  display:flex;align-items:center;gap:8px}
+.signoff-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.signoff-field label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px}
+.signoff-field input{width:100%;background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;
+  padding:8px 10px;transition:border-color .2s}
+.signoff-field input:focus{outline:none;border-color:var(--accent)}
+.sign-action{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.sign-chip{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;
+  border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .15s}
+.sign-chip.signed{background:rgba(63,185,80,.15);border-color:rgba(63,185,80,.3);color:var(--green)}
+.sign-chip:not(.signed):hover{border-color:var(--accent);color:var(--accent)}
+.sign-timestamp{font-size:11px;color:var(--green)}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;
+  display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  width:100%;max-width:540px;overflow:hidden}
+.modal-head{padding:18px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between}
+.modal-head h3{font-family:'Outfit',sans-serif;font-size:17px;font-weight:700}
+.modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1}
+.modal-body{padding:20px;display:flex;flex-direction:column;gap:14px}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.field-group label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px}
+.field-group input,.field-group select{width:100%;background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;
+  padding:9px 12px;transition:border-color .2s}
+.field-group input:focus,.field-group select:focus{outline:none;border-color:var(--accent)}
+.field-group select option{background:var(--surface2)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);
+  border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:13px;
+  z-index:500;transform:translateY(80px);opacity:0;transition:all .3s;display:flex;align-items:center;gap:8px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-color:rgba(63,185,80,.4);color:var(--green)}
+.toast.error{border-color:rgba(248,81,73,.4);color:var(--red)}
+
+/* ── SPINNER ── */
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .7s linear infinite;margin:40px auto;display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:768px){
+  .sidebar{display:none}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .inductions-grid{grid-template-columns:1fr}
+  .field-row{grid-template-columns:1fr}
+}
+
+/* ── MOBILE & TABLET GUARANTEE ───────────────────────────────────────────── */
+/* iOS Safari zooms in on inputs < 16px — prevent this universally */
+@media (max-width: 768px) {
+  input, select, textarea, .inline-edit, .task-row input, .comp-item-row input,
+  .auth-input, .search-input, .search, .fg input, .fg select, .fg textarea,
+  .training-cert, .obj-table input, input[type="text"], input[type="date"],
+  input[type="email"], input[type="tel"], input[type="number"], input[type="password"] {
+    font-size: 16px !important;
+  }
+}
+
+/* Mobile strip & FAB */
+.mobile-strip {
+  display: none;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  position: sticky;
+  top: 57px;
+  z-index: 90;
+}
+.mobile-strip::-webkit-scrollbar { display: none; }
+.mobile-strip-row { display: flex; gap: 8px; min-width: max-content; }
+.ms-btn {
+  padding: 7px 14px; border-radius: 20px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--muted); font-family: 'Outfit', sans-serif;
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  white-space: nowrap; transition: all .15s;
+  min-height: 36px;
+}
+.ms-btn.ms-active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.mobile-fab {
+  display: none;
+  position: fixed; bottom: 24px; right: 20px;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  border: none; font-size: 28px; font-weight: 300;
+  box-shadow: 0 4px 20px rgba(224,92,26,.4);
+  cursor: pointer; z-index: 300;
+  align-items: center; justify-content: center;
+  line-height: 1;
+}
+
+@media (max-width: 768px) {
+  .mobile-strip { display: block; }
+  .mobile-fab { display: flex; }
+  .main { padding: 16px 14px; }
+  .stats-row { grid-template-columns: repeat(2,1fr); gap: 10px; }
+  .stat-card { padding: 12px; }
+  .stat-card .num { font-size: 22px; }
+  .inductions-grid { grid-template-columns: 1fr; }
+  .toolbar { gap: 8px; }
+  .filter-tabs { display: none; } /* replaced by mobile strip */
+  .detail-header { flex-direction: column; align-items: flex-start; gap: 12px; padding: 14px; }
+  .detail-actions { width: 100%; justify-content: flex-start; }
+  .tabs { gap: 0; }
+  .tab { padding: 8px 12px; font-size: 12px; }
+  .signoff-grid { grid-template-columns: 1fr; }
+  .modal { margin: 10px; width: calc(100% - 20px); max-width: none; }
+  .modal-body { padding: 14px; }
+  .field-row { grid-template-columns: 1fr; }
+  .section-card-head { padding: 10px 14px; }
+  .checklist-item { padding: 8px 14px; gap: 10px; }
+  .week-header { padding: 10px 14px; flex-wrap: wrap; gap: 8px; }
+  .week-signoff { padding: 10px 14px; gap: 8px; }
+  .pg-head { flex-direction: column; align-items: flex-start; }
+  .pg-head button { width: 100%; justify-content: center; }
+  /* Ensure toolbar search is full width */
+  .search-input { min-width: 0; width: 100%; }
+  body { padding-bottom: 80px; } /* space for FAB */
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar { width: 200px; }
+  .main { padding: 18px; }
+  .stats-row { grid-template-columns: repeat(2,1fr); }
+  .inductions-grid { grid-template-columns: repeat(2,1fr); }
+  .modal { max-width: 90vw; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="logo">BS</div>
+  <div>
+    <h1>SafeInduct</h1>
+    <small>Induction Management — SafeSystems.PRO</small>
+  </div>
+  <div class="header-right">
+    <span class="park-badge" id="parkLabel">The Boatshed</span>
+    <a href="safeteam-cafe.html" style="font-size:12px;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:4px 10px;border-radius:var(--r);transition:border-color .2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">Back to SafeTeam</a>
+    <span id="authStatus">Connecting…</span>
+  </div>
+</header>
+
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-section">Inductions</div>
+    <div class="nav-item active" onclick="showView('dashboard')" id="nav-dashboard">
+       Dashboard
+      <span class="badge" id="navBadgeActive">0</span>
+    </div>
+    <hr class="sidebar-divider">
+    <div class="sidebar-section">Actions</div>
+    <div class="nav-item" onclick="openNewModal()"><span class="icon">+</span> New Induction</div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- Single-site cafe: park-filter strip removed -->
+    <!-- Mobile FAB -->
+    <button class="mobile-fab" onclick="openNewModal()" aria-label="New Induction">+</button>
+
+    <!-- DASHBOARD VIEW -->
+    <div class="view active" id="view-dashboard">
+      <div class="page-header">
+        <h2>Induction Records</h2>
+        <p>Track new starter inductions at The Boatshed</p>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card accent"><div class="num" id="statTotal">0</div><div class="lbl">Total Records</div></div>
+        <div class="stat-card blue"><div class="num" id="statActive">0</div><div class="lbl">In Progress</div></div>
+        <div class="stat-card green"><div class="num" id="statComplete">0</div><div class="lbl">Completed</div></div>
+        <div class="stat-card gold"><div class="num" id="statThisMonth">0</div><div class="lbl">Started This Month</div></div>
+      </div>
+      <div class="toolbar">
+        <input class="search-input" type="text" id="searchInput" placeholder="Search by name or role…" oninput="filterRecords()">
+        <div class="filter-tabs">
+          <button class="filter-tab active" onclick="setStatusFilter('all',this)">All</button>
+          <button class="filter-tab" onclick="setStatusFilter('in_progress',this)">In Progress</button>
+          <button class="filter-tab" onclick="setStatusFilter('complete',this)">Complete</button>
+        </div>
+        <button class="btn btn-primary" onclick="openNewModal()">+ New Induction</button>
+      </div>
+      <div class="inductions-grid" id="inductionsGrid">
+        <div class="spinner"></div>
+      </div>
+    </div>
+
+    <!-- DETAIL VIEW -->
+    <div class="view" id="view-detail">
+      <button class="btn btn-ghost btn-sm" onclick="showView('dashboard')" style="margin-bottom:16px">← Back to Dashboard</button>
+      <div class="detail-header" id="detailHeader"></div>
+      <div class="overall-progress" id="overallProgress"></div>
+      <div class="tabs" id="detailTabs"></div>
+
+      <!-- Tab: Corporate Day 1 -->
+      <div class="tab-content" id="tab-corporate">
+        <div class="section-card" id="corpChecklist"></div>
+        <div class="section-card" id="siteChecklist"></div>
+        <div class="signoff-section">
+          <h3>Corporate Induction Sign-Off</h3>
+          <div class="sign-action">
+            <button class="sign-chip" id="corpHRSign" onclick="signOff('corpHR')">HR Sign-Off</button>
+            <button class="sign-chip" id="corpEmpSign" onclick="signOff('corpEmployee')">Employee Sign-Off</button>
+            <span class="sign-timestamp" id="corpSignTs"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Role-Specific -->
+      <div class="tab-content" id="tab-role">
+        <div id="roleWeeks"></div>
+      </div>
+
+      <!-- Tab: Online Training -->
+      <div class="tab-content" id="tab-training">
+        <div class="section-card">
+          <div class="section-card-head"><h3>Online Training Courses</h3></div>
+          <div id="trainingList"></div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:12px" onclick="saveTraining()">Save Training Records</button>
+      </div>
+
+      <!-- Tab: Sign-Off -->
+      <div class="tab-content" id="tab-signoff">
+        <div class="signoff-section">
+          <h3>Induction Stages</h3>
+          <div id="stagesSummary"></div>
+        </div>
+        <div class="signoff-section">
+          <h3>Final Sign-Off</h3>
+          <div class="signoff-grid">
+            <div class="signoff-field"><label>Line Manager Name</label><input id="sfManagerName" placeholder="Full name"></div>
+            <div class="signoff-field"><label>HR Contact</label><input id="sfHRName" placeholder="Full name"></div>
+          </div>
+          <div class="sign-action" style="margin-top:16px">
+            <button class="sign-chip" id="sfManagerSign" onclick="signOff('finalManager')">Line Manager</button>
+            <button class="sign-chip" id="sfHRSign" onclick="signOff('finalHR')">HR</button>
+            <button class="sign-chip" id="sfEmployeeSign" onclick="signOff('finalEmployee')">Employee</button>
+          </div>
+          <div style="margin-top:16px">
+            <button class="btn btn-primary" onclick="markComplete()" id="btnComplete">Mark Induction Complete ✓</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- NEW INDUCTION MODAL -->
+<div class="modal-overlay" id="newModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>New Induction Record</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field-group"><label>Employee Name *</label><input id="mName" placeholder="Full name"></div>
+        <div class="field-group"><label>Job Title / Role *</label><input id="mRole" placeholder="e.g. Park Worker, Housekeeper…"></div>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label>Site *</label>
+          <select id="mPark">
+            <option value="The Boatshed" selected>The Boatshed</option>
+          </select>
+        </div>
+        <div class="field-group"><label>Start Date</label><input id="mStart" type="date"></div>
+      </div>
+      <div class="field-row">
+        <div class="field-group"><label>Buddy Assigned</label><input id="mBuddy" placeholder="Buddy name"></div>
+        <div class="field-group"><label>Line Manager</label><input id="mManager" placeholder="Manager name"></div>
+      </div>
+      <div class="field-group">
+        <label>Induction Programme Type *</label>
+        <select id="mType">
+          <option value="">Select type…</option>
+          <option value="housekeeping">Housekeeping</option>
+          <option value="park_worker">Park Worker (Grounds & Maintenance)</option>
+          <option value="custom">Other / Custom</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="createInduction()">Create Induction Record</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, serverTimestamp, query, orderBy }
+  from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getAuth, signInAnonymously, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+const app = initializeApp({
+  apiKey:"AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+  authDomain:"safepark-pro.firebaseapp.com",
+  projectId:"safepark-pro",
+  storageBucket:"safepark-pro.appspot.com",
+  messagingSenderId:"511221743341",
+  appId:"1:511221743341:web:95bec7e83d4861578016e4"
+});
+const db   = getFirestore(app);
+// ── TENANT SCOPE (additive): resolve the induction collection suffix from ?park= ──
+// Boatshed (loch_goil_cafe or no token) => 'lgc', so IND_COL keeps the Boatshed suffix unchanged.
+const CAFE_SHORT = { loch_goil_cafe: 'lgc', peckhams_hyndland: 'phy' };
+const __cafeTok = (new URLSearchParams(location.search).get('park') || 'loch_goil_cafe').toLowerCase();
+const IND_COL = 'inductionRecords_' + (CAFE_SHORT[__cafeTok] || 'lgc');
+const auth = getAuth(app);
+
+// ── DATA ────────────────────────────────────────────────────────────────────
+const CORPORATE_ITEMS = [
+  {k:'welcome',       t:'Welcome and introductions',                    m:'HR'},
+  {k:'overview',      t:'Company overview — The Boatshed history, values, site', m:'HR'},
+  {k:'orgstructure',  t:'Organisational structure — who\'s who',         m:'HR'},
+  {k:'tac',           t:'Terms and conditions of employment reviewed',   m:'HR'},
+  {k:'contract',      t:'Contract signed and copy provided',             m:'HR'},
+  {k:'jd',            t:'Job description reviewed and signed',           m:'HR'},
+  {k:'probation',     t:'Probation period explained',                    m:'HR'},
+  {k:'pay',           t:'Pay, hours, holidays, absence reporting explained', m:'HR'},
+  {k:'handbook',      t:'Team handbook issued / key policies explained', m:'HR'},
+  {k:'hspolicy',      t:'Health & Safety policy overview',               m:'HR'},
+  {k:'emergency',     t:'Emergency procedures — fire, first aid, evacuation', m:'HR'},
+  {k:'incidents',     t:'Accident and incident reporting explained',     m:'HR'},
+  {k:'safeguarding',  t:'Safeguarding and child protection overview',    m:'HR'},
+  {k:'gdpr',          t:'Data protection / GDPR basics',                m:'HR'},
+  {k:'equality',      t:'Equal opportunities and dignity at work',       m:'HR'},
+  {k:'grievance',     t:'Grievance and disciplinary procedures overview', m:'HR'},
+  {k:'uniform',       t:'Uniform issued (if applicable)',                m:'HR'},
+  {k:'id',            t:'ID badge / keys / access provided',            m:'HR'},
+  {k:'it',            t:'IT systems access set up (if applicable)',      m:'HR'},
+  {k:'ssp',           t:'Introduction to SafeSystems.PRO',              m:'HR'},
+];
+const SITE_ITEMS = [
+  {k:'reception',     t:'Reception / office',                m:'Walk-around'},
+  {k:'accom',         t:'Selection of accommodation units',  m:'Walk-around'},
+  {k:'laundry',       t:'Laundry facilities',                m:'Walk-around'},
+  {k:'cafe',          t:'Café / restaurant (if applicable)', m:'Walk-around'},
+  {k:'maintenance',   t:'Maintenance / storage areas',       m:'Walk-around'},
+  {k:'firepoints',    t:'Fire assembly points',              m:'Walk-around'},
+  {k:'firstaid',      t:'First aid facilities and first aiders', m:'Walk-around'},
+  {k:'staff',         t:'Team facilities (break room, toilets, lockers)', m:'Walk-around'},
+  {k:'parking',       t:'Parking arrangements',              m:'Walk-around'},
+  {k:'team',          t:'Meet key team members',             m:'Walk-around'},
+];
+const ROLE_PROGRAMMES = {
+  housekeeping: {
+    label: 'Housekeeping',
+    weeks: [
+      { num:1, title:'Foundation', items:[
+        {k:'buddy_shadow',t:'Partner with buddy — shadow all tasks',m:'Buddy',tr:'Buddy'},
+        {k:'manual_handling',t:'Manual Handling e-learning',m:'Online',tr:'HR'},
+        {k:'coshh_elearn',t:'COSHH awareness e-learning',m:'Online',tr:'HR'},
+        {k:'fire_elearn',t:'Fire safety e-learning',m:'Online',tr:'HR'},
+        {k:'cleaning_products',t:'Introduction to cleaning products and where stored',m:'Practical',tr:'Buddy'},
+        {k:'coshh_sheets',t:'COSHH data sheets location and how to read them',m:'Practical',tr:'Buddy'},
+        {k:'ppe',t:'PPE requirements — gloves, aprons, etc.',m:'Practical',tr:'Buddy'},
+        {k:'beds',t:'How to strip and make beds correctly',m:'Practical',tr:'Buddy'},
+        {k:'bathroom',t:'How to clean a bathroom to standard',m:'Practical',tr:'Buddy'},
+        {k:'kitchen',t:'How to clean a kitchen / cooker to standard',m:'Practical',tr:'Buddy'},
+        {k:'floors',t:'How to clean floors (vacuum, mop)',m:'Practical',tr:'Buddy'},
+        {k:'turnover_checklist',t:'Turnover checklist walkthrough',m:'Practical',tr:'Buddy'},
+        {k:'reporting_maint',t:'Reporting maintenance issues — who, how',m:'Practical',tr:'Buddy'},
+        {k:'end_of_day',t:'End of day — where to return equipment, laundry',m:'Practical',tr:'Buddy'},
+      ]},
+      { num:2, title:'Building Competence', items:[
+        {k:'turnovers_solo',t:'Complete turnovers with buddy observing',m:'Practical',tr:'Buddy'},
+        {k:'deep_clean',t:'Deep cleaning techniques',m:'Practical',tr:'Buddy'},
+        {k:'stains',t:'Dealing with stains — carpets, upholstery',m:'Practical',tr:'Buddy'},
+        {k:'damage',t:'Checking for damage and reporting',m:'Practical',tr:'Buddy'},
+        {k:'pests',t:'Pest awareness — what to look for (bed bugs, etc.)',m:'Practical',tr:'Buddy/PM'},
+        {k:'allergens',t:'Allergen awareness in accommodations',m:'Practical',tr:'Buddy'},
+        {k:'lost_property',t:'Lost property procedure',m:'Practical',tr:'Buddy'},
+        {k:'guests',t:'Guest interaction — what to do if guests present',m:'Practical',tr:'Buddy'},
+        {k:'time_mgmt',t:'Time management — working to schedule',m:'Practical',tr:'Buddy'},
+        {k:'quality_check',t:'Quality checking own work before leaving unit',m:'Practical',tr:'Buddy'},
+        {k:'ssp_logging',t:'SafeSystems.PRO — logging turnovers / issues',m:'System',tr:'PM'},
+      ]},
+      { num:3, title:'Consolidation & Independent Working', items:[
+        {k:'independent',t:'Independent turnovers unsupervised',m:'Practical',tr:'Self'},
+        {k:'manager_obs',t:'Manager observation and feedback session',m:'Observation',tr:'PM'},
+        {k:'any_issues',t:'Review of any issues / questions from weeks 1–2',m:'Discussion',tr:'PM'},
+        {k:'emergency_role',t:'Emergency procedures specific to role',m:'Discussion',tr:'PM'},
+        {k:'self_assess',t:'Self-assessment discussion with manager',m:'Meeting',tr:'PM'},
+        {k:'remedial',t:'Any remedial training completed (if required)',m:'As needed',tr:'PM/Buddy'},
+        {k:'signoff_check',t:'Competency sign-off readiness check',m:'Meeting',tr:'PM'},
+      ]},
+    ]
+  },
+  park_worker: {
+    label: 'Park Worker (Grounds & Maintenance)',
+    weeks: [
+      { num:1, title:'Foundation', items:[
+        {k:'buddy_shadow',t:'Partner with buddy — shadow all tasks',m:'Buddy',tr:'Buddy'},
+        {k:'manual_handling',t:'Manual Handling e-learning',m:'Online',tr:'HR'},
+        {k:'coshh_elearn',t:'COSHH awareness e-learning',m:'Online',tr:'HR'},
+        {k:'fire_elearn',t:'Fire safety e-learning',m:'Online',tr:'HR'},
+        {k:'park_layout',t:'Park layout and facilities overview',m:'Walk-around',tr:'Buddy'},
+        {k:'daily_duties',t:'Daily duties — litter picking, bin emptying, tidiness checks',m:'Practical',tr:'Buddy'},
+        {k:'ppe_grounds',t:'PPE requirements for grounds work',m:'Practical',tr:'Buddy'},
+        {k:'reporting_maint',t:'Reporting maintenance issues — who, how, priority',m:'Practical',tr:'Buddy'},
+        {k:'ladders',t:'Safe use of ladders (if required)',m:'Practical',tr:'Buddy'},
+        {k:'waste',t:'Waste management and disposal',m:'Practical',tr:'Buddy'},
+      ]},
+      { num:2, title:'Hot Tubs & Chemicals', items:[
+        {k:'hottub_overview',t:'Hot tub operations overview',m:'Practical',tr:'Buddy/PM'},
+        {k:'water_testing',t:'Water testing procedures',m:'Practical',tr:'Buddy'},
+        {k:'chemical_handling',t:'Chemical handling and storage',m:'Practical',tr:'Buddy'},
+        {k:'coshh_hottub',t:'COSHH for hot tub chemicals — data sheets',m:'Practical',tr:'Buddy'},
+        {k:'ppe_chemical',t:'PPE for chemical handling',m:'Practical',tr:'Buddy'},
+        {k:'water_recording',t:'Recording water test results in SafeSystems.PRO',m:'Practical',tr:'Buddy'},
+        {k:'out_of_range',t:'What to do if readings out of range',m:'Practical',tr:'Buddy'},
+        {k:'clean_between',t:'Hot tub cleaning between guests',m:'Practical',tr:'Buddy'},
+        {k:'legionella',t:'Legionella awareness',m:'Discussion',tr:'PM'},
+        {k:'ssp_hottub',t:'SafeSystems.PRO — hot tub logging',m:'System',tr:'PM'},
+      ]},
+      { num:3, title:'Grounds, Vehicles & Equipment', items:[
+        {k:'grounds_maint',t:'Grounds maintenance — mowing, strimming, hedges',m:'Practical',tr:'Buddy'},
+        {k:'powered_equip',t:'Safe use of powered equipment',m:'Practical',tr:'Buddy'},
+        {k:'pre_use_equip',t:'Pre-use checks on equipment',m:'Practical',tr:'Buddy'},
+        {k:'vehicle',t:'Vehicle / buggy use (if authorised)',m:'Practical',tr:'PM'},
+        {k:'vehicle_checks',t:'Pre-use vehicle checks',m:'Practical',tr:'PM'},
+        {k:'minor_repairs',t:'Minor repairs — what you can/cannot do',m:'Discussion',tr:'PM'},
+        {k:'contractors',t:'When to call contractors',m:'Discussion',tr:'PM'},
+        {k:'permit_work',t:'Permit to work system explained',m:'Discussion',tr:'PM'},
+        {k:'asbestos',t:'Asbestos awareness (location of register)',m:'Discussion',tr:'PM'},
+        {k:'near_guests',t:'Working near guests — safety and courtesy',m:'Discussion',tr:'PM'},
+      ]},
+      { num:4, title:'Consolidation & Sign-Off', items:[
+        {k:'independent',t:'Independent working across all trained areas',m:'Practical',tr:'Self'},
+        {k:'manager_obs',t:'Manager observation and feedback',m:'Observation',tr:'PM'},
+        {k:'review_issues',t:'Review of any issues / questions',m:'Discussion',tr:'PM'},
+        {k:'emergency_role',t:'Emergency procedures specific to role',m:'Discussion',tr:'PM'},
+        {k:'out_of_hours',t:'Out-of-hours / on-call explained (if applicable)',m:'Discussion',tr:'PM'},
+        {k:'self_assess',t:'Self-assessment discussion with manager',m:'Meeting',tr:'PM'},
+        {k:'remedial',t:'Any remedial training completed',m:'As needed',tr:'PM/Buddy'},
+        {k:'probation_sched',t:'Probation review scheduled',m:'HR',tr:'HR/PM'},
+      ]},
+    ]
+  },
+  custom: {
+    label: 'Custom / Other Role',
+    weeks: [
+      { num:1, title:'Week 1 — Foundation', items:[
+        {k:'w1_1',t:'Task / topic 1 — edit as required',m:'Practical',tr:'Buddy'},
+        {k:'w1_2',t:'Task / topic 2 — edit as required',m:'Practical',tr:'Buddy'},
+        {k:'w1_3',t:'Task / topic 3 — edit as required',m:'Practical',tr:'Buddy'},
+      ]},
+      { num:2, title:'Week 2 — Building Competence', items:[
+        {k:'w2_1',t:'Task / topic 1 — edit as required',m:'Practical',tr:'Buddy'},
+        {k:'w2_2',t:'Task / topic 2 — edit as required',m:'Practical',tr:'Buddy'},
+      ]},
+    ]
+  }
+};
+const ONLINE_COURSES = [
+  {k:'manual_handling',  t:'Manual Handling',          req:true},
+  {k:'coshh',            t:'COSHH Awareness',           req:true},
+  {k:'fire_safety',      t:'Fire Safety',               req:true},
+  {k:'food_hygiene',     t:'Food Hygiene',              req:false},
+  {k:'safeguarding',     t:'Safeguarding',              req:false},
+];
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let allRecords = [], currentRecord = null, statusFilter = 'all', parkFilter = 'all';
+
+// ── AUTH ─────────────────────────────────────────────────────────────────────
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    document.getElementById('authStatus').textContent = 'Authenticated';
+    await loadRecords();
+  }
+});
+await signInAnonymously(auth).catch(console.error);
+
+// ── LOAD ─────────────────────────────────────────────────────────────────────
+async function loadRecords() {
+  const snap = await getDocs(query(collection(db,IND_COL), orderBy('createdAt','desc')));
+  allRecords = snap.docs.map(d => ({id:d.id,...d.data()}));
+  renderDashboard();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+window.showView = id => {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+id)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('nav-'+id)?.classList.add('active');
+};
+
+window.filterByPark = (park) => {
+  parkFilter = park;
+  document.querySelectorAll('[id^="nav-"]').forEach(n=>n.classList.remove('active'));
+  document.getElementById('nav-dashboard')?.classList.add('active');
+  renderDashboard();
+};
+
+window.setStatusFilter = (status, btn) => {
+  statusFilter = status;
+  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderDashboard();
+};
+
+window.filterRecords = () => renderDashboard();
+
+function renderDashboard() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  let records = allRecords;
+  if (parkFilter !== 'all') records = records.filter(r=>r.park===parkFilter);
+  if (statusFilter !== 'all') records = records.filter(r=>r.status===statusFilter);
+  if (search) records = records.filter(r=>
+    (r.employeeName||'').toLowerCase().includes(search) ||
+    (r.jobTitle||'').toLowerCase().includes(search) ||
+    (r.park||'').toLowerCase().includes(search));
+
+  const thisMonth = new Date().toISOString().slice(0,7);
+  document.getElementById('statTotal').textContent = allRecords.length;
+  document.getElementById('statActive').textContent = allRecords.filter(r=>r.status==='in_progress').length;
+  document.getElementById('statComplete').textContent = allRecords.filter(r=>r.status==='complete').length;
+  document.getElementById('statThisMonth').textContent = allRecords.filter(r=>(r.startDate||'').startsWith(thisMonth)).length;
+  document.getElementById('navBadgeActive').textContent = allRecords.filter(r=>r.status==='in_progress').length;
+
+  const grid = document.getElementById('inductionsGrid');
+  if (!records.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="icon">—</div><p>No induction records found</p></div>`;
+    return;
+  }
+  grid.innerHTML = records.map(r => {
+    const pct = calcProgress(r);
+    const initials = (r.employeeName||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    return `<div class="induction-card ${r.status||'in_progress'}" onclick="openRecord('${r.id}')">
+      <div class="card-head">
+        <div class="card-avatar">${initials}</div>
+        <div><div class="card-name">${r.employeeName||'—'}</div>
+          <div class="card-role">${r.jobTitle||'—'}</div>
+          <div class="card-park">${r.park||'—'}</div>
+        </div>
+        <span class="status-pill ${r.status||'in_progress'}">${r.status==='complete'?'Complete':'In Progress'}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill ${r.status==='complete'?'complete':''}" style="width:${pct}%"></div></div>
+      <div class="card-meta">
+        <span>Started: ${r.startDate||'—'}</span>
+        <span>${pct}% complete</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function calcProgress(r) {
+  const corp = CORPORATE_ITEMS.length + SITE_ITEMS.length;
+  let done = 0, total = corp;
+  CORPORATE_ITEMS.forEach(i=>{ if (r.corporateItems?.[i.k]?.completed) done++; });
+  SITE_ITEMS.forEach(i=>{ if (r.corporateItems?.[i.k]?.completed) done++; });
+  const prog = r.roleItems || {};
+  const weeks = ROLE_PROGRAMMES[r.roleType]?.weeks || [];
+  weeks.forEach(w=>{ w.items.forEach(i=>{ total++; if(prog[`w${w.num}`]?.[i.k]?.completed) done++; }); });
+  return total ? Math.round((done/total)*100) : 0;
+}
+
+// ── DETAIL VIEW ───────────────────────────────────────────────────────────────
+window.openRecord = async id => {
+  const snap = await getDoc(doc(db,IND_COL,id));
+  if (!snap.exists()) return;
+  currentRecord = {id:snap.id,...snap.data()};
+  renderDetail();
+  showView('detail');
+};
+
+function renderDetail() {
+  const r = currentRecord;
+  const initials = (r.employeeName||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const pct = calcProgress(r);
+
+  document.getElementById('detailHeader').innerHTML = `
+    <div class="detail-avatar">${initials}</div>
+    <div class="detail-info">
+      <h2>${r.employeeName||'—'}</h2>
+      <span>${r.jobTitle||'—'}</span>
+      <div class="detail-park">${r.park||'—'} ${r.buddy?`· Buddy: ${r.buddy}`:''}</div>
+    </div>
+    <div class="detail-actions">
+      <span class="status-pill ${r.status||'in_progress'}" style="font-size:12px">${r.status==='complete'?'✓ Complete':'In Progress'}</span>
+    </div>`;
+
+  document.getElementById('overallProgress').innerHTML = `
+    <div class="overall-pct">${pct}%</div>
+    <div class="overall-bar-wrap">
+      <div class="overall-bar"><div class="overall-bar-fill" style="width:${pct}%"></div></div>
+      <div class="overall-label">Overall induction completion · Started ${r.startDate||'—'} · Programme: ${ROLE_PROGRAMMES[r.roleType]?.label||r.roleType||'—'}</div>
+    </div>`;
+
+  buildTabs();
+  renderCorporate();
+  renderRoleSpecific();
+  renderOnlineTraining();
+  renderSignOff();
+  activateTab('corporate');
+}
+
+function buildTabs() {
+  document.getElementById('detailTabs').innerHTML = [
+    ['corporate','Corporate Day 1'],
+    ['role','Role-Specific'],
+    ['training','Online Training'],
+    ['signoff','Final Sign-Off'],
+  ].map(([k,l])=>`<button class="tab" onclick="activateTab('${k}')">${l}</button>`).join('');
+}
+
+window.activateTab = id => {
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const ids=['corporate','role','training','signoff'];
+    t.classList.toggle('active',ids[i]===id);
+  });
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-'+id)?.classList.add('active');
+};
+
+// ── CORPORATE CHECKLIST ───────────────────────────────────────────────────────
+function renderCorporate() {
+  const r = currentRecord;
+  document.getElementById('corpChecklist').innerHTML = `
+    <div class="section-card-head"><h3>Corporate Induction — Day 1 (All Roles)</h3>
+    <span class="sec-progress">${CORPORATE_ITEMS.filter(i=>r.corporateItems?.[i.k]?.completed).length}/${CORPORATE_ITEMS.length}</span></div>
+    ${CORPORATE_ITEMS.map(i=>checklistItem(i,r.corporateItems?.[i.k],'corp')).join('')}`;
+
+  document.getElementById('siteChecklist').innerHTML = `
+    <div class="section-card-head"><h3>Site Orientation — Park Walk-Around</h3>
+    <span class="sec-progress">${SITE_ITEMS.filter(i=>r.corporateItems?.[i.k]?.completed).length}/${SITE_ITEMS.length}</span></div>
+    ${SITE_ITEMS.map(i=>checklistItem(i,r.corporateItems?.[i.k],'corp')).join('')}`;
+
+  const sf = r.finalSignOff || {};
+  const corpSf = r.corporateSignOff || {};
+  document.getElementById('corpHRSign').className = 'sign-chip' + (corpSf.hrSigned?' signed':'');
+  document.getElementById('corpHRSign').textContent = corpSf.hrSigned ? `✓ HR Signed (${corpSf.hrDate||''})` : 'HR Sign-Off';
+  document.getElementById('corpEmpSign').className = 'sign-chip' + (corpSf.empSigned?' signed':'');
+  document.getElementById('corpEmpSign').textContent = corpSf.empSigned ? `✓ Employee Signed` : 'Employee Sign-Off';
+}
+
+function checklistItem(item, data, group) {
+  const done = data?.completed;
+  return `<div class="checklist-item ${done?'done':''}">
+    <div class="check-box ${done?'checked':''}" onclick="toggleItem('${item.k}','${group}')"></div>
+    <div class="item-text">${item.t}${done?`<div class="item-date">✓ ${data.completedDate||''} ${data.by||''}</div>`:''}</div>
+    <span class="item-method">${item.m}</span>
+  </div>`;
+}
+
+window.toggleItem = async (key, group) => {
+  const r = currentRecord;
+  const field = group === 'corp' ? 'corporateItems' : 'roleItems';
+  if (!r[field]) r[field] = {};
+  const current = r[field][key]?.completed;
+  r[field][key] = current
+    ? { completed: false }
+    : { completed: true, completedDate: new Date().toLocaleDateString('en-GB'), by: 'Signed' };
+
+  await updateDoc(doc(db,IND_COL,r.id), { [field]: r[field] });
+  renderCorporate();
+  renderRoleSpecific();
+  updateOverallProgress();
+  toast('Item updated', 'success');
+};
+
+// ── ROLE-SPECIFIC ─────────────────────────────────────────────────────────────
+function renderRoleSpecific() {
+  const r = currentRecord;
+  const prog = ROLE_PROGRAMMES[r.roleType];
+  if (!prog) { document.getElementById('roleWeeks').innerHTML = '<p style="color:var(--muted);padding:20px">No role-specific programme configured.</p>'; return; }
+
+  document.getElementById('roleWeeks').innerHTML = prog.weeks.map(w => {
+    const wData = r.roleItems || {};
+    const items = w.items;
+    const done = items.filter(i=>wData[`w${w.num}`]?.[i.k]?.completed).length;
+    const allDone = done === items.length;
+    const wSignOff = r.weekSignOffs?.[`w${w.num}`] || {};
+    return `<div class="week-block">
+      <div class="week-header">
+        <span class="week-badge ${allDone?'done':done>0?'in_progress':'pending'}">${allDone?'✓ Complete':done>0?'In Progress':'Not Started'}</span>
+        <h3>Week ${w.num} — ${w.title}</h3>
+        <span style="margin-left:auto;font-size:12px;color:var(--muted)">${done}/${items.length} tasks</span>
+      </div>
+      <div class="section-card" style="border-radius:0;border-top:none">
+        ${items.map(i=>weekItem(i,wData[`w${w.num}`]?.[i.k],w.num)).join('')}
+      </div>
+      <div class="week-signoff">
+        <span class="signoff-label">Week ${w.num} sign-off:</span>
+        <button class="signoff-btn ${wSignOff.buddySigned?'signed':''}" onclick="signWeek(${w.num},'buddy')">
+          ${wSignOff.buddySigned?`✓ Buddy Signed`:'Buddy Sign'}
+        </button>
+        <button class="signoff-btn ${wSignOff.managerSigned?'signed':''}" onclick="signWeek(${w.num},'manager')">
+          ${wSignOff.managerSigned?`✓ Manager Signed`:'Manager Sign'}
+        </button>
+        ${wSignOff.date?`<span class="sign-timestamp">${wSignOff.date}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function weekItem(item, data, weekNum) {
+  const done = data?.completed;
+  return `<div class="checklist-item ${done?'done':''}">
+    <div class="check-box ${done?'checked':''}" onclick="toggleWeekItem('${item.k}',${weekNum})"></div>
+    <div class="item-text">${item.t}${done?`<div class="item-date">✓ ${data.completedDate||''}</div>`:''}</div>
+    <span class="item-method">${item.m} · ${item.tr}</span>
+  </div>`;
+}
+
+window.toggleWeekItem = async (key, weekNum) => {
+  const r = currentRecord;
+  if (!r.roleItems) r.roleItems = {};
+  const wKey = `w${weekNum}`;
+  if (!r.roleItems[wKey]) r.roleItems[wKey] = {};
+  const current = r.roleItems[wKey][key]?.completed;
+  r.roleItems[wKey][key] = current
+    ? { completed: false }
+    : { completed: true, completedDate: new Date().toLocaleDateString('en-GB') };
+  await updateDoc(doc(db,IND_COL,r.id), { roleItems: r.roleItems });
+  renderRoleSpecific();
+  updateOverallProgress();
+  toast('Task updated','success');
+};
+
+window.signWeek = async (weekNum, type) => {
+  const r = currentRecord;
+  if (!r.weekSignOffs) r.weekSignOffs = {};
+  if (!r.weekSignOffs[`w${weekNum}`]) r.weekSignOffs[`w${weekNum}`] = {};
+  const key = type==='buddy' ? 'buddySigned' : 'managerSigned';
+  r.weekSignOffs[`w${weekNum}`][key] = true;
+  r.weekSignOffs[`w${weekNum}`].date = new Date().toLocaleDateString('en-GB');
+  await updateDoc(doc(db,IND_COL,r.id), { weekSignOffs: r.weekSignOffs });
+  renderRoleSpecific();
+  toast(`Week ${weekNum} ${type} sign-off recorded`, 'success');
+};
+
+// ── ONLINE TRAINING ───────────────────────────────────────────────────────────
+function renderOnlineTraining() {
+  const r = currentRecord;
+  const courses = ONLINE_COURSES;
+  document.getElementById('trainingList').innerHTML = courses.map(c => {
+    const d = r.onlineTraining?.[c.k] || {};
+    return `<div class="training-item">
+      <div class="training-name">${c.t}${c.req?' <span style="color:var(--accent);font-size:10px">Required</span>':''}</div>
+      <input class="training-cert" placeholder="Certificate ref / date" value="${d.certRef||''}" id="cert_${c.k}">
+      <div class="check-box ${d.completed?'checked':''}" style="cursor:pointer" onclick="toggleCourse('${c.k}')"></div>
+    </div>`;
+  }).join('');
+}
+
+window.toggleCourse = async key => {
+  const r = currentRecord;
+  if (!r.onlineTraining) r.onlineTraining = {};
+  const current = r.onlineTraining[key]?.completed;
+  r.onlineTraining[key] = current
+    ? { completed: false }
+    : { completed: true, completedDate: new Date().toLocaleDateString('en-GB'), certRef: document.getElementById(`cert_${key}`)?.value || '' };
+  await updateDoc(doc(db,IND_COL,r.id), { onlineTraining: r.onlineTraining });
+  renderOnlineTraining();
+  toast('Training record updated','success');
+};
+
+window.saveTraining = async () => {
+  const r = currentRecord;
+  if (!r.onlineTraining) r.onlineTraining = {};
+  ONLINE_COURSES.forEach(c => {
+    const val = document.getElementById(`cert_${c.k}`)?.value || '';
+    if (!r.onlineTraining[c.k]) r.onlineTraining[c.k] = {};
+    r.onlineTraining[c.k].certRef = val;
+  });
+  await updateDoc(doc(db,IND_COL,r.id), { onlineTraining: r.onlineTraining });
+  toast('Training records saved','success');
+};
+
+// ── SIGN-OFF ──────────────────────────────────────────────────────────────────
+function renderSignOff() {
+  const r = currentRecord;
+  const prog = ROLE_PROGRAMMES[r.roleType];
+  const stages = [
+    { label: 'Corporate Induction (Day 1)', done: !!(r.corporateSignOff?.hrSigned && r.corporateSignOff?.empSigned) },
+    ...(prog?.weeks||[]).map(w=>({
+      label: `Week ${w.num} — ${w.title}`,
+      done: !!(r.weekSignOffs?.[`w${w.num}`]?.buddySigned && r.weekSignOffs?.[`w${w.num}`]?.managerSigned)
+    })),
+    { label: 'Online Training', done: ONLINE_COURSES.filter(c=>c.req).every(c=>r.onlineTraining?.[c.k]?.completed) },
+  ];
+  document.getElementById('stagesSummary').innerHTML = stages.map(s=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--faint)">
+      <span style="font-size:18px">${s.done?'✓':'⬜'}</span>
+      <span style="font-size:13px;color:${s.done?'var(--green)':'var(--muted)'}">${s.label}</span>
+    </div>`).join('');
+
+  const sf = r.finalSignOff || {};
+  document.getElementById('sfManagerName').value = sf.managerName || '';
+  document.getElementById('sfHRName').value = sf.hrName || '';
+  document.getElementById('sfManagerSign').className = 'sign-chip' + (sf.managerSigned?' signed':'');
+  document.getElementById('sfManagerSign').textContent = sf.managerSigned ? `✓ Signed ${sf.managerDate||''}` : 'Line Manager';
+  document.getElementById('sfHRSign').className = 'sign-chip' + (sf.hrSigned?' signed':'');
+  document.getElementById('sfHRSign').textContent = sf.hrSigned ? `✓ HR Signed` : 'HR';
+  document.getElementById('sfEmployeeSign').className = 'sign-chip' + (sf.employeeSigned?' signed':'');
+  document.getElementById('sfEmployeeSign').textContent = sf.employeeSigned ? `✓ Employee Signed` : 'Employee';
+}
+
+window.signOff = async (type) => {
+  const r = currentRecord;
+  const now = new Date().toLocaleDateString('en-GB');
+  if (type === 'corpHR') {
+    if (!r.corporateSignOff) r.corporateSignOff = {};
+    r.corporateSignOff.hrSigned = true; r.corporateSignOff.hrDate = now;
+    await updateDoc(doc(db,IND_COL,r.id), { corporateSignOff: r.corporateSignOff });
+    renderCorporate();
+  } else if (type === 'corpEmployee') {
+    if (!r.corporateSignOff) r.corporateSignOff = {};
+    r.corporateSignOff.empSigned = true; r.corporateSignOff.empDate = now;
+    await updateDoc(doc(db,IND_COL,r.id), { corporateSignOff: r.corporateSignOff });
+    renderCorporate();
+  } else {
+    if (!r.finalSignOff) r.finalSignOff = {};
+    r.finalSignOff.managerName = document.getElementById('sfManagerName').value;
+    r.finalSignOff.hrName = document.getElementById('sfHRName').value;
+    if (type==='finalManager') { r.finalSignOff.managerSigned=true; r.finalSignOff.managerDate=now; }
+    if (type==='finalHR') { r.finalSignOff.hrSigned=true; r.finalSignOff.hrDate=now; }
+    if (type==='finalEmployee') { r.finalSignOff.employeeSigned=true; r.finalSignOff.empDate=now; }
+    await updateDoc(doc(db,IND_COL,r.id), { finalSignOff: r.finalSignOff });
+    renderSignOff();
+  }
+  toast('Sign-off recorded','success');
+};
+
+window.markComplete = async () => {
+  const r = currentRecord;
+  r.status = 'complete';
+  await updateDoc(doc(db,IND_COL,r.id), { status:'complete', completedAt: serverTimestamp() });
+  const card = document.querySelector(`.induction-card`);
+  renderDetail();
+  await loadRecords();
+  toast('Induction marked as complete ✓','success');
+};
+
+function updateOverallProgress() {
+  const pct = calcProgress(currentRecord);
+  document.querySelector('.overall-pct').textContent = pct + '%';
+  document.querySelector('.overall-bar-fill').style.width = pct + '%';
+}
+
+// ── NEW INDUCTION ─────────────────────────────────────────────────────────────
+window.openNewModal = () => {
+  document.getElementById('mStart').value = new Date().toISOString().slice(0,10);
+  document.getElementById('newModal').classList.add('open');
+};
+window.closeModal = () => document.getElementById('newModal').classList.remove('open');
+
+window.createInduction = async () => {
+  const name = document.getElementById('mName').value.trim();
+  const role = document.getElementById('mRole').value.trim();
+  const park = document.getElementById('mPark').value;
+  const type = document.getElementById('mType').value;
+  if (!name || !park || !type) { toast('Please fill all required fields','error'); return; }
+
+  const ref = await addDoc(collection(db,IND_COL), {
+    employeeName: name,
+    jobTitle: role,
+    park,
+    startDate: document.getElementById('mStart').value,
+    buddy: document.getElementById('mBuddy').value.trim(),
+    lineManager: document.getElementById('mManager').value.trim(),
+    roleType: type,
+    status: 'in_progress',
+    corporateItems: {},
+    roleItems: {},
+    onlineTraining: {},
+    weekSignOffs: {},
+    createdAt: serverTimestamp(),
+  });
+
+  closeModal();
+  await loadRecords();
+  toast('Induction record created','success');
+  await openRecord(ref.id);
+};
+
+
+        // Mobile strip filter
+        window.mobileFilter = function(park, btn) {
+            parkFilter = park;
+            document.querySelectorAll('.ms-btn').forEach(b => b.classList.remove('ms-active'));
+            if (btn) btn.classList.add('ms-active');
+            renderDashboard();
+        };
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function toast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = (type==='success'?'✓ ':'✕ ') + msg;
+  t.className = `toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+        // ── PHONE BACK-BUTTON SENTINEL ────────────────────────────────────────────
+        // Catches hardware back button on all devices (iOS, Android, desktop).
+        // Navigates within the page first; only exits when at the top-level view.
+        (function() {
+            function pushSentinel() { history.pushState({ safesp: true }, ''); }
+            pushSentinel();
+            window.addEventListener('popstate', function() {
+                // Check if we are inside a detail/secondary view
+                var detail = document.getElementById('view-detail');
+                var hasDetail = detail && detail.classList.contains('active');
+                if (typeof handleBackButton === 'function') {
+                    handleBackButton();
+                } else if (hasDetail && typeof showView === 'function') {
+                    showView('dashboard');
+                }
+                // Always re-push so the next back press is also caught
+                pushSentinel();
+            });
+        })();
+
+        function handleBackButton() {
+            var detail = document.getElementById('view-detail');
+            if (detail && detail.classList.contains('active')) {
+                showView('dashboard');
+            }
+        }
+</script>
+</body>
+</html>
