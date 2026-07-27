@@ -1,0 +1,61 @@
+name: Weekly Horizon & Alerts Scan
+
+# Runs every Sunday night and can also be triggered by hand from the Actions tab.
+#
+# Cron is always UTC and does not follow BST, so this lands at 23:17 UK time in
+# summer and 22:17 in winter. The last field is the day of week, 0 = Sunday.
+#
+# The minute is deliberately not :00. GitHub delays scheduled runs during high
+# load, and the start of every hour is the worst of it, so an odd minute is more
+# likely to fire on time.
+#
+# NOTE: GitHub disables scheduled workflows after 60 days without repo activity.
+# If the scan date in SafeMarine.PRO stops moving, check here first: the module
+# warns after 21 days, which is three missed Sundays.
+on:
+  schedule:
+    - cron: '17 22 * * 0'     # 22:17 UTC every Sunday
+  workflow_dispatch: {}       # manual "Run workflow" button
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm init -y >/dev/null 2>&1 && npm install firebase-admin@12 >/dev/null 2>&1
+
+      - name: Run horizon scan
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}   # optional; defaults inside the script
+        run: node scripts/horizon-scan.mjs
+
+  # Safety alerts are a SEPARATE feed from the legislation scan. They answer a
+  # different question (this happened to someone else, does it apply to us) and
+  # feed the toolbox talks and the monthly meeting rather than the legal register.
+  # Run as a sibling job so a failure in one never blocks the other.
+  alerts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm init -y >/dev/null && npm install firebase-admin@12 >/dev/null
+
+      - name: Run safety alerts scan
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}   # optional; defaults inside the script
+        run: node scripts/safety-alerts.mjs
