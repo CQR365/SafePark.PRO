@@ -1,0 +1,1811 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SafeWater.PRO Legionella v2 (HSG274)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --blue:#4A90E2; --blue-d:#2E6DB4; --blue-l:#6AABF7;
+  --orange:#CC5500;
+  --ok:#28A745; --warn:#FFC107; --high:#FF6B35; --bad:#DC3545;
+  --bg:#141416; --panel:#1d1d20; --panel-2:#252529; --line:#33333a;
+  --txt:#e9e9ec; --txt-2:#a6a6ad; --txt-3:#75757e;
+  --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font-family:var(--font);font-size:15px;line-height:1.55;-webkit-text-size-adjust:100%}
+a{color:var(--blue-l)}
+.wrap{max-width:1240px;margin:0 auto;padding:16px}
+
+/* ── LOGIN ── */
+#login{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;z-index:9000}
+#login .box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:28px;max-width:400px;width:100%}
+#login h1{font-size:1.35rem;margin:0 0 4px}
+#login p{color:var(--txt-2);font-size:.9rem;margin:0 0 20px}
+
+/* ── HEADER ── */
+.hdr{background:linear-gradient(160deg,#232327,#161618);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.hdr .brand{font-weight:800;font-size:1.1rem;letter-spacing:-.2px}
+.hdr .brand span{color:var(--blue)}
+.hdr .sub{color:var(--txt-3);font-size:.78rem}
+.hdr .who{text-align:right;font-size:.8rem;color:var(--txt-2)}
+
+/* ── NAV ── */
+.nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:16px;scrollbar-width:thin}
+.nav button{flex:0 0 auto;background:var(--panel);color:var(--txt-2);border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-family:var(--font);font-size:.87rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:.15s}
+.nav button:hover{color:var(--txt);border-color:#44444d}
+.nav button.on{background:var(--blue-d);border-color:var(--blue);color:#fff}
+
+/* ── CARDS ── */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.card h3{margin:0 0 12px;font-size:.95rem;color:var(--blue-l);font-weight:700}
+.card h3 .n{color:var(--txt-3);font-weight:500}
+
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:860px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+/* ── TILES ── */
+.tile{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:14px;text-align:center;cursor:pointer}
+.tile .v{font-size:1.8rem;font-weight:800;line-height:1.1}
+.tile .l{font-size:.74rem;color:var(--txt-3);text-transform:uppercase;letter-spacing:.6px;margin-top:4px}
+
+/* ── FORMS ── */
+label{display:block;font-size:.82rem;color:var(--txt-2);margin-bottom:5px;font-weight:500}
+.req{color:var(--bad)}
+input,select,textarea{width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:11px 12px;font-family:var(--font);font-size:16px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
+textarea{resize:vertical}
+.fg{margin-bottom:12px}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--blue-d);color:#fff;border:1px solid var(--blue);border-radius:9px;padding:10px 16px;font-family:var(--font);font-size:.87rem;font-weight:600;cursor:pointer;min-height:42px;transition:.15s}
+.btn:hover{background:var(--blue)}
+.btn.o{background:transparent;color:var(--txt-2);border-color:var(--line)}
+.btn.o:hover{color:var(--txt);border-color:#4a4a55;background:var(--panel-2)}
+.btn.g{background:#1e7e34;border-color:var(--ok)}
+.btn.r{background:#a71d2a;border-color:var(--bad)}
+.btn.w{background:#8a6d00;border-color:var(--warn)}
+.btn.sm{padding:7px 12px;font-size:.8rem;min-height:34px}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ── LIST ROWS ── */
+.row{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:13px;margin-bottom:9px;display:flex;gap:12px;align-items:flex-start}
+.row .main{flex:1;min-width:0}
+.row .t{font-weight:600;font-size:.92rem;margin-bottom:3px}
+.row .m{font-size:.79rem;color:var(--txt-3);line-height:1.6}
+.row.clickable{cursor:pointer}
+.row.clickable:hover{border-color:var(--blue-d)}
+
+/* ── PILLS ── */
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.7rem;font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+.p-ok{background:rgba(40,167,69,.16);color:#5dd97b;border:1px solid rgba(40,167,69,.4)}
+.p-warn{background:rgba(255,193,7,.14);color:#ffcf3d;border:1px solid rgba(255,193,7,.4)}
+.p-high{background:rgba(255,107,53,.15);color:#ff9166;border:1px solid rgba(255,107,53,.4)}
+.p-bad{background:rgba(220,53,69,.16);color:#ff707d;border:1px solid rgba(220,53,69,.45)}
+.p-grey{background:rgba(150,150,160,.12);color:var(--txt-3);border:1px solid var(--line)}
+
+/* ── BARS ── */
+.bar{height:7px;background:var(--panel-2);border-radius:6px;overflow:hidden;margin-top:7px;border:1px solid var(--line)}
+.bar i{display:block;height:100%}
+
+.note{background:rgba(74,144,226,.09);border-left:3px solid var(--blue);border-radius:0 8px 8px 0;padding:12px 14px;font-size:.88rem;margin-bottom:14px}
+.note.w{background:rgba(255,193,7,.09);border-left-color:var(--warn)}
+.note.r{background:rgba(220,53,69,.09);border-left-color:var(--bad)}
+.note.g{background:rgba(40,167,69,.09);border-left-color:var(--ok)}
+.empty{text-align:center;padding:34px 16px;color:var(--txt-3);font-size:.9rem}
+.ref{font-size:.75rem;color:var(--blue-l);margin-top:3px}
+hr{border:none;border-top:1px solid var(--line);margin:14px 0}
+
+/* ── MODAL ── */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:flex-start;justify-content:center;padding:20px;z-index:8000;overflow-y:auto}
+.mo.on{display:flex}
+.mo .m{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;max-width:660px;width:100%;margin:auto}
+.mo .mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.mo .mh h3{margin:0;font-size:1rem;color:var(--blue-l)}
+.x{background:none;border:none;color:var(--txt-3);font-size:1.5rem;cursor:pointer;line-height:1;padding:0 4px}
+
+/* ── PHOTOS ── */
+.ph{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}
+.ph .t{position:relative;width:76px;height:76px;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+.ph .t img{width:100%;height:100%;object-fit:cover;display:block}
+.ph .t b{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.75);color:#fff;border-radius:50%;width:19px;height:19px;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.up input[type=file]{display:none}
+
+/* ── CHECK ── */
+.ck{display:flex;gap:10px;align-items:flex-start;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:11px;margin-bottom:7px}
+.ck input{width:19px;height:19px;flex:0 0 auto;margin-top:2px;accent-color:var(--blue)}
+.ck .lb{flex:1;font-size:.88rem}
+.ck .lb b{display:block;margin-bottom:2px}
+
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel-2);border:1px solid var(--blue);border-radius:10px;padding:12px 20px;font-size:.88rem;z-index:9500;display:none;max-width:90vw;text-align:center;box-shadow:0 8px 28px rgba(0,0,0,.6)}
+.crumb{font-size:.82rem;color:var(--txt-3);margin-bottom:10px}
+.crumb b{color:var(--blue-l);cursor:pointer}
+.sp{border:3px solid var(--line);border-top-color:var(--blue);border-radius:50%;width:26px;height:26px;animation:s 1s linear infinite;margin:26px auto}
+@keyframes s{to{transform:rotate(360deg)}}
+@media print{
+  .nav,.hdr,.btn,.btns,.crumb,#toast,.mo{display:none!important}
+  html,body{background:#fff!important;color:#000!important;font-size:10.5pt}
+  .wrap{max-width:100%;padding:0}
+  .card{background:#fff!important;border:none!important;padding:0!important;margin:0 0 10pt!important;border-radius:0!important}
+  .card h3{color:#000!important;font-size:11pt;border-bottom:1.5pt solid #000;padding-bottom:3pt;margin:14pt 0 8pt}
+  .row{background:#fff!important;border:none!important;border-bottom:.5pt solid #bbb!important;border-radius:0!important;padding:5pt 0!important;margin:0!important}
+  .row .t{color:#000!important;font-size:10pt}
+  .row .m,.ref{color:#333!important;font-size:8.5pt}
+  .pill{border:.5pt solid #666!important;color:#000!important;background:#fff!important}
+  .note{background:#f4f4f4!important;border-left:2pt solid #666!important;color:#000!important;page-break-inside:avoid}
+  .bar{display:none}
+  .ph .t{width:150pt;height:auto}
+  .ph img{max-height:150pt}
+  .rp-page{page-break-after:always}
+  .rp-page:last-child{page-break-after:auto}
+  .rp-hd{border-bottom:2.5pt solid #000;padding-bottom:8pt;margin-bottom:14pt}
+  .rp-hd .ti{font-size:17pt;font-weight:800;line-height:1.2}
+  .rp-hd .su{font-size:10pt;color:#333}
+  .rp-meta{width:100%;border-collapse:collapse;font-size:9pt;margin-bottom:12pt}
+  .rp-meta td{border:.5pt solid #999;padding:4pt 6pt}
+  .rp-meta td:nth-child(odd){background:#eee;font-weight:600;width:22%}
+  .rp-t{width:100%;border-collapse:collapse;font-size:8.5pt;margin-bottom:10pt}
+  .rp-t th{background:#e4e4e4;border:.5pt solid #999;padding:4pt;text-align:left;font-weight:700}
+  .rp-t td{border:.5pt solid #999;padding:4pt;vertical-align:top}
+  .sig{margin-top:20pt;border-top:.5pt solid #999;padding-top:10pt;font-size:9pt}
+  h2.rp-s{font-size:12pt;margin:16pt 0 6pt;border-bottom:1pt solid #000;padding-bottom:3pt}
+  p.rp-p{font-size:9.5pt;line-height:1.5;margin:0 0 7pt;text-align:justify}
+  .avoid{page-break-inside:avoid}
+}
+/* on-screen report styling */
+.rp-hd{border-bottom:2px solid var(--blue);padding-bottom:12px;margin-bottom:16px}
+.rp-hd .ti{font-size:1.4rem;font-weight:800;line-height:1.25}
+.rp-hd .su{font-size:.86rem;color:var(--txt-3);margin-top:4px}
+.rp-meta{width:100%;border-collapse:collapse;font-size:.83rem;margin-bottom:14px}
+.rp-meta td{border:1px solid var(--line);padding:7px 9px}
+.rp-meta td:nth-child(odd){background:var(--panel-2);font-weight:600;width:22%;color:var(--txt-2)}
+.rp-t{width:100%;border-collapse:collapse;font-size:.82rem;margin-bottom:12px}
+.rp-t th{background:var(--panel-2);border:1px solid var(--line);padding:7px;text-align:left;color:var(--blue-l);font-weight:700}
+.rp-t td{border:1px solid var(--line);padding:7px;vertical-align:top}
+h2.rp-s{font-size:1rem;color:var(--blue-l);margin:20px 0 8px;border-bottom:1px solid var(--line);padding-bottom:5px}
+p.rp-p{font-size:.9rem;line-height:1.65;margin:0 0 9px}
+.sig{margin-top:22px;border-top:1px solid var(--line);padding-top:14px;font-size:.85rem;color:var(--txt-2)}
+.tbl-wrap{overflow-x:auto}
+</style>
+</head>
+<body>
+
+<!-- ══════════ LOGIN ══════════ -->
+<div id="login">
+  <div class="box">
+    <h1>safe<span style="color:var(--blue)">water</span>.pro</h1>
+    <p>Legionella Risk Management &middot; HSG274 &middot; v2</p>
+    <div class="fg">
+      <label>Access Code</label>
+      <input type="password" id="code" onkeydown="if(event.key==='Enter')doLogin()" placeholder="Enter access code">
+    </div>
+    <button class="btn" style="width:100%" onclick="doLogin()">Sign In</button>
+    <div id="loginErr" style="color:var(--bad);font-size:.82rem;margin-top:10px"></div>
+  </div>
+</div>
+
+<!-- ══════════ APP ══════════ -->
+<div class="wrap" id="app" style="display:none">
+
+  <div class="hdr">
+    <div>
+      <div class="brand">safe<span>water</span>.pro</div>
+      <div class="sub">Legionella Risk Management &middot; HSG274 Parts 1&ndash;3 &middot; v2</div>
+    </div>
+    <div class="who">
+      <div id="whoName"></div>
+      <button class="btn o sm" style="margin-top:6px" onclick="signOut()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="nav" id="nav"></div>
+  <div id="screen"></div>
+</div>
+
+<!-- ══════════ MODAL ══════════ -->
+<div class="mo" id="modal">
+  <div class="m">
+    <div class="mh"><h3 id="moTitle"></h3><button class="x" onclick="closeMo()">&times;</button></div>
+    <div id="moBody"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   SafeWater.PRO Legionella v2
+   Architecture: ASSETS are the spine. EVENTS hang off assets.
+   REGIMES define what each asset type requires and how often.
+   The scheduler derives due/overdue. Nothing is stored in the browser.
+   ════════════════════════════════════════════════════════════════ */
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBvbKg5SAVOON7JoZMOag3-5R24S145xN4",
+  authDomain: "safepark-pro.firebaseapp.com",
+  projectId: "safepark-pro",
+  storageBucket: "safepark-pro.firebasestorage.app",
+  messagingSenderId: "511221743341",
+  appId: "1:511221743341:web:95bcc7e83d4861578016e4"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const C = {
+  props:  'lrav2_properties',
+  assets: 'lrav2_assets',
+  events: 'lrav2_events',
+  actions:'lrav2_actions',
+  assess: 'lrav2_assessments',
+  schemes:'lrav2_schemes',
+  docs:   'lrav2_docs'
+};
+
+const ACCESS_CODES = {
+  'CQR365SPP25': { name:'Stephen &middot; Omnibosh Safety', level:'master_admin', org:'Omnibosh Safety Solutions Ltd' },
+  'DEMOLLH2026': { name:'Loch Long Hotel', level:'admin', org:'Loch Long Hotel' },
+  'DEMO2025':    { name:'Demo User', level:'demo', org:'Demo Organisation' }
+};
+
+let me = { uid:null, name:'', org:'', code:'', level:'' };
+let P=[], A=[], E=[], ACT=[], ASS=[], SCH=[], DOC=[];
+let view = { screen:'today', propId:'', assetId:'' };
+
+/* ════════ ASSET TYPES ════════ */
+const TYPES = {
+  incomer:        {label:'Incoming Main / Supply',        grp:'Supply'},
+  cwst:           {label:'Cold Water Storage Tank',       grp:'Cold Water'},
+  cold_direct:    {label:'Cold Water &middot; Mains Direct',     grp:'Cold Water'},
+  calorifier:     {label:'Calorifier / HW Cylinder',      grp:'Hot Water'},
+  combi:          {label:'Combi / Instantaneous Heater',  grp:'Hot Water'},
+  point_of_use:   {label:'Point-of-Use Water Heater',     grp:'Hot Water'},
+  sentinel_hot:   {label:'Sentinel Outlet &middot; Hot',         grp:'Outlets'},
+  sentinel_cold:  {label:'Sentinel Outlet &middot; Cold',        grp:'Outlets'},
+  outlet:         {label:'Outlet &middot; General',              grp:'Outlets'},
+  infrequent:     {label:'Infrequently Used Outlet',      grp:'Outlets'},
+  shower_fixed:   {label:'Shower &middot; Fixed Head',           grp:'Outlets'},
+  shower_flex:    {label:'Shower &middot; Flexible Hose',        grp:'Outlets'},
+  spray_tap:      {label:'Spray / Aerated Tap',           grp:'Outlets'},
+  tmv:            {label:'Thermostatic Mixing Valve',     grp:'Controls'},
+  dead_leg:       {label:'Dead Leg / Redundant Pipework', grp:'Defects'},
+  hose_reel:      {label:'Hose Reel / External Tap',      grp:'Outlets'},
+  cooling_tower:  {label:'Cooling Tower',                 grp:'Specialist'},
+  evap_condenser: {label:'Evaporative Condenser',         grp:'Specialist'},
+  spa:            {label:'Spa Pool / Hot Tub',            grp:'Specialist'},
+  fountain:       {label:'Water Feature / Fountain',      grp:'Specialist'},
+  emergency_shower:{label:'Emergency Shower / Eyewash',   grp:'Specialist'},
+  sprinkler:      {label:'Sprinkler / Fire Hose Reel',    grp:'Specialist'},
+  softener:       {label:'Softener / Filter / Vessel',    grp:'Plant'},
+  pump:           {label:'Booster Pump Set',              grp:'Plant'},
+  other:          {label:'Other',                         grp:'Other'}
+};
+
+/* ════════ REGIMES &middot; the proactive engine ════════
+   Each asset type maps to required tasks with a frequency in days.  */
+const REGIMES = {
+  cwst: [
+    {id:'insp',  task:'Tank inspection',            days:365, kind:'inspection',  ref:'HSG274 Pt2 2.53'},
+    {id:'temp',  task:'Base temperature (≤20°C)',   days:30,  kind:'temperature', ref:'HSG274 Pt2'},
+    {id:'clean', task:'Clean and disinfect',        days:365, kind:'disinfection',ref:'HSG274 Pt2 2.55'}
+  ],
+  calorifier: [
+    {id:'flow',  task:'Flow and return temperature',days:30,  kind:'temperature', ref:'HSG274 Pt2 2.44'},
+    {id:'drain', task:'De-sludge / drain-off',      days:90,  kind:'inspection',  ref:'HSG274 Pt2 2.47'},
+    {id:'insp',  task:'Internal inspection',        days:365, kind:'inspection',  ref:'HSG274 Pt2 2.48'}
+  ],
+  tmv:            [{id:'svc', task:'Service and set point check', days:365, kind:'inspection', ref:'HSG274 Pt2 2.29'}],
+  sentinel_hot:   [{id:'temp',task:'Sentinel temperature (≥50°C in 1 min)', days:30, kind:'temperature', ref:'HSG274 Pt2 2.37'}],
+  sentinel_cold:  [{id:'temp',task:'Sentinel temperature (≤20°C in 2 min)', days:30, kind:'temperature', ref:'HSG274 Pt2 2.37'}],
+  infrequent:     [{id:'flush',task:'Flush (min 1 minute)', days:7, kind:'flush', ref:'HSG274 Pt2 2.41'}],
+  shower_fixed:   [{id:'desc',task:'Descale, clean and disinfect', days:90, kind:'disinfection', ref:'HSG274 Pt2 2.42'}],
+  shower_flex:    [{id:'desc',task:'Descale, clean and disinfect head and hose', days:90, kind:'disinfection', ref:'HSG274 Pt2 2.42'}],
+  spray_tap:      [{id:'desc',task:'Descale and disinfect', days:90, kind:'disinfection', ref:'HSG274 Pt2 2.42'}],
+  cooling_tower:  [
+    {id:'insp', task:'System inspection', days:30, kind:'inspection', ref:'HSG274 Pt1'},
+    {id:'samp', task:'Legionella sample',  days:90, kind:'sample',     ref:'HSG274 Pt1 1.94'}
+  ],
+  evap_condenser: [{id:'insp',task:'System inspection', days:30, kind:'inspection', ref:'HSG274 Pt1'}],
+  spa:            [
+    {id:'temp', task:'Water temperature and chemistry', days:1,  kind:'temperature', ref:'HSG274 Pt3'},
+    {id:'samp', task:'Legionella sample',               days:30, kind:'sample',      ref:'HSG274 Pt3 3.60'}
+  ],
+  emergency_shower:[{id:'flush',task:'Weekly flush', days:7, kind:'flush', ref:'HSG274 Pt2'}],
+  hose_reel:      [{id:'flush',task:'Flush after use / periodic', days:30, kind:'flush', ref:'HSG274 Pt2'}],
+  incomer:        [{id:'temp', task:'Incoming temperature', days:90, kind:'temperature', ref:'HSG274 Pt2'}],
+  cold_direct:    [{id:'temp', task:'Distribution temperature', days:30, kind:'temperature', ref:'HSG274 Pt2'}],
+  outlet:         [{id:'temp', task:'Outlet temperature', days:180, kind:'temperature', ref:'HSG274 Pt2'}],
+  fountain:       [{id:'insp', task:'Clean and inspect', days:30, kind:'inspection', ref:'HSG274 Pt3'}]
+};
+
+const EVENT_KINDS = {
+  temperature:{label:'Temperature',  c:'var(--blue)'},
+  inspection: {label:'Inspection',   c:'var(--ok)'},
+  disinfection:{label:'Disinfection',c:'var(--high)'},
+  sample:     {label:'Sample',       c:'#b57edc'},
+  flush:      {label:'Flush',        c:'var(--blue-l)'},
+  defect:     {label:'Defect',       c:'var(--bad)'},
+  note:       {label:'Note',         c:'var(--txt-3)'}
+};
+
+const POP=['General public (healthy adults)','Elderly / over 65','Immunocompromised / chronic illness',
+           'Children under 5','Pregnant women','Team members / employees','Residents / sleeping accommodation'];
+const RISKF=[
+ ['Water temperature in the Legionella growth range (20 to 45\u00b0C)','HSG274 Pt2 2.6'],
+ ['Water is stored and/or recirculated','HSG274 Pt2 2.7'],
+ ['Scale, sediment, rust, sludge, slime or biofilm present','HSG274 Pt2 2.8'],
+ ['Water spray, mist or aerosol produced','HSG274 Pt2 2.9'],
+ ['Dead legs, blind ends or infrequently used outlets present','HSG274 Pt2 2.41'],
+ ['Susceptible or at-risk persons likely to be exposed','HSG274 Pt2 2.10'],
+ ['Cooling tower, evaporative condenser or spa pool present','HSG274 Pt1 / Pt3']
+];
+
+/* ════════ HELPERS ════════ */
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const today = () => new Date().toISOString().slice(0,10);
+const days = (a,b) => Math.floor((new Date(b)-new Date(a))/86400000);
+function addDays(d,n){const x=new Date(d); x.setDate(x.getDate()+n); return x.toISOString().slice(0,10);}
+function fmt(d){ if(!d) return 'Not recorded'; const p=String(d).slice(0,10).split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+
+function toast(m,ms){ const t=$('toast'); t.textContent=m; t.style.display='block'; clearTimeout(t._h); t._h=setTimeout(()=>t.style.display='none', ms||3000); }
+function openMo(title,html){ $('moTitle').textContent=title; $('moBody').innerHTML=html; $('modal').classList.add('on'); }
+function closeMo(){ $('modal').classList.remove('on'); }
+
+/* ════════ AUTH (no browser storage &middot; URL param or manual) ════════ */
+function doLogin(){
+  const code=($('code').value||'').trim();
+  const u=ACCESS_CODES[code];
+  if(!u){ $('loginErr').textContent='Access code not recognised.'; return; }
+  startSession(code,u);
+}
+function startSession(code,u){
+  me={uid:'lrav2_'+code.toLowerCase(), name:u.name, org:u.org, code:code, level:u.level};
+  $('login').style.display='none';
+  $('app').style.display='block';
+  $('whoName').textContent=me.name;
+  boot();
+}
+function signOut(){ me={uid:null}; P=A=E=ACT=ASS=SCH=DOC=[]; $('app').style.display='none'; $('login').style.display='flex'; $('code').value=''; }
+
+(function autoLogin(){
+  const q=new URLSearchParams(location.search);
+  const code=q.get('access_code')||q.get('accessCode')||'';
+  if(code && ACCESS_CODES[code]) startSession(code,ACCESS_CODES[code]);
+})();
+window.addEventListener('message',e=>{
+  const d=e.data||{};
+  if(d.type==='safecore-auth-success' && d.accessCode && ACCESS_CODES[d.accessCode] && !me.uid)
+    startSession(d.accessCode, ACCESS_CODES[d.accessCode]);
+});
+
+/* ════════ DATA ════════ */
+async function fetchAll(){
+  const q = c => db.collection(c).where('uid','==',me.uid).get()
+      .then(s=>s.docs.map(d=>({id:d.id,...d.data()})))
+      .catch(e=>{ console.error(c,e); return []; });
+  [P,A,E,ACT,ASS,SCH,DOC] = await Promise.all([q(C.props),q(C.assets),q(C.events),q(C.actions),q(C.assess),q(C.schemes),q(C.docs)]);
+  E.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+}
+async function boot(){ render('<div class="sp"></div>'); await fetchAll(); go(view.screen); }
+
+async function save(col,id,data){
+  data.uid=me.uid;
+  data.updatedAt=firebase.firestore.FieldValue.serverTimestamp();
+  if(id) return db.collection(col).doc(id).update(data);
+  data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
+  return db.collection(col).add(data);
+}
+async function del(col,id){ return db.collection(col).doc(id).delete(); }
+
+/* ════════ SCHEDULER ════════ */
+function assetTasks(asset){
+  const reg = REGIMES[asset.type]||[];
+  return reg.map(r=>{
+    const evs = E.filter(e=>e.assetId===asset.id && e.kind===r.kind && (!e.taskId || e.taskId===r.id));
+    const last = evs.length ? evs[0].date : null;
+    const due  = last ? addDays(last, r.days) : null;
+    let status='never', over=0;
+    if(due){
+      over = days(due, today());
+      status = over>0 ? 'overdue' : (over > -7 ? 'soon' : 'ok');
+    }
+    return {...r, last, due, status, over};
+  });
+}
+function propTasks(pid){
+  const out=[];
+  A.filter(a=>a.propId===pid).forEach(a=>assetTasks(a).forEach(t=>out.push({...t,asset:a})));
+  return out;
+}
+function allTasks(){
+  const out=[];
+  A.forEach(a=>assetTasks(a).forEach(t=>out.push({...t,asset:a})));
+  return out;
+}
+
+/* ════════ SCORECARD ════════ */
+function scorecard(pid){
+  const p=P.find(x=>x.id===pid)||{};
+  const assets=A.filter(a=>a.propId===pid);
+  const tasks=propTasks(pid);
+  const ok=tasks.filter(t=>t.status==='ok'||t.status==='soon').length;
+  const pct = tasks.length ? Math.round(ok/tasks.length*100) : 0;
+  const ass = ASS.filter(a=>a.propId===pid).sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
+  const raCurrent = ass && ass.reviewDate && ass.reviewDate>=today();
+  const scheme = SCH.some(s=>s.propId===pid);
+  const rp = !!(p.rp&&p.rp.trim()&&p.rp.toUpperCase().indexOf('TO CONFIRM')<0);
+  const openA = ACT.filter(a=>a.propId===pid&&a.status!=='closed');
+  const imm = openA.filter(a=>a.priority==='immediate').length;
+
+  const checks=[
+    {k:'Risk assessment current',      v:raCurrent, d: ass? ('reviewed '+fmt(ass.date)) : 'none recorded'},
+    {k:'Written scheme in place',      v:scheme,    d: scheme?'present':'missing'},
+    {k:'Responsible person named',     v:rp,        d: rp?p.rp:'not named'},
+    {k:'Asset register populated',     v:assets.length>0, d: assets.length+' assets'},
+    {k:'Monitoring up to date',        v:pct>=90,   d: pct+'% of tasks in date'},
+    {k:'No immediate actions open',    v:imm===0,   d: imm+' immediate'}
+  ];
+  const pass=checks.filter(c=>c.v).length;
+  const score=Math.round(pass/checks.length*100);
+  const rag = score>=85 && imm===0 ? 'ok' : score>=55 ? 'warn' : 'bad';
+  return {checks,score,rag,pct,tasks,assets,openA,imm};
+}
+
+/* ════════ GAP DETECTION ════════ */
+function gaps(pid){
+  const g=[];
+  const p=P.find(x=>x.id===pid)||{};
+  const assets=A.filter(a=>a.propId===pid);
+  if(!assets.length) g.push({s:'bad',t:'No assets registered',d:'The asset register is the basis of the assessment. Nothing can be scheduled until assets exist.'});
+  if(!p.rp||/TO CONFIRM/i.test(p.rp||'')) g.push({s:'bad',t:'No responsible person named',d:'L8 requires a named responsible person. The written scheme cannot be completed without one.'});
+  if(!SCH.some(s=>s.propId===pid)) g.push({s:'warn',t:'No written scheme of control',d:'HSG274 Pt2 2.70 requires a written scheme for each system presenting a risk.'});
+  const ass=ASS.filter(a=>a.propId===pid);
+  if(!ass.length) g.push({s:'bad',t:'No risk assessment recorded',d:'A suitable and sufficient assessment is a legal requirement.'});
+  else{ const l=ass.sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
+        if(l.reviewDate && l.reviewDate<today()) g.push({s:'bad',t:'Risk assessment overdue for review',d:'Review date was '+fmt(l.reviewDate)+'.'}); }
+  assets.forEach(a=>{
+    if(!REGIMES[a.type]) return;
+    assetTasks(a).forEach(t=>{
+      if(t.status==='never') g.push({s:'warn',t:'No '+t.task.toLowerCase()+' ever recorded',d:a.ref+' &middot; '+(a.location||''),aid:a.id});
+      else if(t.status==='overdue') g.push({s:'bad',t:t.task+' overdue by '+t.over+' days',d:a.ref+' &middot; '+(a.location||''),aid:a.id});
+    });
+  });
+  if(assets.some(a=>a.type==='cooling_tower') && !p.ltNotified)
+    g.push({s:'bad',t:'Cooling tower not notified to local authority',d:'Notification is a statutory requirement under COSHH.'});
+  const showers=assets.filter(a=>a.type==='shower_fixed'||a.type==='shower_flex');
+  if(showers.length && !E.some(e=>e.kind==='disinfection'&&showers.some(s=>s.id===e.assetId)))
+    g.push({s:'warn',t:'Showers registered with no disinfection record',d:showers.length+' shower(s) on the register.'});
+  return g;
+}
+
+/* ════════ NAV ════════ */
+const SCREENS=[
+  ['today','Today'],['sites','Sites'],['survey','Survey'],
+  ['actions','Actions'],['assess','Assessments'],['schemes','Schemes'],
+  ['docs','Documents'],['reports','Reports'],['setup','Setup']
+];
+function drawNav(){
+  $('nav').innerHTML = SCREENS.map(([k,l])=>
+    '<button class="'+(view.screen===k?'on':'')+'" onclick="go(\''+k+'\')">'+l+'</button>').join('');
+}
+function render(h){ $('screen').innerHTML=h; }
+function go(s,arg){
+  view.screen=s;
+  if(s==='property') view.propId=arg||view.propId;
+  if(s==='asset')    view.assetId=arg||view.assetId;
+  drawNav();
+  ({today:scToday,sites:scSites,property:scProperty,asset:scAsset,survey:scSurvey,
+    actions:scActions,assess:scAssess,schemes:scSchemes,docs:scDocs,
+    reports:scReports,setup:scSetup}[s]||scToday)();
+  window.scrollTo(0,0);
+}
+
+/* ════════ SCREEN: TODAY ════════ */
+function scToday(){
+  const t=allTasks();
+  const over=t.filter(x=>x.status==='overdue').sort((a,b)=>b.over-a.over);
+  const soon=t.filter(x=>x.status==='soon');
+  const never=t.filter(x=>x.status==='never');
+  const openA=ACT.filter(a=>a.status!=='closed');
+  const imm=openA.filter(a=>a.priority==='immediate');
+
+  let h='<div class="grid g4">'+
+    tile(over.length, 'Overdue', over.length?'var(--bad)':'var(--ok)','today')+
+    tile(soon.length, 'Due within 7 days','var(--warn)','today')+
+    tile(never.length,'Never done', never.length?'var(--high)':'var(--ok)','today')+
+    tile(openA.length,'Open actions', imm.length?'var(--bad)':'var(--blue)','actions')+
+  '</div>';
+
+  if(imm.length) h+='<div class="note r"><b>'+imm.length+' immediate action'+(imm.length>1?'s':'')+' outstanding.</b> These are stop-or-isolate items.</div>';
+
+  if(!P.length) h+='<div class="note">No properties yet. Go to <b>Setup</b> to import from the v1 module, or add a property under <b>Sites</b>.</div>';
+
+  h+='<div class="card"><h3>Overdue <span class="n">'+over.length+'</span></h3>'+
+     (over.length? over.slice(0,25).map(taskRow).join('') : '<div class="empty">Nothing overdue.</div>')+'</div>';
+  h+='<div class="card"><h3>Due soon <span class="n">'+soon.length+'</span></h3>'+
+     (soon.length? soon.map(taskRow).join('') : '<div class="empty">Nothing due in the next 7 days.</div>')+'</div>';
+  if(never.length)
+    h+='<div class="card"><h3>Never recorded <span class="n">'+never.length+'</span></h3>'+
+       never.slice(0,25).map(taskRow).join('')+'</div>';
+  render(h);
+}
+function tile(v,l,c,go_){ return '<div class="tile" onclick="go(\''+go_+'\')"><div class="v" style="color:'+c+'">'+v+'</div><div class="l">'+l+'</div></div>'; }
+function taskRow(t){
+  const p=P.find(x=>x.id===t.asset.propId);
+  const pill = t.status==='overdue'? '<span class="pill p-bad">'+t.over+'d overdue</span>'
+             : t.status==='soon'   ? '<span class="pill p-warn">due '+fmt(t.due)+'</span>'
+             : '<span class="pill p-grey">never done</span>';
+  return '<div class="row clickable" onclick="go(\'asset\',\''+t.asset.id+'\')"><div class="main">'+
+    '<div class="t">'+esc(t.task)+'</div>'+
+    '<div class="m">'+esc(t.asset.ref||'')+' &middot; '+esc(t.asset.location||'')+' &middot; '+esc(p?p.name:'')+
+    '<div class="ref">'+esc(t.ref)+'</div></div></div><div>'+pill+'</div></div>';
+}
+
+/* ════════ SCREEN: SITES ════════ */
+function scSites(){
+  let h='<div class="btns" style="margin-bottom:14px"><button class="btn" onclick="editProp()">+ Add Property</button></div>';
+  if(!P.length){ render(h+'<div class="empty">No properties yet.</div>'); return; }
+  h+=P.map(p=>{
+    const s=scorecard(p.id);
+    const col=s.rag==='ok'?'var(--ok)':s.rag==='warn'?'var(--warn)':'var(--bad)';
+    return '<div class="card"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start">'+
+      '<div style="flex:1;min-width:200px;cursor:pointer" onclick="go(\'property\',\''+p.id+'\')">'+
+        '<div style="font-weight:700;font-size:1.02rem">'+esc(p.name)+'</div>'+
+        '<div class="m" style="color:var(--txt-3);font-size:.82rem">'+esc(p.address||'')+'</div>'+
+        '<div style="font-size:.8rem;color:var(--txt-2);margin-top:6px">'+s.assets.length+' assets &middot; '+
+        s.openA.length+' open actions &middot; '+s.pct+'% monitoring in date</div>'+
+      '</div>'+
+      '<div style="text-align:center;min-width:80px"><div style="font-size:1.7rem;font-weight:800;color:'+col+'">'+s.score+'%</div>'+
+      '<div style="font-size:.7rem;color:var(--txt-3);text-transform:uppercase">Compliance</div></div></div>'+
+      '<div class="bar"><i style="width:'+s.score+'%;background:'+col+'"></i></div></div>';
+  }).join('');
+  render(h);
+}
+
+/* ════════ SCREEN: PROPERTY ════════ */
+function scProperty(){
+  const p=P.find(x=>x.id===view.propId);
+  if(!p){ go('sites'); return; }
+  const s=scorecard(p.id), g=gaps(p.id);
+  const col=s.rag==='ok'?'var(--ok)':s.rag==='warn'?'var(--warn)':'var(--bad)';
+  const assets=A.filter(a=>a.propId===p.id);
+
+  let h='<div class="crumb"><b onclick="go(\'sites\')">Sites</b> / '+esc(p.name)+'</div>';
+
+  h+='<div class="card"><div style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap">'+
+     '<div style="flex:1;min-width:220px"><div style="font-weight:700;font-size:1.1rem">'+esc(p.name)+'</div>'+
+     '<div style="color:var(--txt-3);font-size:.85rem">'+esc(p.address||'')+'</div>'+
+     '<div style="font-size:.83rem;margin-top:8px;color:var(--txt-2)">Duty holder: '+esc(p.dutyHolder||'&middot;')+'<br>Responsible person: '+esc(p.rp||'&middot;')+'</div></div>'+
+     '<div style="text-align:center"><div style="font-size:2.2rem;font-weight:800;color:'+col+'">'+s.score+'%</div>'+
+     '<div style="font-size:.7rem;color:var(--txt-3);text-transform:uppercase">Compliance</div></div></div>'+
+     '<div class="btns" style="margin-top:12px"><button class="btn o sm" onclick="editProp(\''+p.id+'\')">Edit</button>'+
+     '<button class="btn sm" onclick="go(\'survey\')">Survey this site</button></div></div>';
+
+  h+='<div class="card"><h3>Compliance checks</h3>'+ s.checks.map(c=>
+      '<div class="row"><div class="main"><div class="t">'+esc(c.k)+'</div><div class="m">'+esc(c.d)+'</div></div>'+
+      '<span class="pill '+(c.v?'p-ok':'p-bad')+'">'+(c.v?'Yes':'No')+'</span></div>').join('')+'</div>';
+
+  if((p.photos||[]).length) h+='<div class="card"><h3>Site photographs <span class="n">'+p.photos.length+'</span></h3>'+
+    '<div class="ph">'+p.photos.map((u,i)=>'<div class="t"><img src="'+u+'" onclick="viewPhoto(\''+p.id+'\',\'prop\','+i+')"></div>').join('')+'</div></div>';
+
+  if(g.length) h+='<div class="card"><h3>Gaps and warnings <span class="n">'+g.length+'</span></h3>'+
+    g.map(x=>'<div class="row'+(x.aid?' clickable':'')+'"'+(x.aid?' onclick="go(\'asset\',\''+x.aid+'\')"':'')+'>'+
+    '<div class="main"><div class="t">'+esc(x.t)+'</div><div class="m">'+esc(x.d)+'</div></div>'+
+    '<span class="pill '+(x.s==='bad'?'p-bad':'p-warn')+'">'+(x.s==='bad'?'Action':'Review')+'</span></div>').join('')+'</div>';
+
+  const byGrp={};
+  assets.forEach(a=>{ const gname=(TYPES[a.type]||{}).grp||'Other'; (byGrp[gname]=byGrp[gname]||[]).push(a); });
+  h+='<div class="card"><h3>Asset register <span class="n">'+assets.length+'</span></h3>'+
+     '<div class="btns" style="margin-bottom:12px"><button class="btn sm" onclick="editAsset()">+ Add Asset</button></div>';
+  if(!assets.length) h+='<div class="empty">No assets. Add them, or import from v1 in Setup.</div>';
+  Object.keys(byGrp).sort().forEach(gn=>{
+    h+='<div style="font-size:.78rem;color:var(--txt-3);text-transform:uppercase;letter-spacing:.6px;margin:14px 0 7px">'+esc(gn)+'</div>';
+    h+=byGrp[gn].map(assetRow).join('');
+  });
+  h+='</div>';
+  render(h);
+}
+function assetRow(a){
+  const ts=assetTasks(a);
+  const bad=ts.filter(t=>t.status==='overdue').length, nev=ts.filter(t=>t.status==='never').length;
+  const pill = bad? '<span class="pill p-bad">'+bad+' overdue</span>'
+             : nev? '<span class="pill p-warn">'+nev+' never done</span>'
+             : ts.length? '<span class="pill p-ok">In date</span>' : '<span class="pill p-grey">No regime</span>';
+  const risk = a.risk? '<span class="pill '+({low:'p-ok',medium:'p-warn',high:'p-high',veryhigh:'p-bad'}[a.risk]||'p-grey')+'">'+a.risk+'</span>' : '';
+  return '<div class="row clickable" onclick="go(\'asset\',\''+a.id+'\')"><div class="main">'+
+    '<div class="t">'+esc(a.ref||'(no ref)')+' &middot; '+esc((TYPES[a.type]||{}).label||a.type)+'</div>'+
+    '<div class="m">'+esc(a.location||'')+(a.serving?' &middot; serving '+esc(a.serving):'')+
+    (a.status?' &middot; <b style="color:var(--txt-2)">'+esc(a.status)+'</b>':'')+'</div></div>'+
+    '<div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">'+risk+pill+'</div></div>';
+}
+
+/* ════════ SCREEN: ASSET ════════ */
+function scAsset(){
+  const a=A.find(x=>x.id===view.assetId);
+  if(!a){ go('sites'); return; }
+  const p=P.find(x=>x.id===a.propId)||{};
+  const ts=assetTasks(a);
+  const evs=E.filter(e=>e.assetId===a.id);
+
+  let h='<div class="crumb"><b onclick="go(\'sites\')">Sites</b> / <b onclick="go(\'property\',\''+p.id+'\')">'+esc(p.name)+'</b> / '+esc(a.ref||'Asset')+'</div>';
+
+  h+='<div class="card"><div style="font-weight:700;font-size:1.08rem">'+esc(a.ref||'(no ref)')+'</div>'+
+     '<div style="color:var(--txt-3);font-size:.85rem">'+esc((TYPES[a.type]||{}).label||a.type)+' &middot; '+esc(a.location||'')+'</div>'+
+     (a.serving?'<div style="font-size:.85rem;color:var(--txt-2);margin-top:6px">Serving: '+esc(a.serving)+'</div>':'')+
+     (a.notes?'<div style="font-size:.85rem;color:var(--txt-2);margin-top:8px;white-space:pre-wrap">'+esc(a.notes)+'</div>':'')+
+     '<div class="btns" style="margin-top:12px">'+
+       '<button class="btn sm" onclick="logEvent(\''+a.id+'\')">+ Log Event</button>'+
+       '<button class="btn o sm" onclick="editAsset(\''+a.id+'\')">Edit</button>'+
+       '<button class="btn r sm" onclick="raiseAction(\''+p.id+'\',\''+a.id+'\')">Raise Action</button>'+
+     '</div></div>';
+
+  if((a.photos||[]).length) h+='<div class="card"><h3>Asset photographs <span class="n">'+a.photos.length+'</span></h3>'+
+    '<div class="ph">'+a.photos.map((u,i)=>'<div class="t"><img src="'+u+'" onclick="viewPhoto(\''+a.id+'\',\'asset\','+i+')"></div>').join('')+'</div></div>';
+
+  h+='<div class="card"><h3>Required regime</h3>';
+  if(!ts.length) h+='<div class="empty">No regime defined for this asset type.</div>';
+  else h+=ts.map(t=>{
+    const pill = t.status==='overdue'?'<span class="pill p-bad">'+t.over+'d overdue</span>'
+               : t.status==='soon'   ?'<span class="pill p-warn">due '+fmt(t.due)+'</span>'
+               : t.status==='never'  ?'<span class="pill p-grey">never done</span>'
+               : '<span class="pill p-ok">due '+fmt(t.due)+'</span>';
+    return '<div class="row"><div class="main"><div class="t">'+esc(t.task)+'</div>'+
+      '<div class="m">Every '+t.days+' days &middot; last '+fmt(t.last)+'<div class="ref">'+esc(t.ref)+'</div></div></div>'+
+      '<div style="text-align:right">'+pill+'<br><button class="btn sm" style="margin-top:6px" onclick="logEvent(\''+a.id+'\',\''+t.kind+'\',\''+t.id+'\')">Record</button></div></div>';
+  }).join('');
+  h+='</div>';
+
+  h+='<div class="card"><h3>History <span class="n">'+evs.length+'</span></h3>'+
+     (evs.length? evs.map(e=>{
+       const k=EVENT_KINDS[e.kind]||{};
+       return '<div class="row"><div class="main"><div class="t"><span style="color:'+(k.c||'')+'">'+esc(k.label||e.kind)+'</span>'+
+         (e.value!==undefined&&e.value!==''?' &middot; '+esc(e.value)+(e.kind==='temperature'?'&deg;C':''):'')+'</div>'+
+         '<div class="m">'+fmt(e.date)+' &middot; '+esc(e.by||'')+(e.note?'<br>'+esc(e.note):'')+'</div>'+
+         (e.detail?detailRender(e.detail):'')+
+         ((e.photos||[]).length?'<div class="ph">'+e.photos.map(x=>'<div class="t"><img src="'+x+'"></div>').join('')+'</div>':'')+
+         '</div><button class="btn o sm" onclick="delEvent(\''+e.id+'\')">Delete</button></div>';
+     }).join('') : '<div class="empty">No events recorded.</div>')+'</div>';
+  render(h);
+}
+
+/* ════════ SCREEN: SURVEY ════════ */
+function scSurvey(){
+  let h='<div class="note">Field mode. Work down the register asset by asset. Everything saves against the asset immediately.</div>';
+  h+='<div class="card"><div class="fg"><label>Property</label><select id="svProp" onchange="view.propId=this.value;scSurvey()">'+
+     '<option value="">Select</option>'+P.map(p=>'<option value="'+p.id+'"'+(p.id===view.propId?' selected':'')+'>'+esc(p.name)+'</option>').join('')+
+     '</select></div></div>';
+  if(!view.propId){ render(h+'<div class="empty">Select a property.</div>'); return; }
+  const assets=A.filter(a=>a.propId===view.propId);
+  if(!assets.length){ render(h+'<div class="empty">No assets registered for this property.</div>'); return; }
+  const done=assets.filter(a=>a.status&&a.status!=='').length;
+  h+='<div class="note g"><b>'+done+' of '+assets.length+'</b> assets checked.</div>';
+  h+=assets.map(a=>{
+    const ts=assetTasks(a);
+    return '<div class="card"><div style="font-weight:700">'+esc(a.ref||'(no ref)')+' &middot; '+esc((TYPES[a.type]||{}).label||'')+'</div>'+
+      '<div style="color:var(--txt-3);font-size:.83rem;margin-bottom:10px">'+esc(a.location||'')+
+      (a.status?' &middot; <b style="color:var(--blue-l)">'+esc(a.status)+'</b>':'')+'</div>'+
+      '<div class="btns" style="margin-bottom:10px">'+
+        '<button class="btn g sm" onclick="setStatus(\''+a.id+'\',\'confirmed\')">Confirmed</button>'+
+        '<button class="btn o sm" onclick="setStatus(\''+a.id+'\',\'not present\')">Not present</button>'+
+        '<button class="btn w sm" onclick="setStatus(\''+a.id+'\',\'follow up\')">Follow up</button>'+
+      '</div>'+
+      '<div class="btns">'+
+        (ts.length? ts.map(t=>'<button class="btn sm" onclick="logEvent(\''+a.id+'\',\''+t.kind+'\',\''+t.id+'\')">'+esc(t.task.split('(')[0].trim())+'</button>').join('') : '')+
+        '<button class="btn o sm" onclick="logEvent(\''+a.id+'\',\'note\')">Note / Photo</button>'+
+        '<button class="btn r sm" onclick="raiseAction(\''+view.propId+'\',\''+a.id+'\')">Defect</button>'+
+      '</div></div>';
+  }).join('');
+  render(h);
+}
+async function setStatus(id,st){
+  try{ await save(C.assets,id,{status:st}); const a=A.find(x=>x.id===id); if(a)a.status=st; toast('Marked '+st+'.'); scSurvey(); }
+  catch(e){ toast('Failed: '+e.message); }
+}
+
+/* ════════ SCREEN: ACTIONS ════════ */
+function scActions(){
+  const order={immediate:0,high:1,medium:2,low:3};
+  const rows=ACT.slice().sort((a,b)=>(order[a.priority]||9)-(order[b.priority]||9));
+  const open=rows.filter(a=>a.status!=='closed');
+  let h='<div class="btns" style="margin-bottom:14px"><button class="btn" onclick="raiseAction()">+ Raise Action</button></div>';
+  h+='<div class="card"><h3>Open <span class="n">'+open.length+'</span></h3>'+
+     (open.length? open.map(actionRow).join('') : '<div class="empty">No open actions.</div>')+'</div>';
+  const closed=rows.filter(a=>a.status==='closed');
+  if(closed.length) h+='<div class="card"><h3>Closed <span class="n">'+closed.length+'</span></h3>'+closed.map(actionRow).join('')+'</div>';
+  render(h);
+}
+function actionRow(a){
+  const p=P.find(x=>x.id===a.propId);
+  const pc={immediate:'p-bad',high:'p-high',medium:'p-warn',low:'p-ok'}[a.priority]||'p-grey';
+  const over=a.due&&a.status!=='closed'&&a.due<today();
+  return '<div class="row"><div class="main"><div class="t">'+esc(a.title)+'</div>'+
+    '<div class="m">'+esc(p?p.name:'')+(a.assetRef?' &middot; '+esc(a.assetRef):'')+
+    (a.owner?' &middot; '+esc(a.owner):'')+(a.due?' &middot; due '+fmt(a.due):'')+
+    (over?' <b style="color:var(--bad)">OVERDUE</b>':'')+
+    (a.detail?'<br>'+esc(a.detail):'')+(a.ref?'<div class="ref">'+esc(a.ref)+'</div>':'')+'</div></div>'+
+    '<div style="text-align:right"><span class="pill '+pc+'">'+esc(a.priority||'')+'</span><br>'+
+    '<button class="btn o sm" style="margin-top:6px" onclick="raiseAction(null,null,\''+a.id+'\')">Edit</button></div></div>';
+}
+
+/* ════════ SCREEN: ASSESSMENTS ════════ */
+function scAssess(){
+  let h='<div class="note">An assessment is generated from the asset register and gap analysis, then you add judgement on top.</div>';
+  h+='<div class="btns" style="margin-bottom:14px"><button class="btn" onclick="editAssess()">+ New Assessment</button></div>';
+  if(!ASS.length){ render(h+'<div class="empty">No assessments yet.</div>'); return; }
+  h+=ASS.sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(a=>{
+    const p=P.find(x=>x.id===a.propId);
+    const due=a.reviewDate&&a.reviewDate<today();
+    return '<div class="row"><div class="main"><div class="t">'+esc(p?p.name:'Unknown')+' &middot; '+fmt(a.date)+'</div>'+
+      '<div class="m">'+esc(a.assessor||'')+' &middot; rating <b>'+esc(a.rating||'&middot;')+'</b> &middot; review '+fmt(a.reviewDate)+
+      (due?' <b style="color:var(--bad)">OVERDUE</b>':'')+'</div></div>'+
+      '<button class="btn o sm" onclick="editAssess(\''+a.id+'\')">Open</button></div>';
+  }).join('');
+  render(h);
+}
+
+/* ════════ SCREEN: WRITTEN SCHEMES ════════ */
+function scSchemes(){
+  let h='<div class="note">HSG274 Part 2, Para 2.70 requires a written scheme of control for each system that '+
+   'presents a risk. The scheme sets the target temperatures, the monitoring regime, the action levels and who is '+
+   'responsible for each task. Defaults below follow HSG274.</div>'+
+   '<div class="btns" style="margin-bottom:14px"><button class="btn" onclick="editScheme()">+ New Written Scheme</button></div>';
+  if(!SCH.length){ render(h+'<div class="empty">No written schemes recorded.</div>'); return; }
+  h+=SCH.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(s=>{
+    const p=P.find(x=>x.id===s.propId);
+    const due=s.reviewDate&&s.reviewDate<today();
+    return '<div class="row"><div class="main"><div class="t">'+esc(s.title||'Written Scheme')+'</div>'+
+      '<div class="m">'+esc(p?p.name:'')+' &middot; '+esc(s.ref||'')+' &middot; prepared '+fmt(s.date)+
+      ' by '+esc(s.author||'')+' &middot; review '+fmt(s.reviewDate)+
+      (due?' <b style="color:var(--bad)">OVERDUE</b>':'')+
+      ' &middot; <b>'+esc(s.status||'draft')+'</b></div></div>'+
+      '<div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">'+
+      '<button class="btn o sm" onclick="editScheme(\''+s.id+'\')">Open</button>'+
+      '<button class="btn o sm" onclick="printScheme(\''+s.id+'\')">Print</button></div></div>';
+  }).join('');
+  render(h);
+}
+
+const SCH_DEF={
+  hotStore:'At or above 60\u00b0C',
+  hotDist:'At or above 50\u00b0C within 1 minute at the outlet',
+  coldStore:'At or below 20\u00b0C',
+  coldDist:'At or below 20\u00b0C within 2 minutes at the outlet',
+  alTemp:'Any hot outlet below 50\u00b0C, or any cold outlet above 20\u00b0C, to be re-tested. If confirmed, '+
+         'investigate the cause, record the finding and raise a remedial action. Report to the responsible person.',
+  alSample:'Below 100 CFU/L, system under control, continue regime. 100 to 1000 CFU/L, re-sample and review '+
+           'control measures. Above 1000 CFU/L, re-sample, immediate review of control measures and risk '+
+           'assessment, consider disinfection.',
+  servicing:'Cold water storage tanks inspected annually and cleaned as required. Calorifiers drained and '+
+            'de-sludged quarterly, inspected internally annually. Thermostatic mixing valves serviced annually. '+
+            'Shower heads and hoses descaled and disinfected quarterly. Infrequently used outlets flushed weekly.'
+};
+
+function editScheme(id){
+  const s=id?SCH.find(x=>x.id===id):{propId:view.propId||(P[0]||{}).id,date:today(),
+      reviewDate:addDays(today(),365),author:me.name,status:'draft'};
+  const assetOpts=A.filter(a=>a.propId===s.propId);
+  openMo(id?'Written Scheme of Control':'New Written Scheme',
+    '<div class="grid g2">'+
+      '<div class="fg"><label>Property <span class="req">*</span></label><select id="scProp" onchange="view.propId=this.value;editScheme('+(id?"'"+id+"'":'')+')">'+
+        P.map(p=>'<option value="'+p.id+'"'+(s.propId===p.id?' selected':'')+'>'+esc(p.name)+'</option>').join('')+'</select></div>'+
+      fld('Scheme reference','scRef',s.ref||'WS-01')+'</div>'+
+    fld('Scheme title','scTitle',s.title||'Written Scheme of Control','text',true)+
+    '<div class="fg"><label>System covered</label><select id="scAsset"><option value="">Whole site, all systems</option>'+
+      assetOpts.map(a=>'<option value="'+a.id+'"'+(s.assetId===a.id?' selected':'')+'>'+esc((a.ref||'')+' '+(a.location||''))+'</option>').join('')+
+    '</select></div>'+
+    txt('System description','scDesc',s.desc)+
+    '<hr><div style="font-size:.86rem;color:var(--blue-l);font-weight:700">Temperature targets</div>'+
+    '<div class="grid g2">'+fld('Hot water storage','scHotStore',s.hotStore||SCH_DEF.hotStore)+
+      fld('Hot water distribution','scHotDist',s.hotDist||SCH_DEF.hotDist)+'</div>'+
+    '<div class="grid g2">'+fld('Cold water storage','scColdStore',s.coldStore||SCH_DEF.coldStore)+
+      fld('Cold water distribution','scColdDist',s.coldDist||SCH_DEF.coldDist)+'</div>'+
+    '<hr><div style="font-size:.86rem;color:var(--blue-l);font-weight:700">Monitoring programme</div>'+
+    '<div class="grid g2">'+
+      '<div class="fg"><label>Monitoring frequency</label><select id="scFreq">'+
+        ['Weekly','Monthly','Quarterly','Six monthly','Annually'].map(f=>'<option'+(s.freq===f?' selected':'')+'>'+f+'</option>').join('')+'</select></div>'+
+      fld('Responsible person for monitoring','scRP',s.rp||(P.find(x=>x.id===s.propId)||{}).rp)+'</div>'+
+    txt('Monitoring method and equipment','scMethod',s.method)+
+    txt('Nominated monitoring points (sentinel outlets)','scPoints',s.points)+
+    '<hr><div style="font-size:.86rem;color:var(--blue-l);font-weight:700">Action levels</div>'+
+    txt('Out of range temperature','scAlTemp',s.alTemp||SCH_DEF.alTemp)+
+    txt('Sampling result','scAlSample',s.alSample||SCH_DEF.alSample)+
+    '<hr>'+txt('Servicing and cleaning schedule','scServ',s.servicing||SCH_DEF.servicing)+
+    txt('Additional notes and special conditions','scNotes',s.notes)+
+    '<div class="grid g2">'+fld('Date prepared','scDate',s.date,'date',true)+fld('Review date','scReview',s.reviewDate,'date')+'</div>'+
+    '<div class="grid g2">'+fld('Prepared by','scAuthor',s.author||me.name,'text',true)+
+      '<div class="fg"><label>Status</label><select id="scStatus">'+
+        ['draft','issued','superseded'].map(x=>'<option'+(s.status===x?' selected':'')+'>'+x+'</option>').join('')+'</select></div></div>'+
+    '<div class="btns"><button class="btn" onclick="saveScheme(\''+(id||'')+'\')">Save</button>'+
+    (id?'<button class="btn o" onclick="printScheme(\''+id+'\')">Print</button>'+
+        '<button class="btn r" onclick="delScheme(\''+id+'\')">Delete</button>':'')+
+    '<button class="btn o" onclick="closeMo()">Cancel</button></div>');
+}
+async function saveScheme(id){
+  const d={propId:$('scProp').value, ref:$('scRef').value.trim(), title:$('scTitle').value.trim(),
+    assetId:$('scAsset').value, desc:$('scDesc').value.trim(),
+    hotStore:$('scHotStore').value.trim(), hotDist:$('scHotDist').value.trim(),
+    coldStore:$('scColdStore').value.trim(), coldDist:$('scColdDist').value.trim(),
+    freq:$('scFreq').value, rp:$('scRP').value.trim(), method:$('scMethod').value.trim(),
+    points:$('scPoints').value.trim(), alTemp:$('scAlTemp').value.trim(), alSample:$('scAlSample').value.trim(),
+    servicing:$('scServ').value.trim(), notes:$('scNotes').value.trim(),
+    date:$('scDate').value, reviewDate:$('scReview').value,
+    author:$('scAuthor').value.trim(), status:$('scStatus').value};
+  if(!d.propId||!d.title){ toast('Property and title are required.'); return; }
+  try{ await save(C.schemes,id,d); await fetchAll(); closeMo(); toast('Written scheme saved.'); go('schemes'); }
+  catch(e){ toast('Failed: '+e.message); }
+}
+async function delScheme(id){
+  if(!confirm('Delete this written scheme?')) return;
+  try{ await del(C.schemes,id); await fetchAll(); closeMo(); go('schemes'); }
+  catch(e){ toast('Failed: '+e.message); }
+}
+function printScheme(id){
+  const s=SCH.find(x=>x.id===id); if(!s) return;
+  const p=P.find(x=>x.id===s.propId)||{};
+  const a=A.find(x=>x.id===s.assetId);
+  const rows=[['System covered',a?((a.ref||'')+' '+(a.location||'')):'Whole site, all systems'],
+    ['System description',s.desc],['Hot water storage target',s.hotStore],['Hot water distribution target',s.hotDist],
+    ['Cold water storage target',s.coldStore],['Cold water distribution target',s.coldDist],
+    ['Monitoring frequency',s.freq],['Responsible person for monitoring',s.rp],
+    ['Monitoring method and equipment',s.method],['Nominated monitoring points',s.points],
+    ['Action level, temperature',s.alTemp],['Action level, sampling',s.alSample],
+    ['Servicing and cleaning schedule',s.servicing],['Additional notes',s.notes]];
+  view.screen='reports'; drawNav();
+  render('<div class="card rp-page">'+rpHead(p,s.title||'Written Scheme of Control',s.ref||'WS-01')+
+    '<p class="rp-p">This written scheme of control is prepared under the Approved Code of Practice L8 and '+
+    'HSG274 Part 2, Para 2.70. It sets out the control measures to be applied, the monitoring to be carried out, '+
+    'and the action to be taken where control parameters are not met.</p>'+
+    '<table class="rp-t"><tbody>'+rows.filter(r=>r[1]).map(r=>
+      '<tr><td style="width:32%">'+esc(r[0])+'</td><td>'+esc(r[1])+'</td></tr>').join('')+'</tbody></table>'+
+    '<p class="rp-p"><b>Status:</b> '+esc(s.status||'draft')+' &middot; <b>Prepared:</b> '+fmt(s.date)+
+    ' &middot; <b>Review due:</b> '+fmt(s.reviewDate)+'</p>'+
+    rpSig()+'<div class="btns"><button class="btn" onclick="window.print()">Print / Save as PDF</button>'+
+    '<button class="btn o" onclick="go(\'schemes\')">Back to schemes</button></div></div>');
+  window.scrollTo(0,0);
+}
+
+/* ════════ SCREEN: DOCUMENTS ════════ */
+const DOC_KINDS=[
+  ['schematic','System schematic / pipework drawing'],
+  ['asbuilt','As-built drawing'],
+  ['floorplan','Floor plan / site plan'],
+  ['lab','Laboratory report / certificate of analysis'],
+  ['disinfcert','Disinfection or chlorination certificate'],
+  ['om','O&M manual / commissioning record'],
+  ['warrant','Building warrant / completion certificate'],
+  ['scheme','Written scheme (external document)'],
+  ['prevra','Previous risk assessment'],
+  ['servicing','Servicing or maintenance record'],
+  ['correspond','Correspondence'],
+  ['other','Other']
+];
+const DOC_MAX = 700*1024;   /* Firestore document limit is ~1MB; leave headroom */
+
+function scDocs(){
+  let h='<div class="note">Uploads are stored in Firestore against the property, and where relevant against a '+
+   'specific asset. Images are compressed. PDFs are stored as supplied, so keep them under 700KB or split them.</div>'+
+   '<div class="card"><div class="grid g2">'+
+     '<div class="fg"><label>Property</label><select id="dcFilter" onchange="renderDocs()">'+
+       '<option value="">All properties</option>'+P.map(p=>'<option value="'+p.id+'"'+(p.id===view.propId?' selected':'')+'>'+esc(p.name)+'</option>').join('')+
+     '</select></div>'+
+     '<div class="fg"><label>&nbsp;</label><button class="btn" style="width:100%" onclick="editDoc()">+ Upload document</button></div>'+
+   '</div></div><div id="dcList"></div>';
+  render(h); renderDocs();
+}
+function renderDocs(){
+  const f=($('dcFilter')||{}).value||'';
+  let rows=DOC.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(f) rows=rows.filter(d=>d.propId===f);
+  const el=$('dcList'); if(!el) return;
+  if(!rows.length){ el.innerHTML='<div class="empty">No documents uploaded.</div>'; return; }
+  const byKind={};
+  rows.forEach(d=>{ (byKind[d.kind]=byKind[d.kind]||[]).push(d); });
+  let h='';
+  DOC_KINDS.forEach(k=>{
+    const list=byKind[k[0]]; if(!list) return;
+    h+='<div class="card"><h3>'+esc(k[1])+' <span class="n">'+list.length+'</span></h3>'+
+      list.map(docRow).join('')+'</div>';
+  });
+  el.innerHTML=h;
+}
+function docRow(d){
+  const p=P.find(x=>x.id===d.propId), a=A.find(x=>x.id===d.assetId);
+  const kb=d.size?Math.round(d.size/1024)+'KB':'';
+  return '<div class="row"><div class="main"><div class="t">'+esc(d.title||d.filename||'Untitled')+'</div>'+
+    '<div class="m">'+esc(p?p.name:'')+(a?' &middot; '+esc(a.ref||''):'')+' &middot; '+fmt(d.date)+
+    (kb?' &middot; '+kb:'')+(d.filename?'<br>'+esc(d.filename):'')+
+    (d.notes?'<br>'+esc(d.notes):'')+'</div></div>'+
+    '<div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">'+
+      '<button class="btn o sm" onclick="openDoc(\''+d.id+'\')">View</button>'+
+      '<button class="btn o sm" onclick="editDoc(\''+d.id+'\')">Edit</button>'+
+      '<button class="btn r sm" onclick="delDoc(\''+d.id+'\')">Delete</button></div></div>';
+}
+function openDoc(id){
+  const d=DOC.find(x=>x.id===id); if(!d) return;
+  if(!d.data){ toast('No file stored on this record.'); return; }
+  if((d.mime||'').indexOf('image')===0)
+    openMo(d.title||'Document','<img src="'+d.data+'" style="width:100%;border-radius:8px">'+
+      '<div class="btns" style="margin-top:12px"><a class="btn o" href="'+d.data+'" download="'+esc(d.filename||'document')+'">Download</a>'+
+      '<button class="btn o" onclick="closeMo()">Close</button></div>');
+  else
+    openMo(d.title||'Document','<div class="note">'+esc(d.filename||'File')+' ('+Math.round((d.size||0)/1024)+'KB)</div>'+
+      '<div class="btns"><a class="btn" href="'+d.data+'" download="'+esc(d.filename||'document')+'">Download</a>'+
+      '<button class="btn o" onclick="closeMo()">Close</button></div>');
+}
+function editDoc(id){
+  const d=id?DOC.find(x=>x.id===id):{propId:view.propId||(P[0]||{}).id,date:today()};
+  openMo(id?'Edit Document':'Upload Document',
+    '<div class="grid g2">'+
+      '<div class="fg"><label>Property <span class="req">*</span></label><select id="dcProp">'+
+        P.map(p=>'<option value="'+p.id+'"'+(d.propId===p.id?' selected':'')+'>'+esc(p.name)+'</option>').join('')+'</select></div>'+
+      '<div class="fg"><label>Document type</label><select id="dcKind">'+
+        DOC_KINDS.map(k=>'<option value="'+k[0]+'"'+(d.kind===k[0]?' selected':'')+'>'+esc(k[1])+'</option>').join('')+'</select></div></div>'+
+    '<div class="fg"><label>Asset (optional)</label><select id="dcAsset"><option value="">Not asset specific</option>'+
+      A.map(a=>'<option value="'+a.id+'"'+(d.assetId===a.id?' selected':'')+'>'+esc((a.ref||'')+' '+(a.location||''))+'</option>').join('')+'</select></div>'+
+    '<div class="grid g2">'+fld('Title','dcTitle',d.title,'text',true)+fld('Document date','dcDate',d.date,'date')+'</div>'+
+    txt('Notes','dcNotes',d.notes)+
+    (d.filename?'<div class="note">Currently stored: '+esc(d.filename)+' ('+Math.round((d.size||0)/1024)+'KB). Uploading a new file replaces it.</div>':'')+
+    fileField('File (image or PDF, max 700KB)','dcFile')+
+    '<div class="btns"><button class="btn" onclick="saveDoc(\''+(id||'')+'\')">Save</button>'+
+    (id?'<button class="btn r" onclick="delDoc(\''+id+'\')">Delete</button>':'')+
+    '<button class="btn o" onclick="closeMo()">Cancel</button></div>');
+}
+async function saveDoc(id){
+  const title=$('dcTitle').value.trim();
+  if(!title){ toast('Title is required.'); return; }
+  const d={propId:$('dcProp').value, kind:$('dcKind').value, assetId:$('dcAsset').value,
+    title:title, date:$('dcDate').value||today(), notes:$('dcNotes').value.trim()};
+  const f=FB['dcFile'];
+  if(f){
+    if(f.data.length>DOC_MAX*1.37){
+      toast('File too large. Firestore allows about 700KB. Compress or split it.');
+      return;
+    }
+    d.filename=f.name; d.mime=f.type; d.data=f.data; d.size=Math.round(f.data.length*0.75);
+  } else if(!id){
+    toast('Select a file to upload.'); return;
+  }
+  try{ await save(C.docs,id,d); delete FB['dcFile']; await fetchAll(); closeMo(); toast('Document saved.'); scDocs(); }
+  catch(e){ toast('Failed: '+e.message); }
+}
+async function delDoc(id){
+  if(!confirm('Delete this document?')) return;
+  try{ await del(C.docs,id); await fetchAll(); closeMo(); toast('Document deleted.'); scDocs(); }
+  catch(e){ toast('Failed: '+e.message); }
+}
+
+/* ════════ SCREEN: REPORTS ════════ */
+function scReports(){
+  let h='<div class="card"><h3>Generate document</h3>'+
+    '<div class="grid g2">'+
+      '<div class="fg"><label>Property</label><select id="rpProp">'+
+        P.map(p=>'<option value="'+p.id+'"'+(p.id===view.propId?' selected':'')+'>'+esc(p.name)+'</option>').join('')+'</select></div>'+
+      '<div class="fg"><label>Document</label><select id="rpKind">'+
+        '<option value="lra">Legionella Risk Assessment (full report)</option>'+
+        '<option value="plan">Remedial Action Plan</option>'+
+        '<option value="mon">Monitoring &amp; Records Summary</option>'+
+        '<option value="exec">Compliance Summary (one page)</option>'+
+      '</select></div></div>'+
+    '<div class="btns"><button class="btn" onclick="buildDoc()">Build document</button>'+
+    '<button class="btn o" onclick="window.print()">Print / Save as PDF</button></div>'+
+    '<div style="font-size:.82rem;color:var(--txt-3);margin-top:10px">Print uses A4 with page breaks between sections. '+
+    'Choose "Save as PDF" in the print dialogue.</div></div><div id="rpOut"></div>';
+  render(h);
+}
+
+function rpHead(p,title,ref){
+  return '<div class="rp-hd"><div class="ti">'+esc(title)+'</div>'+
+    '<div class="su">'+esc(p.name)+' &middot; '+esc(p.address||'')+'</div></div>'+
+    '<table class="rp-meta"><tbody>'+
+    '<tr><td>Document</td><td>'+esc(title)+'</td><td>Reference</td><td>'+esc(ref)+'</td></tr>'+
+    '<tr><td>Premises</td><td>'+esc(p.name)+'</td><td>Date</td><td>'+fmt(today())+'</td></tr>'+
+    '<tr><td>Address</td><td colspan="3">'+esc(p.address||'')+'</td></tr>'+
+    '<tr><td>Duty holder</td><td>'+esc(p.dutyHolder||'Not recorded')+'</td><td>Organisation</td><td>'+esc(p.dutyHolderOrg||'')+'</td></tr>'+
+    '<tr><td>Responsible person</td><td>'+esc(p.rp||'NOT APPOINTED')+'</td><td>Contact</td><td>'+esc(p.rpContact||'')+'</td></tr>'+
+    '<tr><td>Prepared by</td><td colspan="3">Omnibosh Safety &amp; SafeSystems.PRO</td></tr>'+
+    '</tbody></table>';
+}
+function rpSig(){
+  return '<div class="sig avoid"><b>Prepared by:</b> Omnibosh Safety &amp; SafeSystems.PRO<br>'+
+    '<b>Signature:</b> Signed on original &middot; Electronic signature<br>'+
+    '<b>Date:</b> '+fmt(today())+'<br><br>'+
+    'This document was produced using SafeSystems.PRO. All supporting records, monitoring data, '+
+    'inspection records and photographic evidence are retained within SafeSystems.PRO.</div>';
+}
+const PRI={immediate:'Immediate',high:'High',medium:'Medium',low:'Low'};
+const PRI_T={immediate:'Before further use of the system',high:'Within 7 days',medium:'Within 1 month',low:'Within 3 months'};
+
+function buildDoc(){
+  const pid=$('rpProp').value, kind=$('rpKind').value, p=P.find(x=>x.id===pid);
+  if(!p){ toast('Select a property.'); return; }
+  const out=$('rpOut');
+  if(kind==='lra')  out.innerHTML=docLRA(p);
+  if(kind==='plan') out.innerHTML=docPlan(p);
+  if(kind==='mon')  out.innerHTML=docMon(p);
+  if(kind==='exec') out.innerHTML=docExec(p);
+  window.scrollTo(0,document.getElementById('rpOut').offsetTop-20);
+}
+
+/* ── FULL LRA REPORT ── */
+function docLRA(p){
+  const s=scorecard(p.id), g=gaps(p.id);
+  const assets=A.filter(a=>a.propId===p.id);
+  const ass=ASS.filter(a=>a.propId===p.id).sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
+  const acts=ACT.filter(a=>a.propId===p.id&&a.status!=='closed');
+  const evs=E.filter(e=>e.propId===p.id);
+  const ref=(p.ref||'OB-LRA')+'-'+today().replace(/-/g,'');
+
+  let h='<div class="card rp-page">'+rpHead(p,'Legionella Risk Assessment',ref);
+
+  h+='<h2 class="rp-s">1. Scope and Purpose</h2>'+
+   '<p class="rp-p">This Legionella Risk Assessment has been prepared in accordance with the Health and Safety at Work etc. '+
+   'Act 1974, the Control of Substances Hazardous to Health Regulations 2002 (COSHH), and the Approved Code of Practice '+
+   'and Guidance L8, Legionnaires\' Disease: The Control of Legionella Bacteria in Water Systems, together with HSG274 '+
+   'Parts 1 to 3.</p>'+
+   '<p class="rp-p">The purpose of this assessment is to identify and assess the risk of exposure to Legionella bacteria '+
+   'from the water systems at the premises named above, to identify the control measures required, and to specify the '+
+   'remedial actions necessary to reduce risk so far as is reasonably practicable.</p>';
+  if(ass&&ass.limits) h+='<p class="rp-p"><b>Scope limitations.</b> '+esc(ass.limits)+'</p>';
+  else h+='<p class="rp-p"><b>Scope limitations.</b> No limitations recorded. Where any part of a system could not be '+
+   'accessed or inspected, this must be stated before the assessment is issued.</p>';
+
+  h+='<h2 class="rp-s">2. Duty Holder and Responsible Person</h2>'+
+   '<p class="rp-p">The duty holder for these premises is recorded as '+esc(p.dutyHolder||'not recorded')+'. '+
+   (p.rp&&!/TO CONFIRM|NOT APPOINTED/i.test(p.rp)
+     ? 'The appointed responsible person is '+esc(p.rp)+'.'
+     : '<b>No responsible person is currently appointed in writing. This is a legal deficiency requiring immediate correction, '+
+       'as the written scheme of control cannot be implemented without a named, competent responsible person.</b>')+'</p>';
+
+  h+='<h2 class="rp-s">3. Premises Description</h2>'+
+   '<p class="rp-p">'+esc(p.notes||'No description recorded.')+'</p>';
+  if(p.year) h+='<p class="rp-p"><b>Age / last refurbishment:</b> '+esc(p.year)+'</p>';
+
+  h+='</div><div class="card rp-page">';
+
+  /* ── ASSET REGISTER ── */
+  h+='<h2 class="rp-s">4. Water Systems and Asset Register</h2>'+
+   '<p class="rp-p">The following '+assets.length+' assets have been identified and registered. '+
+   'Each is subject to the monitoring and inspection regime set out in Section 6.</p>';
+  if(!assets.length) h+='<p class="rp-p"><b>No assets registered. The assessment cannot be considered suitable and sufficient.</b></p>';
+  else{
+    h+='<div class="tbl-wrap"><table class="rp-t"><thead><tr><th>Ref</th><th>Asset type</th><th>Location</th>'+
+      '<th>Serving</th><th>Risk</th><th>Status</th></tr></thead><tbody>'+
+      assets.map(a=>'<tr><td>'+esc(a.ref||'')+'</td><td>'+esc((TYPES[a.type]||{}).label||a.type)+'</td>'+
+      '<td>'+esc(a.location||'')+'</td><td>'+esc(a.serving||'')+'</td><td>'+esc((a.risk||'').toUpperCase())+'</td>'+
+      '<td>'+esc(a.status||'Not verified')+'</td></tr>').join('')+'</tbody></table></div>';
+  }
+
+  /* ── POPULATION ── */
+  h+='<h2 class="rp-s">5. Population at Risk</h2>';
+  const pop=(ass&&ass.pop)?ass.pop:[];
+  if(pop.length) h+='<p class="rp-p">The following groups have been identified as potentially exposed: '+
+    pop.map(esc).join(', ')+'.</p>';
+  else h+='<p class="rp-p">Population at risk not recorded on the current assessment. This must be completed, '+
+    'as susceptibility directly affects the risk rating.</p>';
+  if(ass&&(ass.rf||[]).length){
+    h+='<p class="rp-p"><b>Risk factors identified as present:</b></p><table class="rp-t"><thead><tr><th>Risk factor</th><th>Guidance</th></tr></thead><tbody>'+
+      RISKF.filter(x=>ass.rf.indexOf(x[0])>=0).map(x=>'<tr><td>'+esc(x[0])+'</td><td>'+esc(x[1])+'</td></tr>').join('')+'</tbody></table>';
+  }
+  h+='<p class="rp-p">Susceptibility to Legionnaires\' disease is increased in persons over 45 years of age, smokers '+
+    'and heavy drinkers, those with chronic respiratory or renal disease, diabetes, cancer, and any person with an '+
+    'impaired immune system.</p>';
+
+  h+='</div><div class="card rp-page">';
+
+  /* ── REGIME ── */
+  h+='<h2 class="rp-s">6. Control Measures and Monitoring Regime</h2>'+
+   '<p class="rp-p">The following regime applies to the registered assets, derived from HSG274. '+
+   '"Last completed" reflects records held in SafeSystems.PRO at the date of this report.</p>';
+  const ts=propTasks(p.id);
+  if(!ts.length) h+='<p class="rp-p">No monitoring regime applicable to the registered assets.</p>';
+  else h+='<div class="tbl-wrap"><table class="rp-t"><thead><tr><th>Asset</th><th>Task</th><th>Frequency</th>'+
+    '<th>Guidance</th><th>Last completed</th><th>Status</th></tr></thead><tbody>'+
+    ts.map(t=>'<tr><td>'+esc(t.asset.ref||'')+'</td><td>'+esc(t.task)+'</td>'+
+    '<td>Every '+t.days+' days</td><td>'+esc(t.ref)+'</td><td>'+fmt(t.last)+'</td>'+
+    '<td>'+(t.status==='overdue'?'<b>OVERDUE '+t.over+'d</b>':t.status==='never'?'<b>NEVER RECORDED</b>':t.status==='soon'?'Due '+fmt(t.due):'In date')+
+    '</td></tr>').join('')+'</tbody></table></div>';
+
+  h+='<h2 class="rp-s">7. Compliance Position</h2>'+
+   '<p class="rp-p">Overall compliance score at date of assessment: <b>'+s.score+'%</b>. '+
+   'Monitoring tasks in date: <b>'+s.pct+'%</b>.</p>'+
+   '<table class="rp-t"><thead><tr><th>Requirement</th><th>Position</th><th>Detail</th></tr></thead><tbody>'+
+   s.checks.map(x=>'<tr><td>'+esc(x.k)+'</td><td>'+(x.v?'Compliant':'<b>Not compliant</b>')+'</td><td>'+esc(x.d)+'</td></tr>').join('')+
+   '</tbody></table>';
+
+  h+='</div><div class="card rp-page">';
+
+  /* ── FINDINGS ── */
+  h+='<h2 class="rp-s">8. Findings and Deficiencies</h2>';
+  if(!g.length) h+='<p class="rp-p">No deficiencies identified.</p>';
+  else h+='<p class="rp-p">'+g.length+' matters were identified requiring attention.</p>'+
+    '<table class="rp-t"><thead><tr><th>#</th><th>Finding</th><th>Detail</th><th>Category</th></tr></thead><tbody>'+
+    g.map((x,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(x.t)+'</td><td>'+esc(x.d)+'</td>'+
+    '<td>'+(x.s==='bad'?'Action required':'Review')+'</td></tr>').join('')+'</tbody></table>';
+
+  /* ── NARRATIVE ── */
+  h+='<h2 class="rp-s">9. Assessor Narrative and Risk Rating</h2>';
+  if(ass){
+    h+='<p class="rp-p"><b>Overall risk rating: '+esc(ass.rating||'not stated')+'</b>'+
+      ((ass.lik||ass.con)?' &nbsp;(Likelihood: '+esc(ass.lik||'\u2014')+' &middot; Consequence: '+esc(ass.con||'\u2014')+')':'')+
+      (ass.qual?'<br>Assessor qualifications: '+esc(ass.qual):'')+'</p>'+
+      '<p class="rp-p">'+esc(ass.note||'No narrative recorded.')+'</p>'+
+      '<p class="rp-p"><b>Assessment date:</b> '+fmt(ass.date)+' &middot; <b>Next review due:</b> '+fmt(ass.reviewDate)+
+      (ass.reviewDate&&ass.reviewDate<today()?' <b>(OVERDUE)</b>':'')+'</p>';
+  } else h+='<p class="rp-p"><b>No assessment record exists for these premises.</b> '+
+    'A suitable and sufficient assessment must be recorded and signed by a competent person.</p>';
+
+  h+='</div><div class="card rp-page">';
+
+  /* ── WRITTEN SCHEME ── */
+  const schs=SCH.filter(x=>x.propId===p.id);
+  h+='<h2 class="rp-s">10. Written Scheme of Control</h2>';
+  if(!schs.length) h+='<p class="rp-p"><b>No written scheme of control is in place.</b> HSG274 Part 2, Para 2.70 '+
+    'requires a written scheme for each system that presents a risk of exposure. This is a deficiency requiring '+
+    'correction and appears in the action plan below.</p>';
+  else h+=schs.map(s=>{
+    const a=A.find(x=>x.id===s.assetId);
+    return '<p class="rp-p"><b>'+esc(s.title||'Written Scheme')+'</b> ('+esc(s.ref||'')+'), '+
+     esc(s.status||'draft')+', prepared '+fmt(s.date)+' by '+esc(s.author||'')+', review due '+fmt(s.reviewDate)+
+     (s.reviewDate&&s.reviewDate<today()?' <b>(OVERDUE)</b>':'')+'. Covers '+
+     (a?esc((a.ref||'')+' '+(a.location||'')):'the whole site')+'.</p>'+
+     '<table class="rp-t"><tbody>'+
+     [['Hot water storage',s.hotStore],['Hot water distribution',s.hotDist],
+      ['Cold water storage',s.coldStore],['Cold water distribution',s.coldDist],
+      ['Monitoring frequency',s.freq],['Responsible person for monitoring',s.rp],
+      ['Nominated monitoring points',s.points],['Action level, temperature',s.alTemp],
+      ['Action level, sampling',s.alSample],['Servicing schedule',s.servicing]]
+     .filter(r=>r[1]).map(r=>'<tr><td style="width:32%">'+esc(r[0])+'</td><td>'+esc(r[1])+'</td></tr>').join('')+
+     '</tbody></table>';
+  }).join('');
+
+  h+='</div><div class="card rp-page">';
+
+  /* ── ACTION PLAN ── */
+  h+='<h2 class="rp-s">11. Remedial Action Plan</h2>'+ planTable(acts);
+
+  /* ── PHOTOS ── */
+  const withPh=[].concat(
+    assets.filter(a=>(a.photos||[]).length).map(a=>({t:(a.ref||'')+' '+(a.location||''),ph:a.photos})),
+    evs.filter(e=>(e.photos||[]).length).map(e=>({t:(EVENT_KINDS[e.kind]||{}).label+' '+fmt(e.date),ph:e.photos}))
+  );
+  h+='<h2 class="rp-s">12. Photographic Evidence</h2>';
+  if(!withPh.length) h+='<p class="rp-p">No photographic evidence recorded.</p>';
+  else h+=withPh.map((x,i)=>'<div class="avoid" style="margin-bottom:12px"><b style="font-size:.85rem">Plate '+(i+1)+': '+esc(x.t)+'</b>'+
+    '<div class="ph">'+x.ph.map(u=>'<div class="t" style="width:190px;height:auto"><img src="'+u+'" style="height:auto"></div>').join('')+'</div></div>').join('');
+
+  /* ── DOCUMENT REGISTER ── */
+  const dcs=DOC.filter(x=>x.propId===p.id);
+  h+='<h2 class="rp-s">13. Supporting Documents Held</h2>';
+  if(!dcs.length) h+='<p class="rp-p">No supporting documents have been provided or uploaded. '+
+    'Where a system schematic, commissioning record or disinfection certificate exists, it should be obtained '+
+    'and retained with this assessment.</p>';
+  else h+='<table class="rp-t"><thead><tr><th>Document</th><th>Type</th><th>Date</th><th>Notes</th></tr></thead><tbody>'+
+    dcs.map(d=>{ const k=DOC_KINDS.find(x=>x[0]===d.kind);
+      return '<tr><td>'+esc(d.title||d.filename||'')+'</td><td>'+esc(k?k[1]:d.kind||'')+'</td>'+
+      '<td>'+fmt(d.date)+'</td><td>'+esc(d.notes||'')+'</td></tr>'; }).join('')+'</tbody></table>';
+  const sch=dcs.filter(d=>d.kind==='schematic'||d.kind==='asbuilt'||d.kind==='floorplan');
+  if(sch.length) h+=sch.filter(d=>(d.mime||'').indexOf('image')===0).map((d,i)=>
+    '<div class="avoid" style="margin-top:12px"><b style="font-size:.85rem">Drawing '+(i+1)+': '+esc(d.title||'')+'</b>'+
+    '<div><img src="'+d.data+'" style="width:100%;max-width:640px;border:1px solid #999;margin-top:6px"></div></div>').join('');
+
+  h+='<h2 class="rp-s">14. Review</h2>'+
+   '<p class="rp-p">This assessment must be reviewed at least every two years, and immediately following any change '+
+   'to the water system, its use, the building occupancy, a case of Legionnaires\' disease associated with the premises, '+
+   'or where monitoring indicates that control measures are no longer effective.</p>';
+
+  h+=rpSig()+'</div>';
+  return h;
+}
+
+/* ── ACTION PLAN TABLE (shared) ── */
+function planTable(acts){
+  if(!acts.length) return '<p class="rp-p">No outstanding remedial actions.</p>';
+  const order={immediate:0,high:1,medium:2,low:3};
+  const rows=acts.slice().sort((a,b)=>(order[a.priority]||9)-(order[b.priority]||9));
+  return '<div class="tbl-wrap"><table class="rp-t"><thead><tr><th>#</th><th>Priority</th><th>Action required</th>'+
+    '<th>Finding</th><th>Asset / location</th><th>Guidance</th><th>Owner</th><th>Target</th><th>Status</th></tr></thead><tbody>'+
+    rows.map((a,i)=>{
+      const over=a.due&&a.status!=='closed'&&a.due<today();
+      return '<tr><td>'+(i+1)+'</td><td><b>'+(PRI[a.priority]||'')+'</b><br><span style="font-size:.75rem">'+(PRI_T[a.priority]||'')+'</span></td>'+
+      '<td>'+esc(a.title)+'</td><td>'+esc(a.detail||'')+'</td><td>'+esc(a.assetRef||'')+'</td>'+
+      '<td>'+esc(a.ref||'')+'</td><td>'+esc(a.owner||'Not assigned')+'</td>'+
+      '<td>'+fmt(a.due)+(over?'<br><b>OVERDUE</b>':'')+'</td><td>'+esc(a.status||'open')+'</td></tr>';
+    }).join('')+'</tbody></table></div>';
+}
+
+/* ── STANDALONE ACTION PLAN ── */
+function docPlan(p){
+  const acts=ACT.filter(a=>a.propId===p.id);
+  const open=acts.filter(a=>a.status!=='closed');
+  const closed=acts.filter(a=>a.status==='closed');
+  const imm=open.filter(a=>a.priority==='immediate');
+  const ref=(p.ref||'OB-AP')+'-AP-'+today().replace(/-/g,'');
+  let h='<div class="card rp-page">'+rpHead(p,'Remedial Action Plan',ref);
+  h+='<p class="rp-p">This action plan sets out the remedial actions arising from the Legionella Risk Assessment '+
+   'for the premises named above. Priorities and target timescales are as follows: Immediate, before further use of '+
+   'the affected system; High, within 7 days; Medium, within 1 month; Low, within 3 months.</p>';
+  if(imm.length) h+='<div class="note r avoid"><b>'+imm.length+' immediate action'+(imm.length>1?'s':'')+
+   ' requiring attention before further use of the affected system.</b></div>';
+  h+='<table class="rp-meta"><tbody><tr><td>Total actions</td><td>'+acts.length+
+   '</td><td>Outstanding</td><td>'+open.length+'</td></tr>'+
+   '<tr><td>Immediate</td><td>'+imm.length+'</td><td>Completed</td><td>'+closed.length+'</td></tr></tbody></table>';
+  h+='<h2 class="rp-s">Outstanding Actions</h2>'+planTable(open);
+  if(closed.length) h+='<h2 class="rp-s">Completed Actions</h2>'+planTable(closed);
+  const withPh=open.filter(a=>(a.photos||[]).length);
+  if(withPh.length) h+='<h2 class="rp-s">Evidence Photographs</h2>'+
+    withPh.map((a,i)=>'<div class="avoid" style="margin-bottom:12px"><b style="font-size:.85rem">Action: '+esc(a.title)+'</b>'+
+    '<div class="ph">'+a.photos.map(u=>'<div class="t" style="width:190px;height:auto"><img src="'+u+'" style="height:auto"></div>').join('')+
+    '</div></div>').join('');
+
+  h+='<h2 class="rp-s">Confirmation of Completion</h2>'+
+   '<p class="rp-p">Each action should be signed off by the responsible person on completion, with evidence retained '+
+   'in SafeSystems.PRO. Completion of an action does not remove the requirement for ongoing monitoring under the '+
+   'written scheme of control.</p>'+
+   '<table class="rp-t"><thead><tr><th>Action #</th><th>Completed by</th><th>Date</th><th>Evidence reference</th><th>Signature</th></tr></thead>'+
+   '<tbody>'+open.map((a,i)=>'<tr><td>'+(i+1)+'</td><td></td><td></td><td></td><td></td></tr>').join('')+'</tbody></table>';
+  h+=rpSig()+'</div>';
+  return h;
+}
+
+/* ── MONITORING SUMMARY ── */
+function docMon(p){
+  const assets=A.filter(a=>a.propId===p.id);
+  const evs=E.filter(e=>e.propId===p.id);
+  const ref=(p.ref||'OB-MON')+'-MON-'+today().replace(/-/g,'');
+  let h='<div class="card rp-page">'+rpHead(p,'Monitoring and Records Summary',ref);
+  h+='<p class="rp-p">This summary reproduces the monitoring, inspection, disinfection and sampling records held '+
+   'in SafeSystems.PRO for the premises named above.</p>';
+  const byKind={};
+  evs.forEach(e=>{ (byKind[e.kind]=byKind[e.kind]||[]).push(e); });
+  if(!evs.length) h+='<p class="rp-p"><b>No records held.</b></p>';
+  Object.keys(byKind).forEach(k=>{
+    h+='<h2 class="rp-s">'+esc((EVENT_KINDS[k]||{}).label||k)+' Records ('+byKind[k].length+')</h2>'+
+     '<div class="tbl-wrap"><table class="rp-t"><thead><tr><th>Date</th><th>Asset</th><th>Location</th>'+
+     '<th>Value</th><th>Result</th><th>Recorded by</th><th>Observation</th></tr></thead><tbody>'+
+     byKind[k].map(e=>{ const a=A.find(x=>x.id===e.assetId)||{};
+       return '<tr><td>'+fmt(e.date)+'</td><td>'+esc(a.ref||'')+'</td><td>'+esc(a.location||'')+'</td>'+
+       '<td>'+esc(e.value||'')+(e.kind==='temperature'&&e.value?'&deg;C':'')+'</td>'+
+       '<td>'+(e.pass===false?'<b>FAIL</b>':'Pass')+(e.detail&&e.detail._alLabel?'<br>'+esc(e.detail._alLabel):'')+'</td>'+
+       '<td>'+esc(e.by||'')+'</td><td>'+esc(e.note||'')+
+       (e.detail?detailRender(e.detail):'')+'</td></tr>';
+     }).join('')+'</tbody></table></div>';
+  });
+  h+='<h2 class="rp-s">Assets With No Records</h2>';
+  const none=assets.filter(a=>!evs.some(e=>e.assetId===a.id));
+  if(!none.length) h+='<p class="rp-p">All registered assets have at least one record.</p>';
+  else h+='<table class="rp-t"><thead><tr><th>Ref</th><th>Type</th><th>Location</th></tr></thead><tbody>'+
+    none.map(a=>'<tr><td>'+esc(a.ref||'')+'</td><td>'+esc((TYPES[a.type]||{}).label||'')+'</td><td>'+esc(a.location||'')+'</td></tr>').join('')+
+    '</tbody></table>';
+  h+=rpSig()+'</div>';
+  return h;
+}
+
+/* ── ONE PAGE EXEC ── */
+function docExec(p){
+  const s=scorecard(p.id), g=gaps(p.id);
+  const open=ACT.filter(a=>a.propId===p.id&&a.status!=='closed');
+  const ref=(p.ref||'OB-CS')+'-CS-'+today().replace(/-/g,'');
+  let h='<div class="card rp-page">'+rpHead(p,'Legionella Compliance Summary',ref);
+  h+='<h2 class="rp-s">Position at '+fmt(today())+'</h2>'+
+   '<table class="rp-meta"><tbody>'+
+   '<tr><td>Compliance score</td><td><b>'+s.score+'%</b></td><td>Monitoring in date</td><td><b>'+s.pct+'%</b></td></tr>'+
+   '<tr><td>Registered assets</td><td>'+s.assets.length+'</td><td>Deficiencies</td><td>'+g.length+'</td></tr>'+
+   '<tr><td>Outstanding actions</td><td>'+open.length+'</td><td>Immediate actions</td><td><b>'+s.imm+'</b></td></tr>'+
+   '<tr><td>Written schemes</td><td>'+SCH.filter(x=>x.propId===p.id).length+
+   '</td><td>Documents held</td><td>'+DOC.filter(x=>x.propId===p.id).length+'</td></tr>'+
+   '</tbody></table>'+
+   '<table class="rp-t"><thead><tr><th>Statutory requirement</th><th>Position</th><th>Detail</th></tr></thead><tbody>'+
+   s.checks.map(x=>'<tr><td>'+esc(x.k)+'</td><td>'+(x.v?'Compliant':'<b>Not compliant</b>')+'</td><td>'+esc(x.d)+'</td></tr>').join('')+
+   '</tbody></table>';
+  h+='<h2 class="rp-s">Priority Matters</h2>';
+  const bad=g.filter(x=>x.s==='bad');
+  if(!bad.length) h+='<p class="rp-p">No priority matters outstanding.</p>';
+  else h+='<table class="rp-t"><thead><tr><th>#</th><th>Matter</th><th>Detail</th></tr></thead><tbody>'+
+    bad.map((x,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(x.t)+'</td><td>'+esc(x.d)+'</td></tr>').join('')+'</tbody></table>';
+  h+=rpSig()+'</div>';
+  return h;
+}
+
+/* ════════ SCREEN: SETUP ════════ */
+function scSetup(){
+  render('<div class="card"><h3>Import from v1</h3>'+
+    '<div class="note">Copies properties and systems from the v1 module into the v2 asset model. '+
+    'Reads only, the v1 data is left untouched. Safe to run once.</div>'+
+    '<div class="btns"><button class="btn" onclick="migrate()">Import v1 data</button></div></div>'+
+    '<div class="card"><h3>Module</h3><div style="font-size:.87rem;color:var(--txt-2);line-height:1.9">'+
+    'SafeWater.PRO Legionella v2<br>Part of SafeSystems.PRO<br>'+
+    'L8 (ACoP), HSG274 Parts 1&ndash;3, COSHH 2002<br>Omnibosh Safety Solutions Ltd<br>'+
+    'No browser-local storage. All state in Firestore.</div></div>');
+}
+async function migrate(){
+  if(!confirm('Import properties and systems from the v1 module?')) return;
+  const map={cwst:'cwst',cold_direct:'cold_direct',calorifier:'calorifier',combi:'combi',
+    thermal_store:'calorifier',electric_immersion:'calorifier',point_of_use:'point_of_use',
+    shower_fixed:'shower_fixed',shower_flex:'shower_flex',tmv:'tmv',dead_leg:'dead_leg',
+    hose_reel:'hose_reel',spray_tap:'spray_tap',infrequent_outlet:'infrequent',
+    cooling_tower:'cooling_tower',evap_condenser:'evap_condenser',spa_pool:'spa',
+    decorative_fountain:'fountain',other:'other'};
+  try{
+    const ps=await db.collection('legionella_properties').get();
+    let np=0,na=0; const idmap={};
+    for(const d of ps.docs){
+      const v=d.data();
+      const ref=await db.collection(C.props).add({
+        uid:me.uid, name:v.propName||'Unnamed', address:v.propAddress||'', ref:v.propRef||'',
+        type:v.propType||'other', year:v.propYear||'', dutyHolder:v.propDutyHolder||'',
+        dutyHolderOrg:v.propDutyHolderOrg||'', rp:v.propRP||'', rpContact:v.propRPContact||'',
+        notes:v.propNotes||'', photos:v.photos||[],
+        createdAt:firebase.firestore.FieldValue.serverTimestamp()
+      });
+      idmap[d.id]=ref.id; np++;
+    }
+    const ss=await db.collection('legionella_systems').get();
+    for(const d of ss.docs){
+      const v=d.data(); const pid=idmap[v.sysProperty];
+      if(!pid) continue;
+      await db.collection(C.assets).add({
+        uid:me.uid, propId:pid, type:map[v.sysType]||'other', ref:v.sysRef||'',
+        location:v.sysLocation||'', capacity:v.sysCapacity||'', serving:v.sysServing||'',
+        risk:v.sysRisk||'medium', notes:v.sysNotes||'', photos:v.photos||[], status:'',
+        createdAt:firebase.firestore.FieldValue.serverTimestamp()
+      });
+      na++;
+    }
+    await fetchAll(); toast('Imported '+np+' properties and '+na+' assets.'); go('sites');
+  }catch(e){ toast('Import failed: '+e.message); }
+}
+
+/* ════════ EDITORS ════════ */
+function editProp(id){
+  const p=id?P.find(x=>x.id===id):{};
+  openMo(id?'Edit Property':'Add Property',
+    fld('Name','pName',p.name,'text',true)+fld('Address','pAddr',p.address,'text')+
+    '<div class="grid g2">'+fld('Reference','pRef',p.ref)+fld('Year built / refurbished','pYear',p.year)+'</div>'+
+    '<div class="grid g2">'+fld('Duty holder','pDH',p.dutyHolder,'text',true)+fld('Duty holder organisation','pDHO',p.dutyHolderOrg)+'</div>'+
+    '<div class="grid g2">'+fld('Responsible person','pRP',p.rp)+fld('RP contact','pRPC',p.rpContact)+'</div>'+
+    txt('Notes','pNotes',p.notes)+
+    '<div class="ck"><input type="checkbox" id="pLT"'+(p.ltNotified?' checked':'')+'><div class="lb"><b>Cooling tower notified to local authority</b>Only relevant if a tower or evaporative condenser exists.</div></div>'+
+    photoField('Site photographs','pPh',p.photos)+
+    '<div class="btns"><button class="btn" onclick="saveProp(\''+(id||'')+'\')">Save</button>'+
+    (id?'<button class="btn r" onclick="delProp(\''+id+'\')">Delete</button>':'')+
+    '<button class="btn o" onclick="closeMo()">Cancel</button></div>');
+}
+async function saveProp(id){
+  const d={name:$('pName').value.trim(),address:$('pAddr').value.trim(),ref:$('pRef').value.trim(),
+    year:$('pYear').value.trim(),dutyHolder:$('pDH').value.trim(),dutyHolderOrg:$('pDHO').value.trim(),
+    rp:$('pRP').value.trim(),rpContact:$('pRPC').value.trim(),notes:$('pNotes').value.trim(),
+    ltNotified:$('pLT').checked};
+  const np=pbGet('pPh'); if(np.length){ const ex=(P.find(x=>x.id===id)||{}).photos||[]; d.photos=ex.concat(np); }
+  if(!d.name){ toast('Name is required.'); return; }
+  try{ await save(C.props,id,d); pbClear('pPh'); await fetchAll(); closeMo(); toast('Property saved.'); go(id?'property':'sites',id); }
+  catch(e){ toast('Failed: '+e.message); }
+}
+async function delProp(id){
+  if(!confirm('Delete this property? Assets and events are not deleted.')) return;
+  await del(C.props,id); await fetchAll(); closeMo(); go('sites');
+}
+
+function editAsset(id){
+  const a=id?A.find(x=>x.id===id):{propId:view.propId};
+  const opts=Object.keys(TYPES).map(k=>'<option value="'+k+'"'+(a.type===k?' selected':'')+'>'+TYPES[k].label+'</option>').join('');
+  openMo(id?'Edit Asset':'Add Asset',
+    '<div class="fg"><label>Property <span class="req">*</span></label><select id="aProp">'+
+      P.map(p=>'<option value="'+p.id+'"'+(a.propId===p.id?' selected':'')+'>'+esc(p.name)+'</option>').join('')+'</select></div>'+
+    '<div class="fg"><label>Asset type <span class="req">*</span></label><select id="aType">'+opts+'</select></div>'+
+    '<div class="grid g2">'+fld('Asset reference','aRef',a.ref)+fld('Location','aLoc',a.location)+'</div>'+
+    '<div class="grid g2">'+fld('Capacity / size','aCap',a.capacity)+fld('Serving','aServ',a.serving)+'</div>'+
+    '<div class="fg"><label>Risk level</label><select id="aRisk">'+
+      ['low','medium','high','veryhigh'].map(r=>'<option value="'+r+'"'+(a.risk===r?' selected':'')+'>'+r+'</option>').join('')+'</select></div>'+
+    txt('Notes / condition','aNotes',a.notes)+
+    photoField('Asset photographs','aPh',a.photos)+
+    '<div class="btns"><button class="btn" onclick="saveAsset(\''+(id||'')+'\')">Save</button>'+
+    (id?'<button class="btn r" onclick="delAsset(\''+id+'\')">Delete</button>':'')+
+    '<button class="btn o" onclick="closeMo()">Cancel</button></div>');
+}
+async function saveAsset(id){
+  const d={propId:$('aProp').value,type:$('aType').value,ref:$('aRef').value.trim(),
+    location:$('aLoc').value.trim(),capacity:$('aCap').value.trim(),serving:$('aServ').value.trim(),
+    risk:$('aRisk').value,notes:$('aNotes').value.trim()};
+  const na=pbGet('aPh'); if(na.length){ const ex=(A.find(x=>x.id===id)||{}).photos||[]; d.photos=ex.concat(na); }
+  if(!d.propId){ toast('Property required.'); return; }
+  try{ await save(C.assets,id,d); pbClear('aPh'); await fetchAll(); closeMo(); toast('Asset saved.'); go('property',d.propId); }
+  catch(e){ toast('Failed: '+e.message); }
+}
+async function delAsset(id){
+  if(!confirm('Delete this asset?')) return;
+  const a=A.find(x=>x.id===id); await del(C.assets,id); await fetchAll(); closeMo(); go('property',a?a.propId:'');
+}
+
+/* ── EVENT LOGGING ── */
+function logEvent(assetId,kind,taskId){
+  const a=A.find(x=>x.id===assetId)||{};
+  kind=kind||'note';
+  const kinds=Object.keys(EVENT_KINDS).map(k=>'<option value="'+k+'"'+(k===kind?' selected':'')+'>'+EVENT_KINDS[k].label+'</option>').join('');
+  openMo('Log event &middot; '+(a.ref||''),
+    '<div class="grid g2">'+
+      '<div class="fg"><label>Type</label><select id="eKind">'+kinds+'</select></div>'+
+      fld('Date','eDate',today(),'date',true)+'</div>'+
+    '<div class="grid g2">'+
+      fld('Value (temperature °C, CFU/L, etc.)','eVal','')+
+      fld('Recorded by','eBy',me.name)+'</div>'+
+    '<div class="ck"><input type="checkbox" id="ePass" checked><div class="lb"><b>Satisfactory / pass</b>Untick if this reading or inspection failed. A failure prompts an action.</div></div>'+
+    txt('Observation','eNote','')+
+    detailForm(detailKeyFor(a.type,kind))+
+    photoField('Photos','ePh')+
+    '<input type="hidden" id="eAsset" value="'+assetId+'"><input type="hidden" id="eTask" value="'+(taskId||'')+'">'+
+    '<input type="hidden" id="eDetailKey" value="'+(detailKeyFor(a.type,kind)||'')+'">'+
+    '<div class="btns"><button class="btn" onclick="saveEvent()">Save event</button><button class="btn o" onclick="closeMo()">Cancel</button></div>');
+}
+let PB={};                                   /* photo buffers keyed by field id */
+function pbGet(k){ return PB[k]||[]; }
+function pbClear(k){ if(k) delete PB[k]; else PB={}; }
+function pickPhotos(inp,key){
+  key=key||inp.id;
+  PB[key]=PB[key]||[];
+  [...inp.files].forEach(f=>{
+    const r=new FileReader();
+    r.onload=ev=>{
+      const img=new Image();
+      img.onload=()=>{
+        const cv=document.createElement('canvas');
+        const w=Math.min(1100,img.width), h=Math.round(img.height*(w/img.width));
+        cv.width=w; cv.height=h; cv.getContext('2d').drawImage(img,0,0,w,h);
+        PB[key].push(cv.toDataURL('image/jpeg',0.72));
+        drawThumbs(key);
+      };
+      img.src=ev.target.result;
+    };
+    r.readAsDataURL(f);
+  });
+  inp.value='';
+}
+function drawThumbs(key){
+  const el=$(key+'T'); if(!el) return;
+  el.innerHTML=pbGet(key).map((p,i)=>
+    '<div class="t"><img src="'+p+'"><b onclick="rmPhoto(\''+key+'\','+i+')">&times;</b></div>').join('');
+}
+function rmPhoto(key,i){ PB[key].splice(i,1); drawThumbs(key); }
+function photoField(label,key,existing){
+  return '<div class="fg"><label>'+label+'</label>'+
+    '<div class="up"><label class="btn o sm"><input type="file" id="'+key+'" accept="image/*" multiple onchange="pickPhotos(this)"> + Add photo / camera</label></div>'+
+    '<div class="ph" id="'+key+'T"></div>'+
+    ((existing&&existing.length)?'<div class="ph" style="margin-top:6px;opacity:.75">'+existing.map(p=>'<div class="t"><img src="'+p+'"></div>').join('')+'</div>':'')+
+    '</div>';
+}
+function fileField(label,key){
+  return '<div class="fg"><label>'+label+'</label>'+
+    '<div class="up"><label class="btn o sm"><input type="file" id="'+key+'" accept="image/*,.pdf" onchange="pickFile(this)"> + Upload file</label></div>'+
+    '<div id="'+key+'N" style="font-size:.8rem;color:var(--txt-3);margin-top:6px"></div></div>';
+}
+let FB={};
+function pickFile(inp){
+  const f=inp.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    FB[inp.id]={name:f.name,type:f.type,data:ev.target.result};
+    $(inp.id+'N').textContent=f.name+' ready';
+  };
+  r.readAsDataURL(f);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DETAILED HSG274 RECORD FORMS
+   Guided checklists stored on the event as `detail`.
+   Keeps one events collection while giving structured capture.
+   ══════════════════════════════════════════════════════════════ */
+const DETAIL_SCHEMA = {
+  cwst: {
+    title:'Cold Water Storage Tank Inspection', ref:'HSG274 Part 2, Para 2.53',
+    sels:[['condition','Overall tank condition',['Good','Fair','Poor','Unacceptable']]],
+    nums:[['baseTemp','Water temperature at base (\u00b0C)'],['capacity','Capacity (litres)']],
+    checks:[['lid','Lid secure, close fitting, no gaps or cracks'],
+      ['lidIns','Lid insulated on the underside'],
+      ['float','Float valve operating correctly, no sticking or dribbling'],
+      ['overflow','Overflow pipe screened against insect and rodent ingress'],
+      ['warn','Warning pipe present and positioned to give visible discharge'],
+      ['vents','Side vents screened where present'],
+      ['bodyIns','Tank body insulated, no exposed surfaces'],
+      ['pipeIns','Cold water pipework insulated'],
+      ['drain','Drain valve present and operable'],
+      ['access','Tank accessible for inspection and cleaning']],
+    negs:[['sediment','Sediment or sludge present'],['scale','Scale or deposits present'],
+      ['biofilm','Biofilm or slime present'],['contam','Signs of contamination, ingress or vermin'],
+      ['corrosion','Corrosion or material degradation']],
+    txts:[['cleanMethod','Cleaning or disinfection method used this visit'],
+      ['defects','Defects and observations'],['remedials','Remedial actions required']]
+  },
+  tmv: {
+    title:'Thermostatic Mixing Valve Service Record', ref:'HSG274 Part 2, Para 2.29',
+    sels:[['condition','Valve condition',['Good','Fair','Poor','Requires replacement']],
+      ['result','Service result',['Pass','Pass with observations','Fail']]],
+    nums:[['mixedTemp','Mixed outlet temperature (\u00b0C)'],['hotTemp','Hot supply temperature (\u00b0C)'],
+      ['coldTemp','Cold supply temperature (\u00b0C)'],['flushTemp','Temperature achieved during thermal flush (\u00b0C)'],
+      ['flushMins','Duration of flush (minutes)'],['postTemp','Post-disinfection mixed temperature (\u00b0C)']],
+    checks:[['filter','Inline filter checked, cleaned or replaced'],
+      ['setPoint','Set point verified within specification (38 to 43\u00b0C)'],
+      ['recomm','System isolated, flushed and re-commissioned'],
+      ['antiScald','Anti-scald protection confirmed, outlet does not exceed 44\u00b0C'],
+      ['accessible','Valve in accessible location, service panel in place'],
+      ['labelled','Service label or certificate applied to valve'],
+      ['thermal','Thermal disinfection performed this visit']],
+    negs:[],
+    txts:[['defects','Defects and observations'],['remedials','Remedial actions required']]
+  },
+  calorifier: {
+    title:'Calorifier Inspection Record', ref:'HSG274 Part 2, Paras 2.47 to 2.48',
+    sels:[['condition','Overall condition',['Good','Fair','Poor','Unacceptable']]],
+    nums:[['flowTemp','Flow temperature (\u00b0C)'],['returnTemp','Return temperature (\u00b0C)'],
+      ['storeTemp','Storage temperature (\u00b0C)'],['drainTemp','Drain-off temperature (\u00b0C)']],
+    checks:[['drained','Drain-off carried out until water runs clear'],
+      ['insulated','Vessel and pipework adequately insulated'],
+      ['statWorking','Thermostat functioning and correctly set'],
+      ['returnOk','Return temperature at or above 50\u00b0C'],
+      ['inspected','Internal inspection carried out']],
+    negs:[['sludge','Sludge, scale or debris found in drain-off'],
+      ['stratification','Temperature stratification evident'],
+      ['corrosionCal','Internal corrosion or scaling']],
+    txts:[['defects','Defects and observations'],['remedials','Remedial actions required']]
+  },
+  disinfection: {
+    title:'Disinfection Record', ref:'HSG274 Part 2',
+    sels:[['dtype','Disinfection type',['Thermal','Chemical','Thermal and chemical']],
+      ['reason','Reason',['Routine or planned','Following unsatisfactory sample','Following works or alteration',
+        'Following period of non-use','Following contamination','Commissioning','Other']]],
+    nums:[['targetTemp','Target temperature (\u00b0C)'],['minTemp','Minimum temperature achieved (\u00b0C)'],
+      ['contactHrs','Contact time (hours)'],['residual','Post-disinfection residual (mg/l)']],
+    checks:[['microSample','Microbiological sample taken post-disinfection'],
+      ['cleared','System cleared for return to service'],
+      ['rpNotified','Responsible person notified of disinfection and outcome'],
+      ['allFlushed','All outlets and points flushed through']],
+    negs:[],
+    txts:[['covered','Systems and areas covered'],['chemical','Chemical used, concentration or dose'],
+      ['outlets','Outlets and points flushed'],['returned','Date returned to service'],
+      ['notes2','Notes and observations']]
+  },
+  sample: {
+    title:'Legionella Sampling Record', ref:'HSG274 Part 2, Para 2.87',
+    sels:[['stype','Sample type',['Pre-flush','Post-flush','Both','Tank','Calorifier','Outlet','Other']]],
+    nums:[['legTotal','Legionella spp. total (CFU/L)'],['legSg1','L. pneumophila Sg1 (CFU/L)'],
+      ['tvc','Total viable count at 37\u00b0C (CFU/ml)'],['ph','pH of sample'],
+      ['sampleTemp','Water temperature at time of sampling (\u00b0C)'],['volume','Volume sampled (ml)']],
+    checks:[['ukas','Laboratory is UKAS accredited']],
+    negs:[],
+    txts:[['lab','Laboratory name'],['labRef','Laboratory reference'],
+      ['submitted','Date submitted'],['reported','Date reported'],['action','Action taken']]
+  }
+};
+
+/* HSG274 Part 2 sampling action levels */
+function actionLevel(cfu){
+  const n=parseFloat(cfu);
+  if(isNaN(n)) return null;
+  if(n<100)   return {band:'satisfactory',label:'Satisfactory',cls:'p-ok',
+    txt:'System considered to be under control. Continue with the existing monitoring regime.'};
+  if(n<=1000) return {band:'review',label:'Investigate',cls:'p-warn',
+    txt:'Re-sample and carry out a review of the control measures. If the count is confirmed, review the '+
+        'control measures and the risk assessment to identify any remedial action.'};
+  return {band:'immediate',label:'Immediate action',cls:'p-bad',
+    txt:'Re-sample and carry out an immediate review of the control measures and the risk assessment to '+
+        'identify remedial actions, including possible disinfection of the system.'};
+}
+
+function detailKeyFor(assetType,kind){
+  if(kind==='sample') return 'sample';
+  if(kind==='disinfection') return 'disinfection';
+  if(kind==='inspection'){
+    if(assetType==='cwst') return 'cwst';
+    if(assetType==='tmv') return 'tmv';
+    if(assetType==='calorifier') return 'calorifier';
+  }
+  return null;
+}
+
+function detailForm(key,existing){
+  const s=DETAIL_SCHEMA[key]; if(!s) return '';
+  const d=existing||{};
+  let h='<hr><div style="font-size:.86rem;color:var(--blue-l);font-weight:700">'+esc(s.title)+
+        '</div><div class="ref" style="margin-bottom:10px">'+esc(s.ref)+'</div>';
+  h+=s.sels.map(x=>'<div class="fg"><label>'+esc(x[1])+'</label><select id="d_'+x[0]+'">'+
+      x[2].map(o=>'<option'+(d[x[0]]===o?' selected':'')+'>'+esc(o)+'</option>').join('')+'</select></div>').join('');
+  if(s.nums.length) h+='<div class="grid g2">'+s.nums.map(x=>
+      '<div class="fg"><label>'+esc(x[1])+'</label><input type="number" step="0.01" id="d_'+x[0]+'" value="'+
+      esc(d[x[0]]==null?'':d[x[0]])+'"'+(key==='sample'&&x[0]==='legTotal'?' oninput="alPreview()"':'')+'></div>').join('')+'</div>';
+  if(key==='sample') h+='<div id="alBox" style="margin-bottom:12px"></div>';
+  if(s.checks.length) h+='<div style="font-size:.78rem;color:var(--txt-3);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.6px">Checks</div>'+
+    s.checks.map(x=>'<div class="ck"><input type="checkbox" id="d_'+x[0]+'"'+(d[x[0]]?' checked':'')+
+      '><div class="lb">'+esc(x[1])+'</div></div>').join('');
+  if(s.negs.length) h+='<div style="font-size:.78rem;color:var(--warn);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.6px">Adverse findings, tick if present</div>'+
+    s.negs.map(x=>'<div class="ck"><input type="checkbox" id="d_'+x[0]+'"'+(d[x[0]]?' checked':'')+
+      '><div class="lb">'+esc(x[1])+'</div></div>').join('');
+  h+=s.txts.map(x=>txt(x[1],'d_'+x[0],d[x[0]])).join('');
+  return h;
+}
+
+function alPreview(){
+  const box=$('alBox'); if(!box) return;
+  const al=actionLevel(($('d_legTotal')||{}).value);
+  if(!al){ box.innerHTML=''; return; }
+  box.innerHTML='<div class="note '+(al.band==='immediate'?'r':al.band==='review'?'w':'g')+'">'+
+    '<span class="pill '+al.cls+'">'+al.label+'</span> '+esc(al.txt)+'</div>';
+  const p=$('ePass'); if(p) p.checked=(al.band==='satisfactory');
+}
+
+function collectDetail(key){
+  if(!key) return null;
+  const s=DETAIL_SCHEMA[key]; if(!s) return null;
+  const out={_key:key,_title:s.title,_ref:s.ref};
+  s.nums.forEach(x=>{ const e=$('d_'+x[0]); if(e&&e.value!=='') out[x[0]]=e.value; });
+  s.checks.concat(s.negs).forEach(x=>{ const e=$('d_'+x[0]); if(e) out[x[0]]=e.checked; });
+  s.sels.forEach(x=>{ const e=$('d_'+x[0]); if(e) out[x[0]]=e.value; });
+  s.txts.forEach(x=>{ const e=$('d_'+x[0]); if(e&&e.value.trim()) out[x[0]]=e.value.trim(); });
+  if(key==='sample'){ const al=actionLevel(out.legTotal); if(al){ out._band=al.band; out._alLabel=al.label; } }
+  return out;
+}
+
+function detailRender(d){
+  if(!d||!d._key) return '';
+  const s=DETAIL_SCHEMA[d._key]; if(!s) return '';
+  const rows=[];
+  s.sels.forEach(x=>{ if(d[x[0]]) rows.push([x[1],d[x[0]]]); });
+  s.nums.forEach(x=>{ if(d[x[0]]!=null&&d[x[0]]!=='') rows.push([x[1],d[x[0]]]); });
+  s.checks.forEach(x=>{ if(x[0] in d) rows.push([x[1],d[x[0]]?'Yes':'No']); });
+  s.negs.forEach(x=>{ if(d[x[0]]) rows.push([x[1],'PRESENT']); });
+  s.txts.forEach(x=>{ if(d[x[0]]) rows.push([x[1],d[x[0]]]); });
+  if(d._alLabel) rows.unshift(['Action level assessment',d._alLabel]);
+  if(!rows.length) return '';
+  return '<table class="rp-t" style="margin-top:8px"><tbody>'+rows.map(r=>
+    '<tr><td style="width:46%">'+esc(r[0])+'</td><td>'+esc(r[1])+'</td></tr>').join('')+'</tbody></table>';
+}
+
+async function saveEvent(){
+  const assetId=$('eAsset').value;
+  const a=A.find(x=>x.id===assetId)||{};
+  const d={assetId:assetId, propId:a.propId, kind:$('eKind').value, taskId:$('eTask').value,
+    date:$('eDate').value||today(), value:$('eVal').value.trim(), by:$('eBy').value.trim(),
+    pass:$('ePass').checked, note:$('eNote').value.trim(), photos:pbGet('ePh').slice(), detail:collectDetail(($('eDetailKey')||{}).value||null)};
+  try{
+    await save(C.events,null,d);
+    if(!d.pass){
+      await save(C.actions,null,{propId:a.propId,assetId:assetId,assetRef:(a.ref||'')+' '+(a.location||''),
+        title:'Failed '+(EVENT_KINDS[d.kind]||{}).label+' &middot; '+(a.ref||''),
+        detail:d.note||'Recorded as unsatisfactory on '+fmt(d.date),
+        priority:(d.detail&&d.detail._band==='immediate')?'immediate':'high', status:'open',
+        due:addDays(today(),(d.detail&&d.detail._band==='immediate')?1:7),
+        owner:'', ref:(d.detail&&d.detail._ref)||''});
+      toast('Event saved. Action raised automatically.');
+    } else toast('Event saved.');
+    pbClear('ePh'); await fetchAll(); closeMo(); go(view.screen==='survey'?'survey':'asset',assetId);
+  }catch(e){ toast('Failed: '+e.message); }
+}
+async function delEvent(id){ if(!confirm('Delete this event?'))return; await del(C.events,id); await fetchAll(); go('asset',view.assetId); }
+
+/* ── ACTIONS ── */
+function raiseAction(propId,assetId,id){
+  const a=id?ACT.find(x=>x.id===id):{propId:propId||view.propId,assetId:assetId||''};
+  const asset=A.find(x=>x.id===(a.assetId||assetId));
+  openMo(id?'Edit Action':'Raise Action',
+    '<div class="grid g2">'+
+      '<div class="fg"><label>Property <span class="req">*</span></label><select id="acProp">'+
+        P.map(p=>'<option value="'+p.id+'"'+(a.propId===p.id?' selected':'')+'>'+esc(p.name)+'</option>').join('')+'</select></div>'+
+      '<div class="fg"><label>Priority</label><select id="acPri">'+
+        [['immediate','Immediate: stop or isolate'],['high','High: within 7 days'],['medium','Medium: within 1 month'],['low','Low: within 3 months']]
+        .map(x=>'<option value="'+x[0]+'"'+((a.priority||'medium')===x[0]?' selected':'')+'>'+x[1]+'</option>').join('')+'</select></div></div>'+
+    fld('Action required','acTitle',a.title,'text',true)+
+    txt('Finding / justification','acDetail',a.detail)+
+    '<div class="grid g2">'+fld('Asset / location','acAsset',a.assetRef||(asset?(asset.ref+' '+(asset.location||'')):''))+
+      fld('HSG274 reference','acRef',a.ref)+'</div>'+
+    '<div class="grid g2">'+fld('Owner','acOwner',a.owner)+fld('Target date','acDue',a.due||addDays(today(),30),'date')+'</div>'+
+    '<div class="fg"><label>Status</label><select id="acStatus">'+
+      [['open','Open'],['progress','In progress'],['closed','Closed']].map(x=>'<option value="'+x[0]+'"'+((a.status||'open')===x[0]?' selected':'')+'>'+x[1]+'</option>').join('')+'</select></div>'+
+    photoField('Evidence photographs','acPh',a.photos)+
+    '<input type="hidden" id="acAssetId" value="'+(a.assetId||assetId||'')+'">'+
+    '<div class="btns"><button class="btn" onclick="saveAct(\''+(id||'')+'\')">Save</button>'+
+    (id?'<button class="btn r" onclick="delAct(\''+id+'\')">Delete</button>':'')+
+    '<button class="btn o" onclick="closeMo()">Cancel</button></div>');
+}
+async function saveAct(id){
+  const d={propId:$('acProp').value,priority:$('acPri').value,title:$('acTitle').value.trim(),
+    detail:$('acDetail').value.trim(),assetRef:$('acAsset').value.trim(),ref:$('acRef').value.trim(),
+    owner:$('acOwner').value.trim(),due:$('acDue').value,status:$('acStatus').value,assetId:$('acAssetId').value};
+  const nc=pbGet('acPh'); if(nc.length){ const ex=(ACT.find(x=>x.id===id)||{}).photos||[]; d.photos=ex.concat(nc); }
+  if(!d.title){ toast('Action text required.'); return; }
+  try{ await save(C.actions,id,d); pbClear('acPh'); await fetchAll(); closeMo(); toast('Action saved.'); go('actions'); }
+  catch(e){ toast('Failed: '+e.message); }
+}
+async function delAct(id){ if(!confirm('Delete this action?'))return; await del(C.actions,id); await fetchAll(); closeMo(); go('actions'); }
+
+/* ── ASSESSMENTS ── */
+function editAssess(id){
+  const a=id?ASS.find(x=>x.id===id):{propId:view.propId||(P[0]||{}).id,date:today(),reviewDate:addDays(today(),365)};
+  const pid=a.propId;
+  const s=pid?scorecard(pid):null; const g=pid?gaps(pid):[];
+  const pop=a.pop||[]; const rf=a.rf||[];
+  openMo(id?'Assessment':'New Assessment',
+    '<div class="fg"><label>Property <span class="req">*</span></label><select id="asProp" onchange="view.propId=this.value;editAssess()">'+
+      P.map(p=>'<option value="'+p.id+'"'+(pid===p.id?' selected':'')+'>'+esc(p.name)+'</option>').join('')+'</select></div>'+
+    (s?'<div class="note"><b>Generated from the register.</b> '+s.assets.length+' assets, '+s.pct+
+       '% of monitoring in date, '+g.length+' gaps, '+s.openA.length+' open actions. Compliance score '+s.score+'%.</div>':'')+
+    (g.length?'<div class="card" style="max-height:150px;overflow:auto"><b style="font-size:.85rem">Gaps carried into this assessment</b>'+
+       g.map(x=>'<div class="m" style="margin-top:5px">&bull; '+esc(x.t)+'</div>').join('')+'</div>':'')+
+    '<div class="grid g2">'+fld('Assessment date','asDate',a.date,'date',true)+fld('Review date','asReview',a.reviewDate,'date')+'</div>'+
+    '<div class="grid g2">'+fld('Assessor','asBy',a.assessor||me.name,'text',true)+
+      fld('Assessor qualifications','asQual',a.qual)+'</div>'+
+    '<hr><label style="font-size:.85rem;color:var(--blue-l);font-weight:700">Population at risk</label>'+
+    POP.map((x,i)=>'<div class="ck"><input type="checkbox" id="pop'+i+'"'+(pop.indexOf(x)>=0?' checked':'')+
+      '><div class="lb">'+esc(x)+'</div></div>').join('')+
+    '<hr><label style="font-size:.85rem;color:var(--blue-l);font-weight:700">Risk factors present</label>'+
+    RISKF.map((x,i)=>'<div class="ck"><input type="checkbox" id="rf'+i+'"'+(rf.indexOf(x[0])>=0?' checked':'')+
+      '><div class="lb"><b>'+esc(x[0])+'</b><span class="ref">'+esc(x[1])+'</span></div></div>').join('')+
+    '<hr><div class="grid g2">'+
+      '<div class="fg"><label>Likelihood</label><select id="asLik">'+
+        ['Improbable','Unlikely','Possible','Likely','Almost certain'].map(r=>'<option'+(a.lik===r?' selected':'')+'>'+r+'</option>').join('')+'</select></div>'+
+      '<div class="fg"><label>Consequence</label><select id="asCon">'+
+        ['Negligible','Minor','Moderate','Major','Catastrophic'].map(r=>'<option'+(a.con===r?' selected':'')+'>'+r+'</option>').join('')+'</select></div></div>'+
+    '<div class="fg"><label>Overall rating</label><select id="asRate">'+
+      ['Low','Medium','High','Very High'].map(r=>'<option'+(a.rating===r?' selected':'')+'>'+r+'</option>').join('')+'</select></div>'+
+    txt('Assessor narrative and judgement','asNote',a.note)+
+    txt('Scope, limitations and anything not accessed','asLimit',a.limits)+
+    '<div class="btns"><button class="btn" onclick="saveAssess(\''+(id||'')+'\')">Save</button>'+
+    (id?'<button class="btn r" onclick="delAssess(\''+id+'\')">Delete</button>':'')+
+    '<button class="btn o" onclick="closeMo()">Cancel</button></div>');
+}
+function editAssessRefresh(pid){ view.propId=pid; const cur=$('asDate')?null:null; editAssess(); }
+async function saveAssess(id){
+  const pop=POP.filter((x,i)=>$('pop'+i)&&$('pop'+i).checked);
+  const rf=RISKF.filter((x,i)=>$('rf'+i)&&$('rf'+i).checked).map(x=>x[0]);
+  const d={propId:$('asProp').value,date:$('asDate').value,reviewDate:$('asReview').value,
+    assessor:$('asBy').value.trim(),qual:($('asQual')||{}).value||'',
+    rating:$('asRate').value,lik:($('asLik')||{}).value||'',con:($('asCon')||{}).value||'',
+    note:$('asNote').value.trim(),limits:$('asLimit').value.trim(),pop:pop,rf:rf};
+  if(!d.propId||!d.date){ toast('Property and date required.'); return; }
+  try{ await save(C.assess,id,d); await fetchAll(); closeMo(); toast('Assessment saved.'); go('assess'); }
+  catch(e){ toast('Failed: '+e.message); }
+}
+async function delAssess(id){ if(!confirm('Delete this assessment?'))return; await del(C.assess,id); await fetchAll(); closeMo(); go('assess'); }
+
+/* ── PHOTO VIEWER ── */
+function viewPhoto(id,src,i){
+  let arr=[];
+  if(src==='prop')  arr=((P.find(x=>x.id===id)||{}).photos)||[];
+  if(src==='asset') arr=((A.find(x=>x.id===id)||{}).photos)||[];
+  if(src==='act')   arr=((ACT.find(x=>x.id===id)||{}).photos)||[];
+  if(!arr.length) return;
+  openMo('Photograph '+(i+1)+' of '+arr.length,
+    '<img src="'+arr[i]+'" style="width:100%;border-radius:8px">'+
+    '<div class="btns" style="margin-top:12px">'+
+      (i>0?'<button class="btn o" onclick="viewPhoto(\''+id+'\',\''+src+'\','+(i-1)+')">Previous</button>':'')+
+      (i<arr.length-1?'<button class="btn o" onclick="viewPhoto(\''+id+'\',\''+src+'\','+(i+1)+')">Next</button>':'')+
+      '<button class="btn r" onclick="rmStoredPhoto(\''+id+'\',\''+src+'\','+i+')">Delete photo</button>'+
+      '<button class="btn o" onclick="closeMo()">Close</button></div>');
+}
+async function rmStoredPhoto(id,src,i){
+  if(!confirm('Delete this photograph?')) return;
+  const col = src==='prop'?C.props : src==='asset'?C.assets : C.actions;
+  const arrObj = src==='prop'?P.find(x=>x.id===id) : src==='asset'?A.find(x=>x.id===id) : ACT.find(x=>x.id===id);
+  if(!arrObj) return;
+  const ph=(arrObj.photos||[]).slice(); ph.splice(i,1);
+  try{ await save(col,id,{photos:ph}); await fetchAll(); closeMo(); toast('Photograph deleted.');
+       go(src==='prop'?'property':src==='asset'?'asset':'actions', id); }
+  catch(e){ toast('Failed: '+e.message); }
+}
+
+/* ── FIELD BUILDERS ── */
+function fld(label,id,val,type,req){
+  return '<div class="fg"><label>'+label+(req?' <span class="req">*</span>':'')+'</label>'+
+    '<input type="'+(type||'text')+'" id="'+id+'" value="'+esc(val||'')+'"></div>';
+}
+function txt(label,id,val){
+  return '<div class="fg"><label>'+label+'</label><textarea id="'+id+'" rows="3">'+esc(val||'')+'</textarea></div>';
+}
+</script>
+</body>
+</html>
