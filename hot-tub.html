@@ -3066,6 +3066,7 @@
                     // ── End STL mode ──────────────────────────────────────
                 } else {
                     console.warn('⚠️ Unknown access code, using default:', accessCode);
+                    window._unknownAccessCode = true;
                 }
             }
             
@@ -3153,8 +3154,25 @@
         // Initialize page
         document.addEventListener('DOMContentLoaded', async function() {
             try {
+                // A registered park (arrives with park= in the address) may not use an HH park's name:
+                // it would otherwise be given that park's hot tubs and inspections.
+                if (_urlParams.get('park') && _hhParks.includes(_urlParams.get('park'))) {
+                    console.warn('Reserved park name used by a registered account - module not loaded');
+                    document.body.innerHTML = '<div style="max-width:520px;margin:60px auto;padding:30px;text-align:center;color:#E8E8E8;font-family:sans-serif;line-height:1.6;"><h2 style="color:#CC5500;margin-bottom:15px;">Park name not available</h2><p>This park name is reserved and cannot be used with a registered account. Please contact the SafeSystems team to have your park name changed.</p></div>';
+                    return;
+                }
+
                 // Initialize user from session/URL parameters first
                 initializeUserFromSession();
+
+                // No fallback to Overburns Farm: with no access code, or a code the module does not recognise
+                // and no park from the login, nothing is loaded and the user is sent to log in.
+                const _suppliedCode = _urlParams.get('code') || _urlParams.get('accessCode') || sessionStorage.getItem('currentAccessCode');
+                if (!_suppliedCode || window._unknownAccessCode) {
+                    console.warn('No recognised login - module not loaded');
+                    document.body.innerHTML = '<div style="max-width:520px;margin:60px auto;padding:30px;text-align:center;color:#E8E8E8;font-family:sans-serif;line-height:1.6;"><h2 style="color:#CC5500;margin-bottom:15px;">Please log in</h2><p>This module needs to be opened from SafeSystems.PRO after logging in.</p><p style="margin-top:20px;"><a href="index.html" target="_top" style="color:#4A90E2;">Go to the SafeSystems.PRO login</a></p></div>';
+                    return;
+                }
                 
                 // Holidaymaker users: clear default HH hot tub data (will load their own from Firebase)
                 if (_isHolidaymaker) {

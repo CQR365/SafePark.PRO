@@ -127,6 +127,7 @@
         }
         .mobile-menu-toggle:hover { background: rgba(0,0,0,0.9); color: var(--light-orange); border-color: var(--light-orange); }
         body.module-view .mobile-menu-toggle { display: flex !important; z-index: 999999 !important; }
+        #moduleScreen .mobile-menu-toggle { display: none !important; } /* the sidebar lives in the dashboard screen, so this button cannot open it from module view */
         .sidebar.open { z-index: 999998 !important; }
 
         /* ===== MAIN CONTENT AREA ===== */
@@ -452,7 +453,7 @@
             </div>
             <div class="contact-bar">
                 <p style="color: #8E7CC3; font-size: 0.95rem; margin-bottom: 12px;">Need help or want to upgrade?</p>
-                <a href="/cdn-cgi/l/email-protection#83f0e2e5e6f0faf0f7e6eef0adf3f1ecc3eceeedeae1ecf0ebade0eceebcf0f6e1e9e6e0f7bed0e2e5e6d0faf0f7e6eef0add3d1cca3c6edf2f6eaf1fa">Contact the SafeSystems Team</a>
+                <a href="mailto:safesystems.pro@omnibosh.com?subject=SafeSystems.PRO Enquiry">Contact the SafeSystems Team</a>
             </div>
             <div class="user-info-bar">
                 <p>Current User: <strong id="dashUserName">-</strong></p>
@@ -507,6 +508,7 @@
         var _submitting = false;
         var _verifying = false;
         var reservedCodes = ['CQR365SPP25','BN2025HH','OB2025HH','TY2025HH','OF2025HH','HR2025','HRBN2025','HROB2025','HRTY2025','HROF2025','HRALL2025','365','demo2025','DEMO2025','STAFF2025','1010','1020','1030','9999'];
+        var reservedParkNames = ['SafePark.PRO','Ben Nevis Holiday Park','Oban Holiday Park','Tyndrum Holiday Park','Overburns Farm','All Parks','All HH Parks','Demo Holiday Park','Demo Park','Loch Long Hotel','Peckhams','Loch Goil Cafe (The Boatshed)'];
 
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
@@ -576,6 +578,7 @@
             if (!parkName || !userName || !newCode || !email) { showError('regError','Please complete all fields.'); _submitting = false; return; }
             if (newCode.length < 6) { showError('regError','Access code must be at least 6 characters.'); _submitting = false; return; }
             if (reservedCodes.includes(newCode)) { showError('regError','That code is reserved.'); _submitting = false; return; }
+            if (reservedParkNames.some(function(n) { return n.toLowerCase() === parkName.toLowerCase(); })) { showError('regError','That park name is already in use. Please use your own park name.'); _submitting = false; return; }
             var _at = String.fromCharCode(64);
             var _emailRe = new RegExp('^[^\\s'+_at+']+'+_at+'[^\\s'+_at+']+\\.[^\\s'+_at+']+$');
             if (!_emailRe.test(email)) { showError('regError','Please enter a valid email address.'); _submitting = false; return; }
@@ -584,6 +587,8 @@
                 if (!fdb) { showError('regError','System loading. Please wait.'); _submitting = false; return; }
                 var existing = await fdb.collection('registered_parks').where('accessCode','==',newCode).get();
                 if (!existing.empty) { showError('regError','That code is already taken.'); _submitting = false; return; }
+                var sameName = await fdb.collection('registered_parks').where('parkName','==',parkName).get();
+                if (!sameName.empty) { showError('regError','That park name is already registered. Add your town to make it unique.'); _submitting = false; return; }
                 var docRef = await fdb.collection('registered_parks').add({
                     parkName: parkName, userName: userName, accessCode: newCode, email: email,
                     level: 'safewater_only',
@@ -826,7 +831,7 @@
             }
         });
 
-        // Mobile button tap backup — for elements without native click handling
-        let _btnTapped = false;
-        document.querySelectorAll('.stat-card').forEach(function(btn) {
-  
+        // (The tile tap backup that was cut off here is intentionally not restored: tiles respond to taps natively.)
+    </script>
+</body>
+</html>
