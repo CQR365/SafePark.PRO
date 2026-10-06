@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:,">
+<title>Collate responses | GSS post profiles</title>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body data-root="">
+<header class="top">
+  <a class="brand" href="gss-home.html"><img src="assets/logo.png" alt="GSS Marine Services"></a>
+  <nav>
+    <a href="gss-home.html">Posts</a>
+    <a href="risk-assessments.html">Risk assessments</a>
+    <a href="gaps.html">Gaps register</a>
+    <a href="downloads.html">Downloads</a>
+    <a href="responses.html">My responses</a>
+  </nav>
+</header>
+<div class="draft">DRAFT 0.1 for review. Not approved, not issued and not in force. <span id="savestate" class="savestate"></span></div>
+<main>
+
+<h1>Collate responses</h1><p>For the Risk and Compliance Manager. Bring every contributor's returned data file together and download them as one set.</p>
+<ol><li>Each contributor opens My responses, enters their name and post, and sends you their data file (the file ending .json).</li><li>Choose all the files you have received. You can add more at any time.</li><li>Download the combined set. The combined data file is the one to bring back for the documents to be updated.</li></ol>
+<p class="actions"><label class="btn">Add contributor files <input type="file" id="cfiles" accept=".json,application/json" multiple hidden></label> <button type="button" class="btn" id="c-live" hidden>Load all responses from the central store</button> <button type="button" class="btn" id="c-reset">Start again</button></p>
+<p id="cstatus">No files added yet.</p><div class="tw"><table id="cwho"><thead><tr><th>Contributor</th><th>Post</th><th>Responses</th><th>Agreed (Y)</th><th>Not agreed (N)</th><th>Comments</th><th>Exported</th></tr></thead><tbody></tbody></table></div>
+<p class="actions"><button type="button" class="btn" id="c-csv">Download all responses (spreadsheet)</button> <button type="button" class="btn" id="c-sum">Download summary by line (spreadsheet)</button> <button type="button" class="btn" id="c-json">Download combined data file</button></p>
+<h2>Lines not agreed, or with a comment</h2><div class="filters"><label>Search <input type="search" id="cq" placeholder="Words in the line or comment"></label> <label>Show <select id="cshow"><option value="flag">Not agreed or commented</option><option value="all">Everything</option></select></label> <span id="cn"></span></div>
+<div class="tw"><table id="call"><thead><tr><th>Where</th><th>Ref</th><th>Line</th><th>Contributor</th><th>Agree</th><th>Comment</th></tr></thead><tbody></tbody></table></div>
+</main>
+<footer>Gareloch Support Services (Plant) Ltd. Prepared by the Risk and Compliance Manager, 6 October 2026. These are current observations only. Where a page says nothing was found, that means no evidence was found, not that the arrangement does not exist.</footer>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+<script src="assets/gss-firebase-config.js"></script>
+<script src="assets/items.js"></script>
+<script src="assets/store.js"></script>
+<script src="assets/review.js"></script>
+<script src="assets/collate.js"></script>
+</body>
+</html>
