@@ -5699,7 +5699,10 @@
             'HITsquadBOSS': { park: 'SafePark.PRO', level: 'master_admin', user: 'Daniel Graham - Hit Squad' },
 
             // SafeMarine.PRO — GSS Marine Services & Silvers Marine (forks straight to the SafeMarine module)
-            'GSSADMIN25': { park: 'GSS Marine & Silvers Marine', level: 'safemarine', user: 'GSS/Silvers QHSE Admin' }
+            'GSSADMIN25': { park: 'GSS Marine & Silvers Marine', level: 'safemarine', user: 'GSS/Silvers QHSE Admin' },
+
+            // GSS organisation review (forks straight to the post profiles review site)
+            'ProjectORG26': { park: 'GSS Marine Services', level: 'gss_org', user: 'GSS Organisation Review' }
         };
 
         // Cafe tenant scope by access code. Boatshed => loch_goil_cafe (unchanged default); new cafes map here.
@@ -5813,6 +5816,12 @@
                 // ── SAFEMARINE ROUTING ────────────────────────────────
                 if (userInfo.level === 'safemarine') {
                     window.location.href = 'safemarine-pro.html';
+                    return;
+                }
+
+                // ── GSS ORGANISATION REVIEW ROUTING ───────────────────
+                if (userInfo.level === 'gss_org') {
+                    window.location.href = 'gss-post-profiles-site/index.html';
                     return;
                 }
                 
