@@ -27,7 +27,7 @@ a:focus-visible,.btn:focus-visible,select:focus-visible,textarea:focus-visible,i
 
 /* Header */
 header.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:10px 24px;background:var(--panel);border-bottom:4px solid var(--navy)}
-header.top img{height:44px;display:block}
+header.top img{height:60px;display:block}
 header.top a.brand:hover{background:none}
 header.top nav{display:flex;gap:6px;flex-wrap:wrap}
 header.top nav a,header.top nav a:visited{font-weight:bold;text-decoration:none;color:var(--navy);padding:7px 12px;border-radius:6px}
