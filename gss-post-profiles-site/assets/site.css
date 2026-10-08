@@ -114,3 +114,6 @@ summary:hover{color:var(--link-hover)}
   .band{background:#fff!important;color:#000!important;border-color:#000!important}
   td.rv select,td.rv textarea{border:0}
 }
+
+.nprompt{font-size:.85em;color:#7a4a00;background:#fff4d6;border-left:3px solid #f2b84b;padding:4px 6px;margin:0 0 4px;border-radius:3px}
+.nprompt[hidden]{display:none}

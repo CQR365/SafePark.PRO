@@ -10,6 +10,23 @@
     if (data[k] && data[k][f] != null) el.value = data[k][f];
     var ev = el.tagName === 'SELECT' ? 'change' : 'input';
     el.addEventListener(ev, function () { Store.set(k, f, el.value.trim ? el.value.trim() === '' ? '' : el.value : el.value); });
+    // When N is chosen, prompt for a comment (nothing is typed into the box for the user)
+    if (f === 'agree' && el.tagName === 'SELECT') {
+      var ta = q('textarea[data-k="' + k + '"][data-f="comment"]')[0];
+      if (ta) {
+        var msg = 'This may be new to the post. Please say who does it today, or where it should sit.';
+        var note = document.createElement('div'); note.className = 'nprompt'; note.hidden = true; note.textContent = msg;
+        ta.parentNode.insertBefore(note, ta);
+        var sync = function (focus) {
+          var on = el.value === 'N';
+          note.hidden = !on || ta.value.trim() !== '';
+          if (on) { ta.placeholder = msg; if (focus && ta.value.trim() === '') ta.focus(); } else { ta.placeholder = ''; }
+        };
+        el.addEventListener('change', function () { sync(true); });
+        ta.addEventListener('input', function () { sync(false); });
+        sync(false);
+      }
+    }
   });
 
   // "Other tasks" rows
