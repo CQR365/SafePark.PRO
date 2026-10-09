@@ -118,5 +118,5 @@ summary:hover{color:var(--link-hover)}
 .nprompt{font-size:.85em;color:#7a4a00;background:#fff4d6;border-left:3px solid #f2b84b;padding:4px 6px;margin:0 0 4px;border-radius:3px}
 .nprompt[hidden]{display:none}
 
-/* Review view: sections 8 and 10 (gap lists) stay in the page source, the gaps register and the Word and Excel pack, but are not shown to post holders. */
-section#s8,section#s10,nav a[href="#s8"],nav a[href="#s10"]{display:none}
+/* Review view: sections 8, 9 and 10 (gap lists and risk assessment mapping) stay in the page source, the gaps register and the Word and Excel pack, but are not shown to post holders. */
+section#s8,section#s9,section#s10,nav a[href="#s8"],nav a[href="#s9"],nav a[href="#s10"]{display:none}
