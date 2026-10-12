@@ -109,7 +109,7 @@
         snap.forEach(function (doc) {
           var x = doc.data() || {}, r = {};
           try { r = JSON.parse(x.responsesJson || '{}'); } catch (e) { r = {}; }
-          out.push({ who: x.who || {}, exported: x.submittedAt || x.updated || '', submitted: !!x.submitted, responses: r });
+          out.push({ id: doc.id, who: x.who || {}, exported: x.submittedAt || x.updated || '', submitted: !!x.submitted, responses: r });
         });
         return out;
       });
