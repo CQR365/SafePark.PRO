@@ -9,3 +9,10 @@ window.GSS_FIREBASE_CONFIG = {
 };
 /* Firestore collection that holds one document per contributor, and the Storage folder for the submitted copies. */
 window.GSS_REVIEW_COLLECTION = "gss_org_review";
+/* Review rounds, oldest first. The last one is the round people are answering now.
+   To start the six monthly review, add the next entry below. The earlier round is then left exactly as it was, kept as the baseline,
+   and each person's last answers are filled in on their next visit (same browser) for them to check and change.
+   Example next round:  { id: '2027-04', label: 'April 2027', collection: 'gss_org_review_2027-04', storageKey: 'gss-post-profiles-2027-04' } */
+window.GSS_ROUNDS = [
+  { id: '2026-10', label: 'October 2026', collection: 'gss_org_review', storageKey: 'gss-post-profiles-v1' }
+];

@@ -29,6 +29,34 @@
     }
   });
 
+  // Six monthly review: answers carried over from the last round are shaded until the person has checked them
+  (function () {
+    var prev = Store.previousRound && Store.previousRound(), meta = Store.meta ? Store.meta() : {};
+    if (!prev || !meta.carriedFrom) return;
+    var st = document.createElement('style');
+    st.textContent = '.carried{background:#fff3c4 !important}.rbanner{border:2px solid #000;background:#fff3c4;padding:.7rem 1rem;margin:.8rem 0;font-size:.95rem}.rbanner .btn{margin-left:.6rem}';
+    document.head.appendChild(st);
+    var mark = function (on) {
+      q('[data-k][data-f]').forEach(function (el) {
+        var k = el.getAttribute('data-k'), d = Store.load()[k], row = el.closest('tr') || el.parentNode;
+        if (row) row.classList[on && d && d._carried ? 'add' : 'remove']('carried');
+      });
+      q('.addrows').forEach(function (box) { var d = Store.load()[box.getAttribute('data-k')]; box.classList[on && d && d._carried ? 'add' : 'remove']('carried'); });
+    };
+    var main = document.querySelector('main'); if (!main) return;
+    var b = document.createElement('div'); b.className = 'rbanner'; b.setAttribute('role', 'status');
+    var txt = document.createElement('span'), btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn'; btn.textContent = 'Confirm every line as it stands';
+    b.appendChild(txt); b.appendChild(btn); main.insertBefore(b, main.firstChild);
+    var upd = function () {
+      var n = Store.uncheckedCount();
+      txt.textContent = n ? 'Six monthly review. Your answers from the ' + prev.label + ' review are filled in. Check each shaded line, change anything that has moved, or confirm them all as they stand. Lines still to check: ' + n + '.' : 'Six monthly review. Every line has been checked. Thank you.';
+      btn.hidden = !n;
+    };
+    btn.addEventListener('click', function () { Store.confirmAll(); mark(false); upd(); });
+    Store.onChange(function () { mark(true); upd(); });
+    mark(true); upd();
+  })();
+
   // "Other tasks" rows
   q('.addrows').forEach(function (box) {
     var k = box.getAttribute('data-k');
@@ -95,7 +123,7 @@
   var flat = function (d) {
     var out = [];
     Object.keys(d).sort().forEach(function (k) {
-      if (k === '_who') return;
+      if (k.charAt(0) === '_') return;
       if (d[k].rows) d[k].rows.forEach(function (r, n) { out.push({ key: k, where: where(k), ref: 'Added ' + (n + 1), line: r[0] || '', agree: '', comment: [r[1] ? 'How often: ' + r[1] : '', r[2] ? 'Relies on: ' + r[2] : ''].filter(Boolean).join('. '), at: d[k]._at || '' }); });
       if (d[k].agree || d[k].comment) out.push({ key: k, where: where(k), ref: ref(k), line: ITEMS[k] || '', agree: d[k].agree || '', comment: d[k].comment || '', at: d[k]._at || '' });
     });

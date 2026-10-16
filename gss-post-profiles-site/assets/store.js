@@ -20,8 +20,11 @@
     _who                the reader's name and post              fields: name, post
 */
 (function () {
-  var NAME = 'gss-post-profiles-v1', IDKEY = 'gss-post-profiles-id';
-  var COLL = window.GSS_REVIEW_COLLECTION || 'gss_org_review';
+  var IDKEY = 'gss-post-profiles-id';
+  var ROUNDS = window.GSS_ROUNDS || [{ id: '2026-10', label: 'October 2026', collection: window.GSS_REVIEW_COLLECTION || 'gss_org_review', storageKey: 'gss-post-profiles-v1' }];
+  var CUR = ROUNDS[ROUNDS.length - 1], PREV = ROUNDS.length > 1 ? ROUNDS[ROUNDS.length - 2] : null;
+  var NAME = CUR.storageKey, COLL = CUR.collection;
+  var roundById = function (id) { for (var i = 0; i < ROUNDS.length; i++) if (ROUNDS[i].id === id) return ROUNDS[i]; return CUR; };
   var cache = null, listeners = [], statusFns = [], db = null, timer = null, state = 'local', meta = null;
 
   function read() {
@@ -40,7 +43,7 @@
     return id;
   }
   function setState(s) { state = s; statusFns.forEach(function (fn) { fn(s); }); }
-  function count(d) { return Object.keys(d).filter(function (k) { return k !== '_who'; }).length; }
+  function count(d) { return Object.keys(d).filter(function (k) { return k.charAt(0) !== '_'; }).length; }
 
   function connect() {
     if (db) return db;
@@ -53,7 +56,7 @@
   }
   function record(extra) {
     var d = read(), w = d._who || {};
-    var doc = { format: 'gss-post-profile-responses-1', who: { name: (w.name || '').trim(), post: (w.post || '').trim() }, updated: new Date().toISOString(), count: count(d), responsesJson: JSON.stringify(d) };
+    var doc = { format: 'gss-post-profile-responses-1', round: CUR.id, who: { name: (w.name || '').trim(), post: (w.post || '').trim() }, updated: new Date().toISOString(), count: count(d), responsesJson: JSON.stringify(d) };
     if (extra) Object.keys(extra).forEach(function (k) { doc[k] = extra[k]; });
     return doc;
   }
@@ -74,6 +77,7 @@
       var empty = value === '' || value == null || (Array.isArray(value) && !value.length);
       if (empty) { delete d[key][field]; if (Object.keys(d[key]).every(function (f) { return f === '_at'; })) delete d[key]; }
       else { d[key][field] = value; d[key]._at = new Date().toISOString(); }
+      if (d[key]) delete d[key]._carried;
       var ok = writeLocal();
       listeners.forEach(function (fn) { fn(key, field, value); });
       schedule();
@@ -102,14 +106,24 @@
       });
     },
     // Name or hide a record from the Collate page. Kept in the central store, in fields the contributor's own saves never touch.
-    fix: function (id, fields) {
+    fix: function (id, fields, roundId) {
       if (!connect()) return Promise.reject(new Error('The central store is not available on this page.'));
-      return db.collection(COLL).doc(id).set(fields, { merge: true });
+      return db.collection(roundById(roundId).collection).doc(id).set(fields, { merge: true });
     },
     // Everyone's answers, for the Collate responses page.
-    loadAll: function () {
+    rounds: function () { return ROUNDS.slice(); },
+    round: function () { return CUR; },
+    previousRound: function () { return PREV; },
+    meta: function () { return read()._meta || {}; },
+    uncheckedCount: function () { var d = read(); return Object.keys(d).filter(function (k) { return k.charAt(0) !== '_' && d[k] && d[k]._carried; }).length; },
+    // The person has gone through the carried over answers and is happy with them as they stand.
+    confirmAll: function () {
+      var d = read(); Object.keys(d).forEach(function (k) { if (k.charAt(0) !== '_' && d[k]) delete d[k]._carried; });
+      d._meta = d._meta || {}; d._meta.confirmedAt = new Date().toISOString(); writeLocal(); schedule();
+    },
+    loadAll: function (roundId) {
       if (!connect()) return Promise.reject(new Error('The central store is not available on this page.'));
-      return db.collection(COLL).get().then(function (snap) {
+      return db.collection(roundById(roundId).collection).get().then(function (snap) {
         var out = [];
         snap.forEach(function (doc) {
           var x = doc.data() || {}, r = {};
@@ -121,6 +135,33 @@
       });
     }
   };
+  // Six monthly review: the first time someone opens the site in a new round, their last answers are filled in for them to check.
+  function carryForward() {
+    var d = read();
+    if (!PREV || count(d) || (d._meta && d._meta.checked)) return;
+    var apply = function (old) {
+      var n = 0; d = read();
+      Object.keys(old || {}).forEach(function (k) {
+        if (k === '_who') { d._who = old._who; return; }
+        if (k.charAt(0) === '_' || !old[k]) return;
+        d[k] = JSON.parse(JSON.stringify(old[k])); d[k]._carried = true; n++;
+      });
+      d._meta = { carriedFrom: PREV.id, carriedAt: new Date().toISOString(), checked: true, carried: n };
+      writeLocal();
+      return n;
+    };
+    var local = null;
+    try { local = JSON.parse(window.localStorage.getItem(PREV.storageKey) || 'null'); } catch (e) { local = null; }
+    if (local && Object.keys(local).length) { apply(local); return; }
+    if (!connect()) return;
+    db.collection(PREV.collection).doc(myId()).get().then(function (snap) {
+      var x = snap && snap.exists ? snap.data() : null, old = {};
+      if (x) { try { old = JSON.parse(x.responsesJson || '{}'); } catch (e) { old = {}; } if (x.who && !old._who) old._who = x.who; }
+      var n = apply(old);
+      if (n) window.location.reload();          // once: the page now has answers to show
+    }, function () { /* offline: they start blank */ });
+  }
+  carryForward();
   // Copy anything already on this device up to the central store when a page opens.
   if (connect() && count(read())) schedule(); else setState(connect() ? 'cloud-idle' : 'local');
 })();

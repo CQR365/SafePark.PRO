@@ -25,7 +25,10 @@
 <h1>Collate responses</h1><p>For the Risk and Compliance Manager. Bring every contributor's returned data file together and download them as one set.</p>
 <ol><li>Each contributor opens My responses, enters their name and post, and sends you their data file (the file ending .json).</li><li>Choose all the files you have received. You can add more at any time.</li><li>Download the combined set. The combined data file is the one to bring back for the documents to be updated.</li></ol>
 <p class="actions"><label class="btn">Add contributor files <input type="file" id="cfiles" accept=".json,application/json" multiple hidden></label> <button type="button" class="btn" id="c-live" hidden>Load all responses from the central store</button> <button type="button" class="btn" id="c-reset">Start again</button> <button type="button" class="btn" id="c-unfix">Clear my renames and hides</button></p>
-<p id="cstatus">No files added yet.</p><div class="tw"><table id="cwho"><thead><tr><th>Contributor</th><th>Post</th><th>Responses</th><th>Agreed (Y)</th><th>Not agreed (N)</th><th>Comments</th><th>Exported</th><th>Action</th></tr></thead><tbody></tbody></table></div>
+<p><label>Round <select id="c-round"></select></label></p><p id="cstatus">No files added yet.</p><div class="tw"><table id="cwho"><thead><tr><th>Contributor</th><th>Post</th><th>Responses</th><th>Agreed (Y)</th><th>Not agreed (N)</th><th>Comments</th><th>Exported</th><th>Action</th></tr></thead><tbody></tbody></table></div>
+<div id="rounds" hidden><h2>Six monthly review: compare with the previous round</h2><p>Each person's answers from the previous round are lined up against this round's: what they agreed then and now, lines they changed, tasks added, and lines carried over that they have not yet checked. People are matched by their record, or by name and post.</p>
+<p class="actions"><button type="button" class="btn" id="c-cmp">Compare this round with the previous round</button> <button type="button" class="btn" id="c-cmpcsv" hidden>Download the comparison (spreadsheet)</button></p><p id="cmpmsg" role="status"></p><div class="tw" id="cmpbox" hidden><table id="cmp"><thead><tr><th>Person</th><th>Post</th><th>Answered then</th><th>Answered now</th><th>Agreed then</th><th>Agreed now</th><th>Not agreed then</th><th>Not agreed now</th><th>Comments then</th><th>Comments now</th><th>Added tasks then</th><th>Added tasks now</th><th>Lines changed</th><th>Not yet checked</th></tr></thead><tbody></tbody></table></div>
+<div class="tw" id="chgbox" hidden><h3>Lines changed since the previous round</h3><table id="chg"><thead><tr><th>Person</th><th>Where</th><th>Ref</th><th>Line</th><th>Then</th><th>Now</th></tr></thead><tbody></tbody></table></div></div>
 <p class="actions"><button type="button" class="btn" id="c-csv">Download all responses (spreadsheet)</button> <button type="button" class="btn" id="c-sum">Download summary by line (spreadsheet)</button> <button type="button" class="btn" id="c-json">Download combined data file</button></p>
 <h2>Review pack for one person</h2><p>Choose a person who has sent their answers. The Word review sheet lists what they agreed, what they did not agree or commented on (each with its source and the documents it affects), their qualification and training lines, tasks they added, and boxes for the solution, owner and date. The Excel action register carries the same lines for tracking the changes to roles, procedures and training.</p>
 <div class="filters"><label>Person <select id="rp-who"></select></label></div>
@@ -39,8 +42,8 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 <script src="assets/gss-firebase-config.js"></script>
 <script src="assets/items.js"></script>
-<script src="assets/store.js?v=3"></script>
+<script src="assets/store.js?v=4"></script>
 <script src="assets/review.js"></script>
-<script src="assets/collate.js?v=4"></script>
+<script src="assets/collate.js?v=5"></script>
 </body>
 </html>

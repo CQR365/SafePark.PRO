@@ -8,13 +8,13 @@
   var saveFixes = function () { try { window.localStorage.setItem(FIXKEY, JSON.stringify(fixes)); } catch (e) { /* ignore */ } };
   var keyOf = function (s) { return (s.who.name + '|' + s.who.post).toLowerCase(); };
 
-  function add(obj, label) {
+  function add(obj, label, round) {
     if (!obj || typeof obj.responses !== 'object') throw new Error(label + ' is not a responses data file');
     var w = obj.who || obj.responses._who || {};
     var fx = obj.id && fixes[obj.id];
     if (fx && fx.hide) return;
     if (fx && fx.name) w = { name: fx.name, post: fx.post || '' };
-    var s = { id: obj.id, who: { name: (w.name || 'Unnamed (' + label + ')').trim(), post: (w.post || '').trim() }, exported: obj.exported || '', responses: obj.responses };
+    var s = { id: obj.id, round: round, who: { name: (w.name || 'Unnamed (' + label + ')').trim(), post: (w.post || '').trim() }, exported: obj.exported || '', responses: obj.responses };
     // a later file from the same person replaces their earlier one
     sets = sets.filter(function (x) { return keyOf(x) !== keyOf(s) || (x.exported > s.exported); });
     if (!sets.some(function (x) { return keyOf(x) === keyOf(s); })) sets.push(s);
@@ -38,13 +38,13 @@
           var nm = window.prompt('Name for this record:', /^Unnamed/.test(s.who.name) ? '' : s.who.name); if (!nm || !nm.trim()) return;
           var po = window.prompt('Post for this record:', s.who.post) || '';
           var w = { name: nm.trim(), post: po.trim() };
-          Promise.resolve(Store.fix ? Store.fix(s.id, { adminWho: w }) : Promise.reject(new Error('no central store')))
+          Promise.resolve(Store.fix ? Store.fix(s.id, { adminWho: w }, s.round) : Promise.reject(new Error('no central store')))
             .catch(function (e) { fixes[s.id] = w; saveFixes(); window.alert('Could not save this to the central store (' + e.message + '). It is saved on this browser only.'); })
             .then(function () { s.who = w; draw(); });
         });
         mk('Hide', function () {
           if (!window.confirm('Hide this record for everyone who uses this page? The answers stay in the central store.')) return;
-          Promise.resolve(Store.fix ? Store.fix(s.id, { hidden: true }) : Promise.reject(new Error('no central store')))
+          Promise.resolve(Store.fix ? Store.fix(s.id, { hidden: true }, s.round) : Promise.reject(new Error('no central store')))
             .catch(function (e) { fixes[s.id] = { hide: true }; saveFixes(); window.alert('Could not save this to the central store (' + e.message + '). It is hidden on this browser only.'); })
             .then(function () { sets = sets.filter(function (x) { return x !== s; }); draw(); });
         });
@@ -144,8 +144,57 @@
   if (window.Store && typeof Store.loadAll === 'function') {
     var b = $('c-live'); b.hidden = false;
     b.addEventListener('click', function () {
-      Promise.resolve(Store.loadAll()).then(function (list) { (list || []).forEach(function (o, n) { try { add(o, 'record ' + (n + 1)); } catch (e) { /* skip */ } }); draw(); })
+      var rid = $('c-round').value || undefined;
+      Promise.resolve(Store.loadAll(rid)).then(function (list) { (list || []).forEach(function (o, n) { try { add(o, 'record ' + (n + 1), rid); } catch (e) { /* skip */ } }); draw(); })
         .catch(function (e) { window.alert('Could not load from the central store: ' + e.message); });
+    });
+  }
+
+  // Rounds: choose which round to view, and compare the current one with the one before
+  if (window.Store && Store.rounds) {
+    var rs = Store.rounds(), sel = $('c-round');
+    rs.forEach(function (r) { var o = document.createElement('option'); o.value = r.id; o.textContent = r.label + (r === rs[rs.length - 1] ? ' (current)' : ''); sel.appendChild(o); });
+    sel.value = rs[rs.length - 1].id;
+    sel.addEventListener('change', function () { sets = []; draw(); });
+    if (rs.length > 1) $('rounds').hidden = false; else sel.closest('p').hidden = true;
+    var cmpRows = [];
+    var tally = function (resp) {
+      var t = { answered: 0, y: 0, n: 0, comments: 0, added: 0, unchecked: 0, lines: {} };
+      Object.keys(resp || {}).forEach(function (k) {
+        if (k.charAt(0) === '_') return; var r = resp[k] || {};
+        if (r.rows) t.added += r.rows.filter(function (x) { return (x || []).join('').trim(); }).length;
+        if (r.agree || r.comment) { t.answered++; if (r.agree === 'Y') t.y++; if (r.agree === 'N') t.n++; if (r.comment) t.comments++; if (r._carried) t.unchecked++; t.lines[k] = { agree: r.agree || '', comment: r.comment || '' }; }
+      });
+      return t;
+    };
+    var keyP = function (o) { return ((o.who && o.who.name) || '').trim().toLowerCase() + '|' + ((o.who && o.who.post) || '').trim().toLowerCase(); };
+    var say = function (a) { return a ? (a === 'Y' ? 'Agreed' : 'Not agreed') : 'No answer'; };
+    $('c-cmp').addEventListener('click', function () {
+      var cur = rs[rs.length - 1], prv = rs[rs.length - 2], msg = $('cmpmsg'); msg.textContent = 'Loading both rounds...';
+      Promise.all([Store.loadAll(prv.id), Store.loadAll(cur.id)]).then(function (res) {
+        var then = res[0], now = res[1], used = {}, rows = [], chg = [];
+        var byId = {}, byName = {}; then.forEach(function (o, i) { byId[o.id] = i; if (o.who && o.who.name) byName[keyP(o)] = i; });
+        now.forEach(function (o) {
+          var i = byId[o.id]; if (i == null) i = byName[keyP(o)];
+          var p = i == null ? null : then[i]; if (i != null) used[i] = true;
+          var a = tally(p && p.responses), b = tally(o.responses), changed = 0, who = (o.who && o.who.name) || 'Unnamed', post = (o.who && o.who.post) || '';
+          if (p) { var all = {}; Object.keys(a.lines).concat(Object.keys(b.lines)).forEach(function (k) { all[k] = 1; });
+            Object.keys(all).forEach(function (k) { var x = a.lines[k] || { agree: '', comment: '' }, y = b.lines[k] || { agree: '', comment: '' };
+              if (x.agree !== y.agree || x.comment !== y.comment) { changed++; chg.push([who, Review.where(k), Review.ref(k), (window.ITEMS || {})[k] || '', say(x.agree) + (x.comment ? ': ' + x.comment : ''), say(y.agree) + (y.comment ? ': ' + y.comment : '')]); } }); }
+          rows.push([who, post, p ? a.answered : 'new', b.answered, p ? a.y : '', b.y, p ? a.n : '', b.n, p ? a.comments : '', b.comments, p ? a.added : '', b.added, p ? changed : '', b.unchecked]);
+        });
+        then.forEach(function (o, i) { if (used[i]) return; var a = tally(o.responses); rows.push([(o.who && o.who.name) || 'Unnamed', (o.who && o.who.post) || '', a.answered, 'not back yet', a.y, '', a.n, '', a.comments, '', a.added, '', '', '']); });
+        cmpRows = [['Person', 'Post', 'Answered then', 'Answered now', 'Agreed then', 'Agreed now', 'Not agreed then', 'Not agreed now', 'Comments then', 'Comments now', 'Added tasks then', 'Added tasks now', 'Lines changed', 'Not yet checked']].concat(rows);
+        var chgAll = [['Person', 'Where', 'Ref', 'Line', 'Then', 'Now']].concat(chg);
+        var fill = function (id, data) { var tb = $(id).querySelector('tbody'); tb.innerHTML = ''; data.forEach(function (r) { var tr = document.createElement('tr'); r.forEach(function (t) { var td = document.createElement('td'); td.textContent = t; tr.appendChild(td); }); tb.appendChild(tr); }); };
+        fill('cmp', rows); fill('chg', chg); $('cmpbox').hidden = false; $('chgbox').hidden = !chg.length; $('c-cmpcsv').hidden = false;
+        cmpRows.changes = chgAll;
+        msg.textContent = prv.label + ' compared with ' + cur.label + ': ' + now.length + ' people this round, ' + (then.length) + ' last round, ' + chg.length + ' changed lines.';
+      }).catch(function (e) { msg.textContent = 'Could not compare: ' + e.message; });
+    });
+    $('c-cmpcsv').addEventListener('click', function () {
+      var out = cmpRows.slice(); out.push([]); out.push(['Lines changed']); (cmpRows.changes || []).forEach(function (r) { out.push(r); });
+      R.saveFile('GSS_post_profile_round_comparison_' + stamp() + '.csv', R.csv(out), 'text/csv');
     });
   }
   draw();
