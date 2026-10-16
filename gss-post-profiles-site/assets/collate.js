@@ -62,6 +62,9 @@
       tb2.appendChild(tr);
     });
     $('cn').textContent = n + ' shown';
+    var sel = $('rp-who'), keep = sel.value; sel.innerHTML = '';
+    sets.forEach(function (x, i) { var o = document.createElement('option'); o.value = i; o.textContent = x.who.name + (x.who.post ? ' (' + x.who.post + ')' : ''); sel.appendChild(o); });
+    if (keep && sel.querySelector('option[value="' + keep + '"]')) sel.value = keep;
   }
   var stamp = function () { return new Date().toISOString().slice(0, 10); };
   var need = function () { if (sets.length) return true; window.alert('Add at least one contributor file first.'); return false; };
@@ -77,6 +80,37 @@
     ev.target.value = '';
   });
   $('c-unfix').addEventListener('click', function () { fixes = {}; saveFixes(); sets = []; draw(); window.alert('Renames and hides cleared. Load the responses again to see every record.'); });
+  // Review pack: loads the Word and Excel libraries and the profile wording only when a button is pressed
+  var loaded = null;
+  var loadJs = function (src) { return new Promise(function (ok, no) { var el = document.createElement('script'); el.src = src; el.onload = ok; el.onerror = function () { no(new Error('Could not load ' + src)); }; document.head.appendChild(el); }); };
+  var ensurePack = function () {
+    if (loaded) return loaded;
+    loaded = loadJs('assets/vendor/docx-8.5.0.umd.js?v=1').then(function () { return loadJs('assets/vendor/xlsx-0.18.5.full.min.js?v=1'); })
+      .then(function () { return loadJs('assets/xref.js?v=1'); }).then(function () { return loadJs('assets/reviewpack.js?v=1'); })
+      .then(function () { return fetch('assets/gss-logo.png').then(function (r) { return r.arrayBuffer(); }).then(function (b) { return new Uint8Array(b); }, function () { return null; }); });
+    loaded.catch(function () { loaded = null; });
+    return loaded;
+  };
+  var saveBlob = function (name, blob) { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); };
+  var safe = function (t) { return String(t || 'person').replace(/[^A-Za-z0-9]+/g, '_'); };
+  var pack = function (what) {
+    if (!need()) return;
+    var msg = $('rp-msg'), idx = parseInt($('rp-who').value, 10), chosen = what === 'all' ? sets : [sets[idx]];
+    if (!chosen[0]) { msg.textContent = 'Choose a person first.'; return; }
+    msg.textContent = 'Building...';
+    ensurePack().then(function (logo) {
+      var M = window.ReviewPack.buildModel(chosen, window.XREF);
+      if (what === 'word') {
+        return window.docx.Packer.toBlob(window.ReviewPack.wordDoc(M[0], window.docx, logo)).then(function (b) { saveBlob('GSS_Post_Review_Sheet_' + safe(M[0].who.name) + '_' + stamp() + '.docx', b); });
+      }
+      var wb = window.ReviewPack.workbook(M, window.XLSX), out = window.XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
+      saveBlob('GSS_Action_Register_' + (what === 'all' ? 'ALL' : safe(M[0].who.name)) + '_' + stamp() + '.xlsx', new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+    }).then(function () { msg.textContent = 'Downloaded.'; }, function (e) { msg.textContent = 'Could not build the file: ' + e.message; });
+  };
+  $('rp-word').addEventListener('click', function () { pack('word'); });
+  $('rp-one').addEventListener('click', function () { pack('one'); });
+  $('rp-all').addEventListener('click', function () { pack('all'); });
+
   $('c-reset').addEventListener('click', function () { sets = []; draw(); });
   $('cq').addEventListener('input', draw); $('cshow').addEventListener('change', draw);
 

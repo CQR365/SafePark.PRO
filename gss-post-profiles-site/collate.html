@@ -27,6 +27,9 @@
 <p class="actions"><label class="btn">Add contributor files <input type="file" id="cfiles" accept=".json,application/json" multiple hidden></label> <button type="button" class="btn" id="c-live" hidden>Load all responses from the central store</button> <button type="button" class="btn" id="c-reset">Start again</button> <button type="button" class="btn" id="c-unfix">Clear my renames and hides</button></p>
 <p id="cstatus">No files added yet.</p><div class="tw"><table id="cwho"><thead><tr><th>Contributor</th><th>Post</th><th>Responses</th><th>Agreed (Y)</th><th>Not agreed (N)</th><th>Comments</th><th>Exported</th><th>Action</th></tr></thead><tbody></tbody></table></div>
 <p class="actions"><button type="button" class="btn" id="c-csv">Download all responses (spreadsheet)</button> <button type="button" class="btn" id="c-sum">Download summary by line (spreadsheet)</button> <button type="button" class="btn" id="c-json">Download combined data file</button></p>
+<h2>Review pack for one person</h2><p>Choose a person who has sent their answers. The Word review sheet lists what they agreed, what they did not agree or commented on (each with its source and the documents it affects), their qualification and training lines, tasks they added, and boxes for the solution, owner and date. The Excel action register carries the same lines for tracking the changes to roles, procedures and training.</p>
+<div class="filters"><label>Person <select id="rp-who"></select></label></div>
+<p class="actions"><button type="button" class="btn" id="rp-word">Download review sheet (Word)</button> <button type="button" class="btn" id="rp-one">Download their action register (Excel)</button> <button type="button" class="btn" id="rp-all">Download action register for everyone (Excel)</button></p><p id="rp-msg" role="status"></p>
 <h2>Lines not agreed, or with a comment</h2><div class="filters"><label>Search <input type="search" id="cq" placeholder="Words in the line or comment"></label> <label>Show <select id="cshow"><option value="flag">Not agreed or commented</option><option value="all">Everything</option></select></label> <span id="cn"></span></div>
 <div class="tw"><table id="call"><thead><tr><th>Where</th><th>Ref</th><th>Line</th><th>Contributor</th><th>Agree</th><th>Comment</th></tr></thead><tbody></tbody></table></div>
 </main>
@@ -38,6 +41,6 @@
 <script src="assets/items.js"></script>
 <script src="assets/store.js?v=3"></script>
 <script src="assets/review.js"></script>
-<script src="assets/collate.js?v=3"></script>
+<script src="assets/collate.js?v=4"></script>
 </body>
 </html>
