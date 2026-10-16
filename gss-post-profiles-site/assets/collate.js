@@ -37,11 +37,16 @@
         mk('Name this record', function () {
           var nm = window.prompt('Name for this record:', /^Unnamed/.test(s.who.name) ? '' : s.who.name); if (!nm || !nm.trim()) return;
           var po = window.prompt('Post for this record:', s.who.post) || '';
-          fixes[s.id] = { name: nm.trim(), post: po.trim() }; saveFixes(); s.who = { name: nm.trim(), post: po.trim() }; draw();
+          var w = { name: nm.trim(), post: po.trim() };
+          Promise.resolve(Store.fix ? Store.fix(s.id, { adminWho: w }) : Promise.reject(new Error('no central store')))
+            .catch(function (e) { fixes[s.id] = w; saveFixes(); window.alert('Could not save this to the central store (' + e.message + '). It is saved on this browser only.'); })
+            .then(function () { s.who = w; draw(); });
         });
         mk('Hide', function () {
-          if (!window.confirm('Hide this record from the tables and downloads on this browser? It stays in the central store.')) return;
-          fixes[s.id] = { hide: true }; saveFixes(); sets = sets.filter(function (x) { return x !== s; }); draw();
+          if (!window.confirm('Hide this record for everyone who uses this page? The answers stay in the central store.')) return;
+          Promise.resolve(Store.fix ? Store.fix(s.id, { hidden: true }) : Promise.reject(new Error('no central store')))
+            .catch(function (e) { fixes[s.id] = { hide: true }; saveFixes(); window.alert('Could not save this to the central store (' + e.message + '). It is hidden on this browser only.'); })
+            .then(function () { sets = sets.filter(function (x) { return x !== s; }); draw(); });
         });
       }
       tr.appendChild(ta);

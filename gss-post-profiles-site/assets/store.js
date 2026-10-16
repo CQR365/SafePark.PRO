@@ -101,6 +101,11 @@
         } catch (e) { return { saved: true, file: false }; }
       });
     },
+    // Name or hide a record from the Collate page. Kept in the central store, in fields the contributor's own saves never touch.
+    fix: function (id, fields) {
+      if (!connect()) return Promise.reject(new Error('The central store is not available on this page.'));
+      return db.collection(COLL).doc(id).set(fields, { merge: true });
+    },
     // Everyone's answers, for the Collate responses page.
     loadAll: function () {
       if (!connect()) return Promise.reject(new Error('The central store is not available on this page.'));
@@ -109,7 +114,8 @@
         snap.forEach(function (doc) {
           var x = doc.data() || {}, r = {};
           try { r = JSON.parse(x.responsesJson || '{}'); } catch (e) { r = {}; }
-          out.push({ id: doc.id, who: x.who || {}, exported: x.submittedAt || x.updated || '', submitted: !!x.submitted, responses: r });
+          if (x.hidden) return;
+          out.push({ id: doc.id, who: (x.adminWho && x.adminWho.name) ? x.adminWho : (x.who || {}), exported: x.submittedAt || x.updated || '', submitted: !!x.submitted, responses: r });
         });
         return out;
       });
