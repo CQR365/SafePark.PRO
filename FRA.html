@@ -1114,22 +1114,63 @@ function updateSectionStatus(sectionId) {
 }
 
 // ==================== PHOTO HANDLING ====================
+// Shrink phone photos (max 1280px JPEG) so they upload fast and print cleanly in the report
+function compressImage(file, maxDim, quality) {
+    maxDim = maxDim || 1280; quality = quality || 0.7;
+    return new Promise(function(resolve, reject) {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = function(e) {
+            const im = new Image();
+            im.onerror = reject;
+            im.onload = function() {
+                const sc = Math.min(1, maxDim / Math.max(im.width, im.height));
+                const c = document.createElement('canvas');
+                c.width = Math.round(im.width * sc); c.height = Math.round(im.height * sc);
+                c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+                resolve(c.toDataURL('image/jpeg', quality));
+            };
+            im.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
 function handlePhoto(input, sectionId, qIndex) {
     const file = input.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
+    const fileName = file.name;
+    compressImage(file).then(function(dataUrl) {
         const container = document.getElementById(`photos-${sectionId}-${qIndex}`);
         const img = document.createElement('img');
-        img.src = e.target.result;
-        img.title = file.name;
-        img.onclick = function() {
-            window.open(e.target.result, '_blank');
-        };
+        img.src = dataUrl;
+        img.title = fileName;
+        img.onclick = function() { window.open(this.src, '_blank'); };
         container.appendChild(img);
-    };
-    reader.readAsDataURL(file);
+    }).catch(function() { showToast('Could not read that photo — please try again', 'error'); });
     input.value = '';
+}
+
+// Upload any new (data:) photos to Firebase Storage and swap in the download URLs, so they are saved with the assessment
+async function uploadFraPhotos(data) {
+    if (!storage) throw new Error('Photo storage not available');
+    const base = 'fra-photos/' + (currentAssessment || ('new-' + Date.now())) + '/';
+    let n = 0;
+    for (const secId of Object.keys(data.sections)) {
+        const checkItems = document.querySelectorAll(`#sec-${secId} .check-item`);
+        for (let qi = 0; qi < data.sections[secId].length; qi++) {
+            const photos = data.sections[secId][qi].photos || [];
+            for (let pi = 0; pi < photos.length; pi++) {
+                if (!photos[pi].startsWith('data:')) continue;
+                const ref = storage.ref(base + secId + '_' + qi + '_' + Date.now() + '_' + (n++) + '.jpg');
+                const snap = await ref.putString(photos[pi], 'data_url');
+                const url = await snap.ref.getDownloadURL();
+                photos[pi] = url;
+                const thumb = checkItems[qi] && checkItems[qi].querySelectorAll('.check-photos img')[pi];
+                if (thumb) thumb.src = url;
+            }
+        }
+    }
 }
 
 // ==================== AUTO RISK SCORE CALCULATION ====================
@@ -1285,6 +1326,15 @@ function generatePDF(data) {
                     <td style="padding:8px 12px;border:1px solid #ddd;font-size:12px;font-weight:700;color:${ansColor};text-align:center">${ansLabel}</td>
                     <td style="padding:8px 12px;border:1px solid #ddd;font-size:11px;color:#555">${item.comment || ''}</td>
                 </tr>`;
+                if (item.photos && item.photos.length) {
+                    rowsHTML += `<tr style="background:${bgCol};page-break-inside:avoid">
+                        <td style="padding:6px 12px;border:1px solid #ddd"></td>
+                        <td colspan="3" style="padding:8px 12px;border:1px solid #ddd">
+                            <div style="font-size:10px;color:#666;margin-bottom:4px">📷 Photo evidence — ${sec.num}.${i+1}</div>
+                            ${item.photos.map(src => `<img src="${src}" style="width:200px;max-height:160px;object-fit:cover;border:1px solid #ccc;border-radius:3px;margin:0 6px 6px 0">`).join('')}
+                        </td>
+                    </tr>`;
+                }
             });
             sectionsHTML += `
                 <h3 style="margin:24px 0 8px;font-size:14px;color:#333;border-bottom:2px solid #c62828;padding-bottom:4px">Section ${sec.num}: ${sec.title}</h3>
@@ -1468,7 +1518,8 @@ function collectFormData() {
             items.push({
                 question: section.items[i],
                 answer: item.dataset.answer || null,
-                comment: item.querySelector('.check-comment').value || ''
+                comment: item.querySelector('.check-comment').value || '',
+                photos: Array.from(item.querySelectorAll('.check-photos img')).map(im => im.src)
             });
         });
         sections[section.id] = items;
@@ -1510,6 +1561,8 @@ async function saveDraft() {
     const data = collectFormData();
     data.status = 'in-progress';
     try {
+        showToast('Saving…', 'success');
+        await uploadFraPhotos(data);
         if (currentAssessment) {
             await db.collection('fra-assessments').doc(currentAssessment).update(data);
         } else {
@@ -1539,6 +1592,8 @@ async function completeAssessment() {
     data.status = 'complete';
 
     try {
+        showToast('Saving…', 'success');
+        await uploadFraPhotos(data);
         if (currentAssessment) {
             await db.collection('fra-assessments').doc(currentAssessment).update(data);
         } else {
