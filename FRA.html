@@ -422,7 +422,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Premises / Site Name *</label>
-                                <input type="text" id="fraName" placeholder="e.g. Ben Nevis Holiday Park or Lodge 12">
+                                <input type="text" id="fraName" placeholder="e.g. Head Office, Glasgow or Unit 4">
                             </div>
                             <div class="form-group">
                                 <label>Premises Type</label>
@@ -433,6 +433,8 @@
                                     <option value="touring-pitch">Touring Pitch Area</option>
                                     <option value="glamping">Glamping Pod / Yurt / Shepherd's Hut</option>
                                     <option value="reception">Reception / Office</option>
+                                    <option value="office">Office / Studio / Commercial Premises</option>
+                                    <option value="retail">Shop / Retail Premises</option>
                                     <option value="amenity-block">Amenity Block / Toilet Block</option>
                                     <option value="laundry">Laundry Room</option>
                                     <option value="leisure">Leisure Facility / Games Room</option>
@@ -1027,6 +1029,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // FRA-only access: initApp() above ran before Firebase was ready, so reload her assessments now
     if (isFraOnlyAccess() && db) initApp();
+    // FRA-only assessors are standalone commercial premises, so start on that premises type
+    if (isFraOnlyAccess()) document.getElementById('fraPremType').value = 'office';
 });
 
 // ==================== LOGIN ====================
@@ -2490,7 +2494,7 @@ function getPremIcon(type) {
     const icons = {
         'holiday-park':'🏕️','lodge':'🏠','static-caravan':'🏘️','touring-pitch':'⛺',
         'glamping':'🛖','reception':'🏢','amenity-block':'🚿','laundry':'🧺',
-        'leisure':'🎮','restaurant':'🍽️','workshop':'🔧','storage':'📦','other':'📋'
+        'leisure':'🎮','restaurant':'🍽️','workshop':'🔧','storage':'📦','office':'🏢','retail':'🛍️','other':'📋'
     };
     return icons[type] || '📋';
 }
