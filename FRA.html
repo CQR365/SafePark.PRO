@@ -1019,6 +1019,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     } catch(e) {
         console.warn('Firebase init:', e.message);
     }
+
+    // FRA-only access: initApp() above ran before Firebase was ready, so reload her assessments now
+    if (isFraOnlyAccess() && db) initApp();
 });
 
 // ==================== LOGIN ====================
@@ -1994,8 +1997,19 @@ async function loadActions() {
 }
 
 // ==================== LOAD PARK DATA FROM FIREBASE ====================
+// FRA-only access (PoLeFRA): a standalone assessor. Never pull other sites' equipment, units or service records.
+function isFraOnlyAccess() {
+    const code = (new URLSearchParams(window.location.search).get('access_code') || sessionStorage.getItem('currentAccessCode') || '').trim();
+    return code === 'PoLeFRA' || sessionStorage.getItem('userAccessLevel') === 'fra_admin';
+}
+
 async function loadParkData() {
     if (!db) return;
+    if (isFraOnlyAccess()) {
+        parkUnits = []; parkFirePoints = []; parkExtinguishers = []; parkServiceRecords = [];
+        renderUnitPicker();
+        return;
+    }
     const parkLower = currentPark.toLowerCase();
 
     // 1. Load accommodation_config for unit names

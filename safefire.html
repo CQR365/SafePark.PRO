@@ -69,6 +69,17 @@
         .module-card .mc-brand .brand-name{color:var(--primary);font-weight:700}
         .module-card .mc-brand .brand-pro{color:#C0C0C0;font-weight:400}
 
+        /* FRA-only access: other modules stay visible but locked */
+        .module-card.locked{opacity:.5;cursor:not-allowed}
+        .module-card.locked:hover{transform:none;border-color:rgba(255,255,255,0.12);box-shadow:0 6px 20px rgba(0,0,0,0.5),0 2px 4px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.08),inset 0 -2px 0 rgba(0,0,0,0.3)}
+        .module-card.locked .mc-badge{background:#555}
+        .lock-notice{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
+        .lock-notice.show{display:flex}
+        .lock-notice-box{background:var(--card-bg);border:1px solid var(--border);border-top:3px solid var(--primary);border-radius:12px;padding:26px 22px;max-width:380px;width:100%;text-align:center}
+        .lock-notice-box h3{font-family:'Orbitron',sans-serif;font-size:15px;letter-spacing:1px;margin-bottom:10px;color:var(--primary)}
+        .lock-notice-box p{font-size:14px;color:var(--text-muted);line-height:1.6;margin-bottom:18px}
+        .lock-notice-box button{padding:10px 26px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer}
+
         /* Stats bar */
 
         /* ===== MODULE FRAME ===== */
@@ -162,6 +173,15 @@
     </div>
 </div>
 
+<!-- ===== LOCKED MODULE NOTICE (FRA-only access) ===== -->
+<div class="lock-notice" id="lockNotice" onclick="if(event.target===this)closeLockNotice()">
+    <div class="lock-notice-box">
+        <h3>🔒 Not included</h3>
+        <p>This module is not included in your current access. Your access covers the Fire Risk Assessment only. Contact Omnibosh to upgrade.</p>
+        <button onclick="closeLockNotice()">OK</button>
+    </div>
+</div>
+
 <!-- ===== MODULE IFRAMES ===== -->
 <iframe class="module-frame" id="frameEquipment" src="" allow="camera;microphone"></iframe>
 <iframe class="module-frame" id="frameFRA" src="" allow="camera;microphone"></iframe>
@@ -193,6 +213,7 @@ let currentPark = '';
 let currentUser = '';
 let userLevel = '';
 let currentModule = null;
+let fraOnly = false; // PoLeFRA access: only the Fire Risk Assessment module may open
 
 // ==================== INITIALISATION ====================
 document.addEventListener('DOMContentLoaded', function() {
@@ -212,6 +233,10 @@ document.addEventListener('DOMContentLoaded', function() {
         currentUser = user;
     }
 
+    // ── FRA-only access detection (code arrives by URL param from index.html, or from session) ──
+    const _fraCode = (_urlCode || accessCode || '').trim();
+    fraOnly = (_fraCode === 'PoLeFRA') || (userLevel === 'fra_admin') || (sessionStorage.getItem('userAccessLevel') === 'fra_admin');
+    if (fraOnly) applyFraOnlyLocks();
     // ── STL detection ─────────────────────────────────────────────────────
     const _stlCode = (_urlCode || sessionStorage.getItem('currentAccessCode') || '').toUpperCase();
     if (_stlCode.startsWith('STL-')) {
@@ -244,10 +269,28 @@ async function initFirebase() {
     }
 }
 
+// ==================== FRA-ONLY ACCESS ====================
+function showLockNotice() { document.getElementById('lockNotice').classList.add('show'); }
+function closeLockNotice() { document.getElementById('lockNotice').classList.remove('show'); }
+// Keep every module card visible, but lock all except the Fire Risk Assessment
+function applyFraOnlyLocks() {
+    document.querySelectorAll('.module-card').forEach(function(card) {
+        const oc = card.getAttribute('onclick') || '';
+        if (oc.includes("loadModule('fra')")) return;
+        card.classList.add('locked');
+        card.setAttribute('onclick', 'showLockNotice()');
+        card.setAttribute('title', 'Not included in your current access');
+        const badge = card.querySelector('.mc-badge');
+        if (badge) badge.textContent = '🔒 LOCKED';
+    });
+}
+
 // ==================== MODULE LOADING ====================
 function loadModule(moduleKey) {
     const path = MODULE_PATHS[moduleKey];
     if (!path) return;
+    // Hard stop: FRA-only access can never open any other module, however this is reached (card, history, URL hash)
+    if (fraOnly && moduleKey !== 'fra') { showLockNotice(); return; }
 
     currentModule = moduleKey;
     const frameId = moduleKey === 'equipment' ? 'frameEquipment' : moduleKey === 'fra' ? 'frameFRA' : moduleKey === 'panel' ? 'framePanel' : 'frameDetection';
