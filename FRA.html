@@ -21,7 +21,7 @@
             --dark-bg:#1a1a1a;--card-bg:#2d2d2d;--card-bg-hover:#333;--border:#444;--border-light:#555;
             --text:#fff;--text-muted:#999;--text-dim:#777;
             --success:#28a745;--warning:#ffc107;--danger:#dc3545;--info:#17a2b8;
-            --input-bg:#353535;--input-border:#555;--input-focus:var(--primary);
+            --input-bg:#454545;--input-border:#555;--input-focus:var(--primary);
         }
         body{font-family:'Fira Sans',sans-serif;background:var(--dark-bg);color:var(--text);min-height:100vh;line-height:1.6;font-size:16px}
         a{color:var(--primary);text-decoration:none}
@@ -122,6 +122,8 @@
         .check-opt.na{border-color:var(--info);color:var(--info);background:rgba(23,162,184,.1)}
         .check-comment{width:100%;padding:10px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:4px;color:#fff;font-size:14px;font-family:'Fira Sans',sans-serif;margin-top:4px;resize:vertical;min-height:36px}
         .check-comment:focus{outline:none;border-color:var(--primary)}
+        /* Keep placeholder text readable on the lighter input boxes */
+        .form-group input::placeholder,.form-group textarea::placeholder,.check-comment::placeholder{color:#a8a8a8}
         .check-photo-btn{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:4px;color:var(--text-muted);font-size:13px;cursor:pointer;margin-top:4px;transition:all .15s;font-family:'Fira Sans',sans-serif}
         .check-photo-btn:hover{border-color:var(--primary);color:var(--primary)}
         .info-btn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-left:8px;padding:0;border-radius:50%;border:1px solid var(--info);background:rgba(23,162,184,.12);color:var(--info);font-size:14px;font-weight:700;line-height:1;cursor:pointer;vertical-align:middle;flex-shrink:0}
