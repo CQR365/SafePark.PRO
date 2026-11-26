@@ -242,6 +242,13 @@
         /* ===== RESPONSIVE ===== */
         @media(max-width:768px){
             .container{padding:12px}
+            /* Mobile: let grid/flex children shrink so inputs never run past the card edge */
+            .form-row>*,.form-group{min-width:0}
+            .form-group input,.form-group select,.form-group textarea{width:100%;min-width:0;max-width:100%}
+            .card-header{gap:10px}
+            .card-header h2{min-width:0}
+            /* Mobile: SafeFire wrapper already shows its own header + Back, so hide this duplicate one */
+            html.in-safefire .header{display:none}
             .header{padding:10px 14px}
             .header-left h1{font-size:16px}
             .form-row{grid-template-columns:1fr}
@@ -257,6 +264,10 @@
             .stats-grid{grid-template-columns:repeat(2,1fr)}
         }
     </style>
+<script>
+    // Flag when loaded inside the SafeFire wrapper (safefire.html adds auth_source=safefire)
+    try{ if(window.self!==window.top && new URLSearchParams(location.search).get('auth_source')==='safefire') document.documentElement.classList.add('in-safefire'); }catch(e){}
+</script>
 </head>
 <body>
 

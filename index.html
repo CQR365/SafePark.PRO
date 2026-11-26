@@ -5696,7 +5696,10 @@
             'GSSADMIN25': { park: 'GSS Marine & Silvers Marine', level: 'safemarine', user: 'GSS/Silvers QHSE Admin' },
 
             // GSS organisation review (forks straight to the post profiles review site)
-            'ProjectORG26': { park: 'GSS Marine Services', level: 'gss_org', user: 'GSS Organisation Review' }
+            'ProjectORG26': { park: 'GSS Marine Services', level: 'gss_org', user: 'GSS Organisation Review' },
+
+            // SafeFire / FRA-only access — whole sidebar is visible, but only SafeFire.PRO+ opens
+            'PoLeFRA': { park: 'SafeFire.PRO FRA Access', level: 'fra_admin', user: 'FRA User' }
         };
 
         // Cafe tenant scope by access code. Boatshed => loch_goil_cafe (unchanged default); new cafes map here.
@@ -6134,6 +6137,29 @@
             loadModule(url, title);
         }
 
+        // ── FRA-ONLY ACCESS (PoLeFRA / fra_admin) ─────────────────────
+        // Only SafeFire.PRO+ opens. Every other module stays visible but locked.
+        const FRA_ONLY_NAV_HANDLERS = ['returnToDashboard', 'logout', 'toggleNavSection', 'filterSidebarModules', 'toggleMobileMenu', "showSection('dashboard')"];
+        function isFraOnlyAllowed(onclickOrUrl) {
+            return String(onclickOrUrl || '').includes('/safefire.html');
+        }
+        function lockFraOnlyElement(el, onclick) {
+            var label = ((el.textContent || '').trim().split('\n')[0].slice(0, 40).replace(/'/g, '')) || 'This Module';
+            el.setAttribute('onclick',
+                "showUpgradeHoldingPage('" + label + "', 'This module is not included in your current access. Your access covers SafeFire.PRO+ only. Contact Omnibosh to upgrade.', '#CC5500')"
+            );
+            el.style.opacity = '0.5';
+            el.title = 'Not included in current access — contact Omnibosh to upgrade';
+        }
+        // Dashboard tiles: keep every tile visible, lock all except SafeFire
+        function filterFraOnlyDashboardTiles() {
+            document.querySelectorAll('#dashboard .stat-card[onclick]').forEach(function(tile) {
+                var oc = tile.getAttribute('onclick') || '';
+                if (oc.includes('showUpgradeHoldingPage') || isFraOnlyAllowed(oc)) return;
+                lockFraOnlyElement(tile, oc);
+            });
+        }
+
         // Filter dashboard tiles for hotel_admin
         function filterHotelDashboardTiles() {
             const approvedTiles = [
@@ -6324,6 +6350,19 @@
                     if (oc.includes('chemical-trends.html') && !oc.includes('hotel')) {
                         btn.setAttribute('onclick', oc.replace('chemical-trends.html', 'chemical-trends-hotel.html'));
                     }
+                });
+            }
+
+            // FRA-only access (PoLeFRA) — sidebar shows ALL modules, but only SafeFire.PRO+ opens.
+            // Everything else shows the upgrade holding page (same pattern as hotel_admin / cafe_admin).
+            if (userAccessLevel === 'fra_admin') {
+                document.querySelectorAll('.nav-btn, .sub-nav-btn').forEach(function(btn) {
+                    var onclick = btn.getAttribute('onclick') || '';
+                    if (!onclick) return;
+                    if (FRA_ONLY_NAV_HANDLERS.some(function(h) { return onclick.includes(h); })) return;
+                    if (onclick.includes('showUpgradeHoldingPage')) return;
+                    if (isFraOnlyAllowed(onclick)) return;
+                    lockFraOnlyElement(btn, onclick);
                 });
             }
 
@@ -8076,6 +8115,7 @@
             // Hotel admin — filter dashboard tiles immediately after render
             if (userAccessLevel === 'hotel_admin') { filterHotelDashboardTiles(); }
             if (userAccessLevel === 'cafe_admin') { filterCafeDashboardTiles(); }
+            if (userAccessLevel === 'fra_admin') { filterFraOnlyDashboardTiles(); }
             
             // GREY BOX NUCLEAR FIX: Force all container backgrounds transparent via JS
             if (window.innerWidth <= 1366) {
@@ -8507,6 +8547,11 @@
         }
 
         function loadModule(url, title) {
+            // FRA-only access: hard stop — only SafeFire.PRO+ may open, however loadModule is reached
+            if (typeof userAccessLevel !== 'undefined' && userAccessLevel === 'fra_admin' && !isFraOnlyAllowed(url)) {
+                showUpgradeHoldingPage(title || 'This Module', 'This module is not included in your current access. Your access covers SafeFire.PRO+ only. Contact Omnibosh to upgrade.', '#CC5500');
+                return;
+            }
             console.log('🔧 MODULE: Loading', title, 'on', window.innerWidth + 'x' + window.innerHeight);
             
             // Remove dashboard-view class when loading a module
