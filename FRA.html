@@ -1320,6 +1320,9 @@ function handlePhoto(input, sectionId, qIndex) {
 
 // Upload any new (data:) photos to Firebase Storage and swap in the download URLs, so they are saved with the assessment
 async function uploadFraPhotos(data) {
+    // Nothing to upload (no new photos) — save exactly as before
+    const hasNew = Object.values(data.sections || {}).some(items => items.some(it => (it.photos || []).some(ph => ph.startsWith('data:'))));
+    if (!hasNew) return;
     if (!storage) throw new Error('Photo storage not available');
     const base = 'fra-photos/' + (currentAssessment || ('new-' + Date.now())) + '/';
     let n = 0;
