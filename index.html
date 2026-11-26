@@ -5747,8 +5747,10 @@
         async function handleLogin(event) {
             event.preventDefault();
             
-            const accessCode = document.getElementById('accessCode').value.trim();
+            let accessCode = document.getElementById('accessCode').value.trim();
             const errorDiv = document.getElementById('loginError');
+            // PoLeFRA: ignore capitals so phone keyboards that change case don't lock her out
+            if (accessCode.toLowerCase() === 'polefra') accessCode = 'PoLeFRA';
             
             if (accessCodes[accessCode]) {
                 const userInfo = accessCodes[accessCode];
