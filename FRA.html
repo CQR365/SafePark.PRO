@@ -124,6 +124,14 @@
         .check-comment:focus{outline:none;border-color:var(--primary)}
         .check-photo-btn{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:4px;color:var(--text-muted);font-size:13px;cursor:pointer;margin-top:4px;transition:all .15s;font-family:'Fira Sans',sans-serif}
         .check-photo-btn:hover{border-color:var(--primary);color:var(--primary)}
+        .info-btn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-left:8px;padding:0;border-radius:50%;border:1px solid var(--info);background:rgba(23,162,184,.12);color:var(--info);font-size:14px;font-weight:700;line-height:1;cursor:pointer;vertical-align:middle;flex-shrink:0}
+        .info-btn:hover,.info-btn.active{background:var(--info);color:#fff}
+        .info-panel{display:none;margin:8px 0 10px;padding:12px 14px;background:rgba(23,162,184,.08);border:1px solid rgba(23,162,184,.35);border-left:4px solid var(--info);border-radius:6px;font-size:14px;line-height:1.5;color:#ddd}
+        .info-panel.show{display:block}
+        .info-panel h4{font-size:13px;letter-spacing:.5px;text-transform:uppercase;color:var(--info);margin-bottom:6px}
+        .info-panel ul{margin:0 0 6px 18px}
+        .info-panel li{margin-bottom:3px}
+        .info-panel .info-note{font-size:12px;color:var(--text-muted);margin-top:6px}
         .check-photos{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
         .check-photos img{width:50px;height:50px;object-fit:cover;border-radius:4px;border:1px solid var(--border);cursor:pointer}
 
@@ -820,6 +828,42 @@ const FRA_SECTIONS = [
     ]}
 ];
 
+// "What to look for" guidance shown behind the ⓘ icon. Keyed 'sectionId-questionIndex' (0-based).
+const FRA_HELP = {
+    'firefighting-0': `<h4>What to look for — portable fire extinguishers</h4>
+        <ul>
+            <li><strong>Pressure:</strong> on gauged (stored-pressure) units the needle must sit in the green zone. CO₂ units have no gauge — check the weight and that the tamper seal is intact.</li>
+            <li><strong>Pin &amp; tamper seal / tag:</strong> safety pin in place and the seal unbroken. A missing or broken seal means it may have been used or tampered with — treat as not fit for use.</li>
+            <li><strong>Service label / tag:</strong> dated within the last 12 months with the engineer's name. Check for extended-service or discharge-test dates where shown.</li>
+            <li><strong>Damage:</strong> dents, rust or corrosion (especially the base), cracks, leaks or powder residue, a cracked or perished hose, a blocked or damaged nozzle or horn, a damaged handle or trigger.</li>
+            <li><strong>Right type for the risk:</strong> water or foam for ordinary materials (wood, paper, textiles); CO₂ or powder for electrical equipment; wet chemical for cooking oil and fat. The colour band / label should match the contents.</li>
+            <li><strong>Position:</strong> on a wall bracket or stand (not on the floor), at a reachable height, not blocked, with its instruction label legible and facing outwards.</li>
+            <li><strong>Signage:</strong> a fire-point or extinguisher sign visible from a distance.</li>
+            <li><strong>Outdoors:</strong> weatherproof cover or cabinet, with no sun-fade, frost damage or water ingress.</li>
+        </ul>
+        <div class="info-note">Photograph any defective extinguisher with its label visible. Remove any extinguisher that fails a check from use and replace it.</div>`,
+    'firefighting-1': `<h4>What to look for — fire points</h4>
+        <ul>
+            <li>A fire point within about 30 m of every unit and building (check against the site plan, not by eye).</li>
+            <li>Each point holds the right extinguishers, plus a fire action notice and a clear sign.</li>
+            <li>The point is easy to get to — no parked vehicles, vegetation or stored items in the way.</li>
+        </ul>`,
+    'firefighting-2': `<h4>What to look for — marking and weatherproofing</h4>
+        <ul>
+            <li>Signs present, clean and readable from the approach, and not faded or damaged.</li>
+            <li>Extinguishers protected from rain, frost and sun (cover, cabinet or covered stand).</li>
+            <li>Instruction labels still legible after weathering.</li>
+        </ul>`,
+    'firefighting-4': `<h4>What to look for — servicing</h4>
+        <ul>
+            <li>Every extinguisher carries a service label dated within the last 12 months.</li>
+            <li>The engineer or company is named and competent, and the service record or certificate is on file.</li>
+            <li>Extended-service and discharge-test dates are in date where shown on the label.</li>
+            <li>Monthly visual checks by the site team are recorded (pressure, pin, seal, damage, position).</li>
+        </ul>
+        <div class="info-note">Ask for the service certificate and compare the serial numbers or count with what is on site.</div>`
+};
+
 // ==================== INITIALISATION ====================
 document.addEventListener('DOMContentLoaded', async function() {
     // Check for sessionStorage from parent system
@@ -1051,7 +1095,8 @@ function buildFormSections() {
         section.items.forEach((q, qi) => {
             itemsHtml += `
             <div class="check-item" data-section="${section.id}" data-q="${qi}">
-                <div class="check-question">${section.num}.${qi + 1} — ${q}</div>
+                <div class="check-question">${section.num}.${qi + 1} — ${q}${FRA_HELP[section.id + '-' + qi] ? ` <button type="button" class="info-btn" onclick="toggleInfo(this)" title="What to look for" aria-label="What to look for">ⓘ</button>` : ''}</div>
+                ${FRA_HELP[section.id + '-' + qi] ? `<div class="info-panel">${FRA_HELP[section.id + '-' + qi]}</div>` : ''}
                 <div class="check-options">
                     <button class="check-opt" onclick="setCheck(this,'yes')">Yes ✓</button>
                     <button class="check-opt" onclick="setCheck(this,'partial')">Partial ⚠</button>
@@ -1078,6 +1123,11 @@ function buildFormSections() {
             <div class="fra-section-body">${itemsHtml}</div>
         </div>`;
     });
+}
+
+function toggleInfo(btn) {
+    const panel = btn.closest('.check-item').querySelector('.info-panel');
+    if (panel) { panel.classList.toggle('show'); btn.classList.toggle('active'); }
 }
 
 function toggleSection(id) {
