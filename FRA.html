@@ -603,7 +603,8 @@
                         </div>
 
                         <div class="btn-group" style="justify-content:flex-end;margin-top:20px">
-                            <button class="btn btn-secondary" onclick="downloadAssessment()">📄 Download Report</button>
+                            <button class="btn btn-secondary" onclick="downloadAssessment()">📄 View / Print / Save PDF</button>
+                            <button class="btn btn-secondary" onclick="downloadAssessment(); setTimeout(function(){fraEmailReport()},300)">✉ Email Report</button>
                             <button class="btn btn-secondary" onclick="saveDraft()">💾 Save Draft</button>
                             <button class="btn btn-success" onclick="completeAssessment()">✓ Complete &amp; Save Assessment</button>
                         </div>
@@ -1350,6 +1351,40 @@ function generatePDF(data) {
         });
     }
 
+    // Action plan: every item answered No or Partial, with blank owner / target-date cells to complete
+    let actionRows = '', actionCount = 0;
+    if (data.sections) {
+        FRA_SECTIONS.forEach(sec => {
+            (data.sections[sec.id] || []).forEach((item, i) => {
+                if (item.answer !== 'no' && item.answer !== 'partial') return;
+                actionCount++;
+                const isNo = item.answer === 'no';
+                actionRows += `<tr style="page-break-inside:avoid">
+                    <td style="padding:6px 8px;border:1px solid #ddd;font-size:11px">${sec.num}.${i+1}</td>
+                    <td style="padding:6px 8px;border:1px solid #ddd;font-size:11px">${item.question}</td>
+                    <td style="padding:6px 8px;border:1px solid #ddd;font-size:11px;font-weight:700;color:${isNo ? '#c62828' : '#f57f17'};text-align:center">${isNo ? 'Action required' : 'Improvement required'}</td>
+                    <td style="padding:6px 8px;border:1px solid #ddd;font-size:11px;color:#555">${item.comment || ''}</td>
+                    <td style="padding:6px 8px;border:1px solid #ddd;font-size:11px;width:90px"></td>
+                    <td style="padding:6px 8px;border:1px solid #ddd;font-size:11px;width:80px"></td>
+                </tr>`;
+            });
+        });
+    }
+    const actionPlanHTML = `
+        <div style="margin-top:24px">
+            <h3 style="font-size:14px;color:#333;border-bottom:2px solid #c62828;padding-bottom:4px;margin-bottom:10px">Action Plan — Significant Findings (${actionCount})</h3>
+            ${actionCount ? `<table style="width:100%;border-collapse:collapse">
+                <tr style="background:#7f1d1d;color:#fff">
+                    <th style="padding:6px;border:1px solid #ddd;width:36px;font-size:11px">#</th>
+                    <th style="padding:6px;border:1px solid #ddd;font-size:11px;text-align:left">Finding</th>
+                    <th style="padding:6px;border:1px solid #ddd;width:90px;font-size:11px">Status</th>
+                    <th style="padding:6px;border:1px solid #ddd;font-size:11px;text-align:left">Assessor comment</th>
+                    <th style="padding:6px;border:1px solid #ddd;font-size:11px">Action owner</th>
+                    <th style="padding:6px;border:1px solid #ddd;font-size:11px">Target date</th>
+                </tr>${actionRows}</table>`
+            : `<div style="font-size:13px;color:#2e7d32">No non-compliant or partially compliant items were recorded.</div>`}
+        </div>`;
+
     const overrideNote = (data.overrideRating || data.overrideJustification)
         ? `<div style="background:#fff3e0;border:1px solid #e65100;border-radius:6px;padding:12px;margin-top:12px">
             <strong style="color:#e65100">⚙ Assessor Override Applied</strong><br>
@@ -1366,7 +1401,10 @@ function generatePDF(data) {
     </head><body>
         <div class="no-print" style="background:#c62828;color:#fff;padding:12px 20px;border-radius:8px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center">
             <span style="font-weight:600">Fire Risk Assessment Report</span>
-            <button onclick="window.print()" style="background:#fff;color:#c62828;border:none;padding:8px 20px;border-radius:6px;font-weight:700;cursor:pointer;font-size:14px">🖨 Print / Save as PDF</button>
+            <span>
+                <button onclick="window.print()" style="background:#fff;color:#c62828;border:none;padding:8px 20px;border-radius:6px;font-weight:700;cursor:pointer;font-size:14px">🖨 Print / Save as PDF</button>
+                <button onclick="if(window.opener&&window.opener.fraEmailReport){window.opener.fraEmailReport()}else{alert('Email is only available while the module is still open — use Print / Save as PDF, then attach the file to an email.')}" style="background:#fff;color:#c62828;border:none;padding:8px 20px;border-radius:6px;font-weight:700;cursor:pointer;font-size:14px;margin-left:8px">✉ Email Report</button>
+            </span>
         </div>
 
         <!-- Header -->
@@ -1403,6 +1441,9 @@ function generatePDF(data) {
         <!-- SafeFire Data Snapshot -->
         ${buildSafeFireReportHTML(data)}
 
+        <!-- Action Plan -->
+        ${actionPlanHTML}
+
         <!-- Summary & Sign-off -->
         <div style="margin-top:24px;border-top:3px solid #c62828;padding-top:16px">
             <h3 style="font-size:14px;color:#333;margin-bottom:8px">Assessor's Summary &amp; Significant Findings</h3>
@@ -1426,13 +1467,49 @@ function generatePDF(data) {
         </div>
     </body></html>`;
 
+    window._fraLastReportData = data;
     const win = window.open('', '_blank');
     if (win) {
         win.document.write(html);
         win.document.close();
     } else {
-        showToast('Pop-up blocked — please allow pop-ups', 'error');
+        // Pop-up blocked (common on phones): save the report as a file instead so it is never lost
+        const blob = new Blob([html], { type: 'text/html' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'FRA-' + ((data.name || 'report').replace(/[^a-z0-9]+/gi, '-')) + '.html';
+        document.body.appendChild(a); a.click(); a.remove();
+        showToast('Pop-up blocked — report saved as a file. Open it and use Print / Save as PDF.', 'warning');
     }
+}
+
+// Email the report summary (a browser cannot attach a PDF itself — save as PDF from the report, then attach)
+function fraEmailReport(assessmentId) {
+    let data = window._fraLastReportData;
+    if (assessmentId) data = allAssessments.find(a => a.id === assessmentId) || data;
+    if (!data) { showToast('Open the report first, then email it', 'warning'); return; }
+    let actions = 0;
+    Object.values(data.sections || {}).forEach(items => items.forEach(it => { if (it.answer === 'no' || it.answer === 'partial') actions++; }));
+    const subject = 'Fire Risk Assessment — ' + (data.name || 'Premises') + (data.reference ? ' (' + data.reference + ')' : '');
+    const body = [
+        'FIRE RISK ASSESSMENT',
+        'Premises: ' + (data.name || ''),
+        'Address: ' + (data.address || ''),
+        'Assessor: ' + (data.assessor || ''),
+        'Date of assessment: ' + (data.dateOfAssessment || ''),
+        'Review date: ' + (data.reviewDate || ''),
+        'Overall risk rating: ' + (data.overallRisk || 'not assessed').toUpperCase(),
+        'Compliance score: ' + (data.compliancePct || data.riskScore || '—') + '%',
+        'Items requiring action: ' + actions,
+        '',
+        'Summary: ' + (data.summary || 'None provided').slice(0, 600),
+        '',
+        'The full report (with photos and action plan) is attached as a PDF.'
+    ].join('\n');
+    const a = document.createElement('a');
+    a.href = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    document.body.appendChild(a); a.click(); a.remove();
+    showToast('Email opened — attach the PDF saved from the report (Print / Save as PDF)', 'success');
 }
 
 function buildSafeFireReportHTML(data) {
@@ -1601,8 +1678,10 @@ async function completeAssessment() {
             currentAssessment = ref.id;
         }
         showToast('Assessment completed and saved', 'success');
+        const completedId = currentAssessment;
         switchTab('dashboard');
-        loadAssessments();
+        await loadAssessments();
+        if (completedId) viewAssessment(completedId); // report options: view / print / save PDF / email
     } catch(e) {
         console.error(e);
         showToast('Save failed: ' + e.message, 'error');
@@ -2128,7 +2207,8 @@ function viewAssessment(id) {
         </div>
         ${a.summary ? `<div style="margin-bottom:16px"><strong style="color:var(--text-muted);font-size:13px">Summary:</strong><div style="margin-top:6px;padding:12px;background:rgba(255,255,255,.03);border-radius:6px;font-size:14px;white-space:pre-wrap">${a.summary}</div></div>` : ''}
         <div class="btn-group" style="justify-content:center">
-            <button class="btn btn-primary" onclick="downloadAssessment('${a.id}')">📄 Download Report</button>
+            <button class="btn btn-primary" onclick="downloadAssessment('${a.id}')">📄 View / Print / Save PDF</button>
+            <button class="btn btn-secondary" onclick="downloadAssessment('${a.id}'); setTimeout(function(){fraEmailReport('${a.id}')},300)">✉ Email Report</button>
             <button class="btn btn-secondary" onclick="closeModal()">Close</button>
         </div>
     `;
